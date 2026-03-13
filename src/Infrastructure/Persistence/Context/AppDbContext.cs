@@ -11,9 +11,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
-            // Configuración para PostgreSQL
             modelBuilder.HasDefaultSchema("public");
+
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
     }
 }
