@@ -1,3 +1,4 @@
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
 
 namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories
@@ -5,7 +6,7 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories
     /// <summary>
     /// Define el contrato de persistencia para la gestión de módulos asociados a empresas.
     /// </summary>
-    public interface IModulesRepository
+    public interface IModulesRepository : IRepository<Module>
     {
         /// <summary>
         /// Recupera una colección de módulos activos vinculados a una empresa específica.

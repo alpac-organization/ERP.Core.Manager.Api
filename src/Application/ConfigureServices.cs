@@ -20,7 +20,6 @@ namespace ERP.Core.Manager.Api.Application
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             });
 
-
             return services;
         }
     }

@@ -6,7 +6,7 @@ using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories
 {
-    public class ModulesRepository(AppDbContext _context): Repository<Company>(_context), IModulesRepository
+    public class ModulesRepository(AppDbContext _context): Repository<Module>(_context), IModulesRepository
     {
         public async Task<List<Module>> ObtainActiveModulesByCompanyId(int CompanyId, CancellationToken cancellationToken)
         {

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Billing.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.Modules.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Controllers
 {
@@ -20,6 +21,23 @@ namespace ERP.Core.Manager.Api.Controllers
                     CompanyId = companie_id
                 }
             );
+        }
+
+        [HttpPost("companies/{companie_id}/modules")]      
+        [Tags("Modulos")] 
+        public async Task<IActionResult> CreateModuleAssociatedWithCompanyAsync(
+            [FromRoute] int companie_id, 
+            [FromBody] CreateModuleAssociatedWithCompanyCommand body
+        ) {
+            await _mediator.Send(
+                new CreateModuleAssociatedWithCompanyCommand()
+                {
+                    CompanyId = companie_id,
+                    ModuleName = body.ModuleName
+                }
+            );
+
+            return Created(string.Empty, null);
         }
     }
 }

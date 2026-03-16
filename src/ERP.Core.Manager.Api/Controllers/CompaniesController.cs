@@ -10,7 +10,8 @@ namespace ERP.Core.Manager.Api.Controllers
     [Route("api/v1/")]
     public class CompaniesController(IMediator _mediator) : ApiControllerBase
     {
-        [HttpGet("companies")]       
+        [HttpGet("companies")]   
+        [Tags("Empresas")]   
         public async Task<List<CompanyDto>> GetAvailableCompaniesAsync()
         {
             return await _mediator.Send(

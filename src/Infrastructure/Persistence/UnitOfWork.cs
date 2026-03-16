@@ -11,6 +11,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         
     ) : IUnitOfWork
     {
+        public AppDbContext Context => _context;
         public ICompaniesRepository Companies => companiesRepository;
         public IModulesRepository Modules => modulesRepository;
 
