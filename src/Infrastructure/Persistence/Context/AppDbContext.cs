@@ -9,6 +9,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
     public class AppDbContext(DbContextOptions<AppDbContext> options): DbContext(options)
     {
         public DbSet<Company> Companies => Set<Company>();
+        public DbSet<Module> Modules => Set<Module>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

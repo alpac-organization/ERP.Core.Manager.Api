@@ -6,11 +6,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
 {
     public class UnitOfWork(
         AppDbContext _context,
-        ICompaniesRepository companiesRepository
-
+        ICompaniesRepository companiesRepository,
+        IModulesRepository modulesRepository
+        
     ) : IUnitOfWork
     {
         public ICompaniesRepository Companies => companiesRepository;
+        public IModulesRepository Modules => modulesRepository;
+
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
