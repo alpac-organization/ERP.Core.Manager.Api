@@ -22,6 +22,11 @@ namespace ERP.Core.Manager.Api.Infrastructure
                     m => m.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
 
+            //Services
+
+
+
+            //Repositories
             services.AddScoped<ICompaniesRepository, CompaniesRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

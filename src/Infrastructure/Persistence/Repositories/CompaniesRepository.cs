@@ -10,7 +10,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories
     {
         public async Task<List<Company>> GetAvailableCompanies(CancellationToken cancellationToken)
         {
-            return await _context.Companies.ToListAsync(cancellationToken);
+            return await _context.Companies
+                .Where(company => company.IsActive == true)
+                .ToListAsync(cancellationToken);
         }
     }
 }
