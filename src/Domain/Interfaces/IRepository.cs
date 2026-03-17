@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
+namespace ERP.Core.Manager.Api.Domain.Commons.Interfaces
 {
     public interface IRepository<T> where T : class
     {

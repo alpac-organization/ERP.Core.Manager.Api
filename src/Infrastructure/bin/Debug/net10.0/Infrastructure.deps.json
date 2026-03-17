@@ -9,6 +9,7 @@
       "Infrastructure/1.0.0": {
         "dependencies": {
           "Application": "1.0.0",
+          "Nanoid": "3.1.0",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1"
         },
         "runtime": {
@@ -245,6 +246,14 @@
           }
         }
       },
+      "Nanoid/3.1.0": {
+        "runtime": {
+          "lib/net8.0/Nanoid.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
       "Npgsql/10.0.2": {
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "10.0.4"
@@ -446,6 +455,13 @@
       "sha512": "sha512-lKIZiBiGd36k02TCdMHp1KlNWisyIvQxcYJvIkz7P4gSQ9zi8dgh6S5Grj8NNG7HWYIPfQymGyoZ6JB5d1Lo1g==",
       "path": "microsoft.identitymodel.tokens/8.14.0",
       "hashPath": "microsoft.identitymodel.tokens.8.14.0.nupkg.sha512"
+    },
+    "Nanoid/3.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-5vhxZ+1iVH213boPsR3KYQXWObZQcaGvLU9ytTroWJFeVzV2EFAtGgrmMpb8BCxd+KWeBASniZLzd3UQ0tkhRQ==",
+      "path": "nanoid/3.1.0",
+      "hashPath": "nanoid.3.1.0.nupkg.sha512"
     },
     "Npgsql/10.0.2": {
       "type": "package",

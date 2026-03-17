@@ -5,7 +5,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Authentication
     public class UserModuleRoles : BaseEntity<Guid>
     {
         public Guid RoleId { get; set; }
-        public Guid ModuleId { get; set; }
+        public string? ModuleCode { get; set; }
         public Guid UserProfileId { get; set; }
         public bool IsActive { get; set; }
 

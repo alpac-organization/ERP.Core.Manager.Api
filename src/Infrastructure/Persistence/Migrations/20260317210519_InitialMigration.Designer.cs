@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260317155316_ConfigurarIndiceSesiones")]
-    partial class ConfigurarIndiceSesiones
+    [Migration("20260317210519_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,9 +24,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "catalog_type", new[] { "branches", "work_areas", "job_positions", "document_types" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "catalog_type", new[] { "branches", "work_areas", "job_positions", "document_types", "banks", "exchange_rates" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "permission_type", new[] { "read", "create", "update", "delete" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "role_type", new[] { "administrator", "collaborator", "supervisor", "document_types" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "role_type", new[] { "administrator", "collaborator", "supervisor", "operator", "auditor" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_status", new[] { "active", "inactive", "locked" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
@@ -58,7 +58,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("permission_name");
 
                     b.Property<int>("PermissionType")
-                        .HasColumnType("integer")
+                        .HasColumnType("permission_type")
                         .HasColumnName("permission_type");
 
                     b.Property<Guid>("RoleId")
@@ -104,7 +104,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("role_name");
 
                     b.Property<int>("RoleType")
-                        .HasColumnType("integer")
+                        .HasColumnType("role_type")
                         .HasColumnName("role_type");
 
                     b.HasKey("Id");
@@ -192,15 +192,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("email");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
                     b.Property<string>("UserName")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("user_name");
 
                     b.Property<int>("UserStatus")
-                        .HasColumnType("integer")
+                        .HasColumnType("user_status")
                         .HasColumnName("user_status");
 
                     b.HasKey("Id");
@@ -212,27 +214,48 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_module_role_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
 
-                    b.Property<Guid>("ModuleId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("module_code");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("role_id");
 
                     b.Property<Guid>("UserProfileId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_profile_id");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
-                    b.HasIndex("UserProfileId");
+                    b.HasIndex("UserProfileId", "ModuleCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Unique_User_Module_Role");
 
-                    b.ToTable("UserModuleRoles", "public");
+                    b.ToTable("user_module_roles", "public");
                 });
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserProfile", b =>
@@ -289,8 +312,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("catalog_name");
 
                     b.Property<int>("CatalogType")
-                        .HasColumnType("integer")
+                        .HasColumnType("catalog_type")
                         .HasColumnName("catalog_type");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("integer")
+                        .HasColumnName("company_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -304,6 +341,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("is_active");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "CatalogName", "CatalogType")
+                        .IsUnique()
+                        .HasDatabaseName("IX_catalogs_company_type");
 
                     b.ToTable("catalogs", "public");
                 });
@@ -357,6 +398,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("IX_companies_code");
+
                     b.ToTable("companies", "public");
                 });
 
@@ -368,6 +413,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("module_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .HasColumnType("text")
+                        .HasColumnName("code");
 
                     b.Property<int>("CompanyId")
                         .HasColumnType("integer")
@@ -397,6 +446,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Code")
+                        .HasDatabaseName("ix_modules_company_code");
+
                     b.HasIndex("CompanyId")
                         .HasDatabaseName("ix_modules_company_id");
 
@@ -420,6 +472,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
                         .HasColumnName("catalog_name");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -466,7 +528,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserProfile", "UserProfile")
@@ -489,6 +551,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Catalogs.Catalog", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Catalogs.Company", "Company")
+                        .WithMany("Catalogs")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Catalogs.Module", b =>
@@ -537,6 +610,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Catalogs.Company", b =>
                 {
+                    b.Navigation("Catalogs");
+
                     b.Navigation("Modules");
                 });
 #pragma warning restore 612, 618

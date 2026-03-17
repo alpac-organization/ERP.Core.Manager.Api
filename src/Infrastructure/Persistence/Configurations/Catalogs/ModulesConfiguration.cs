@@ -22,7 +22,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .IsRequired();
 
             builder.Property(e => e.CompanyId)
-                .HasColumnName("company_id");
+                .HasColumnName("company_id")
+                .IsRequired();
+
+            builder.Property(e => e.Code)
+                .HasColumnName("code");
 
             builder.Property(e => e.IsActive)
                 .HasColumnName("is_active")
@@ -30,13 +34,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.DeletedAt)
                 .HasColumnName("deleted_at");
 
             builder.HasIndex(e => e.CompanyId)
                 .HasDatabaseName("ix_modules_company_id");
+
+            builder.HasIndex(e => e.Code)
+                .HasDatabaseName("ix_modules_company_code");
         }
     }
 }

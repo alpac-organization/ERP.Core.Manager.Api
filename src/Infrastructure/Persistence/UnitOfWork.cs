@@ -1,4 +1,4 @@
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 

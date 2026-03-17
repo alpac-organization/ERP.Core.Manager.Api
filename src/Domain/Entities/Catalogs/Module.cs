@@ -6,6 +6,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
     {
         public bool IsActive { get; set; } = true;
         public string ModuleName { get; set; } = string.Empty;
+        public string? Code { get; set; }
         public int CompanyId { get; set; }
         public virtual Company Company { get; set; } = null!;
     }

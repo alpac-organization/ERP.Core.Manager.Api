@@ -35,6 +35,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasColumnName("catalog_id")
                 .IsRequired();
 
+            builder.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
+
+            builder.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at");
+
             builder.HasOne(e => e.Catalog)
                 .WithMany(c => c.SubCatalogs)
                 .HasForeignKey(e => e.CatalogId)

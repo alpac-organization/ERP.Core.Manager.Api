@@ -14,7 +14,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.Id)
                 .HasColumnName("role_id")
-                .HasDefaultValueSql("gen_random_uuid()");
+                .HasDefaultValueSql("gen_random_uuid()")
+                .ValueGeneratedOnAdd()
+                .IsRequired();
 
             builder.Property(e => e.RoleName)
                 .HasColumnName("role_name")
@@ -25,11 +27,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .HasColumnName("description");
 
             builder.Property(e => e.RoleType)
-                .HasColumnName("role_type");
+                .HasColumnName("role_type")
+                .HasColumnType("role_type");
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.DeletedAt)
                 .HasColumnName("deleted_at");

@@ -14,7 +14,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.Id)
                 .HasColumnName("session_id")
-                .HasDefaultValueSql("gen_random_uuid()");
+                .HasDefaultValueSql("gen_random_uuid()")
+                .ValueGeneratedOnAdd()
+                .IsRequired();
 
             builder.Property(e => e.AccessToken)
                 .HasColumnName("access_token");
@@ -36,7 +38,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.DeletedAt)
                 .HasColumnName("deleted_at");

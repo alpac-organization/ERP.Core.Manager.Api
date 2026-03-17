@@ -14,24 +14,29 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.Id)
                 .HasColumnName("permission_id")
-                .HasDefaultValueSql("gen_random_uuid()");
+                .HasDefaultValueSql("gen_random_uuid()")
+                .ValueGeneratedOnAdd()
+                .IsRequired();
 
             builder.Property(e => e.PermissionName)
                 .HasColumnName("permission_name");
 
             builder.Property(e => e.RoleId)
-                .HasColumnName("role_id");
+                .HasColumnName("role_id")
+                .IsRequired();
 
             builder.Property(e => e.Description)
                 .HasColumnName("description")
                 .HasMaxLength(400);
 
             builder.Property(e => e.PermissionType)
-                .HasColumnName("permission_type");
+                .HasColumnName("permission_type")
+                .HasColumnType("permission_type");
             
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.DeletedAt)
                 .HasColumnName("deleted_at");

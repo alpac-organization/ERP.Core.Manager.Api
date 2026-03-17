@@ -1,15 +1,17 @@
 using MediatR;
-using AutoMapper;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Commands;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Handlers
 {
-    public class CreateModuleAssociatedWithCompanyHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CreateModuleAssociatedWithCompanyCommand>
+    public class CreateModuleAssociatedWithCompanyHandler(IUnitOfWork _unitOfWork, ICodeGenerator _codeGenerator) : IRequestHandler<CreateModuleAssociatedWithCompanyCommand>
     {
         public async Task Handle(CreateModuleAssociatedWithCompanyCommand request, CancellationToken cancellationToken)
         {
             var company = await _unitOfWork.Companies.FirstOrDefaultAsync(x => x.Id == request.CompanyId, cancellationToken);
+
+            var codeGenerted = _codeGenerator.GenerateModuleCode(request.ModuleName!);
 
             if (company is null)
             {
@@ -19,7 +21,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Handlers
             await _unitOfWork.Modules.CreateModuleAssociatedWithCompany(new()
             {
                 ModuleName = request.ModuleName!,
-                CompanyId = request.CompanyId
+                CompanyId = request.CompanyId,
+                Code = codeGenerted
             }, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

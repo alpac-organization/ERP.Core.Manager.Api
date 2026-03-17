@@ -37,15 +37,25 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.DeletedAt)
                 .HasColumnName("deleted_at");
+
+            builder.HasMany(c => c.Catalogs)
+                .WithOne(m => m.Company)
+                .HasForeignKey(m => m.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(c => c.Modules)
                 .WithOne(m => m.Company)
                 .HasForeignKey(m => m.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(e => e.Code) // Si quieres un índice, que sea para el Código
+                .IsUnique()
+                .HasDatabaseName("IX_companies_code");
         }
     }
 }

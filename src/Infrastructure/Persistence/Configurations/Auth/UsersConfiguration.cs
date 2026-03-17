@@ -15,26 +15,33 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.Id)
                 .HasColumnName("user_id")
-                .HasDefaultValueSql("gen_random_uuid()");
+                .HasDefaultValueSql("gen_random_uuid()")
+                .ValueGeneratedOnAdd()
+                .IsRequired();
 
             builder.Property(e => e.UserName)
-                .HasColumnName("user_name");
+                .HasColumnName("user_name")
+                .IsRequired();
 
             builder.Property(e => e.Email)
                 .HasColumnName("email");
             
             builder.Property(e => e.UserStatus)
-                .HasColumnName("user_status");
+                .HasColumnName("user_status")
+                .HasColumnType("user_status")
+                .IsRequired();
 
             builder.Property(e => e.PasswordHash)
-                .HasColumnName("password_hash");
+                .HasColumnName("password_hash")
+                .IsRequired();
 
             builder.Property(e => e.DeletedAt)
                 .HasColumnName("deleted_at");
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
 
             builder.HasMany(u => u.Profiles)
                 .WithOne(p => p.User)

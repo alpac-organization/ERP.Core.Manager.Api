@@ -1,12 +1,15 @@
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Infrastructure.Services;
 using ERP.Core.Manager.Api.Infrastructure.Persistence;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories;
+using ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Database;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ERP.Core.Manager.Api.Domain.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -20,9 +23,16 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(connectionString,
                     m => m.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+            
+            var dataSource = NpgsqlConfiguration.BuildDataSource(connectionString!);
+
+            //Other Services.
+            services.AddSingleton(dataSource);
+            services.AddSingleton<ICodeGenerator, CodeGenerator>();
 
 
             //Services
+            services.AddScoped<IAuthServices, AuthServices>();
 
 
             //Repositories

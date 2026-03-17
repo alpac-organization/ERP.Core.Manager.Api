@@ -7,8 +7,11 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
     {
         public string? CatalogName { get; set; }
         public string? Description { get; set; }
-        public CatalogType CatalogType { get; set; }
+        public int CompanyId { get; set; }
         public bool IsActive { get; set; }
-        public virtual ICollection<SubCatalog> SubCatalogs { get; set; } = [];        
+        public CatalogType CatalogType { get; set; }       
+
+        public virtual Company Company { get; set; } = null!;
+        public virtual ICollection<SubCatalog> SubCatalogs { get; set; } = [];       
     }
 }

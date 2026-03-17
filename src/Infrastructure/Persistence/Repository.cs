@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Domain.Commons.Interfaces;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
