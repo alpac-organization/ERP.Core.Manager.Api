@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations
+namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalogs
 {
     /// <summary>
     /// Configuración de la entidad SubCatalog para el mapeo con la base de datos.

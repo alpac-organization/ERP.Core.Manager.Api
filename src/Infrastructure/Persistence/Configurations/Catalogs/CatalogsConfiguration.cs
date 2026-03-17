@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations
+namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalogs
 {
     public class CatalogsConfiguration : IEntityTypeConfiguration<Catalog>
     {
@@ -26,7 +26,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations
 
             builder.Property(e => e.CatalogType)
                 .HasColumnName("catalog_type")
-                .HasColumnType("catalog_type")
                 .IsRequired();
 
             builder.Property(e => e.IsActive)

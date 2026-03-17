@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ERP.Core.Manager.Api.Infrastructure.Migrations
+namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260316170947_AgregarTablasIniciales")]
-    partial class AgregarTablasIniciales
+    [Migration("20260317155316_ConfigurarIndiceSesiones")]
+    partial class ConfigurarIndiceSesiones
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,8 +24,150 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "catalog_type", new[] { "branches", "organizational_structure" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "catalog_type", new[] { "branches", "work_areas", "job_positions", "document_types" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "permission_type", new[] { "read", "create", "update", "delete" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "role_type", new[] { "administrator", "collaborator", "supervisor", "document_types" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_status", new[] { "active", "inactive", "locked" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("permission_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("PermissionName")
+                        .HasColumnType("text")
+                        .HasColumnName("permission_name");
+
+                    b.Property<int>("PermissionType")
+                        .HasColumnType("integer")
+                        .HasColumnName("permission_type");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("role_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id")
+                        .HasDatabaseName("ix_permission_id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("permissions", "public");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.Role", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("role_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("RoleName")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)")
+                        .HasColumnName("role_name");
+
+                    b.Property<int>("RoleType")
+                        .HasColumnType("integer")
+                        .HasColumnName("role_type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id")
+                        .HasDatabaseName("ix_role_id");
+
+                    b.ToTable("roles", "public");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.Session", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("access_token");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("Device")
+                        .HasColumnType("text")
+                        .HasColumnName("device");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("ip_address");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("refresh_token");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id")
+                        .HasDatabaseName("ix_session_id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("sessions", "public");
+                });
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.User", b =>
                 {
@@ -49,12 +191,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("email");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
@@ -63,9 +199,40 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("user_name");
 
+                    b.Property<int>("UserStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_status");
+
                     b.HasKey("Id");
 
                     b.ToTable("users", "public");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserModuleRoles", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserProfileId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("UserProfileId");
+
+                    b.ToTable("UserModuleRoles", "public");
                 });
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserProfile", b =>
@@ -122,7 +289,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                         .HasColumnName("catalog_name");
 
                     b.Property<int>("CatalogType")
-                        .HasColumnType("catalog_type")
+                        .HasColumnType("integer")
                         .HasColumnName("catalog_type");
 
                     b.Property<string>("Description")
@@ -272,6 +439,47 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                     b.ToTable("sub_catalogs", "public");
                 });
 
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.Permission", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.Role", "Role")
+                        .WithMany("Permissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.Session", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.User", "User")
+                        .WithMany("Sessions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserModuleRoles", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserProfile", "UserProfile")
+                        .WithMany("UserModuleRole")
+                        .HasForeignKey("UserProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("UserProfile");
+                });
+
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserProfile", b =>
                 {
                     b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.User", "User")
@@ -305,9 +513,21 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                     b.Navigation("Catalog");
                 });
 
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.Role", b =>
+                {
+                    b.Navigation("Permissions");
+                });
+
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.User", b =>
                 {
                     b.Navigation("Profiles");
+
+                    b.Navigation("Sessions");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserProfile", b =>
+                {
+                    b.Navigation("UserModuleRole");
                 });
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Catalogs.Catalog", b =>

@@ -18,6 +18,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
 
             // Registrar Enums
             modelBuilder.HasPostgresEnum<CatalogType>();
+            modelBuilder.HasPostgresEnum<UserStatus>();
+            modelBuilder.HasPostgresEnum<RoleType>();
+            modelBuilder.HasPostgresEnum<PermissionType>();
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }

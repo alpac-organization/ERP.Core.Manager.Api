@@ -1,13 +1,18 @@
 using ERP.Core.Manager.Api.Domain.Commons;
+using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Domain.Entities.Authentication
 {
+    //Entidad Usuario ✅
     public class User : BaseEntity<Guid>
     {
-        public string? UserName { get; set; }
         public string? Email { get; set; }
+        public string? UserName { get; set; }
         public string? PasswordHash { get; set; }
-        public bool IsActive { get; set; }
+        public UserStatus UserStatus { get; set; }
+
+        public virtual ICollection<Session> Sessions { get; set; } = [];
         public virtual ICollection<UserProfile> Profiles { get; set; } = [];
+
     }
 }

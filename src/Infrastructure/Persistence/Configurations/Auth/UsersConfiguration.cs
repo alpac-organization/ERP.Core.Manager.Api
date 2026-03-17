@@ -3,7 +3,7 @@ using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations
+namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 {
     public class UsersConfiguration : IEntityTypeConfiguration<User>
     {
@@ -20,12 +20,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations
             builder.Property(e => e.UserName)
                 .HasColumnName("user_name");
 
-            builder.Property(e => e.IsActive)
-                .HasColumnName("is_active")
-                .HasDefaultValue(true);
-
             builder.Property(e => e.Email)
                 .HasColumnName("email");
+            
+            builder.Property(e => e.UserStatus)
+                .HasColumnName("user_status");
 
             builder.Property(e => e.PasswordHash)
                 .HasColumnName("password_hash");
@@ -38,6 +37,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.HasMany(u => u.Profiles)
+                .WithOne(p => p.User)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(u => u.Sessions)
                 .WithOne(p => p.User)
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);

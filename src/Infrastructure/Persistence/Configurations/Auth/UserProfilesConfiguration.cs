@@ -3,7 +3,7 @@ using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations
+namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 {
     public class UsersProfilesConfiguration : IEntityTypeConfiguration<UserProfile>
     {
@@ -37,6 +37,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations
             builder.HasOne(p => p.User)
                 .WithMany(u => u.Profiles)
                 .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(u => u.UserModuleRole)
+                .WithOne(p => p.UserProfile)
+                .HasForeignKey(p => p.UserProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
             
         }

@@ -18,6 +18,9 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         /// Represents the catalog related to the company's organizational structure.
         /// This includes work areas and the job positions associated with those areas.
         /// </summary>
-        OrganizationalStructure = 2,
+        WorkAreas = 2,
+
+        JobPositions = 3,
+        DocumentTypes = 4
     }
 }
