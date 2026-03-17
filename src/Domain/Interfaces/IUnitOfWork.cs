@@ -6,6 +6,8 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
     {
         ICompaniesRepository Companies { get; }
         IModulesRepository Modules { get; }
+        
+
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }
