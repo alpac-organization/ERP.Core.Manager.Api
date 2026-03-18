@@ -8,10 +8,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
     public class LoginWithUsernameAndPasswordHandler(IUnitOfWork _unitOfWork) : IRequestHandler<LoginWithUsernameAndPasswordCommand, LoginDto>
     {
         
-
         public async Task<LoginDto> Handle(LoginWithUsernameAndPasswordCommand request, CancellationToken cancellationToken)
         {
 
+            await _unitOfWork.Companies.GetAvailableCompanies(cancellationToken);
 
             var response = new LoginDto()
             {
