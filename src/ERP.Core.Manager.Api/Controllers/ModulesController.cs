@@ -11,8 +11,9 @@ namespace ERP.Core.Manager.Api.Controllers
     [Route("api/v1/")]
     public class ModulesController(IMediator _mediator) : ApiControllerBase
     {
-        [HttpGet("companies/{companie_id}/modules")]      
         [Tags("Modulos")] 
+        [HttpGet("companies/{companie_id}/modules")]      
+        [ProducesResponseType(typeof(List<ModuleDto>), StatusCodes.Status200OK)]  
         public async Task<List<ModuleDto>> ObtainActiveModulesByCompanyIdAsync([FromRoute] int companie_id)
         {
             return await _mediator.Send(

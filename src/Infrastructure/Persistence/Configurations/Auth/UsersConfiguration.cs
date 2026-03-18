@@ -1,5 +1,5 @@
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
-
+using ERP.Core.Manager.Api.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -27,9 +27,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .HasColumnName("email");
             
             builder.Property(e => e.UserStatus)
-                .HasColumnName("user_status")
-                .HasColumnType("user_status")
-                .IsRequired();
+                .HasConversion<string>(
+                v => v.ToString(), // Al guardar: convierte enum a string
+                v => (UserStatus) Enum.Parse(typeof(UserStatus), v));
 
             builder.Property(e => e.PasswordHash)
                 .HasColumnName("password_hash")

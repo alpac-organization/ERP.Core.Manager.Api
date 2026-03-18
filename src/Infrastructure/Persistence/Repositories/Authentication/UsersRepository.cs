@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
+using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentication
 {
@@ -16,13 +17,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentic
             return entry.Entity;
         }
 
-        public async Task<IEnumerable<User>> GetActiveUsersByCompany(int companyId)
+        public async Task<IEnumerable<User>> GetActiveUsersByCompany(int companyId, CancellationToken cancellationToken)
         {
             return await _context.Users
-                .Where(u => u.Profiles.Any(p => p.CompanyId == companyId && p.IsActive))
+                .Where(u => u.Profiles.Any(p => p.CompanyId == companyId))
                 .Include(u => u.Profiles.Where(p => p.CompanyId == companyId && p.IsActive))
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

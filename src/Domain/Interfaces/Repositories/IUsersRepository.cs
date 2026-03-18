@@ -27,6 +27,6 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories
         /// <remarks>
         /// Esta consulta aplica un filtro de estado activo (IsActive) y pertenencia jerárquica a la empresa.
         /// </remarks>
-        Task<IEnumerable<User>> GetActiveUsersByCompany(int company_id);
+        Task<IEnumerable<User>> GetActiveUsersByCompany(int company_id, CancellationToken cancellationToken);
     }
 }

@@ -8,6 +8,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Databas
         public static NpgsqlDataSource BuildDataSource(string connectionString)
         {
             var builder = new NpgsqlDataSourceBuilder(connectionString);
+            
+            builder.EnableUnmappedTypes();
 
             // Centralizamos aquí todos los enums del ERP
             builder.MapEnum<CatalogType>("catalog_type");

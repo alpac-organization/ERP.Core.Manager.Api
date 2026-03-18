@@ -1,19 +1,12 @@
+using ERP.Core.Manager.Api.Domain.Enums;
+
 namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos
 {
     public class UserDto
     {
-        string? UserId { get; set; }
-        string? UserName { get; set; }
-        string? Email { get; set; }
-
-        CompanyInformation? CompanyInformation { get; set; }
-    }
-
-    public class CompanyInformation
-    {
-        int CompanyId { get; set; }
-        string? CompanyCode { get; set; }
-        string? Alias { get; set; }
-        string? ImageUrl { get; set; }
+        public Guid UserId { get; set; }
+        public string? UserName { get; set; }
+        public string? Email { get; set; }
+        public UserStatus Status { get; set; }
     }
 }

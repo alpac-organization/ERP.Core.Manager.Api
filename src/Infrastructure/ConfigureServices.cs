@@ -5,11 +5,13 @@ using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Database;
 
+using ERP.Core.Manager.Api.Domain.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentication;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using ERP.Core.Manager.Api.Domain.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -19,23 +21,24 @@ namespace ERP.Core.Manager.Api.Infrastructure
         {
             //Configuracion de la cadena de conexión de base de datos.
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(connectionString,
-                    m => m.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
-            
+
             var dataSource = NpgsqlConfiguration.BuildDataSource(connectionString!);
+            
+            services.AddSingleton(dataSource);
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(dataSource,
+                    m => m.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
             //Other Services.
-            services.AddSingleton(dataSource);
             services.AddSingleton<ICodeGenerator, CodeGenerator>();
-
 
             //Services
             services.AddScoped<IAuthServices, AuthServices>();
 
-
             //Repositories
+            services.AddScoped<IUsersRepository, UsersRepository>();
+            services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
+            services.AddScoped<ISessionsRepository, SessionsRepository>();
             services.AddScoped<ICompaniesRepository, CompaniesRepository>();
             services.AddScoped<IModulesRepository, ModulesRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();

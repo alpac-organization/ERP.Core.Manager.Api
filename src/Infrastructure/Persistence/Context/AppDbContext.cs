@@ -20,12 +20,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
             base.OnModelCreating(modelBuilder);
             modelBuilder.HasDefaultSchema("public");
 
-            // Registrar Enums
-            modelBuilder.HasPostgresEnum<CatalogType>();
-            modelBuilder.HasPostgresEnum<UserStatus>();
-            modelBuilder.HasPostgresEnum<RoleType>();
-            modelBuilder.HasPostgresEnum<PermissionType>();
-
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
     }

@@ -3,6 +3,7 @@ using System;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260318174307_UpdateEnumStatus")]
+    partial class UpdateEnumStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -194,9 +197,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("user_name");
 
-                    b.Property<string>("UserStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("UserStatus")
+                        .HasColumnType("user_status")
+                        .HasColumnName("user_status");
 
                     b.HasKey("Id");
 

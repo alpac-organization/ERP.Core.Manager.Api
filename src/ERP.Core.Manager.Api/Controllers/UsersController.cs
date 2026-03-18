@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Billing.Api.Controllers.ApiBase;
+using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Users.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Controllers
 {
@@ -8,15 +10,17 @@ namespace ERP.Core.Manager.Api.Controllers
     [Route("api/v1/")]
     public class UsersController(IMediator _mediator) : ApiControllerBase
     {
-        [HttpGet("companies/{companie_id}/users")]      
         [Tags("Usuarios")] 
-        public async Task<IActionResult> GetAllActiveUsersAsync([FromRoute] int companie_id)
+        [HttpGet("companies/{companie_id}/users")]    
+        [ProducesResponseType(typeof(List<UserDto>), StatusCodes.Status200OK)]  
+        public async Task<List<UserDto>> GetAllActiveUsersAsync([FromRoute] int companie_id)
         {
-            return Ok();
+            var result = await _mediator.Send(new GetAllActiveUsersByCompanyIdQuery(companie_id));
+            return result;
         }
 
-        [HttpPost("companies/{companie_id}/users/{user_id}/roles")]      
-        [Tags("Modulos")] 
+        [Tags("Usuarios")] 
+        [HttpPost("companies/{companie_id}/users/{user_id}/roles")]
         public async Task<IActionResult> ObtainUserRolesAndPermissionsAsync([FromRoute] int companie_id, [FromRoute] int user_id) 
         {
            return Ok();
