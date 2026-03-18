@@ -1,8 +1,8 @@
 using MediatR;
+using AutoMapper;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Queries;
 using ERP.Core.Manager.Api.Domain.Interfaces;
-using AutoMapper;
 
 namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
 {

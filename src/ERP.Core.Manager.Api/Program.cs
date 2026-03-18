@@ -2,6 +2,8 @@ using System.Text.Json;
 using Microsoft.OpenApi;
 using ERP.Core.Manager.Api.Application;
 using ERP.Core.Manager.Api.Infrastructure;
+using System.Text.Json.Serialization;
+using ERP.Core.Manager.Api.Infrastructure.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 builder.Services.AddApiVersioning(options =>
@@ -36,6 +39,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

@@ -11,7 +11,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             CreateMap<User, UserDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UserStatus));
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Fullname))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UserStatus.ToString()));
         }
     }
 }

@@ -184,6 +184,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("email");
 
+                    b.Property<string>("Fullname")
+                        .HasColumnType("text")
+                        .HasColumnName("fullname");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text")
@@ -196,7 +200,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("UserStatus")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
 

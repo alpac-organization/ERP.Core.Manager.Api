@@ -9,6 +9,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands
         public string? Username { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }
+
+        [JsonIgnore]
+        public int CompanyId { get; set; }
+
+        public SessionDetails? SessionDetails { get; set; }
     }
 
     public class SessionDetails

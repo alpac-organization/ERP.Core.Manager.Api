@@ -23,13 +23,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .HasColumnName("user_name")
                 .IsRequired();
 
+            builder.Property(e => e.Fullname)
+                .HasColumnName("fullname");
+
             builder.Property(e => e.Email)
                 .HasColumnName("email");
             
             builder.Property(e => e.UserStatus)
-                .HasConversion<string>(
-                v => v.ToString(), // Al guardar: convierte enum a string
-                v => (UserStatus) Enum.Parse(typeof(UserStatus), v));
+                .HasMaxLength(20)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => Enum.Parse<UserStatus>(v, true)
+                );
 
             builder.Property(e => e.PasswordHash)
                 .HasColumnName("password_hash")

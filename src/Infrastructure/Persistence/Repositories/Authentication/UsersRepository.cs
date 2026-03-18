@@ -20,7 +20,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentic
         public async Task<IEnumerable<User>> GetActiveUsersByCompany(int companyId, CancellationToken cancellationToken)
         {
             return await _context.Users
-                .Where(u => u.Profiles.Any(p => p.CompanyId == companyId))
+                .Where(u => u.UserStatus == UserStatus.Active &&
+                    u.Profiles.Any(p => p.CompanyId == companyId && p.IsActive))
                 .Include(u => u.Profiles.Where(p => p.CompanyId == companyId && p.IsActive))
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
