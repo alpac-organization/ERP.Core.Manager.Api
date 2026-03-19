@@ -6,12 +6,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentic
 {
     public class SessionsRepository(AppDbContext _context): Repository<Session>(_context), ISessionsRepository
     {
-        public async Task<Session> CreateNewSession(Session session, CancellationToken cancellationToken)
+        public async Task<Session> CreateNewSession(Session session)
         {
-            var sessionCreatedd = await _context.Sessions.AddAsync(session, cancellationToken);
-            
-            await _context.SaveChangesAsync(cancellationToken);
-            
+            var sessionCreatedd = await _context.Sessions.AddAsync(session);
             return sessionCreatedd.Entity;
         }
     }

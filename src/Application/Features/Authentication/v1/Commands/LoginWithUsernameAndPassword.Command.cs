@@ -13,14 +13,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands
         [JsonIgnore]
         public int CompanyId { get; set; }
 
+        [JsonIgnore]
         public SessionDetails? SessionDetails { get; set; }
-    }
+    }   
 
     public class SessionDetails
     {
         public string? DeviceName { get; set; }
-        
-        [JsonIgnore]
         public string? IpAddress { get; set; }
     }
 }

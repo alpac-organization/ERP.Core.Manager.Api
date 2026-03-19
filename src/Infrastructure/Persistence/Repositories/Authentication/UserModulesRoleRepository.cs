@@ -12,7 +12,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentic
             {
                 ModuleCode = ModuleCode,
                 RoleId = RoleId,
-                UserProfileId = ProfileId               
+                UserProfileId = ProfileId,
+                IsActive = true               
             };
 
             var assigSaved = await _context.UserModuleRoles.AddAsync(entity);

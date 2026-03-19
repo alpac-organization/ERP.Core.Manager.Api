@@ -20,6 +20,7 @@ namespace ERP.Core.Manager.Api.Controllers
         public async Task<LoginDto> LoginWithUsernameOrEmailWithPasswordAsync([FromRoute] int companie_id, [FromBody] LoginWithUsernameAndPasswordCommand payload)
         {
             var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var deviceName = Request.Headers["x-device-name"].ToString();
 
             return await _mediator.Send(
                 new LoginWithUsernameAndPasswordCommand()
@@ -30,7 +31,7 @@ namespace ERP.Core.Manager.Api.Controllers
                     Username = payload.Username,
                     SessionDetails = new()
                     {
-                        DeviceName = payload.SessionDetails?.DeviceName,
+                        DeviceName = deviceName,
                         IpAddress = remoteIp
                     }
                 }

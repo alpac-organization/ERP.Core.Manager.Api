@@ -4,6 +4,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
     {
         public string? UserName { get; set; }
         public string? AccessToken { get; set; }
+        public string? RefreshToken { get; set; }
         public CompanyInformation CompanyInformation { get; set; } = new();
     }
 

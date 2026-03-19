@@ -18,9 +18,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .ValueGeneratedOnAdd()
                 .IsRequired();
 
-            builder.Property(e => e.AccessToken)
-                .HasColumnName("access_token");
-
             builder.Property(e => e.RefreshToken)
                 .HasColumnName("refresh_token");
 

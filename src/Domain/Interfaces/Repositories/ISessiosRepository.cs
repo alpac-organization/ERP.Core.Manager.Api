@@ -21,6 +21,6 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories
         /// <remarks>
         /// Este método es fundamental para el flujo de login y la validación de concurrencia de usuarios en el ERP.
         /// </remarks>
-        Task<Session> CreateNewSession(Session session, CancellationToken cancellationToken);
+        Task<Session> CreateNewSession(Session session);
     }
 }

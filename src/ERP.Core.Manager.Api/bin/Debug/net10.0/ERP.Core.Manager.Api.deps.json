@@ -666,7 +666,8 @@
           "BCrypt.Net-Next": "4.1.0",
           "Domain": "1.0.0",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
-          "MediatR": "14.1.0"
+          "MediatR": "14.1.0",
+          "Microsoft.EntityFrameworkCore": "10.0.5"
         },
         "runtime": {
           "Application.dll": {

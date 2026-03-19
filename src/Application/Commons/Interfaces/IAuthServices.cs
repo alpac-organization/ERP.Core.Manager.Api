@@ -4,6 +4,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 {
     public interface IAuthServices
     {
-        string GenerateAccessToken(User user, UserProfile profile, Role role);
+        string GenerateAccessToken(User user, string companyCode, Guid sessionId, IEnumerable<string> scopes);
+        string GenerateRefreshToken();
     }
 }

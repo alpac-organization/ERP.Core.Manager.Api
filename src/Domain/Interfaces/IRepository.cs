@@ -8,5 +8,6 @@ namespace ERP.Core.Manager.Api.Domain.Commons.Interfaces
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct);
         Task<T?> GetByIdAsync(object id, CancellationToken cancellationToken);
         Task<List<T>> ToListAsync(IQueryable<T> query, CancellationToken ct);
+        Task UpdateAsync(T entity);
     }
 }
