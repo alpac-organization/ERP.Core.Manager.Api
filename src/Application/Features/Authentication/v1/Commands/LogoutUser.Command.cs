@@ -1,10 +1,9 @@
 using MediatR;
-using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
 using System.Text.Json.Serialization;
 
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands
 {
-    public class RefreshTokenCommand : IRequest<LoginDto>
+    public class LogoutUserCommand : IRequest
     {
         public string? RefreshToken { get; set; }
         

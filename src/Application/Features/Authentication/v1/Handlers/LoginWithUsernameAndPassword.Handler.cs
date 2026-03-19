@@ -91,8 +91,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 IpAddress = request.SessionDetails?.IpAddress,
                 UserId = user.Id,
                 RefreshToken = refreshToken,
+                CompanyCode = company.Code,
                 IsActive = true,
-                ExpiresAt = DateTime.UtcNow.AddDays(1)
+                ExpiresAt = DateTime.UtcNow.AddHours(1)
             };
 
             await _unitOfWork.Sessions.CreateNewSession(newSession);

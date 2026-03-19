@@ -1,13 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using ERP.Core.Manager.Api.Domain.Entities.Errors;
+using Microsoft.AspNetCore.Authorization;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
+using ERP.Core.Manager.Api.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Controllers
 {
+    [Authorize]
     [ApiVersion("1.0")]
     [Route("api/v1/")]
     public class UsersController(IMediator _mediator) : ApiControllerBase

@@ -38,19 +38,21 @@ namespace ERP.Core.Manager.Api.Controllers
             );
         }
 
-        [Authorize]
         [Tags("Autenticación")]
         [HttpPost("companies/{companie_id}/auth/refresh-token")]
-        public async Task<IActionResult> RefreshTokenAsync([FromRoute] int companie_id)
+        [ProducesResponseType(typeof(LoginDto),      StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        public async Task<LoginDto> RefreshTokenAsync([FromRoute] int companie_id, [FromBody] RefreshTokenCommand body)
         {
-            var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-
-
-            return Created(string.Empty, null);
+            return await _mediator.Send(new RefreshTokenCommand()
+            {
+                CompanyId = companie_id,
+                RefreshToken = body.RefreshToken
+            });
         }
 
 
-        [Authorize]
         [Tags("Autenticación")]
         [HttpPost("companies/{companie_id}/auth/logout")]
         public async Task<IActionResult> LogoutAsync([FromRoute] int companie_id)

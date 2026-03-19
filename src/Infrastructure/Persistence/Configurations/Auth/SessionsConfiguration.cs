@@ -22,13 +22,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .HasColumnName("refresh_token");
 
             builder.Property(e => e.UserId)
-                .HasColumnName("user_id");
+                .HasColumnName("user_id")
+                .IsRequired();
 
             builder.Property(e => e.IpAddress)
                 .HasColumnName("ip_address");
 
             builder.Property(e => e.Device)
                 .HasColumnName("device");
+
+            builder.Property(e => e.CompanyCode)
+                .HasColumnName("company_code");
 
             builder.Property(e => e.ExpiresAt)
                 .HasColumnName("expires_at");
