@@ -9,7 +9,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         IModulesRepository modulesRepository,
         IUsersRepository usersRepository,
         IUserProfilesRepository userProfilesRepository,
-        ISessionsRepository sessionsRepository
+        ISessionsRepository sessionsRepository,
+        IRolesRepository rolesRepository
     ) : IUnitOfWork
     {
         public AppDbContext Context => _context;
@@ -21,6 +22,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         public IUsersRepository Users { get; set; } = usersRepository;
         public IUserProfilesRepository Profiles { get; set; } = userProfilesRepository;
         public ISessionsRepository Sessions { get; set; } = sessionsRepository;
+        public IRolesRepository Roles { get; set; } = rolesRepository;
 
         #endregion
 

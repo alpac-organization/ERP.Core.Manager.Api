@@ -14,6 +14,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<UserProfile> Profiles => Set<UserProfile>();
         public DbSet<Session> Sessions => Set<Session>();
         public DbSet<UserModuleRoles> ModulesWithRoles => Set<UserModuleRoles>();  
+        public DbSet<Role> Roles => Set<Role>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

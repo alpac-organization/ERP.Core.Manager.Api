@@ -10,10 +10,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         protected readonly AppDbContext _context = context;
         private readonly DbSet<T> _dbSet = context.Set<T>();
         
-        public IQueryable<T> Entities => _context.Set<T>();
+        public IQueryable<T> Entities => _dbSet;
 
         public async Task<T?> GetByIdAsync(object id, CancellationToken ct = default) => await _dbSet.FindAsync([id], ct);
-
+        public async Task<List<T>> ToListAsync(IQueryable<T> query, CancellationToken ct) => await query.ToListAsync(ct);
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct)
         {
             return await _context.Set<T>().FirstOrDefaultAsync(predicate, ct);

@@ -75,7 +75,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 UserId = userCreated.Id
             };
 
+            //Creamos su perfil y lo asociamos a la empresa.
             var userProfileCreated = await _unitOfWork.Profiles.CreateNewUserProfile(userProfile, cancellationToken);
+
+            var userModuleRole = new UserModuleRoles()
+            {
+                
+            };
+
+            //Asignamos el role al respectivo modulo
+            // await _unitOfWork.
+
+            // var validModulesCount = await _unitOfWork.Modules.Entities.Where(module => module.CompanyId == 1).toLi
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

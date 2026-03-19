@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ERP.Core.Manager.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a340eeac992c45011ccf787e778253561d2d1e71")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0d3282da54a293c84b1c024048e193481288a64f")]
 [assembly: System.Reflection.AssemblyProductAttribute("ERP.Core.Manager.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ERP.Core.Manager.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
