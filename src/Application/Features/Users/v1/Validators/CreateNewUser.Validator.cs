@@ -1,7 +1,7 @@
 using FluentValidation;
-using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
 
-namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Validators
+namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Validators
 {
     /// <summary>
     /// Validador para la consulta de módulos activos por ID de empresa.

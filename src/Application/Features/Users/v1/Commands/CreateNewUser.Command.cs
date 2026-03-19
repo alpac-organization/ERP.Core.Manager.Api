@@ -1,8 +1,8 @@
 using MediatR;
-using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
 using System.Text.Json.Serialization;
+using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 
-namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands
+namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Commands
 {
     public class CreateNewUserCommand : IRequest<CreateUserDto>
     {

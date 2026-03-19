@@ -1,4 +1,4 @@
-namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
+namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos
 {
     public class CreateUserDto
     {
