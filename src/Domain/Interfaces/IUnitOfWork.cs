@@ -6,10 +6,11 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
     {
         IUsersRepository Users { get; }
         IModulesRepository Modules { get; }
-        ICompaniesRepository Companies { get; set; }
-        IUserProfilesRepository Profiles { get; set; }
-        ISessionsRepository Sessions { get; set; }
-
+        ICompaniesRepository Companies { get; }
+        IUserProfilesRepository Profiles { get; }
+        ISessionsRepository Sessions { get; }
+        IRolesRepository Roles { get; }
+        IUserModulesRoleRepository UserModules { get; }
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

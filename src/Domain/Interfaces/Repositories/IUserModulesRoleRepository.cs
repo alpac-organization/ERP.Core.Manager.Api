@@ -5,6 +5,6 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories
 {
     public interface IUserModulesRoleRepository : IRepository<UserModuleRoles>
     {
-        Task AssignRolesModule(Guid RoleId, string ModuleCode, Guid ProfileId);
+        Task<UserModuleRoles> AssignRolesModule(Guid RoleId, string ModuleCode, Guid ProfileId);
     }
 }

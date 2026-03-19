@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
+using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 {
@@ -28,7 +29,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.RoleType)
                 .HasColumnName("role_type")
-                .HasColumnType("role_type");
+                .HasConversion(
+                    v => v.ToString(),
+                    v => Enum.Parse<RoleType>(v, true)
+                );
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")

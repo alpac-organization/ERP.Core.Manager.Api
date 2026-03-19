@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ERP.Core.Billing.Api.Controllers.ApiBase
+namespace ERP.Core.Manager.Api.Controllers.ApiBase
 {
     [ApiController]
     public abstract class ApiControllerBase : ControllerBase

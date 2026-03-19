@@ -18,6 +18,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .ValueGeneratedOnAdd()
                 .IsRequired();
 
+            // ✅ Mapeo explícito de RoleId (Esto soluciona tu error 42703)
+            builder.Property(e => e.RoleId)
+                .HasColumnName("role_id")
+                .IsRequired();
+
             builder.Property(e => e.IsActive)
                 .HasColumnName("is_active")
                 .HasDefaultValue(true);
@@ -29,11 +34,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
             builder.Property(e => e.UserProfileId)
                 .HasColumnName("user_profile_id")
                 .IsRequired();
-
-            builder.Property(e => e.RoleId)
-                .HasColumnName("role_id")
-                .IsRequired();
-
+                
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -42,23 +43,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
             builder.Property(e => e.DeletedAt)
                 .HasColumnName("deleted_at");
 
+            builder.HasOne(d => d.Role)
+                .WithMany(p => p.UserModuleRoles)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.Restrict); 
+
             builder.HasOne(u => u.UserProfile)
                 .WithMany(p => p.UserModuleRole)
                 .HasForeignKey(p => p.UserProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(e => e.Role)
-                .WithMany()
-                .HasForeignKey(e => e.RoleId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             builder.HasIndex(e => new { e.UserProfileId, e.ModuleCode })
                 .IsUnique()
                 .HasDatabaseName("IX_Unique_User_Module_Role");
-
-            builder.Property(e => e.IsActive)
-                .HasColumnName("is_active")
-                .HasDefaultValue(true);
         }
     }
 }

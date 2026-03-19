@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 
-using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 
@@ -15,6 +14,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<Session> Sessions => Set<Session>();
         public DbSet<UserModuleRoles> ModulesWithRoles => Set<UserModuleRoles>();  
         public DbSet<Role> Roles => Set<Role>();
+        public DbSet<UserModuleRoles> UserModuleRoles => Set<UserModuleRoles>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,9 +1,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using ERP.Core.Billing.Api.Controllers.ApiBase;
+using ERP.Core.Manager.Api.Domain.Entities.Errors;
+using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Queries;
-using ERP.Core.Manager.Api.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
 
@@ -35,6 +35,8 @@ namespace ERP.Core.Manager.Api.Controllers
             {
                 Username = payload.Username,
                 CompanyId = companie_id,
+                FullName = payload.FullName,
+                Email = payload.Email,
                 Password = payload.Password,
                 ModulesWithAccess = payload.ModulesWithAccess
             };

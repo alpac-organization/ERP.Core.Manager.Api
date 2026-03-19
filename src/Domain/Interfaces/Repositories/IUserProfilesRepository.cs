@@ -21,6 +21,6 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories
         /// Se recomienda validar la existencia previa de la relación Usuario-Empresa antes de invocar este método 
         /// para evitar duplicidad de perfiles en el mismo tenant.
         /// </remarks>
-        Task<UserProfile> CreateNewUserProfile(UserProfile profile, CancellationToken cancellationToken);
+        Task<UserProfile> CreateNewUserProfile(UserProfile profile);
     }
 }

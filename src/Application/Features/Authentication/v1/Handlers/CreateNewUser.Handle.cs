@@ -57,7 +57,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 UserStatus = UserStatus.Active,
             };
 
-            var userCreated = await _unitOfWork.Users.CreateNewUser(newUser, cancellationToken);
+            var userCreated = await _unitOfWork.Users.CreateNewUser(newUser);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             //Usuario Creado con exito
 
@@ -76,21 +77,42 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             };
 
             //Creamos su perfil y lo asociamos a la empresa.
-            var userProfileCreated = await _unitOfWork.Profiles.CreateNewUserProfile(userProfile, cancellationToken);
-
-            var userModuleRole = new UserModuleRoles()
-            {
-                
-            };
-
-            //Asignamos el role al respectivo modulo
-            // await _unitOfWork.
-
-            // var validModulesCount = await _unitOfWork.Modules.Entities.Where(module => module.CompanyId == 1).toLi
-
+            var userProfileCreated = await _unitOfWork.Profiles.CreateNewUserProfile(userProfile);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new ();
+
+            var modulesCode = request.ModulesWithAccess.Select(module => module.ModuleCode); 
+            var roles = request.ModulesWithAccess.Select(role => role.RoleId);
+
+            foreach(var module in request.ModulesWithAccess)
+            {
+                var moduleExist = await _unitOfWork.Modules
+                    .FirstOrDefaultAsync(m => m.Code == module.ModuleCode && m.CompanyId == userProfileCreated.CompanyId, cancellationToken);
+
+                if (moduleExist is null)
+                {
+                    return _errorManager.ThrowBadRequest<CreateUserDto>("Este modulo no existe en el sistema", "ERP:ModuleNotFound");
+                }
+
+                var roleIsValid = await _unitOfWork.Roles.FirstOrDefaultAsync(r => r.Id == module.RoleId, cancellationToken);
+
+                if (roleIsValid is null)
+                {
+                    return _errorManager.ThrowBadRequest<CreateUserDto>("Este role no es valido.", "ERP:RoleInvalid");
+                }
+
+                await _unitOfWork.UserModules.AssignRolesModule(module.RoleId, module.ModuleCode!, userProfileCreated.Id);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+
+            //Modulos asignados con sus respectivo role.
+            //Status 201 ✅
+            return new ()
+            {
+                UserName = userCreated.UserName,
+                Description = "Se creo el usuario de forma exitosa!",
+                FullName = userCreated.Fullname
+            };
         }
     }
 }

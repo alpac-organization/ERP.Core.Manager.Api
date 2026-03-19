@@ -14,7 +14,7 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories
         /// </summary>
         /// <param name="user">La entidad de usuario con la información a persistir.</param>
         /// <returns>Una tarea que representa la operación asíncrona, devolviendo la entidad <see cref="User"/> creada con su identificador generado.</returns>
-        Task<User> CreateNewUser(User user, CancellationToken cancellationToken);
+        Task<User> CreateNewUser(User user);
 
         /// <summary>
         /// Obtiene una colección de todos los usuarios activos asociados a una empresa específica.

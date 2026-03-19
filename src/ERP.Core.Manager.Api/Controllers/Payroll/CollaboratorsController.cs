@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using ERP.Core.Billing.Api.Controllers.ApiBase;
+using ERP.Core.Manager.Api.Controllers.ApiBase;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {

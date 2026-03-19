@@ -8,12 +8,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentic
 {
     public class UsersRepository(AppDbContext _context): Repository<User>(_context), IUsersRepository
     {
-        public async Task<User> CreateNewUser(User user, CancellationToken cancellationToken)
+        public async Task<User> CreateNewUser(User user)
         {
-            var entry = await _context.Users.AddAsync(user, cancellationToken);
-
-            await _context.SaveChangesAsync(cancellationToken);
-
+            var entry = await _context.Users.AddAsync(user);
             return entry.Entity;
         }
 

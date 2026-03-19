@@ -11,5 +11,6 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Authentication
         public string? Description { get; set; }
         
         public virtual ICollection<Permission> Permissions { get; set; } = [];
+        public virtual ICollection<UserModuleRoles> UserModuleRoles { get; set; } = [];
     }
 }

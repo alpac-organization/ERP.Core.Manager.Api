@@ -1,6 +1,7 @@
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
+
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence
 {
     public class UnitOfWork(
@@ -10,21 +11,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         IUsersRepository usersRepository,
         IUserProfilesRepository userProfilesRepository,
         ISessionsRepository sessionsRepository,
-        IRolesRepository rolesRepository
+        IRolesRepository rolesRepository,
+        IUserModulesRoleRepository userModulesRoleRepository
     ) : IUnitOfWork
     {
         public AppDbContext Context => _context;
 
-        #region Repositories
-
-        public ICompaniesRepository Companies { get; set; } = companiesRepository;
+        public ICompaniesRepository Companies => companiesRepository;
         public IModulesRepository Modules => modulesRepository;
-        public IUsersRepository Users { get; set; } = usersRepository;
-        public IUserProfilesRepository Profiles { get; set; } = userProfilesRepository;
-        public ISessionsRepository Sessions { get; set; } = sessionsRepository;
-        public IRolesRepository Roles { get; set; } = rolesRepository;
-
-        #endregion
+        public IUsersRepository Users => usersRepository;
+        public IUserProfilesRepository Profiles => userProfilesRepository;
+        public ISessionsRepository Sessions => sessionsRepository;
+        public IRolesRepository Roles => rolesRepository;
+        public IUserModulesRoleRepository UserModules => userModulesRoleRepository;
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {

@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using ERP.Core.Billing.Api.Controllers.ApiBase;
+using ERP.Core.Manager.Api.Controllers.ApiBase;
 using Microsoft.AspNetCore.Authorization;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;

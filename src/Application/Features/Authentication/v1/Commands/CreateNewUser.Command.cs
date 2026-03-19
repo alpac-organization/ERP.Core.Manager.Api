@@ -18,7 +18,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands
 
     public class ModulesWithAccessAndRole
     {
-        public int ModuleId { get; set; }
+        public string? ModuleCode { get; set; }
         public Guid RoleId { get; set; }
     }
 }

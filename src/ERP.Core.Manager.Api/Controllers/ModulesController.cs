@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using ERP.Core.Billing.Api.Controllers.ApiBase;
+using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Commands;

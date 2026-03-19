@@ -44,6 +44,8 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<ISessionsRepository, SessionsRepository>();
             services.AddScoped<ICompaniesRepository, CompaniesRepository>();
             services.AddScoped<IModulesRepository, ModulesRepository>();
+            services.AddScoped<IUserModulesRoleRepository, UserModulesRoleRepository>();
+            services.AddScoped<IRolesRepository, RolesRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;

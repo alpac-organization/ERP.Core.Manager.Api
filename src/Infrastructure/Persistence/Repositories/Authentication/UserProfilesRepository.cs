@@ -6,12 +6,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentic
 {
     public class UserProfilesRepository(AppDbContext _context): Repository<UserProfile>(_context), IUserProfilesRepository
     {
-        public async Task<UserProfile> CreateNewUserProfile(UserProfile profile, CancellationToken cancellationToken)
+        public async Task<UserProfile> CreateNewUserProfile(UserProfile profile)
         {
-            var entry = await _context.Profiles.AddAsync(profile, cancellationToken);
-
-            await _context.SaveChangesAsync(cancellationToken);
-
+            var entry = await _context.Profiles.AddAsync(profile);
+            
             return entry.Entity;
         }
     }
