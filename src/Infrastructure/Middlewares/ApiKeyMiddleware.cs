@@ -9,6 +9,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Middlewares
 
         public async Task InvokeAsync(HttpContext context)
         {
+            if (HttpMethods.IsOptions(context.Request.Method))
+            {
+                await _next(context);
+                return;
+            }
+            // ----------------------------------
+
             // 1. Intentamos obtener la API Key de los Headers
             if (!context.Request.Headers.TryGetValue(APIKEYNAME, out var extractedApiKey))
             {
@@ -16,7 +23,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Middlewares
                 return;
             }
 
-            // 2. Obtenemos la llave válida desde las variables de entorno (appsettings.json)
+            // 2. Obtenemos la llave válida desde las variables de entorno
             var apiKey = _config["Authentication:ApiKey"];
 
             // 3. Validamos si coinciden
@@ -26,7 +33,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Middlewares
                 return;
             }
 
-            // Si todo está bien, pasamos al siguiente middleware (Exception, Auth, etc.)
             await _next(context);
         }
 
