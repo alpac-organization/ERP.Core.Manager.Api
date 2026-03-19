@@ -11,6 +11,17 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ViteLocalPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:4173") // Puertos comunes de Vite
+            .AllowAnyMethod();
+            //   .AllowAnyHeader()
+            //   .AllowCredentials()
+    });
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -42,6 +53,7 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<ApiKeyMiddleware>();
+app.UseCors("ViteLocalPolicy");
 
 if (app.Environment.IsDevelopment())
 {
