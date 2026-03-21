@@ -13,3 +13,4 @@ C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Application\obj\Re
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Application\obj\Release\net10.0\refint\Application.dll
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Application\obj\Release\net10.0\Application.pdb
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Application\obj\Release\net10.0\ref\Application.dll
+C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Application\obj\Release\net10.0\Application.sourcelink.json

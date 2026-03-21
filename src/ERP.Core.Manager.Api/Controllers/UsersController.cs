@@ -1,15 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
+using ERP.Core.Manager.Api.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers
 {
-    [Authorize]
+    [HasToken]
     [ApiVersion("1.0")]
     [Route("api/v1/")]
     public class UsersController(IMediator _mediator) : ApiControllerBase
@@ -46,6 +46,26 @@ namespace ERP.Core.Manager.Api.Controllers
 
             return result;
         }
+
+        [Tags("Usuarios")]
+        [HttpPost("companies/{companie_id}/users/verify-access")]
+        [ProducesResponseType(typeof(VerifyAccessDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)] 
+        public async Task<VerifyAccessDto> ObtainUserRolesAndPermissionsAsync([FromRoute] int companie_id, [FromBody] VerifyAccessCommand body) 
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            var result = await _mediator.Send(new VerifyAccessCommand()
+            {
+                ModuleCode = body.ModuleCode,
+                CompanyId = companie_id,
+                UserId = Guid.Parse(userIdStr ?? "")
+            });
+
+           return result;
+        }
+
 
         [Tags("Usuarios")] 
         [HttpPost("companies/{companie_id}/users/{user_id}/roles", Name = "GetRolesAndPermissions")]
