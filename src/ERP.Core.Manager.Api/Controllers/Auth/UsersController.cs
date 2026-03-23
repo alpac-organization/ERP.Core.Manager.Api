@@ -7,7 +7,7 @@ using ERP.Core.Manager.Api.Application.Features.Users.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 
-namespace ERP.Core.Manager.Api.Controllers
+namespace ERP.Core.Manager.Api.Controllers.Auth
 {
     [HasToken]
     [ApiVersion("1.0")]

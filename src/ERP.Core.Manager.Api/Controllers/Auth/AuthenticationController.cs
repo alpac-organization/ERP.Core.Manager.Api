@@ -1,12 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using Microsoft.AspNetCore.Authorization;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
 using ERP.Core.Manager.Api.Domain.Entities.Errors;
 
-namespace ERP.Core.Manager.Api.Controllers
+namespace ERP.Core.Manager.Api.Controllers.Auth
 {
     [ApiVersion("1.0")]
     [Route("api/v1/")]

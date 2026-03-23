@@ -5,7 +5,7 @@ using ERP.Core.Manager.Api.Application.Features.Modules.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Commands;
 
-namespace ERP.Core.Manager.Api.Controllers
+namespace ERP.Core.Manager.Api.Controllers.Catalog
 {
     [ApiVersion("1.0")]
     [Route("api/v1/")]

@@ -15,7 +15,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ViteLocalPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:4173", "https://web-alpac.onrender.com") // Puertos comunes de Vite
+        policy.WithOrigins("http://localhost:5173", "https://web-alpac.onrender.com")
             .AllowAnyMethod()
             .AllowAnyHeader();
             //   .AllowCredentials()
