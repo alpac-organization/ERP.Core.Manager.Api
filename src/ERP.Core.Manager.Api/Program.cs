@@ -64,7 +64,6 @@ app.UseMiddleware<AuthMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseHttpsRedirection();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
@@ -76,6 +75,5 @@ app.UseHsts();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
-app.UseHttpsRedirection();
 
 app.Run();
