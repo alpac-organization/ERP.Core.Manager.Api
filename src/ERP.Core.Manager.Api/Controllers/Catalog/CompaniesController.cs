@@ -4,7 +4,7 @@ using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Companies.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Companies.v1.Dtos;
 
-namespace ERP.Core.Manager.Api.Controllers
+namespace ERP.Core.Manager.Api.Controllers.Catalog
 {
     [ApiVersion("1.0")]
     [Route("api/v1/")]

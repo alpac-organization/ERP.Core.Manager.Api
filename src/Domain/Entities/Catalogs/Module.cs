@@ -8,6 +8,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
         public string ModuleName { get; set; } = string.Empty;
         public string? Code { get; set; }
         public int CompanyId { get; set; }
+        public string? Description { get; set; }
         public virtual Company Company { get; set; } = null!;
     }
 }

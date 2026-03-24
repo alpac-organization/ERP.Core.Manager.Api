@@ -4,9 +4,11 @@ using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Commands;
+using ERP.Core.Manager.Api.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers.Catalog
 {
+    [HasToken]
     [ApiVersion("1.0")]
     [Route("api/v1/")]
     public class ModulesController(IMediator _mediator) : ApiControllerBase

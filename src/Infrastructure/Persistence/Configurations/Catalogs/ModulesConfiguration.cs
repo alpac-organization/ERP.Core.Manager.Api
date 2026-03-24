@@ -28,6 +28,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
             builder.Property(e => e.Code)
                 .HasColumnName("code");
 
+            builder.Property(e => e.Description)
+                .HasColumnName("description");
+
             builder.Property(e => e.IsActive)
                 .HasColumnName("is_active")
                 .HasDefaultValue(true);
