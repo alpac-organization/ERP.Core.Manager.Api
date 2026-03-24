@@ -51,15 +51,20 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
             });
         }
 
-
         [Tags("Autenticación")]
         [HttpPost("companies/{companie_id}/auth/logout")]
-        public async Task<IActionResult> LogoutAsync([FromRoute] int companie_id)
+        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LogoutAsync([FromRoute] int companie_id, [FromBody] LogoutUserCommand body)
         {
-            var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            await _mediator.Send(new LogoutUserCommand()
+            {
+                CompanyId = companie_id,
+                RefreshToken = body.RefreshToken
+            });
 
-
-            return Created(string.Empty, null);
+            return Ok();
         }
 
     }
