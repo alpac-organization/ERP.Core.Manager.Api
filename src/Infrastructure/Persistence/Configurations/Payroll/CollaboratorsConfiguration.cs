@@ -21,7 +21,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.HasIndex(e => e.Id)
                 .IsUnique()
                 .HasDatabaseName("IX_collaborator_id");
-            
 
             builder.Property(e => e.FirstName)
                 .HasColumnName("first_name")
@@ -68,6 +67,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             
             builder.Property(e => e.CompanyId)
                 .HasColumnName("company_id")
+                .IsRequired();
+
+            builder.Property(e => e.RegisteredBy)
+                .HasColumnName("registered_by")
                 .IsRequired();
 
             builder.Property(e => e.CollaboratorCode)
