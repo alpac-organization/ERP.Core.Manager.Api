@@ -15,6 +15,8 @@ namespace ERP.Core.Manager.Api.Domain.Enums
 
         Suspended = 5,
 
-        Terminated = 6
+        Terminated = 6,
+        
+        TestingProcess = 7
     }
 }

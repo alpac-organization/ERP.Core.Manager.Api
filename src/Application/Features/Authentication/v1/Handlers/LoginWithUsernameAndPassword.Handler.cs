@@ -110,7 +110,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 CompanyInformation = new()
                 {
                     CompanyId = profile.CompanyId,
-                    CompanyName = company?.CompanieName
+                    CompanyName = company?.CompanieName,
+                    Alias = company?.Alias
                 },
                 UserName = user.UserName
             };

@@ -118,6 +118,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasForeignKey(s => s.CollaboratorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            //Registrar el control de salarios
+            builder.HasMany(c => c.Salaries)
+                .WithOne(s => s.Collaborator)
+                .HasForeignKey(s => s.CollaboratorId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

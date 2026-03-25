@@ -21,6 +21,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Databas
             builder.MapEnum<IdentificationType>("identification_type_enum");
             builder.MapEnum<GenderType>("gender_type_enum");
             builder.MapEnum<VacationRequestStatus>("vacation_request_status_enum");
+            builder.MapEnum<SalaryType>("salary_type_enum");
+            builder.MapEnum<Currency>("currency_enum");
 
             return builder.Build();
         }
