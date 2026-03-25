@@ -22,7 +22,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Handlers
             {
                 ModuleName = request.ModuleName!,
                 CompanyId = request.CompanyId,
-                Code = codeGenerted
+                Code = codeGenerted,
+                Description = request.Description
             }, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

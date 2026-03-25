@@ -105,6 +105,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 UserId = user.Id,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
+                Email = user.Email,
+                FullName = user.Fullname,
                 CompanyInformation = new()
                 {
                     CompanyId = profile.CompanyId,

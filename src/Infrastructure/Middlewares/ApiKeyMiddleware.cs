@@ -9,6 +9,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Middlewares
 
         public async Task InvokeAsync(HttpContext context)
         {
+            var path = context.Request.Path.Value;
+                
+            if (path != null && (path.Contains("swagger") || path.Contains("docs")))
+            {
+                await _next(context);
+                return;
+            }
+
             if (HttpMethods.IsOptions(context.Request.Method))
             {
                 await _next(context);

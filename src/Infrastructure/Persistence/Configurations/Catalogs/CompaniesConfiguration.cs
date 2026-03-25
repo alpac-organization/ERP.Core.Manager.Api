@@ -53,6 +53,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasForeignKey(m => m.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.HasMany(c => c.Collaborators)
+                .WithOne(m => m.Company)
+                .HasForeignKey(m => m.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.HasIndex(e => e.Code) // Si quieres un índice, que sea para el Código
                 .IsUnique()
                 .HasDatabaseName("IX_companies_code");

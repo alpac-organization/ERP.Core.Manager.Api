@@ -17,6 +17,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Databas
             builder.MapEnum<RoleType>("role_type");
             builder.MapEnum<PermissionType>("permission_type");
 
+            builder.MapEnum<UserStatus>("user_status_enum");
+            builder.MapEnum<IdentificationType>("identification_type_enum");
+            builder.MapEnum<GenderType>("gender_type_enum");
+            builder.MapEnum<VacationRequestStatus>("vacation_request_status_enum");
+
             return builder.Build();
         }
     }

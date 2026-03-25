@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
+using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
 {
@@ -15,6 +16,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<UserModuleRoles> ModulesWithRoles => Set<UserModuleRoles>();  
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<UserModuleRoles> UserModuleRoles => Set<UserModuleRoles>();
+
+        public DbSet<Collaborator> Collaborators => Set<Collaborator>();
+        public DbSet<PersonalInformation> PersonalInformations => Set<PersonalInformation>();
+        public DbSet<WorkingInformation> WorkingInformation => Set<WorkingInformation>();
+        public DbSet<Vacation> Vacations => Set<Vacation>();
+        public DbSet<VacationRequest> VacationRequests => Set<VacationRequest>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
