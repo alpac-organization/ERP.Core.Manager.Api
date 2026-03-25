@@ -1,4 +1,5 @@
 using ERP.Core.Manager.Api.Domain.Commons;
+using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
 {
@@ -12,6 +13,6 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
         
         public virtual ICollection<Module> Modules { get; set; } = [];
         public virtual ICollection<Catalog> Catalogs { get; set; } = [];
-
+        public virtual ICollection<Collaborator> Collaborators { get; set; } = [];
     }
 }
