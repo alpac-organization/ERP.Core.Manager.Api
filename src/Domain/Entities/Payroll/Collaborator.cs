@@ -31,6 +31,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
         public virtual WorkingInformation WorkingInformation { get; set; } = default!;
 
         //Multiples datos
-        public virtual ICollection<VacationRequest> VacationRequests { get; set; } = [];      
+        public virtual ICollection<Salary> Salaries { get; set; } = [];
+        public virtual ICollection<VacationRequest> VacationRequests { get; set; } = [];  
     }
 }
