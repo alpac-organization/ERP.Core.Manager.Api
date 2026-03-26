@@ -1,3 +1,5 @@
+using ERP.Core.Manager.Api.Domain.Enums;
+
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
 {
     public class LoginDto
@@ -8,6 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
         public string? RefreshToken { get; set; }
         public string? FullName { get; set; }
         public string? Email { get; set; }
+        public string? UserType { get; set; }
         public CompanyInformation CompanyInformation { get; set; } = new();
     }
 
