@@ -12,6 +12,8 @@ using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authenticatio
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
+using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -46,6 +48,9 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IModulesRepository, ModulesRepository>();
             services.AddScoped<IUserModulesRoleRepository, UserModulesRoleRepository>();
             services.AddScoped<IRolesRepository, RolesRepository>();
+            services.AddScoped<ICollaboratorsRepository, CollaboratorsRepository>();
+
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;

@@ -17,7 +17,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
         public T ThrowBadRequest<T>(string message, string type) 
             => throw new CoreException(new ErrorResponse(400, type, message));
-
+    
         public T ThrowInternalError<T>(string message, string type) 
             => throw new CoreException(new ErrorResponse(500, type, message));
             

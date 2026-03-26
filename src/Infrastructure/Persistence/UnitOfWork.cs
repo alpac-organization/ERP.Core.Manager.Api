@@ -1,5 +1,6 @@
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence
@@ -12,7 +13,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         IUserProfilesRepository userProfilesRepository,
         ISessionsRepository sessionsRepository,
         IRolesRepository rolesRepository,
-        IUserModulesRoleRepository userModulesRoleRepository
+        IUserModulesRoleRepository userModulesRoleRepository,
+        ICollaboratorsRepository collaboratorsRepository
     ) : IUnitOfWork
     {
         public AppDbContext Context => _context;
@@ -24,6 +26,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         public ISessionsRepository Sessions => sessionsRepository;
         public IRolesRepository Roles => rolesRepository;
         public IUserModulesRoleRepository UserModules => userModulesRoleRepository;
+        public ICollaboratorsRepository Collaborators => collaboratorsRepository;
+
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {

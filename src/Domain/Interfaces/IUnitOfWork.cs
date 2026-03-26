@@ -1,4 +1,5 @@
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
 
 namespace ERP.Core.Manager.Api.Domain.Interfaces
 {
@@ -11,6 +12,7 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         ISessionsRepository Sessions { get; }
         IRolesRepository Roles { get; }
         IUserModulesRoleRepository UserModules { get; }
+        ICollaboratorsRepository Collaborators { get; }
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }
