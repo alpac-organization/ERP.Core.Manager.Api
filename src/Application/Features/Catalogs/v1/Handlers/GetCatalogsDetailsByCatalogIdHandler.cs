@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
     {
         public async Task<List<CatalogDetailsDto>> Handle(GetCatalogsDetailsByCatalogIdQuery request, CancellationToken cancellationToken)
         {
-            var catalog = await _unitOfWork.Catalogs.FirstOrDefaultAsync(catalog => catalog.CompanyId == request.CompanyId && catalog.CatalogType == request.CatalogType, cancellationToken);
+            var catalog = await _unitOfWork.CatalogsRepository.FirstOrDefaultAsync(catalog => catalog.CompanyId == request.CompanyId && catalog.CatalogType == request.CatalogType, cancellationToken);
 
             if (catalog is null)
             {
@@ -21,7 +21,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             var subCatalogs = await _unitOfWork.SubCatalogs.GetSubCatalogsByCatalogId(catalog!.Id, cancellationToken);
 
             //Mapper
-            return [];
+            return _mapper.Map<List<CatalogDetailsDto>>(subCatalogs);
         }
     }
 }

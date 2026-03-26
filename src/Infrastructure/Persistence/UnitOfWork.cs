@@ -29,7 +29,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         public IRolesRepository Roles => rolesRepository;
         public IUserModulesRoleRepository UserModules => userModulesRoleRepository;
         public ICollaboratorsRepository Collaborators => collaboratorsRepository;
-        public ICatalogsRepository Catalogs => catalogsRepository;
+        public ICatalogsRepository CatalogsRepository => catalogsRepository;
 
         public ISubCatalogsRepository SubCatalogs => subCatalogsRepository;
 
@@ -46,4 +46,3 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         }
     }
 }
-
