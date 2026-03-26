@@ -14,7 +14,7 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories
         /// <param name="CompanyId">Identificador único de la empresa.</param>
         /// <param name="cancellationToken">Token para monitorear solicitudes de cancelación de la operación.</param>
         /// <returns>Una lista de entidades <see cref="Module"/> filtradas por estado activo y empresa.</returns>
-        Task<List<Module>> ObtainActiveModulesByCompanyId(int CompanyId, CancellationToken cancellationToken);
+        Task<List<Module>> ObtainActiveModulesByCompanyId(Guid CompanyId, CancellationToken cancellationToken);
 
         /// <summary>
         /// Registra un nuevo módulo en el sistema. 

@@ -10,7 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Commands
         public Guid UserId { get; set; }
 
         [JsonIgnore]
-        public int CompanyId { get; set; }
+        public Guid CompanyId { get; set; }
         
         public string? ModuleCode { get; set; }
     }

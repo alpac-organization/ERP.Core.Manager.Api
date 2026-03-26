@@ -6,13 +6,13 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
 {
     public class Collaborator : BaseEntity<Guid>
     {
-        required public string FirstName { get; set; }
-        required public string FirstLastname { get; set; }
-        required public string IdentificationNumber { get; set; }
-        required public string CollaboratorCode { get; set; }
-
+        public string? FirstName { get; set; }
+        public string? FirstLastname { get; set; }
+        public string? IdentificationNumber { get; set; }
+        public string? CollaboratorCode { get; set; }
+        
         //Id de la empresa a la que pertenece este colaborador.
-        required public int CompanyId { get; set; }
+        public Guid CompanyId { get; set; }
 
         //Otras propiedades
         public string? SecondName { get; set; }

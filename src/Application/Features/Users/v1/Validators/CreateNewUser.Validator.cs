@@ -16,6 +16,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Validators
                 .NotNull()
                     .WithMessage("El id de la empresa es requerido");
 
+            RuleFor(x => x.IdentificationNumber)
+                .NotEmpty()
+                    .WithMessage("El número de identificación es requerido")
+                .NotNull()
+                    .WithMessage("El número de identificación es requerido");
+
+            RuleFor(x => x.FullName)
+                .NotEmpty()
+                    .WithMessage("Debe indicar almenos un nombre y un apellido")
+                .NotNull()
+                    .WithMessage("Debe indicar almenos un nombre y un apellido");
+
+            // RuleFor(x => x.UserType)
+            //     .NotEmpty()
+            //         .WithMessage("El tipo de usuario es requerido")
+            //     .NotNull()
+            //         .WithMessage("El tipo de usuario es requerido");
+
             RuleFor(x => x.Password)
                 .NotEmpty()
                     .WithMessage("La contraseña no puede ser vacia")
@@ -31,15 +49,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Validators
                     .WithMessage("La contraseña debe contener al menos un número.")
                 .Matches(@"[^a-zA-Z0-9]")
                     .WithMessage("La contraseña debe contener al menos un carácter especial (ej: !@#$%^&*).")
-                .NotEqual(x => x.Username)
-                    .WithMessage("La contraseña no puede ser igual al nombre de usuario.");
+                .NotEqual(x => x.Email)
+                    .WithMessage("La contraseña no puede ser igual al correo.");
 
             RuleFor(x => x.Email)
                 .EmailAddress()
                     .WithMessage("El formato del correo electrónico no es válido.")
                 .MaximumLength(100)
-                    .WithMessage("El correo no puede exceder los 100 caracteres.")
-                .When(x => !string.IsNullOrEmpty(x.Email));
+                    .WithMessage("El correo no puede exceder los 100 caracteres.");
         }
     }
 }

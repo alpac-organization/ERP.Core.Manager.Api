@@ -14,7 +14,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentic
             return entry.Entity;
         }
 
-        public async Task<IEnumerable<User>> GetActiveUsersByCompany(int companyId, CancellationToken cancellationToken)
+        public async Task<IEnumerable<User>> GetActiveUsersByCompany(Guid companyId, CancellationToken cancellationToken)
         {
             return await _context.Users
                 .Where(u => u.UserStatus == UserStatus.Active &&

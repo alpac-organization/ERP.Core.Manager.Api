@@ -2,13 +2,15 @@ using ERP.Core.Manager.Api.Domain.Commons;
 
 namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
 {
-    public class Module: BaseEntity<int>
+    public class Module: BaseEntity<Guid>
     {
-        public bool IsActive { get; set; } = true;
-        public string ModuleName { get; set; } = string.Empty;
+        public bool IsActive { get; set; }    
+        public Guid CompanyId { get; set; }
+
         public string? Code { get; set; }
-        public int CompanyId { get; set; }
         public string? Description { get; set; }
-        public virtual Company Company { get; set; } = null!;
+        public string? ModuleName { get; set; }
+
+        public virtual Company Company { get; set; } = default!;
     }
 }

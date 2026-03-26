@@ -5,9 +5,9 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Handlers
 {
-    public class CreateModuleAssociatedWithCompanyHandler(IUnitOfWork _unitOfWork, ICodeGenerator _codeGenerator) : IRequestHandler<CreateModuleAssociatedWithCompanyCommand>
+    public class CreateModuleAssociatedWithCompanyHandler(IUnitOfWork _unitOfWork, ICodeGenerator _codeGenerator, IErrorManager _errorManager) : IRequestHandler<CreateModuleAssociatedWithCompanyCommand, bool>
     {
-        public async Task Handle(CreateModuleAssociatedWithCompanyCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(CreateModuleAssociatedWithCompanyCommand request, CancellationToken cancellationToken)
         {
             var company = await _unitOfWork.Companies.FirstOrDefaultAsync(x => x.Id == request.CompanyId, cancellationToken);
 
@@ -15,7 +15,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Handlers
 
             if (company is null)
             {
-                throw new Exception("No existe una empresa asociado a este id!");
+                return _errorManager.ThrowBadRequest<bool>("Esta empresa no existe en nuestro sistema", "ERP:001");
             }
 
             await _unitOfWork.Modules.CreateModuleAssociatedWithCompany(new()
@@ -23,10 +23,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Handlers
                 ModuleName = request.ModuleName!,
                 CompanyId = request.CompanyId,
                 Code = codeGenerted,
-                Description = request.Description
+                Description = request.Description,
+                IsActive = true
             }, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return true;
         }
     }
 }

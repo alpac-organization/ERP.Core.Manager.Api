@@ -11,11 +11,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Queries
     /// garantizando que solo se retornen aquellos con acceso vigente al Tenant solicitado.
     /// </remarks>
     /// <param name="companyId">Identificador único de la empresa para realizar el filtrado de usuarios.</param>
-    public class GetAllActiveUsersByCompanyIdQuery(int companyId) : IRequest<List<UserDto>> 
+    public class GetAllActiveUsersByCompanyIdQuery(Guid companyId) : IRequest<List<UserDto>> 
     {
         /// <summary>
         /// Identificador de la empresa (CompanyId) proporcionado para la consulta.
         /// </summary>
-        public int CompanyId { get; } = companyId;
+        public Guid CompanyId { get; } = companyId;
     }
 }

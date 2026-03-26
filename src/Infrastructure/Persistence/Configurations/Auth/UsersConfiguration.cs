@@ -1,8 +1,6 @@
-using ERP.Core.Manager.Api.Domain.Entities.Authentication;
-using ERP.Core.Manager.Api.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
+using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 {
     public class UsersConfiguration : IEntityTypeConfiguration<User>
@@ -20,21 +18,30 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .IsRequired();
 
             builder.Property(e => e.UserName)
-                .HasColumnName("user_name")
-                .IsRequired();
+                .IsRequired()
+                .HasColumnName("user_name");
 
             builder.Property(e => e.Fullname)
+                .IsRequired()
                 .HasColumnName("fullname");
 
             builder.Property(e => e.Email)
+                .IsRequired()
                 .HasColumnName("email");
-            
+
+            builder.Property(e => e.IdentificationNumber)
+                .IsRequired()
+                .HasColumnName("identification_number");
+
+            builder.Property(u => u.UserType)
+                .HasColumnName("user_type")
+                .IsRequired()
+                .HasConversion<string>();
+
             builder.Property(e => e.UserStatus)
-                .HasMaxLength(20)
-                .HasConversion(
-                    v => v.ToString(),
-                    v => Enum.Parse<UserStatus>(v, true)
-                );
+                .HasColumnName("user_status")
+                .IsRequired()
+                .HasConversion<string>();
 
             builder.Property(e => e.PasswordHash)
                 .HasColumnName("password_hash")

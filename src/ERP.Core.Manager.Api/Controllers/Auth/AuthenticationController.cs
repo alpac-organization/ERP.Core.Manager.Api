@@ -16,7 +16,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(LoginDto),      StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        public async Task<LoginDto> LoginWithUsernameOrEmailWithPasswordAsync([FromRoute] int companie_id, [FromBody] LoginWithUsernameAndPasswordCommand payload)
+        public async Task<LoginDto> LoginWithUsernameOrEmailWithPasswordAsync([FromRoute] Guid companie_id, [FromBody] LoginWithUsernameAndPasswordCommand payload)
         {
             var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
             var deviceName = Request.Headers["x-device-name"].ToString();
@@ -42,7 +42,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(LoginDto),      StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        public async Task<LoginDto> RefreshTokenAsync([FromRoute] int companie_id, [FromBody] RefreshTokenCommand body)
+        public async Task<LoginDto> RefreshTokenAsync([FromRoute] Guid companie_id, [FromBody] RefreshTokenCommand body)
         {
             return await _mediator.Send(new RefreshTokenCommand()
             {
@@ -56,7 +56,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> LogoutAsync([FromRoute] int companie_id, [FromBody] LogoutUserCommand body)
+        public async Task<IActionResult> LogoutAsync([FromRoute] Guid companie_id, [FromBody] LogoutUserCommand body)
         {
             await _mediator.Send(new LogoutUserCommand()
             {

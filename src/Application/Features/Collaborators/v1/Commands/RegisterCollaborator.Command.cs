@@ -3,15 +3,19 @@ using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
 {
-    public class RegisterCollaboratorCommand: IRequest
+    public class RegisterCollaboratorCommand: IRequest<bool>
     {
         //Para mapear que el usuario tenga permiso para registrar datos de colaborador
         public Guid UserId { get; set; }
 
+        //Codigo del modulo para    
+        public string? ModuleCode { get; set; }
+        public string? Code { get; set; }
+
         public string? FirstName { get; set; }
         public string? FirstLastname { get; set; }
         public string? IdentificationNumber { get; set; }
-        public int CompanyId { get; set; }
+        public Guid CompanyId { get; set; }
 
         public string? SecondName { get; set; }
         public string? ThirdName { get; set; }

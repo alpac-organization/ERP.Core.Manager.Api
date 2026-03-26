@@ -59,7 +59,7 @@ app.UseCors("ViteLocalPolicy");
 
 app.UseMiddleware<ApiKeyMiddleware>();
 
-app.UseMiddleware<AuthMiddleware>();
+// app.UseMiddleware<AuthMiddleware>();
 
 
 if (app.Environment.IsDevelopment())

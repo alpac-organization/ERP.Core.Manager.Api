@@ -10,8 +10,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Databas
             var builder = new NpgsqlDataSourceBuilder(connectionString);
             
             builder.EnableUnmappedTypes();
-
-            // Centralizamos aquí todos los enums del ERP
+            
             builder.MapEnum<CatalogType>("catalog_type");
             builder.MapEnum<UserStatus>("user_status");
             builder.MapEnum<RoleType>("role_type");
@@ -23,6 +22,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Databas
             builder.MapEnum<VacationRequestStatus>("vacation_request_status_enum");
             builder.MapEnum<SalaryType>("salary_type_enum");
             builder.MapEnum<Currency>("currency_enum");
+            builder.MapEnum<UserType>("user_type_enum");
 
             return builder.Build();
         }

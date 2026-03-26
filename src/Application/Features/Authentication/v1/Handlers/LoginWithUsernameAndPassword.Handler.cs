@@ -82,7 +82,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             // 5. Preparar la nueva sesión
             var newSessionId = Guid.NewGuid();
             var refreshToken = _authServices.GenerateRefreshToken();
-            var accessToken = _authServices.GenerateAccessToken(user, company!.Code, newSessionId, modulesWithAccess);
+            var accessToken = _authServices.GenerateAccessToken(user, company!.Code!, newSessionId, modulesWithAccess);
 
             var newSession = new Session()
             {

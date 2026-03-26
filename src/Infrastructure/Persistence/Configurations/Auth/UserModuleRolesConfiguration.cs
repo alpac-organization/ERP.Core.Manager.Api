@@ -18,14 +18,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .ValueGeneratedOnAdd()
                 .IsRequired();
 
-            // ✅ Mapeo explícito de RoleId (Esto soluciona tu error 42703)
             builder.Property(e => e.RoleId)
                 .HasColumnName("role_id")
                 .IsRequired();
 
             builder.Property(e => e.IsActive)
                 .HasColumnName("is_active")
-                .HasDefaultValue(true);
+                .HasDefaultValue(true)
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.ModuleCode)
                 .HasColumnName("module_code")
