@@ -15,6 +15,24 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
     public class UsersController(IMediator _mediator) : ApiControllerBase
     {
         [Tags("Usuarios")] 
+        [HttpGet("companies/{companie_id}/users/modules")]    
+        [ProducesResponseType(typeof(List<UserModuleDto>), StatusCodes.Status200OK)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<List<UserModuleDto>> GetAvailableModulesForUserAsync([FromRoute] Guid companie_id)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            var result = await _mediator.Send(new GetAvailableModulesForUserQuery()
+            {
+                CompanyId = companie_id,
+                UserId =  Guid.Parse(userIdStr ?? "")
+            });
+
+            return result;
+        }
+
+        [Tags("Usuarios")] 
         [HttpGet("companies/{companie_id}/users")]    
         [ProducesResponseType(typeof(List<UserDto>), StatusCodes.Status200OK)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
