@@ -1,3 +1,4 @@
+using ERP.Core.Manager.Api.Domain.Commons.Interfaces;
 using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll
@@ -6,7 +7,7 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll
     /// Define las operaciones de persistencia para la entidad de Colaboradores 
     /// dentro del módulo de Nómina (Payroll).
     /// </summary>
-    public interface ICollaboratorsRepository
+    public interface ICollaboratorsRepository : IRepository<Collaborator>
     {
         /// <summary>
         /// Registra un nuevo colaborador en el sistema, incluyendo su información 

@@ -9,8 +9,7 @@ using ERP.Core.Manager.Api.Application.Features.Users.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
 {
-    public class GetAvailableModulesForUserHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IErrorManager _errorManager) 
-    : UserValidateHandlerBase(_unitOfWork, _errorManager), IRequestHandler<GetAvailableModulesForUserQuery, List<UserModuleDto>>
+    public class GetAvailableModulesForUserHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager) : UserValidateHandlerBase(_unitOfWork, _errorManager), IRequestHandler<GetAvailableModulesForUserQuery, List<UserModuleDto>>
     {
         public async Task<List<UserModuleDto>> Handle(GetAvailableModulesForUserQuery request, CancellationToken cancellationToken)
         {
@@ -21,10 +20,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                 .Where(ur => ur.UserProfileId == profile.Id && ur.IsActive)
                 .ToListAsync(cancellationToken);
 
-            if (userRoles.Count == 0) 
-            {
-                return [];
-            }
+            if (userRoles.Count == 0) return [];
 
             var moduleCodes = userRoles
                 .Select(ur => ur.ModuleCode)
@@ -36,18 +32,30 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                 .Where(m => moduleCodes.Contains(m.Code))
                 .ToDictionaryAsync(
                     m => m.Code!, 
-                    m => m.ModuleName,
+                    m => (Name: m.ModuleName, Desc: m.Description),
                     cancellationToken
                 );
 
-            var result = userRoles.Select(ur => new UserModuleDto
+            var result = userRoles.Select(ur => 
             {
-                ModuleCode = ur.ModuleCode,
-                RoleType = ur.Role?.RoleType.ToString(),
-                ModuleName = (ur.ModuleCode != null && masterModules.TryGetValue(ur.ModuleCode, out var name)) 
-                    ? name 
-                    : "Módulo no encontrado"
-                    
+                if (ur.ModuleCode != null && masterModules.TryGetValue(ur.ModuleCode, out var info))
+                {
+                    return new UserModuleDto
+                    {
+                        ModuleCode = ur.ModuleCode,
+                        RoleType = ur.Role?.RoleType.ToString(),
+                        ModuleName = info.Name,
+                        Description = info.Desc
+                    };
+                }
+
+                return new UserModuleDto
+                {
+                    ModuleCode = ur.ModuleCode,
+                    RoleType = ur.Role?.RoleType.ToString(),
+                    ModuleName = "Módulo no encontrado",
+                    Description = "Sin descripción"
+                };
             }).ToList();
 
             return result;

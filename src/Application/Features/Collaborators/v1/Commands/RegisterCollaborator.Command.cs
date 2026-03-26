@@ -39,9 +39,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? WorkEmail { get; set; }
         public string? InssNumber { get; set; }
 
-        required public int WorkAreaId { get; set; }
-        required public int WorkPositionId { get; set; }
-        required public string BranchId { get; set; }
+        public int WorkAreaId { get; set; }
+        public int WorkPositionId { get; set; }
+        public string? BranchId { get; set; }
+
+
+        public DateTime EntryDate { get; set; }
     }
 
     public class PersonalInformation

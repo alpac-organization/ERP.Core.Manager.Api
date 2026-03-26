@@ -11,6 +11,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
         public decimal AmountInForeign { get; set; }
         public decimal AmountSalary { get; set; }
 
+        public int BankSubCatalogId { get; set; }
         public Currency Currency { get; set; }
         public SalaryType SalaryType { get; set; }
 

@@ -8,11 +8,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll
     {
         public async Task<Collaborator> RegisterCollaborator(Collaborator collaborator, CancellationToken cancellationToken)
         {
-            await _context.Collaborators.AddAsync(collaborator, cancellationToken);
+            collaborator.Status = Domain.Enums.CollaboratorStatus.Active;
+
+            var collaboratorRegistered = await _context.Collaborators.AddAsync(collaborator, cancellationToken);
             
             await _context.SaveChangesAsync(cancellationToken);
 
-            return collaborator;
+            return collaboratorRegistered.Entity;
         }
     }
 }

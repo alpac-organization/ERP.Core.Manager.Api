@@ -1,9 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Domain.Entities.Errors;
+using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -14,7 +16,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     {
         [Tags("Colaboradores")] 
         [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators")]      
-        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<IActionResult> RegisterCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromBody] RegisterCollaboratorCommand payload)
@@ -30,5 +32,19 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             return Created(string.Empty, null);
         }
 
+        [Tags("Colaboradores")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators")]      
+        [ProducesResponseType(typeof(List<GetCollaboratorDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<List<GetCollaboratorDto>> GetCollaboratorsAvailableAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
+            [FromQuery] CollaboratorStatus status, [FromQuery] string identification_number, [FromQuery] int branch_id
+        )
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+
+            return [];
+        }
     }
 }
