@@ -32,7 +32,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)] 
         public async Task<CreateUserDto> CreateNewUserAsync([FromRoute] Guid companie_id, [FromBody] CreateNewUserCommand payload)
         {
-            var commands = new CreateNewUserCommand()
+            var command = new CreateNewUserCommand()
             {
                 CompanyId = companie_id,
                 FullName = payload.FullName,
@@ -43,7 +43,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
                 ModulesWithAccess = payload.ModulesWithAccess
             };
 
-            var result = await _mediator.Send(commands);
+            var result = await _mediator.Send(command);
 
             return result;
         }

@@ -45,6 +45,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                 Email = request.Email,
                 PasswordHash = passwordHash,
                 Fullname = request.FullName,
+                IdentificationNumber = request.IdentificationNumber,
                 UserStatus = UserStatus.Active,
                 UserType = request.UserType
             };
