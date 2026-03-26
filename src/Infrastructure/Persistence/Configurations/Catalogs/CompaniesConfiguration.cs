@@ -14,7 +14,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
 
             builder.Property(e => e.Id)
                 .HasColumnName("company_id")
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("gen_random_uuid()")
+                .ValueGeneratedOnAdd()
+                .IsRequired();
 
             builder.Property(e => e.Alias)
                 .HasColumnName("alias")
@@ -58,7 +60,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasForeignKey(m => m.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasIndex(e => e.Code) // Si quieres un índice, que sea para el Código
+            builder.HasIndex(e => e.Code)
                 .IsUnique()
                 .HasDatabaseName("IX_companies_code");
         }

@@ -19,23 +19,28 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .IsRequired();
 
             builder.Property(e => e.RefreshToken)
-                .HasColumnName("refresh_token");
+                .HasColumnName("refresh_token")
+                .IsRequired();
 
             builder.Property(e => e.UserId)
                 .HasColumnName("user_id")
                 .IsRequired();
 
             builder.Property(e => e.IpAddress)
-                .HasColumnName("ip_address");
+                .HasColumnName("ip_address")
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.Device)
-                .HasColumnName("device");
+                .HasColumnName("device")
+                .ValueGeneratedNever();
 
             builder.Property(e => e.CompanyCode)
-                .HasColumnName("company_code");
+                .HasColumnName("company_code")
+                .IsRequired();
 
             builder.Property(e => e.ExpiresAt)
-                .HasColumnName("expires_at");
+                .HasColumnName("expires_at")
+                .IsRequired();
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")

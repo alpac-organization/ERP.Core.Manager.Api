@@ -5,7 +5,7 @@
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateRegisterEnums : Migration
+    public partial class ModificarValoresDefault : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

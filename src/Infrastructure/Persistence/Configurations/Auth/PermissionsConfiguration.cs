@@ -31,7 +31,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.PermissionType)
                 .HasColumnName("permission_type")
-                .HasColumnType("permission_type");
+                .HasConversion<string>()
+                .IsRequired();
             
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")

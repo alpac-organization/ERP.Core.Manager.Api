@@ -3,12 +3,12 @@ using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
 {
-    public class Company : BaseEntity<int>
+    public class Company : BaseEntity<Guid>
     {
-        required public string Code { get; set; } = string.Empty;
-        required public string Alias { get; set; } = string.Empty;
-        public bool IsActive { get; set; } = true;
-        required public string CompanieName { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public string? Code { get; set; }
+        public string? Alias { get; set; }
+        public string? CompanieName { get; set; }
         public string? ImageUrl { get; set; }
         
         public virtual ICollection<Module> Modules { get; set; } = [];

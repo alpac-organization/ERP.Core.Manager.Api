@@ -8,7 +8,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories
 {
     public class ModulesRepository(AppDbContext _context): Repository<Module>(_context), IModulesRepository
     {
-        public async Task<List<Module>> ObtainActiveModulesByCompanyId(int CompanyId, CancellationToken cancellationToken)
+        public async Task<List<Module>> ObtainActiveModulesByCompanyId(Guid CompanyId, CancellationToken cancellationToken)
         {
             return await _context.Modules
                 .Where(module => module.IsActive == true && module.CompanyId == CompanyId)
@@ -18,10 +18,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories
 
         public async Task CreateModuleAssociatedWithCompany(Module Payload, CancellationToken cancellationToken)
         {
-            //Creamos el registro en la base de datos.
             await _context.Modules.AddAsync(Payload, cancellationToken);
-
-            //Guardamos los cambios.
             await _context.SaveChangesAsync(cancellationToken);
         }
     }

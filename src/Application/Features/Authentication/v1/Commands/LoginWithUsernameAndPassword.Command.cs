@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands
         public string? Password { get; set; }
 
         [JsonIgnore]
-        public int CompanyId { get; set; }
+        public Guid CompanyId { get; set; }
 
         [JsonIgnore]
         public SessionDetails? SessionDetails { get; set; }

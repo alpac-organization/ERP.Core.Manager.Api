@@ -19,7 +19,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(List<UserDto>), StatusCodes.Status200OK)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<List<UserDto>> GetAllActiveUsersAsync([FromRoute] int companie_id)
+        public async Task<List<UserDto>> GetAllActiveUsersAsync([FromRoute] Guid companie_id)
         {
             var result = await _mediator.Send(new GetAllActiveUsersByCompanyIdQuery(companie_id));
             return result;
@@ -30,15 +30,16 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)] 
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)] 
-        public async Task<CreateUserDto> CreateNewUserAsync([FromRoute] int companie_id, [FromBody] CreateNewUserCommand payload)
+        public async Task<CreateUserDto> CreateNewUserAsync([FromRoute] Guid companie_id, [FromBody] CreateNewUserCommand payload)
         {
             var commands = new CreateNewUserCommand()
             {
-                Username = payload.Username,
                 CompanyId = companie_id,
                 FullName = payload.FullName,
                 Email = payload.Email,
                 Password = payload.Password,
+                IdentificationNumber = payload.IdentificationNumber,
+                UserType = payload.UserType,
                 ModulesWithAccess = payload.ModulesWithAccess
             };
 
@@ -52,7 +53,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(VerifyAccessDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)] 
-        public async Task<VerifyAccessDto> ObtainUserRolesAndPermissionsAsync([FromRoute] int companie_id, [FromBody] VerifyAccessCommand body) 
+        public async Task<VerifyAccessDto> ObtainUserRolesAndPermissionsAsync([FromRoute] Guid companie_id, [FromBody] VerifyAccessCommand body) 
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 

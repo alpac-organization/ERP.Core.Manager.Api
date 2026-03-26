@@ -10,9 +10,9 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
         public string? FirstLastname { get; set; }
         public string? IdentificationNumber { get; set; }
         public string? CollaboratorCode { get; set; }
-
+        
         //Id de la empresa a la que pertenece este colaborador.
-        public int CompanyId { get; set; }
+        public Guid CompanyId { get; set; }
 
         //Otras propiedades
         public string? SecondName { get; set; }

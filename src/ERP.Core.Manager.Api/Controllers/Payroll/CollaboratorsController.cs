@@ -17,7 +17,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<IActionResult> RegisterCollaboratorAsync([FromRoute] int companie_id, [FromRoute] string module_code, [FromBody] RegisterCollaboratorCommand payload)
+        public async Task<IActionResult> RegisterCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromBody] RegisterCollaboratorCommand payload)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 

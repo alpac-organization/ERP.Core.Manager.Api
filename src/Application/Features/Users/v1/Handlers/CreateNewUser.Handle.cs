@@ -1,14 +1,14 @@
 using MediatR;
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 
-namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
+namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
 {
-    public class CreateNewUserHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPasswordHasher _passwordHasher) : IRequestHandler<CreateNewUserCommand, CreateUserDto>
+    public class CreateNewUserHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPasswordHasher _passwordHasher, ICodeGenerator _codeGenerator) : IRequestHandler<CreateNewUserCommand, CreateUserDto>
     {
         public async Task<CreateUserDto> Handle(CreateNewUserCommand request, CancellationToken cancellationToken)
         {
@@ -20,16 +20,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 
                 if(user is not null)
                 {
-                    return _errorManager.ThrowBadRequest<CreateUserDto>("Ya existe un usuario con este correo asociado", "CreateUserByEmail");
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(request.Username))
-            {
-                user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserName == request.Username, cancellationToken);
-
-                if(user is not null)
-                {
-                    return _errorManager.ThrowBadRequest<CreateUserDto>("Ya existe un usuario con este nombre de usuario", "CreateUserByUsername");
+                    return _errorManager.ThrowBadRequest<CreateUserDto>("Ya existe un usuario con este correo asociado", "ERP:01");
                 }
             }
 
@@ -44,24 +35,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             }
 
             //Hashiamos la contraseña
+            var username = _codeGenerator.GenerateUsername(request.FullName!);
             var passwordHash = _passwordHasher.HashPassword(request.Password!);
-            var fullNameGenerated = request.FullName is null ? request.Username : request.FullName;
 
             //Creamos el usuario
             var newUser = new User()
             {
-                UserName = request.Username,
+                UserName = username,
                 Email = request.Email,
                 PasswordHash = passwordHash,
-                Fullname = fullNameGenerated,
+                Fullname = request.FullName,
                 UserStatus = UserStatus.Active,
+                UserType = request.UserType
             };
 
             var userCreated = await _unitOfWork.Users.CreateNewUser(newUser);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             //Usuario Creado con exito
-
             var company = await _unitOfWork.Companies.FirstOrDefaultAsync(company => company.Id == request.CompanyId, cancellationToken);
 
             if (company is null)
@@ -78,11 +69,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 
             //Creamos su perfil y lo asociamos a la empresa.
             var userProfileCreated = await _unitOfWork.Profiles.CreateNewUserProfile(userProfile);
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-
-            var modulesCode = request.ModulesWithAccess.Select(module => module.ModuleCode); 
             var roles = request.ModulesWithAccess.Select(role => role.RoleId);
+            var modulesCode = request.ModulesWithAccess.Select(module => module.ModuleCode); 
 
             foreach(var module in request.ModulesWithAccess)
             {
@@ -102,16 +93,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 }
 
                 await _unitOfWork.UserModules.AssignRolesModule(module.RoleId, module.ModuleCode!, userProfileCreated.Id);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
-            //Modulos asignados con sus respectivo role.
-            //Status 201 ✅
+            //Guardar Cambios en la base de datos
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
             return new ()
             {
                 UserName = userCreated.UserName,
-                Description = "Se creo el usuario de forma exitosa!",
-                FullName = userCreated.Fullname
+                FullName = userCreated.Fullname,
+                UserType = userCreated.UserType,
+                Description = "Usuario Creado Con exito!"
             };
         }
     }

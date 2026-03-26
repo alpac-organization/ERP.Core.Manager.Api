@@ -5,46 +5,46 @@
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class AgregarNuevaColumnaTablaUser : Migration
+    public partial class RenombrarColumna : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "UserStatus",
+            migrationBuilder.RenameColumn(
+                name: "IdentificationNumber",
                 schema: "public",
                 table: "users",
-                type: "character varying(20)",
-                maxLength: 20,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
+                newName: "identification_number");
 
-            migrationBuilder.AddColumn<string>(
-                name: "fullname",
+            migrationBuilder.AlterColumn<string>(
+                name: "identification_number",
                 schema: "public",
                 table: "users",
                 type: "text",
-                nullable: true);
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "text",
+                oldNullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "fullname",
+            migrationBuilder.RenameColumn(
+                name: "identification_number",
                 schema: "public",
-                table: "users");
+                table: "users",
+                newName: "IdentificationNumber");
 
             migrationBuilder.AlterColumn<string>(
-                name: "UserStatus",
+                name: "IdentificationNumber",
                 schema: "public",
                 table: "users",
                 type: "text",
-                nullable: false,
+                nullable: true,
                 oldClrType: typeof(string),
-                oldType: "character varying(20)",
-                oldMaxLength: 20);
+                oldType: "text");
         }
     }
 }

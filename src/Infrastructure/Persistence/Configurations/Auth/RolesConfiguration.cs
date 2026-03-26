@@ -29,10 +29,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.RoleType)
                 .HasColumnName("role_type")
-                .HasConversion(
-                    v => v.ToString(),
-                    v => Enum.Parse<RoleType>(v, true)
-                );
+                .HasConversion<string>()
+                .IsRequired();
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")

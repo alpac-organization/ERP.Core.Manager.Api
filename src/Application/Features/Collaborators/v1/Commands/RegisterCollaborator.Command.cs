@@ -15,7 +15,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? FirstName { get; set; }
         public string? FirstLastname { get; set; }
         public string? IdentificationNumber { get; set; }
-        public int CompanyId { get; set; }
+        public Guid CompanyId { get; set; }
 
         public string? SecondName { get; set; }
         public string? ThirdName { get; set; }

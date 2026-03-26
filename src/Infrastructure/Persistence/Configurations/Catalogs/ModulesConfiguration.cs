@@ -14,7 +14,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
 
             builder.Property(e => e.Id)
                 .HasColumnName("module_id")
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("gen_random_uuid()")
+                .ValueGeneratedOnAdd()
+                .IsRequired();
 
             builder.Property(e => e.ModuleName)
                 .HasColumnName("module_name")
@@ -26,7 +28,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .IsRequired();
 
             builder.Property(e => e.Code)
-                .HasColumnName("code");
+                .HasColumnName("code")
+                .IsRequired();
 
             builder.Property(e => e.Description)
                 .HasColumnName("description");

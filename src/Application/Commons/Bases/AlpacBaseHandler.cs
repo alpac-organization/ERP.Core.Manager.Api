@@ -19,7 +19,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Bases
 
         public abstract Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken);
 
-        protected async Task<AccessValidationResult<TResponse>> ValidateAccessAsync(Guid userId, int companyId, string moduleCode, CancellationToken ct)
+        protected async Task<AccessValidationResult<TResponse>> ValidateAccessAsync(Guid userId, Guid companyId, string moduleCode, CancellationToken ct)
         {
             // 1. Validar Usuario
             var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);

@@ -29,10 +29,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.IsActive)
                 .HasColumnName("is_active")
-                .HasDefaultValue(true);
+                .HasDefaultValue(true)
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.DeletedAt)
-                .HasColumnName("deleted_at");
+                .HasColumnName("deleted_at")
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")

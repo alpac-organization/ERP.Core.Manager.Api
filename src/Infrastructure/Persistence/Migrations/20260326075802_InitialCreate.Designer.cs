@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260318174020_UpdateRegisterEnums")]
-    partial class UpdateRegisterEnums
+    [Migration("20260326075802_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,8 +53,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("permission_name");
 
-                    b.Property<int>("PermissionType")
-                        .HasColumnType("permission_type")
+                    b.Property<string>("PermissionType")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("permission_type");
 
                     b.Property<Guid>("RoleId")
@@ -99,8 +100,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(180)")
                         .HasColumnName("role_name");
 
-                    b.Property<int>("RoleType")
-                        .HasColumnType("role_type")
+                    b.Property<string>("RoleType")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("role_type");
 
                     b.HasKey("Id");
@@ -119,10 +121,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("session_id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<string>("AccessToken")
+                    b.Property<string>("CompanyCode")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("access_token");
+                        .HasColumnName("company_code");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -143,8 +145,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("expires_at");
 
                     b.Property<string>("IpAddress")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
                         .HasColumnName("ip_address");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("RefreshToken")
                         .IsRequired()
@@ -184,8 +190,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("deleted_at");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("email");
+
+                    b.Property<string>("Fullname")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("fullname");
+
+                    b.Property<string>("IdentificationNumber")
+                        .HasColumnType("text");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -197,9 +212,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("user_name");
 
-                    b.Property<int>("UserStatus")
-                        .HasColumnType("user_status")
+                    b.Property<string>("UserStatus")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("user_status");
+
+                    b.Property<string>("UserType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_type");
 
                     b.HasKey("Id");
 
@@ -262,8 +283,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("user_profile_id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
                         .HasColumnName("company_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -273,6 +294,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime?>("DeletedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
@@ -287,6 +309,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("UserId");
 
@@ -307,12 +331,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("catalog_name");
 
-                    b.Property<int>("CatalogType")
-                        .HasColumnType("catalog_type")
+                    b.Property<string>("CatalogType")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("catalog_type");
 
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
                         .HasColumnName("company_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -347,27 +372,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Catalogs.Company", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("company_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<string>("Alias")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("alias");
 
                     b.Property<string>("Code")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("code");
 
                     b.Property<string>("CompanieName")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("company_name");
@@ -403,19 +424,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Catalogs.Module", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("module_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid")
+                        .HasColumnName("module_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<string>("Code")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("code");
 
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
                         .HasColumnName("company_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -427,6 +448,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
+
+                    b.Property<string>("Description")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -497,6 +523,370 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     b.ToTable("sub_catalogs", "public");
                 });
 
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.Collaborator", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("collaborator_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("CollaboratorCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("collaborator_code");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("FirstLastname")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("first_lastname");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("gender");
+
+                    b.Property<string>("IdentificationNumber")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("identification_number");
+
+                    b.Property<string>("IdentificationType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("identification_type");
+
+                    b.Property<string>("RegisteredBy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("registered_by");
+
+                    b.Property<string>("SecondLastname")
+                        .HasColumnType("text")
+                        .HasColumnName("second_lastname");
+
+                    b.Property<string>("SecondName")
+                        .HasColumnType("text")
+                        .HasColumnName("second_name");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.Property<string>("ThirdName")
+                        .HasColumnType("text")
+                        .HasColumnName("third_name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollaboratorCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_collaborators_collaborator_code");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("Id")
+                        .IsUnique()
+                        .HasDatabaseName("IX_collaborator_id");
+
+                    b.HasIndex("IdentificationNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_collaborators_identification_number");
+
+                    b.ToTable("collaborators", "public");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.PersonalInformation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("personal_information_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("text")
+                        .HasColumnName("address");
+
+                    b.Property<DateTime>("Birthdate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("birthdate");
+
+                    b.Property<Guid>("CollaboratorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collaborator_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("Departament")
+                        .HasColumnType("text")
+                        .HasColumnName("departament");
+
+                    b.Property<string>("PersonalEmail")
+                        .HasColumnType("text")
+                        .HasColumnName("personal_email");
+
+                    b.Property<string>("PersonalPhoneNumber")
+                        .HasColumnType("text")
+                        .HasColumnName("personal_phone_number");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollaboratorId")
+                        .IsUnique();
+
+                    b.ToTable("personal_informations", "public");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.Salary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("salary_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<decimal>("AmountInForeign")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount_in_foreign");
+
+                    b.Property<decimal>("AmountInLocal")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount_in_local");
+
+                    b.Property<decimal>("AmountSalary")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount_salary");
+
+                    b.Property<Guid>("CollaboratorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<int>("Currency")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_date");
+
+                    b.Property<int>("SalaryType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollaboratorId")
+                        .IsUnique();
+
+                    b.ToTable("salaries", "public");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.Vacation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("vacation_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<float>("AvailableVacations")
+                        .HasColumnType("real")
+                        .HasColumnName("available_vacations");
+
+                    b.Property<Guid>("CollaboratorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collaborator_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<float>("EnjoyedVacation")
+                        .HasColumnType("real")
+                        .HasColumnName("enjoyed_vacation");
+
+                    b.Property<float>("GeneredVacation")
+                        .HasColumnType("real")
+                        .HasColumnName("genered_vacation");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollaboratorId")
+                        .IsUnique();
+
+                    b.ToTable("vacations", "public");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.VacationRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("vacation_request_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("approved_by");
+
+                    b.Property<Guid>("CollaboratorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_date");
+
+                    b.Property<string>("RequestedBy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("requested_by");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdateAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollaboratorId");
+
+                    b.HasIndex("Id")
+                        .IsUnique()
+                        .HasDatabaseName("IX_vacation_collaborator_id");
+
+                    b.ToTable("vacation_requests", "public");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.WorkingInformation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("working_information_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("BankAccountNumber")
+                        .HasColumnType("text")
+                        .HasColumnName("bank_account_number");
+
+                    b.Property<string>("BranchId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("branch_id");
+
+                    b.Property<Guid>("CollaboratorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collaborator_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<DateTime>("DepartureDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("departure_date");
+
+                    b.Property<DateTime>("EntryDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("entry_date");
+
+                    b.Property<string>("InssNumber")
+                        .HasColumnType("text")
+                        .HasColumnName("inss_number");
+
+                    b.Property<int>("WorkAreaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("work_area_id");
+
+                    b.Property<string>("WorkEmail")
+                        .HasColumnType("text")
+                        .HasColumnName("work_email");
+
+                    b.Property<string>("WorkPhonNumber")
+                        .HasColumnType("text")
+                        .HasColumnName("work_phone_number");
+
+                    b.Property<int>("WorkPositionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("work_position_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollaboratorId")
+                        .IsUnique();
+
+                    b.ToTable("working_information", "public");
+                });
+
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.Permission", b =>
                 {
                     b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.Role", "Role")
@@ -522,7 +912,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserModuleRoles", b =>
                 {
                     b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.Role", "Role")
-                        .WithMany()
+                        .WithMany("UserModuleRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -540,11 +930,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.UserProfile", b =>
                 {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Catalogs.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Authentication.User", "User")
                         .WithMany("Profiles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Company");
 
                     b.Navigation("User");
                 });
@@ -582,9 +980,77 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Catalog");
                 });
 
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.Collaborator", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Catalogs.Company", "Company")
+                        .WithMany("Collaborators")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.PersonalInformation", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Payroll.Collaborator", "Collaborator")
+                        .WithOne("PersonalInformation")
+                        .HasForeignKey("ERP.Core.Manager.Api.Domain.Entities.Payroll.PersonalInformation", "CollaboratorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Collaborator");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.Salary", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Payroll.Collaborator", "Collaborator")
+                        .WithMany("Salaries")
+                        .HasForeignKey("CollaboratorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Collaborator");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.Vacation", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Payroll.Collaborator", "Collaborator")
+                        .WithOne("Vacation")
+                        .HasForeignKey("ERP.Core.Manager.Api.Domain.Entities.Payroll.Vacation", "CollaboratorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Collaborator");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.VacationRequest", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Payroll.Collaborator", "Collaborator")
+                        .WithMany("VacationRequests")
+                        .HasForeignKey("CollaboratorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Collaborator");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.WorkingInformation", b =>
+                {
+                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Payroll.Collaborator", "Collaborator")
+                        .WithOne("WorkingInformation")
+                        .HasForeignKey("ERP.Core.Manager.Api.Domain.Entities.Payroll.WorkingInformation", "CollaboratorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Collaborator");
+                });
+
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.Role", b =>
                 {
                     b.Navigation("Permissions");
+
+                    b.Navigation("UserModuleRoles");
                 });
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.User", b =>
@@ -608,7 +1074,25 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("Catalogs");
 
+                    b.Navigation("Collaborators");
+
                     b.Navigation("Modules");
+                });
+
+            modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.Collaborator", b =>
+                {
+                    b.Navigation("PersonalInformation")
+                        .IsRequired();
+
+                    b.Navigation("Salaries");
+
+                    b.Navigation("Vacation")
+                        .IsRequired();
+
+                    b.Navigation("VacationRequests");
+
+                    b.Navigation("WorkingInformation")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
