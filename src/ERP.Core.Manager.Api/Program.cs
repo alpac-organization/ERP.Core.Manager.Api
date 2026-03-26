@@ -51,7 +51,7 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseRouting();
 
@@ -59,7 +59,7 @@ app.UseCors("ViteLocalPolicy");
 
 app.UseMiddleware<ApiKeyMiddleware>();
 
-// app.UseMiddleware<AuthMiddleware>();
+app.UseMiddleware<AuthMiddleware>();
 
 
 if (app.Environment.IsDevelopment())

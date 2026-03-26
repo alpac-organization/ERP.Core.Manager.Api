@@ -1,5 +1,3 @@
-using ERP.Core.Manager.Api.Domain.Enums;
-
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
 {
     public class LoginDto
