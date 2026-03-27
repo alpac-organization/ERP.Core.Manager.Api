@@ -24,6 +24,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<VacationRequest> VacationRequests => Set<VacationRequest>();
         public DbSet<Catalog> Catalogs { get; set; }
         public DbSet<SubCatalog> SubCatalogs { get; set; }
+        public DbSet<Salary> Salaries => Set<Salary>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

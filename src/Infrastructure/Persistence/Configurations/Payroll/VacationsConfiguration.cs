@@ -20,14 +20,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.AvailableVacations)
                 .HasColumnName("available_vacations")
+                .HasColumnType("decimal(18,4)") // Define el tipo y la precisión
                 .IsRequired();
 
             builder.Property(e => e.EnjoyedVacation)
                 .HasColumnName("enjoyed_vacation")
+                .HasColumnType("decimal(18,4)")
                 .IsRequired();
-            
+
             builder.Property(e => e.GeneredVacation)
                 .HasColumnName("genered_vacation")
+                .HasColumnType("decimal(18,4)")
                 .IsRequired();
 
             builder.Property(e => e.CollaboratorId)

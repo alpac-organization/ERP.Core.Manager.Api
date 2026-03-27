@@ -20,14 +20,31 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             
             builder.Property(e => e.AmountInForeign)
                 .HasColumnName("amount_in_foreign")
+                .HasPrecision(18, 3) 
                 .IsRequired();
 
             builder.Property(e => e.AmountInLocal)
                 .HasColumnName("amount_in_local")
+                .HasPrecision(18, 3)
                 .IsRequired();
 
             builder.Property(e => e.AmountSalary)
                 .HasColumnName("amount_salary")
+                .HasPrecision(18, 3)
+                .IsRequired();
+
+            builder.Property(e => e.SalaryType)
+                .HasColumnName("salary_type")
+                .HasConversion<string>()
+                .IsRequired();
+
+            builder.Property(e => e.BankSubCatalogId)
+                .HasColumnName("bank_id")
+                .IsRequired();
+
+            builder.Property(e => e.Currency)
+                .HasColumnName("currency")
+                .HasConversion<string>()
                 .IsRequired();
 
             builder.Property(e => e.StartDate)

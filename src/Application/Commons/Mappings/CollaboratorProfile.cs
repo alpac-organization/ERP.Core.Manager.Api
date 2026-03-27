@@ -49,7 +49,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 WorkPositionId = info.WorkPositionId,
                 BranchId = info.BranchId,
                 BankAccountNumber = info.BankAccountNumber,
-                WorkPhonNumber = info.WorkPhonNumber,
+                WorkPhoneNumber = info.WorkPhoneNumber,
                 WorkEmail = info.WorkEmail,
                 InssNumber = info.InssNumber,
                 EntryDate = DateTime.UtcNow 

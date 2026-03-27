@@ -18,7 +18,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .ValueGeneratedOnAdd()
                 .IsRequired();
 
-            builder.Property(e => e.WorkPhonNumber)
+            builder.Property(e => e.WorkPhoneNumber)
                 .HasColumnName("work_phone_number")
                 .IsRequired(false);
 
@@ -56,8 +56,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.DepartureDate)
                 .HasColumnName("departure_date")
-                .IsRequired();
-
+                .HasDefaultValue(null)
+                .ValueGeneratedOnAdd();
+                
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

@@ -673,16 +673,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<decimal>("AmountInForeign")
-                        .HasColumnType("numeric")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
                         .HasColumnName("amount_in_foreign");
 
                     b.Property<decimal>("AmountInLocal")
-                        .HasColumnType("numeric")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
                         .HasColumnName("amount_in_local");
 
                     b.Property<decimal>("AmountSalary")
-                        .HasColumnType("numeric")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
                         .HasColumnName("amount_salary");
+
+                    b.Property<int>("BankSubCatalogId")
+                        .HasColumnType("integer")
+                        .HasColumnName("bank_id");
 
                     b.Property<Guid>("CollaboratorId")
                         .HasColumnType("uuid");
@@ -693,8 +700,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<int>("Currency")
-                        .HasColumnType("integer");
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("currency");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
@@ -704,8 +713,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_date");
 
-                    b.Property<int>("SalaryType")
-                        .HasColumnType("integer");
+                    b.Property<string>("SalaryType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("salary_type");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone")
@@ -727,8 +738,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("vacation_id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<float>("AvailableVacations")
-                        .HasColumnType("real")
+                    b.Property<decimal>("AvailableVacations")
+                        .HasColumnType("decimal(18,4)")
                         .HasColumnName("available_vacations");
 
                     b.Property<Guid>("CollaboratorId")
@@ -745,12 +756,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
-                    b.Property<float>("EnjoyedVacation")
-                        .HasColumnType("real")
+                    b.Property<decimal>("EnjoyedVacation")
+                        .HasColumnType("decimal(18,4)")
                         .HasColumnName("enjoyed_vacation");
 
-                    b.Property<float>("GeneredVacation")
-                        .HasColumnType("real")
+                    b.Property<decimal>("GeneredVacation")
+                        .HasColumnType("decimal(18,4)")
                         .HasColumnName("genered_vacation");
 
                     b.HasKey("Id");
@@ -830,9 +841,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("bank_account_number");
 
-                    b.Property<string>("BranchId")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("BranchId")
+                        .HasColumnType("integer")
                         .HasColumnName("branch_id");
 
                     b.Property<Guid>("CollaboratorId")
@@ -849,7 +859,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
-                    b.Property<DateTime>("DepartureDate")
+                    b.Property<DateTime?>("DepartureDate")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("departure_date");
 
@@ -869,7 +880,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("work_email");
 
-                    b.Property<string>("WorkPhonNumber")
+                    b.Property<string>("WorkPhoneNumber")
                         .HasColumnType("text")
                         .HasColumnName("work_phone_number");
 
