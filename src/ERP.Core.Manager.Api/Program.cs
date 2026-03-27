@@ -15,7 +15,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ViteLocalPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://web-alpac.onrender.com")
+        policy.WithOrigins("http://localhost:5174", "http://localhost:5173", "https://web-alpac.onrender.com")
             .AllowAnyMethod()
             .AllowAnyHeader();
             //   .AllowCredentials()
@@ -51,15 +51,15 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-app.UseMiddleware<ExceptionMiddleware>();
+// app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseRouting();
-
+// app.UseHttpsRedirection();
 app.UseCors("ViteLocalPolicy");
 
-app.UseMiddleware<ApiKeyMiddleware>();
+// app.UseMiddleware<ApiKeyMiddleware>();
 
-app.UseMiddleware<AuthMiddleware>();
+app.UseMiddleware<AuthMiddleware>();    
 
 
 if (app.Environment.IsDevelopment())
