@@ -25,7 +25,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             var dataSource = NpgsqlConfiguration.BuildDataSource(connectionString!);
-            
+
             services.AddSingleton(dataSource);
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(dataSource,
@@ -49,6 +49,10 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IUserModulesRoleRepository, UserModulesRoleRepository>();
             services.AddScoped<IRolesRepository, RolesRepository>();
             services.AddScoped<ICollaboratorsRepository, CollaboratorsRepository>();
+            services.AddScoped<ICatalogsRepository, CatalogsRepository>();
+            services.AddScoped<ISubCatalogsRepository, SubCatalogsRepository>();
+
+
             services.AddScoped<IPersonalInformationRepository, PersonalInformationRepository>();
             services.AddScoped<IWorkingInformationRepository, WorkingInformationRepository>();
 

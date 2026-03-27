@@ -12,7 +12,8 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         ISessionsRepository Sessions { get; }
         IRolesRepository Roles { get; }
         IUserModulesRoleRepository UserModules { get; }
-        
+        ICatalogsRepository CatalogsRepository { get; }
+        ISubCatalogsRepository SubCatalogs { get; }
         ICollaboratorsRepository Collaborators { get; }
         IWorkingInformationRepository WorkingInformations { get; }
         IPersonalInformationRepository PersonalInformations { get; }

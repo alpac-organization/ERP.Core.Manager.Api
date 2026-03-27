@@ -15,6 +15,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         IRolesRepository rolesRepository,
         IUserModulesRoleRepository userModulesRoleRepository,
         ICollaboratorsRepository collaboratorsRepository,
+        ICatalogsRepository catalogsRepository,
+        ISubCatalogsRepository subCatalogsRepository,
         IWorkingInformationRepository workingInformationRepository,
         IPersonalInformationRepository personalInformationRepository
     ) : IUnitOfWork
@@ -29,6 +31,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         public IRolesRepository Roles => rolesRepository;
         public IUserModulesRoleRepository UserModules => userModulesRoleRepository;
         public ICollaboratorsRepository Collaborators => collaboratorsRepository;
+        public ICatalogsRepository CatalogsRepository => catalogsRepository;
+
+        public ISubCatalogsRepository SubCatalogs => subCatalogsRepository;
+
         public IPersonalInformationRepository PersonalInformations => personalInformationRepository;
         public IWorkingInformationRepository WorkingInformations => workingInformationRepository;
 
