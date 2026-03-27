@@ -24,6 +24,13 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         Supervisor = 3,
 
         /// <summary>
+        /// Jefe directo o responsable de área. Gestiona el personal a su cargo, 
+        /// aprueba solicitudes operativas (permisos, vacaciones) y revisa metas locales.
+        /// </summary>
+        [EnumMember(Value = "Manager")]
+        Manager = 4,
+
+        /// <summary>
         /// Usuario ejecutor de tareas puntuales. Su acceso está limitado 
         /// a registros operativos específicos (ej. entradas de almacén o producción).
         /// </summary>

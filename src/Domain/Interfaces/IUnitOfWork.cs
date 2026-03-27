@@ -15,6 +15,11 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         ICatalogsRepository CatalogsRepository { get; }
         ISubCatalogsRepository SubCatalogs { get; }
         ICollaboratorsRepository Collaborators { get; }
+        IWorkingInformationRepository WorkingInformations { get; }
+        IPersonalInformationRepository PersonalInformations { get; }
+        ISalariesRepository Salaries { get; }
+        IVacationsRepository Vacations { get; }
+
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

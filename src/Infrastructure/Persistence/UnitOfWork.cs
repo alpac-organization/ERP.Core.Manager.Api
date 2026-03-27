@@ -16,7 +16,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         IUserModulesRoleRepository userModulesRoleRepository,
         ICollaboratorsRepository collaboratorsRepository,
         ICatalogsRepository catalogsRepository,
-        ISubCatalogsRepository subCatalogsRepository
+        ISubCatalogsRepository subCatalogsRepository,
+        IWorkingInformationRepository workingInformationRepository,
+        IPersonalInformationRepository personalInformationRepository,
+        ISalariesRepository salariesRepository,
+        IVacationsRepository vacationsRepository
     ) : IUnitOfWork
     {
         public AppDbContext Context => _context;
@@ -30,9 +34,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         public IUserModulesRoleRepository UserModules => userModulesRoleRepository;
         public ICollaboratorsRepository Collaborators => collaboratorsRepository;
         public ICatalogsRepository CatalogsRepository => catalogsRepository;
-
         public ISubCatalogsRepository SubCatalogs => subCatalogsRepository;
-
+        public IPersonalInformationRepository PersonalInformations => personalInformationRepository;
+        public IWorkingInformationRepository WorkingInformations => workingInformationRepository;
+        public ISalariesRepository Salaries => salariesRepository;
+        public IVacationsRepository Vacations => vacationsRepository;
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {

@@ -35,13 +35,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
     public class WorkingInformation
     {
         public string? BankAccountNumber { get; set; }
-        public string? WorkPhonNumber { get; set; }
+        public string? WorkPhoneNumber { get; set; }
         public string? WorkEmail { get; set; }
         public string? InssNumber { get; set; }
 
-        required public int WorkAreaId { get; set; }
-        required public int WorkPositionId { get; set; }
-        required public string BranchId { get; set; }
+        //Catalogs
+        public int WorkAreaId { get; set; }
+        public int WorkPositionId { get; set; }
+        public int BranchId { get; set; }
+
+        public DateTime EntryDate { get; set; }
     }
 
     public class PersonalInformation
@@ -58,5 +61,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public Currency Currency { get; set; }
         public SalaryType SalaryType { get; set; }
         public decimal Salary { get; set; }
+        public int SubCatalogBankId { get; set; }
     }
 }

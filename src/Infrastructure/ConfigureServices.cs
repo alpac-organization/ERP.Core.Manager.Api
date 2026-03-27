@@ -51,8 +51,10 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<ICollaboratorsRepository, CollaboratorsRepository>();
             services.AddScoped<ICatalogsRepository, CatalogsRepository>();
             services.AddScoped<ISubCatalogsRepository, SubCatalogsRepository>();
-
-
+            services.AddScoped<IPersonalInformationRepository, PersonalInformationRepository>();
+            services.AddScoped<IWorkingInformationRepository, WorkingInformationRepository>();
+            services.AddScoped<ISalariesRepository, SalariesRepository>();
+            services.AddScoped<IVacationsRepository, VacationsRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
