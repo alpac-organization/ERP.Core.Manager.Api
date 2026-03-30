@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace ERP.Core.Manager.Api.Domain.Enums
@@ -8,8 +9,13 @@ namespace ERP.Core.Manager.Api.Domain.Enums
     /// </summary>
     public enum IdentificationType
     {
-        NationalId = 1,
-        Passport = 2,
-        ResidencyCard = 3
+        [EnumMember(Value = "Cedula")]
+        Cedula = 1,
+
+        [EnumMember(Value = "Pasaporte")]
+        Pasaporte = 2,
+
+        [EnumMember(Value = "CedulaResidencia")]
+        CedulaResidencia = 3
     }
 }
