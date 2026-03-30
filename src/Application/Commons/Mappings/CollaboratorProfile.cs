@@ -13,19 +13,21 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
     {
         public CollaboratorProfile()
         {
+
+            #region Mapeo de listado de colaboradore
             CreateMap<Collaborator, GetCollaboratorDto>()
                 .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
                 .ForMember(dest => dest.FirstLastname, opt => opt.MapFrom(src => src.FirstLastname))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => 
-                string.Join(" ", new[] 
-                { 
-                    src.FirstName.ToCapitalize(), 
-                    src.SecondName.ToCapitalize(), 
-                    src.FirstLastname.ToCapitalize(), 
-                    src.SecondLastname.ToCapitalize() 
-                }.Where(s => !string.IsNullOrWhiteSpace(s)))))
+                    string.Join(" ", new[] 
+                    { 
+                        src.FirstName.ToCapitalize(), 
+                        src.SecondName.ToCapitalize(), 
+                        src.FirstLastname.ToCapitalize(), 
+                        src.SecondLastname.ToCapitalize() 
+                    }.Where(s => !string.IsNullOrWhiteSpace(s)))))
 
                 .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => 
                     src.WorkingInformation != null && src.WorkingInformation.WorkArea != null 
@@ -39,14 +41,59 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                     
                 .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
                 .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.IdentificationNumber));
+                
+            #endregion
+
+            #region Mapeo de detalles de colaborador
+
+            CreateMap<PersonalInformation, PersonalInformationDto>()
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.PersonalEmail, opt => opt.MapFrom(src => src.PersonalEmail))
+                .ForMember(dest => dest.PersonalPhoneNumber, opt => opt.MapFrom(src => src.PersonalPhoneNumber));
+
+            CreateMap<WorkingInformation, WorkingInformationDto>()
+                .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => src.WorkArea.CatalogName))
+                .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkPosition.CatalogName))
+                .ForMember(dest => dest.BankName, opt => opt.MapFrom(src => src.Branch.CatalogName));
+
+            CreateMap<Salary, SalaryInformationDto>()
+                .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.AmountSalary))
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency.ToString()))
+                .ForMember(dest => dest.SalaryType, opt => opt.MapFrom(src => src.SalaryType.ToString()));
+
+            CreateMap<Collaborator, CollaboratorDetailsDto>()
+                .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkingInformation.WorkPosition.CatalogName))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => 
+                    string.Join(" ", new[] 
+                    { 
+                        src.FirstName, src.SecondName, src.FirstLastname, src.SecondLastname 
+                    }.Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => s.ToCapitalize()))))
+                
+                .ForMember(dest => dest.PersonalInformation, opt => opt.MapFrom(src => src.PersonalInformation))
+                .ForMember(dest => dest.WorkingInformation, opt => opt.MapFrom(src => src.WorkingInformation))
+                .ForMember(dest => dest.SalaryInformation, opt => opt.MapFrom(src => src.Salaries != null ? src.Salaries.FirstOrDefault() : null))
+
+                
+                .AfterMap((src, dest) => {
+                    if (dest.PersonalInformation != null)
+                    {
+                        dest.PersonalInformation.Gender = src.Gender;
+                        dest.PersonalInformation.IdentificationNumber = src.IdentificationNumber;
+                        dest.PersonalInformation.PersonalEmail = src.PersonalInformation.PersonalEmail;
+                    }
+                });
+
+            #endregion   
         }
     }
 
     public static class CollaboratorMapper
     {
-        public static Entities.Collaborator ToCollaboratorEntity(this Commands.RegisterCollaboratorCommand command, string generatedCode)
+        public static Collaborator ToCollaboratorEntity(this Commands.RegisterCollaboratorCommand command, string generatedCode)
         {
-            return new Entities.Collaborator
+            return new Collaborator
             {
                 Id = Guid.NewGuid(),
                 CompanyId = command.CompanyId,
@@ -64,9 +111,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             };
         }
 
-        public static Entities.PersonalInformation ToPersonalInformationEntity(this Commands.PersonalInformation info, Guid collaboratorId)
+        public static PersonalInformation ToPersonalInformationEntity(this Commands.PersonalInformation info, Guid collaboratorId)
         {
-            return new Entities.PersonalInformation
+            return new PersonalInformation
             {
                 Id = Guid.NewGuid(),
                 CollaboratorId = collaboratorId,
@@ -78,9 +125,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             };
         }
 
-        public static Entities.WorkingInformation ToWorkingInformationEntity(this Commands.WorkingInformation info, Guid collaboratorId)
+        public static WorkingInformation ToWorkingInformationEntity(this Commands.WorkingInformation info, Guid collaboratorId)
         {
-            return new Entities.WorkingInformation
+            return new WorkingInformation
             {
                 Id = Guid.NewGuid(),
                 CollaboratorId = collaboratorId,
