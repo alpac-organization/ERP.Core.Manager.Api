@@ -19,4 +19,4 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         
         TestingProcess = 7
     }
-}
+}   

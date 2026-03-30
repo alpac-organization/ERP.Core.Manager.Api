@@ -17,6 +17,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasDefaultValueSql("gen_random_uuid()")
                 .ValueGeneratedOnAdd()
                 .IsRequired();
+
+                        
+            builder.Property(e => e.CollaboratorId)
+                .HasColumnName("collaborator_id")
+                .IsRequired();
+
             
             builder.Property(e => e.AmountInForeign)
                 .HasColumnName("amount_in_foreign")

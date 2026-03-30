@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Domain.Entities.Errors;
-using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
@@ -34,7 +33,11 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             return Created(string.Empty, null);
         }
 
+        [Tags("Colaboradores")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators", Name = "GetCollaborators")]
+        [ProducesResponseType(typeof(PagedResponse<GetCollaboratorDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<PagedResponse<GetCollaboratorDto>> GetCollaboratorsAvailableAsync(
             [FromRoute] Guid companie_id, 
             [FromRoute] string module_code, 
@@ -67,16 +70,24 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         [Tags("Colaboradores")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details", Name = "CollaboratorDetails")]      
-        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(CollaboratorDetailsDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<List<GetCollaboratorDto>> GetCollaboratorDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
+        public async Task<CollaboratorDetailsDto> GetCollaboratorDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
             [FromRoute] string identification_number
         )   
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
-            var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery());
-            return [];
+            
+            var collaborator = await _mediator.Send(new GetCollaboratorDetailsQuery()
+            {
+                CompanyId = companie_id,
+                IdentificationNumber = identification_number,
+                ModuleCode = module_code,
+                UserId = Guid.Parse(userIdStr ?? "")
+            });
+
+            return collaborator;
         }
     }
 }
