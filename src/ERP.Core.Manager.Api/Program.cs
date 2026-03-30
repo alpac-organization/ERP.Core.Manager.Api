@@ -51,13 +51,13 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseRouting();
 // app.UseHttpsRedirection();
 app.UseCors("ViteLocalPolicy");
 
-// app.UseMiddleware<ApiKeyMiddleware>();
+app.UseMiddleware<ApiKeyMiddleware>();
 
 app.UseMiddleware<AuthMiddleware>();    
 

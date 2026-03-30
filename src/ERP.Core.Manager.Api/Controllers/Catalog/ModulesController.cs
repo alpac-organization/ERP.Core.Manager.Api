@@ -36,7 +36,8 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
                 new CreateModuleAssociatedWithCompanyCommand()
                 {
                     CompanyId = companie_id,
-                    ModuleName = body.ModuleName
+                    ModuleName = body.ModuleName,
+                    Description = body.Description
                 }
             );
 

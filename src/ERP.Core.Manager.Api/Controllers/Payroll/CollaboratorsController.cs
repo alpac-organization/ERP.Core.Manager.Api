@@ -35,8 +35,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
         [Tags("Colaboradores")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators", Name = "ObtenerColaboradores")]      
-        [ProducesResponseType(typeof(List<Collaborator>), StatusCodes.Status200OK)]
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators", Name = "GetCollaborators")]      
+        [ProducesResponseType(typeof(List<GetCollaboratorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<List<GetCollaboratorDto>> GetCollaboratorsAvailableAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
