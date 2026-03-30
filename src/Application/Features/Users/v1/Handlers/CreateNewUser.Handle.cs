@@ -74,12 +74,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var roles = request.ModulesWithAccess.Select(role => role.RoleId);
-            var modulesCode = request.ModulesWithAccess.Select(module => module.ModuleCode); 
-
+            var modulesCode = request.ModulesWithAccess.Select(module => module.ModuleCode);
+            
             foreach(var module in request.ModulesWithAccess)
             {
                 var moduleExist = await _unitOfWork.Modules
-                    .FirstOrDefaultAsync(m => m.Code == module.ModuleCode && m.CompanyId == userProfileCreated.CompanyId, cancellationToken);
+                    .FirstOrDefaultAsync(m => m.Code == module.ModuleCode, cancellationToken);
 
                 if (moduleExist is null)
                 {

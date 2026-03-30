@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories
         public async Task<List<Module>> ObtainActiveModulesByCompanyId(Guid CompanyId, CancellationToken cancellationToken)
         {
             return await _context.Modules
-                .Where(module => module.IsActive == true && module.CompanyId == CompanyId)
+                .Where(module => module.IsActive)
                 .OrderBy(module => module.Id)
                 .ToListAsync(cancellationToken);
         }

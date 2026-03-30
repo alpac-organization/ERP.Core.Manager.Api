@@ -50,11 +50,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasForeignKey(m => m.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(c => c.Modules)
-                .WithOne(m => m.Company)
-                .HasForeignKey(m => m.CompanyId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             builder.HasMany(c => c.Collaborators)
                 .WithOne(m => m.Company)
                 .HasForeignKey(m => m.CompanyId)
@@ -63,6 +58,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
             builder.HasIndex(e => e.Code)
                 .IsUnique()
                 .HasDatabaseName("IX_companies_code");
+
+            builder.HasIndex(e => e.Id)
+                .IsUnique()
+                .HasDatabaseName("IX_companies_id");
         }
     }
 }
