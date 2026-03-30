@@ -1,8 +1,25 @@
 using Entities = ERP.Core.Manager.Api.Domain.Entities.Payroll;
 using Commands = ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using AutoMapper;
+using ERP.Core.Manager.Api.Domain.Entities.Payroll;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 {
+
+    public class CollaboratorProfile : Profile
+    {
+        public CollaboratorProfile()
+        {
+            CreateMap<Collaborator, GetCollaboratorDto>()
+                .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
+                .ForMember(dest => dest.FirstLastname, opt => opt.MapFrom(src => src.FirstLastname))
+                .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
+                .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.IdentificationNumber));
+        }
+    }
+
     public static class CollaboratorMapper
     {
         public static Entities.Collaborator ToCollaboratorEntity(this Commands.RegisterCollaboratorCommand command, string generatedCode)

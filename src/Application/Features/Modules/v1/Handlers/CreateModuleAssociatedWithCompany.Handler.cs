@@ -21,7 +21,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Handlers
             await _unitOfWork.Modules.CreateModuleAssociatedWithCompany(new()
             {
                 ModuleName = request.ModuleName!,
-                CompanyId = request.CompanyId,
                 Code = codeGenerted,
                 Description = request.Description,
                 IsActive = true

@@ -23,10 +23,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasMaxLength(180)
                 .IsRequired();
 
-            builder.Property(e => e.CompanyId)
-                .HasColumnName("company_id")
-                .IsRequired();
-
             builder.Property(e => e.Code)
                 .HasColumnName("code")
                 .IsRequired();
@@ -45,9 +41,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
 
             builder.Property(e => e.DeletedAt)
                 .HasColumnName("deleted_at");
-
-            builder.HasIndex(e => e.CompanyId)
-                .HasDatabaseName("ix_modules_company_id");
 
             builder.HasIndex(e => e.Code)
                 .HasDatabaseName("ix_modules_company_code");

@@ -76,6 +76,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 
             return new LoginDto
             {
+                UserId = user.Id,
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
                 UserName = user.UserName,

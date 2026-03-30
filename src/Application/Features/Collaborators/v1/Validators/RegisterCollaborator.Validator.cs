@@ -32,8 +32,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
                 .NotEmpty().WithMessage("El primer apellido es obligatorio")
                 .NotNull().WithMessage("El primer apellido es obligatorio");
 
-
-
             RuleFor(x => x.WorkingInformation)
                 .NotNull().WithMessage("El bloque de información laboral no puede estar vacío.");
 

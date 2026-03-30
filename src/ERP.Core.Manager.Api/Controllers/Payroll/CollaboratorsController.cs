@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Domain.Entities.Errors;
+using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
@@ -12,7 +14,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     [HasToken]
     [ApiVersion("1.0")]
     [Route("api/v1/")]
-    public class ModulesController(IMediator _mediator) : ApiControllerBase
+    public class CollaboratorsController(IMediator _mediator) : ApiControllerBase
     {
         [Tags("Colaboradores")] 
         [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators")]      
@@ -33,18 +35,32 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
         [Tags("Colaboradores")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators")]      
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators", Name = "GetCollaborators")]      
         [ProducesResponseType(typeof(List<GetCollaboratorDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<List<GetCollaboratorDto>> GetCollaboratorsAvailableAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
             [FromQuery] CollaboratorStatus status, [FromQuery] string identification_number, [FromQuery] int branch_id
-        )
+        )   
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
+            var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery());
+            return collaborators;
+        }
 
 
-            return [];
+        [Tags("Colaboradores")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details", Name = "CollaboratorDetails")]      
+        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<List<GetCollaboratorDto>> GetCollaboratorDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
+            [FromRoute] string identification_number
+        )   
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+            var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery());
+            return collaborators;
         }
     }
 }

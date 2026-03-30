@@ -8,10 +8,10 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
         public bool IsActive { get; set; }
         public string? Code { get; set; }
         public string? Alias { get; set; }
-        public string? CompanieName { get; set; }
         public string? ImageUrl { get; set; }
-        
-        public virtual ICollection<Module> Modules { get; set; } = [];
+        public string? CompanieName { get; set; }
+
+
         public virtual ICollection<Catalog> Catalogs { get; set; } = [];
         public virtual ICollection<Collaborator> Collaborators { get; set; } = [];
     }

@@ -6,16 +6,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentic
 {
     public class UserModulesRoleRepository(AppDbContext _context): Repository<UserModuleRoles>(_context), IUserModulesRoleRepository
     {
-        public async Task<UserModuleRoles> AssignRolesModule(Guid RoleId, string ModuleCode, Guid ProfileId)
+        public async Task<UserModuleRoles> AssignRolesModule(UserModuleRoles entity)
         {
-            var entity = new UserModuleRoles()
-            {
-                ModuleCode = ModuleCode,
-                RoleId = RoleId,
-                UserProfileId = ProfileId,
-                IsActive = true               
-            };
-
             var assigSaved = await _context.UserModuleRoles.AddAsync(entity);
 
             return assigSaved.Entity;

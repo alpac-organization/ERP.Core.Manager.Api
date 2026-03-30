@@ -15,7 +15,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
     {
         public override async Task<bool> Handle(RegisterCollaboratorCommand request, CancellationToken cancellationToken)
         {
-            // 1. Validar acceso (Seguridad centralizada en el BaseHandler)
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 

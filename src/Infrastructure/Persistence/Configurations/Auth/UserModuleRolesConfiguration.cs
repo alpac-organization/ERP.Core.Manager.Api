@@ -31,6 +31,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
                 .HasColumnName("module_code")
                 .IsRequired();
 
+            builder.Property(e => e.ModuleId)
+                .HasColumnName("module_id")
+                .IsRequired();
+
             builder.Property(e => e.UserProfileId)
                 .HasColumnName("user_profile_id")
                 .IsRequired();
@@ -51,7 +55,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
             builder.HasOne(u => u.UserProfile)
                 .WithMany(p => p.UserModuleRole)
                 .HasForeignKey(p => p.UserProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.Module)
+                .WithMany(m => m.UserModuleRoles)
+                .HasForeignKey(x => x.ModuleId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(e => new { e.UserProfileId, e.ModuleCode })
                 .IsUnique()
