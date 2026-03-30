@@ -1,8 +1,13 @@
+using System.Runtime.Serialization;
+
 namespace ERP.Core.Manager.Api.Domain.Enums
 {
     public enum GenderType
     {
-        Man,
-        Women
+        [EnumMember(Value = "Man")]
+        Man = 1,
+
+        [EnumMember(Value = "Women")]
+        Women = 2
     }
-}
+}   

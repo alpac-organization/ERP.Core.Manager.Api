@@ -3,6 +3,7 @@ using System;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260330171315_ModificarValoresEnums")]
+    partial class ModificarValoresEnums
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -845,7 +848,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                         .HasColumnName("bank_account_number");
 
                     b.Property<int>("BranchId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("branch_id");
 
                     b.Property<Guid>("CollaboratorId")
                         .HasColumnType("uuid")
@@ -875,7 +879,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                         .HasColumnName("inss_number");
 
                     b.Property<int>("WorkAreaId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("work_area_id");
 
                     b.Property<string>("WorkEmail")
                         .HasColumnType("text")
@@ -886,18 +891,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                         .HasColumnName("work_phone_number");
 
                     b.Property<int>("WorkPositionId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("work_position_id");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
                     b.HasIndex("CollaboratorId")
                         .IsUnique();
-
-                    b.HasIndex("WorkAreaId");
-
-                    b.HasIndex("WorkPositionId");
 
                     b.ToTable("working_information", "public");
                 });
@@ -1049,37 +1049,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Payroll.WorkingInformation", b =>
                 {
-                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Catalogs.SubCatalog", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Payroll.Collaborator", "Collaborator")
                         .WithOne("WorkingInformation")
                         .HasForeignKey("ERP.Core.Manager.Api.Domain.Entities.Payroll.WorkingInformation", "CollaboratorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Catalogs.SubCatalog", "WorkArea")
-                        .WithMany()
-                        .HasForeignKey("WorkAreaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ERP.Core.Manager.Api.Domain.Entities.Catalogs.SubCatalog", "WorkPosition")
-                        .WithMany()
-                        .HasForeignKey("WorkPositionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Branch");
-
                     b.Navigation("Collaborator");
-
-                    b.Navigation("WorkArea");
-
-                    b.Navigation("WorkPosition");
                 });
 
             modelBuilder.Entity("ERP.Core.Manager.Api.Domain.Entities.Authentication.Role", b =>

@@ -1,8 +1,10 @@
-using Entities = ERP.Core.Manager.Api.Domain.Entities.Payroll;
-using Commands = ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 using AutoMapper;
 using ERP.Core.Manager.Api.Domain.Entities.Payroll;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
+
+using Entities = ERP.Core.Manager.Api.Domain.Entities.Payroll;
+using Commands = ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 {
@@ -15,6 +17,26 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
                 .ForMember(dest => dest.FirstLastname, opt => opt.MapFrom(src => src.FirstLastname))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => 
+                string.Join(" ", new[] 
+                { 
+                    src.FirstName.ToCapitalize(), 
+                    src.SecondName.ToCapitalize(), 
+                    src.FirstLastname.ToCapitalize(), 
+                    src.SecondLastname.ToCapitalize() 
+                }.Where(s => !string.IsNullOrWhiteSpace(s)))))
+
+                .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => 
+                    src.WorkingInformation != null && src.WorkingInformation.WorkArea != null 
+                    ? src.WorkingInformation.WorkArea.CatalogName 
+                    : string.Empty))
+                
+                .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => 
+                    src.WorkingInformation != null && src.WorkingInformation.WorkPosition != null 
+                    ? src.WorkingInformation.WorkPosition.CatalogName 
+                    : string.Empty))
+                    
                 .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
                 .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.IdentificationNumber));
         }

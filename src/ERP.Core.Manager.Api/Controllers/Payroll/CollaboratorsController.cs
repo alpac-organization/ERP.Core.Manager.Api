@@ -34,17 +34,33 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             return Created(string.Empty, null);
         }
 
-        [Tags("Colaboradores")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators", Name = "GetCollaborators")]      
-        [ProducesResponseType(typeof(List<GetCollaboratorDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<List<GetCollaboratorDto>> GetCollaboratorsAvailableAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
-            [FromQuery] CollaboratorStatus status, [FromQuery] string identification_number, [FromQuery] int branch_id
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators", Name = "GetCollaborators")]
+        public async Task<PagedResponse<GetCollaboratorDto>> GetCollaboratorsAvailableAsync(
+            [FromRoute] Guid companie_id, 
+            [FromRoute] string module_code, 
+            [FromQuery] CollaboratorStatus? status,
+            [FromQuery] string? identification_number,
+            [FromQuery] int branch_id = 0,
+            [FromQuery] int area_id = 0,
+            [FromQuery] int page_number = 1,
+            [FromQuery] int page_size = 10
         )   
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
-            var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery());
+
+            var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery()
+            {
+                AreaSubCatalogId = area_id,
+                BranchSubCatalogId = branch_id, 
+                UserId = Guid.Parse(userIdStr ?? ""),
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                IdentificationNumber = identification_number,
+                Status = status,
+                PageNumber = page_number,
+                PageSize = page_size
+            });
+
             return collaborators;
         }
 
@@ -60,7 +76,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
             var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery());
-            return collaborators;
+            return [];
         }
     }
 }

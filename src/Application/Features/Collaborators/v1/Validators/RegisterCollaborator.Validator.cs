@@ -120,10 +120,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
                 .WithMessage("El salario es obligatorio.");
 
             RuleFor(x => x.Currency)
+                .IsInEnum()
                 .NotEmpty()
                 .WithMessage("El tipo de moneda es obligatorio.");
 
             RuleFor(x => x.SalaryType)
+                .IsInEnum()
                 .NotEmpty()
                 .WithMessage("El tipo de salario es obligatorio.");
 
