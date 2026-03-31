@@ -30,7 +30,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             }
             else
             {
-                return _errorManager.ThrowBadRequest<LoginDto>("Debe proporcionar un correo o un nombre de usuario.", "IdentityError");
+                return _errorManager.ThrowBadRequest<LoginDto>("Debe proporcionar un correo o un nomre de usuario.", "IdentityError");
             }
 
             if (user is null)
