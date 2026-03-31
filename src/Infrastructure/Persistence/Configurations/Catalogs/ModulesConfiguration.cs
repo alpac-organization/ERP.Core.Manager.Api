@@ -21,10 +21,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
             builder.Property(e => e.ModuleName)
                 .HasColumnName("module_name")
                 .HasMaxLength(180)
+                .HasDefaultValue("/dashboard")
                 .IsRequired();
 
             builder.Property(e => e.Code)
                 .HasColumnName("code")
+                .IsRequired();
+
+            builder.Property(e => e.PathRedirect)
+                .HasColumnName("path_redirect")
                 .IsRequired();
 
             builder.Property(e => e.Description)
