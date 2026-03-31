@@ -3,9 +3,6 @@ using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Validators
 {
-    /// <summary>
-    /// Validador para la consulta de módulos activos por ID de empresa.
-    /// </summary>
     public class CreateNewUserValidator : AbstractValidator<CreateNewUserCommand>
     {
         public CreateNewUserValidator()
@@ -28,11 +25,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Validators
                 .NotNull()
                     .WithMessage("Debe indicar almenos un nombre y un apellido");
 
-            // RuleFor(x => x.UserType)
-            //     .NotEmpty()
-            //         .WithMessage("El tipo de usuario es requerido")
-            //     .NotNull()
-            //         .WithMessage("El tipo de usuario es requerido");
+            RuleFor(x => x.UserType)
+                .NotEmpty()
+                    .WithMessage("El tipo de usuario es requerido")
+                .NotNull()
+                    .WithMessage("El tipo de usuario es requerido");
 
             RuleFor(x => x.Password)
                 .NotEmpty()

@@ -107,6 +107,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 RefreshToken = refreshToken,
                 Email = user.Email,
                 FullName = user.Fullname,
+                IdentificationNumber = user.IdentificationNumber,
                 UserType = user.UserType.ToString(),
                 CompanyInformation = new()
                 {

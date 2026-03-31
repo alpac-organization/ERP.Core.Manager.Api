@@ -13,13 +13,13 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         /// el acceso al sistema según sus credenciales.
         /// </summary>
         [EnumMember(Value = "StandardUser")]
-        StandardUser,
+        StandardUser = 1,
 
         /// <summary>
         /// El usuario ha sido deshabilitado manualmente. No puede iniciar sesión 
         /// ni realizar ninguna operación, pero su información se conserva para fines históricos.
         /// </summary>
         [EnumMember(Value = "EmployeeSelfService")]
-        EmployeeSelfService,
+        EmployeeSelfService = 2,
     }
 }
