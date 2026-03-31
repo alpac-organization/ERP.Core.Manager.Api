@@ -28,6 +28,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
     public class WorkingInformationDto
     {
         public string? InssNumber { get; set; }
+        public string? WorkPhoneNumber { get; set; }
+        public string? WorkEmail { get; set; }
         public string? BankAccountNumber { get; set; }
         public string? BankName { get; set; }
         public string? WorkArea { get; set; }
