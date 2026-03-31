@@ -1,5 +1,4 @@
 using MediatR;
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;

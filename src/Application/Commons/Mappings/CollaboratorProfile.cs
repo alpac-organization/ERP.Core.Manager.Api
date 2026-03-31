@@ -3,7 +3,6 @@ using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 
-using Entities = ERP.Core.Manager.Api.Domain.Entities.Payroll;
 using Commands = ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
