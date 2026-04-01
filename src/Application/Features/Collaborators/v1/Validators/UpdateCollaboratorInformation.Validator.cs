@@ -1,11 +1,11 @@
 using FluentValidation;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
 {
-    public class GetCollaboratorDetailsValidator : AbstractValidator<GetCollaboratorDetailsQuery>
+    public class UpdateCollaboratorInformationValidator : AbstractValidator<UpdateCollaboratorInformationCommand>
     {
-        public GetCollaboratorDetailsValidator()
+        public UpdateCollaboratorInformationValidator()
         {
             RuleFor(x => x.UserId)
                 .NotEmpty().WithMessage("El id de usario es requerido.")

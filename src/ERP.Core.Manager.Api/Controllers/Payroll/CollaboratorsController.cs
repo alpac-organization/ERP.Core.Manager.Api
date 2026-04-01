@@ -34,6 +34,20 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
         [Tags("Colaboradores")] 
+        [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details")]      
+        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<IActionResult> UpdateCollaboratoInformationrAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            
+
+            return Ok();
+        }
+
+        [Tags("Colaboradores")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators", Name = "GetCollaborators")]
         [ProducesResponseType(typeof(PagedResponse<GetCollaboratorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  

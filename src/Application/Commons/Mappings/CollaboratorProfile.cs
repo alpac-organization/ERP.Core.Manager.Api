@@ -13,7 +13,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         public CollaboratorProfile()
         {
 
-            #region Mapeo de listado de colaboradore
+            #region Mapeo de listado de colaboradores
+
             CreateMap<Collaborator, GetCollaboratorDto>()
                 .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
@@ -52,6 +53,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 
             CreateMap<WorkingInformation, WorkingInformationDto>()
                 .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => src.WorkArea.CatalogName))
+                .ForMember(dest => dest.WorkEmail, opt => opt.MapFrom(src => src.WorkEmail))
+                .ForMember(dest => dest.WorkPhoneNumber, opt => opt.MapFrom(src => src.WorkPhoneNumber))
                 .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkPosition.CatalogName))
                 .ForMember(dest => dest.BankName, opt => opt.MapFrom(src => src.Branch.CatalogName));
 
@@ -88,6 +91,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         }
     }
 
+    #region Mapeo para crear colaborador
     public static class CollaboratorMapper
     {
         public static Collaborator ToCollaboratorEntity(this Commands.RegisterCollaboratorCommand command, string generatedCode)
@@ -140,5 +144,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 EntryDate = DateTime.UtcNow 
             };
         }
+
+        #endregion Mapeo para crear colaborador
     }
 }

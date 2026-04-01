@@ -13,7 +13,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     [Route("api/v1/")]
     public class VacationsController(IMediator _mediator) : ApiControllerBase
     {
-        [Tags("Colaboradores")] 
+        [Tags("Vacaciones")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/vacations")]      
         [ProducesResponseType(typeof(VacationDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
