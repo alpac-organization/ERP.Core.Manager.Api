@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260401154446_AgregarColumnaImagen")]
-    partial class AgregarColumnaImagen
+    [Migration("20260401161645_AgregarColumnaRestriccion")]
+    partial class AgregarColumnaRestriccion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -462,6 +462,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                         .HasColumnName("description");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("image_url");
 

@@ -459,6 +459,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Migrations
                         .HasColumnName("description");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("image_url");
 
