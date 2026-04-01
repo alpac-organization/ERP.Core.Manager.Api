@@ -31,7 +31,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                 .Where(m => moduleCodes.Contains(m.Code))
                 .ToDictionaryAsync(
                     m => m.Code!, 
-                    m => (Name: m.ModuleName, Desc: m.Description, Path: m.PathRedirect),
+                    m => (Name: m.ModuleName, Desc: m.Description, Path: m.PathRedirect, m.ImageUrl),
                     cancellationToken
                 );
 
@@ -45,7 +45,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                         RoleType = ur.Role?.RoleType.ToString(),
                         ModuleName = info.Name,
                         Description = info.Desc,
-                        PathRedirect = info.Path
+                        PathRedirect = info.Path,
+                        ImageUrl = info.ImageUrl
                     };
                 }
 

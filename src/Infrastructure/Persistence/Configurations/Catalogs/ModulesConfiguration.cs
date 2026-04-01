@@ -32,6 +32,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasColumnName("path_redirect")
                 .IsRequired();
 
+            builder.Property(e => e.ImageUrl)
+                .HasColumnName("image_url");
+
             builder.Property(e => e.Description)
                 .HasColumnName("description");
 
