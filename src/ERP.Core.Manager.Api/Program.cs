@@ -4,8 +4,12 @@ using ERP.Core.Manager.Api.Application;
 using ERP.Core.Manager.Api.Infrastructure;
 using System.Text.Json.Serialization;
 using ERP.Core.Manager.Api.Infrastructure.Middlewares;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var root = builder.Environment.ContentRootPath;
+var path = Path.GetFullPath(Path.Combine(root, "..", "..", "Resources"));
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -50,11 +54,11 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+app.UseStaticFiles();
 
 app.UseMiddleware<ExceptionMiddleware>();
-
 app.UseRouting();
-// app.UseHttpsRedirection();
+
 app.UseCors("ViteLocalPolicy");
 
 app.UseMiddleware<ApiKeyMiddleware>();
@@ -75,5 +79,6 @@ app.UseHsts();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
+
 
 app.Run();
