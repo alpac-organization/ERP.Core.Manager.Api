@@ -434,4 +434,4 @@ C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.A
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ERP.Core.Manager.Api.genruntimeconfig.cache
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ref\ERP.Core.Manager.Api.dll
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Manager.Api.staticwebassets.runtime.json
-c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\compressed\t51xoctkt0-{0}-0oxirl5ayz-0oxirl5ayz.gz
+C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\compressed\c2muk4dqys-{0}-0oxirl5ayz-0oxirl5ayz.gz
