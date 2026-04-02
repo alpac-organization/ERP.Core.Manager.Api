@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll;
+using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -24,16 +25,27 @@ namespace ERP.Core.Manager.Api.Infrastructure
             //Configuracion de la cadena de conexión de base de datos.
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            var dataSource = NpgsqlConfiguration.BuildDataSource(connectionString!);
-
-            services.AddSingleton(dataSource);
             services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(dataSource,
-                    m => m.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+                    npgsqlOptions.MapEnum<CatalogType>("catalog_type_enum");
+                    npgsqlOptions.MapEnum<RoleType>("role_type_enum");
+                    npgsqlOptions.MapEnum<PermissionType>("permission_type_enum");
+                    npgsqlOptions.MapEnum<UserType>("user_type_enum");
+                    npgsqlOptions.MapEnum<UserStatus>("user_status_enum");
+                    npgsqlOptions.MapEnum<GenderType>("gender_type_enum");
+                    npgsqlOptions.MapEnum<IdentificationType>("identification_type_enum");
+                    npgsqlOptions.MapEnum<CollaboratorStatus>("collaborator_status_enum");
+                    npgsqlOptions.MapEnum<SalaryType>("salary_type_enum");
+                    npgsqlOptions.MapEnum<Currency>("currency_enum");
+                    npgsqlOptions.MapEnum<VacationRequestStatus>("vacation_request_status_enum");
+                }));
+
+
 
             //Other Services.
             services.AddSingleton<ICodeGenerator, CodeGenerator>();
-            services.AddSingleton<IAuthServices, AuthServices>();
             services.AddTransient<IErrorManager, ErrorManager>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
 

@@ -22,6 +22,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .IsUnique()
                 .HasDatabaseName("IX_collaborator_id");
 
+            builder.Property(e => e.PictureUrl)
+                .HasColumnName("picture_url")
+                .IsRequired();
+
             builder.Property(e => e.FirstName)
                 .HasColumnName("first_name")
                 .IsRequired();
@@ -52,19 +56,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.IdentificationType)
                 .HasColumnName("identification_type")
-                .HasConversion<string>()
+                .HasColumnType("identification_type_enum")
                 .IsRequired();
 
             builder.Property(e => e.Status)
                 .HasColumnName("status")
-                .HasConversion<string>()
+                .HasColumnType("collaborator_status_enum")
                 .IsRequired();
 
             builder.Property(e => e.Gender)
                 .HasColumnName("gender")
-                .HasConversion<string>()
+                .HasColumnType("gender_type_enum")
                 .IsRequired();
-            
+                
             builder.Property(e => e.CompanyId)
                 .HasColumnName("company_id")
                 .IsRequired();

@@ -35,13 +35,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(u => u.UserType)
                 .HasColumnName("user_type")
-                .IsRequired()
-                .HasConversion<string>();
+                .HasColumnType("user_type_enum")
+                .IsRequired();
 
             builder.Property(e => e.UserStatus)
                 .HasColumnName("user_status")
-                .IsRequired()
-                .HasConversion<string>();
+                .HasColumnType("user_status_enum")
+                .IsRequired();
 
             builder.Property(e => e.PasswordHash)
                 .HasColumnName("password_hash")
