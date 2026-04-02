@@ -113,6 +113,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 {
                     CompanyId = profile.CompanyId,
                     CompanyName = company?.CompanieName,
+                    ImageUrl = company?.ImageUrl,
+                    NeutralImageUrl = company?.NeutralImageUrl,
                     Alias = company?.Alias
                 },
                 UserName = user.UserName

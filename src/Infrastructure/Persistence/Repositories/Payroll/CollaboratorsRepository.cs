@@ -9,6 +9,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll
         public async Task<Collaborator> RegisterCollaborator(Collaborator collaborator, CancellationToken cancellationToken)
         {
             collaborator.Status = Domain.Enums.CollaboratorStatus.Active;
+            collaborator.PictureUrl = null;
 
             var collaboratorRegistered = await _context.Collaborators.AddAsync(collaborator, cancellationToken);
             

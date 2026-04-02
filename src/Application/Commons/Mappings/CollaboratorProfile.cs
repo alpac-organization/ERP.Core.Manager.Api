@@ -110,7 +110,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 Gender = command.Gender,
                 Status = command.Status,
                 CollaboratorCode = generatedCode,
-                RegisteredBy = command.RegisteredBy ?? "Sistema ERP"
+                RegisteredBy = command.RegisteredBy ?? "Sistema ERP",
+                PictureUrl = null
             };
         }
 

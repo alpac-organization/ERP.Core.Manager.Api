@@ -24,7 +24,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.PictureUrl)
                 .HasColumnName("picture_url")
-                .IsRequired();
+                .HasDefaultValue(null)
+                .IsRequired(false);
 
             builder.Property(e => e.FirstName)
                 .HasColumnName("first_name")
@@ -68,7 +69,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnName("gender")
                 .HasColumnType("gender_type_enum")
                 .IsRequired();
-                
+
             builder.Property(e => e.CompanyId)
                 .HasColumnName("company_id")
                 .IsRequired();

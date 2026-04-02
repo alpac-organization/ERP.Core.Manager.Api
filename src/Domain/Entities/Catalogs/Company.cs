@@ -9,6 +9,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
         public string? Code { get; set; }
         public string? Alias { get; set; }
         public string? ImageUrl { get; set; }
+        public string? NeutralImageUrl { get; set; }
         public string? CompanieName { get; set; }
 
 
