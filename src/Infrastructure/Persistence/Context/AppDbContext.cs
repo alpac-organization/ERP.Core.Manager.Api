@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 using ERP.Core.Manager.Api.Domain.Entities.Payroll;
+using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
 {
@@ -30,7 +31,45 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.HasDefaultSchema("public");
+            modelBuilder.HasPostgresExtension("uuid-ossp");
 
+            #region Catalogos
+
+            modelBuilder.HasPostgresEnum<CatalogType>("catalog_type_enum");            
+            
+            #endregion
+
+            #region Creación de roles
+            
+            modelBuilder.HasPostgresEnum<RoleType>("role_type_enum");
+            modelBuilder.HasPostgresEnum<PermissionType>("permission_type_enum");
+
+            #endregion
+
+            #region Crear un usuario
+
+            modelBuilder.HasPostgresEnum<UserType>("user_type_enum");            
+            modelBuilder.HasPostgresEnum<UserStatus>("user_status_enum");
+
+            #endregion
+
+            #region Registrar Colaborador enums
+
+            modelBuilder.HasPostgresEnum<GenderType>("gender_type_enum");
+            modelBuilder.HasPostgresEnum<IdentificationType>("identification_type_enum");
+            modelBuilder.HasPostgresEnum<CollaboratorStatus>("collaborator_status_enum");
+            modelBuilder.HasPostgresEnum<SalaryType>("salary_type_enum");
+            modelBuilder.HasPostgresEnum<Currency>("currency_enum");
+
+            #endregion
+    
+            modelBuilder.HasPostgresEnum<VacationRequestStatus>("vacation_request_status_enum");
+
+            #region Registro Vacaciones
+
+            #endregion
+
+            
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 var properties = entityType.GetProperties()
@@ -45,7 +84,21 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
                 }
             }
 
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    var type = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
+                }
+            }
+
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        }
+
+        private static string ConvertToSnakeCase(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            return string.Concat(text.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString())).ToLower();
         }
     }
 }

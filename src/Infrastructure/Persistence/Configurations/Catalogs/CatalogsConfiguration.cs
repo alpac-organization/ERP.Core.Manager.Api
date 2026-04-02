@@ -30,7 +30,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
 
             builder.Property(e => e.CatalogType)
                 .HasColumnName("catalog_type")
-                .HasConversion<string>()
+                .HasColumnType("catalog_type_enum")
                 .IsRequired();
 
             builder.Property(e => e.IsActive)

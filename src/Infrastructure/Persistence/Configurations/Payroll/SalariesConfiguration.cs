@@ -41,7 +41,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.SalaryType)
                 .HasColumnName("salary_type")
-                .HasConversion<string>()
+                .HasColumnType("salary_type_enum")
                 .IsRequired();
 
             builder.Property(e => e.BankSubCatalogId)
@@ -50,7 +50,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.Currency)
                 .HasColumnName("currency")
-                .HasConversion<string>()
+                .HasColumnType("currency_enum")
                 .IsRequired();
 
             builder.Property(e => e.StartDate)

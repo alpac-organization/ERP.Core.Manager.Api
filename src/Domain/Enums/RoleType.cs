@@ -13,28 +13,24 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         /// Acceso total al sistema. Puede gestionar configuraciones globales, 
         /// seguridad, usuarios y auditoría de logs.
         /// </summary>
-        [EnumMember(Value = "Administrator")]
-        Administrator,
+        Administrator = 1,
 
         /// <summary>
         /// Rol de control intermedio. Tiene capacidad para autorizar registros, 
         /// visualizar reportes gerenciales y supervisar flujos de trabajo.
         /// </summary>
-        [EnumMember(Value = "Supervisor")]
-        Supervisor = 3,
+        Supervisor = 2,
 
         /// <summary>
         /// Jefe directo o responsable de área. Gestiona el personal a su cargo, 
         /// aprueba solicitudes operativas (permisos, vacaciones) y revisa metas locales.
         /// </summary>
-        [EnumMember(Value = "Manager")]
-        Manager = 4,
+        Manager = 3,
 
         /// <summary>
         /// Usuario ejecutor de tareas puntuales. Su acceso está limitado 
         /// a registros operativos específicos (ej. entradas de almacén o producción).
         /// </summary>
-        [EnumMember(Value = "Operator")]
-        Operator,
+        Operator = 4,
     }
 }

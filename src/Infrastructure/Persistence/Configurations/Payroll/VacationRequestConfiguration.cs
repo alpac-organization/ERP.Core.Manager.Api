@@ -24,7 +24,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             
             builder.Property(e => e.Status)
                 .HasColumnName("status")
-                .HasConversion<string>()
+                .HasColumnType("vacation_request_status_enum")
+                .IsRequired();
+
+            builder.Property(e => e.CollaboratorId)
+                .HasColumnName("collaborator_id")
                 .IsRequired();
 
             builder.Property(e => e.ApprovedBy)
@@ -34,6 +38,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnName("requested_by")
                 .IsRequired();
 
+            builder.Property(e => e.Description)
+                .HasColumnName("description");
+
             builder.Property(e => e.StartDate)
                 .HasColumnName("start_date")
                 .IsRequired();
@@ -41,6 +48,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.EndDate)
                 .HasColumnName("end_date")
                 .IsRequired();
+            
+            builder.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at");
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")

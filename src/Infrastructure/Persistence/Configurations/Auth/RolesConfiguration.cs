@@ -29,7 +29,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 
             builder.Property(e => e.RoleType)
                 .HasColumnName("role_type")
-                .HasConversion<string>()
+                .HasColumnName("role_type_Enum")
                 .IsRequired();
 
             builder.Property(e => e.CreatedAt)

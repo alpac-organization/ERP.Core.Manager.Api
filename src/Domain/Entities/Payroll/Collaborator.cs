@@ -6,6 +6,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
 {
     public class Collaborator : BaseEntity<Guid>
     {
+        public string? PictureUrl { get; set; }
         public string? FirstName { get; set; }
         public string? FirstLastname { get; set; }
         public string? IdentificationNumber { get; set; }
