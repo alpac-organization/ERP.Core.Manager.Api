@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260402160825_MoverDbContext")]
-    partial class MoverDbContext
+    [Migration("20260402173718_DefinirFotoPerfilOpcional")]
+    partial class DefinirFotoPerfilOpcional
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,27 +26,27 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "catalog_type_enum", new[] { "banks", "branches", "document_types", "exchange_rates", "job_positions", "work_areas" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "catalog_type_enum", "catalog_type", new[] { "branches", "work_areas", "job_positions", "document_types", "banks", "exchange_rates" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "collaborator_status_enum", new[] { "active", "inactive", "subsidy", "suspended", "terminated", "testing_process", "vacation" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "collaborator_status_enum", "collaborator_status", new[] { "active", "inactive", "vacation", "subsidy", "suspended", "terminated", "testing_process" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "currency_enum", new[] { "nio", "usd" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "currency_enum", "currency", new[] { "nio", "usd" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "gender_type_enum", new[] { "man", "women" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "gender_type_enum", "gender_type", new[] { "man", "women" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "identification_type_enum", new[] { "cedula", "cedula_residencia", "pasaporte" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "identification_type_enum", "identification_type", new[] { "cedula", "pasaporte", "cedula_residencia" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "permission_type_enum", new[] { "create", "delete", "read", "update" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "permission_type_enum", "permission_type", new[] { "read", "create", "update", "delete" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "catalog_type_enum", new[] { "branches", "work_areas", "job_positions", "document_types", "banks", "exchange_rates" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "collaborator_status_enum", new[] { "active", "inactive", "vacation", "subsidy", "suspended", "terminated", "testing_process" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "currency_enum", new[] { "nio", "usd" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "gender_type_enum", new[] { "man", "women" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "identification_type_enum", new[] { "cedula", "pasaporte", "cedula_residencia" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "permission_type_enum", new[] { "read", "create", "update", "delete" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "role_type_enum", new[] { "administrator", "supervisor", "manager", "operator" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "salary_type_enum", new[] { "fixed", "variable", "professional_services" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "user_status_enum", new[] { "active", "inactive", "locked" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "user_type_enum", new[] { "standard_user", "employee_self_service" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "vacation_request_status_enum", new[] { "pending", "approved", "rejected", "cancelled" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "role_type_enum", new[] { "administrator", "manager", "operator", "supervisor" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "role_type_enum", "role_type", new[] { "administrator", "supervisor", "manager", "operator" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "salary_type_enum", new[] { "fixed", "professional_services", "variable" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "salary_type_enum", "salary_type", new[] { "fixed", "variable", "professional_services" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_status_enum", new[] { "active", "inactive", "locked" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_status_enum", "user_status", new[] { "active", "inactive", "locked" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_type_enum", new[] { "employee_self_service", "standard_user" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_type_enum", "user_type", new[] { "standard_user", "employee_self_service" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "vacation_request_status_enum", new[] { "approved", "cancelled", "pending", "rejected" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "vacation_request_status_enum", "vacation_request_status", new[] { "pending", "approved", "rejected", "cancelled" });
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "uuid-ossp");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
@@ -441,6 +441,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<string>("NeutralImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("neutral_image_url");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
@@ -610,7 +614,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("identification_type");
 
                     b.Property<string>("PictureUrl")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("picture_url");
 

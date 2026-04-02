@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class MoverDbContext : Migration
+    public partial class AgregarImagenesNuetrals : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,28 +17,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 name: "public");
 
             migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:Enum:catalog_type_enum", "banks,branches,document_types,exchange_rates,job_positions,work_areas")
-                .Annotation("Npgsql:Enum:catalog_type_enum.catalog_type", "branches,work_areas,job_positions,document_types,banks,exchange_rates")
-                .Annotation("Npgsql:Enum:collaborator_status_enum", "active,inactive,subsidy,suspended,terminated,testing_process,vacation")
-                .Annotation("Npgsql:Enum:collaborator_status_enum.collaborator_status", "active,inactive,vacation,subsidy,suspended,terminated,testing_process")
-                .Annotation("Npgsql:Enum:currency_enum", "nio,usd")
-                .Annotation("Npgsql:Enum:currency_enum.currency", "nio,usd")
-                .Annotation("Npgsql:Enum:gender_type_enum", "man,women")
-                .Annotation("Npgsql:Enum:gender_type_enum.gender_type", "man,women")
-                .Annotation("Npgsql:Enum:identification_type_enum", "cedula,cedula_residencia,pasaporte")
-                .Annotation("Npgsql:Enum:identification_type_enum.identification_type", "cedula,pasaporte,cedula_residencia")
-                .Annotation("Npgsql:Enum:permission_type_enum", "create,delete,read,update")
-                .Annotation("Npgsql:Enum:permission_type_enum.permission_type", "read,create,update,delete")
-                .Annotation("Npgsql:Enum:role_type_enum", "administrator,manager,operator,supervisor")
-                .Annotation("Npgsql:Enum:role_type_enum.role_type", "administrator,supervisor,manager,operator")
-                .Annotation("Npgsql:Enum:salary_type_enum", "fixed,professional_services,variable")
-                .Annotation("Npgsql:Enum:salary_type_enum.salary_type", "fixed,variable,professional_services")
-                .Annotation("Npgsql:Enum:user_status_enum", "active,inactive,locked")
-                .Annotation("Npgsql:Enum:user_status_enum.user_status", "active,inactive,locked")
-                .Annotation("Npgsql:Enum:user_type_enum", "employee_self_service,standard_user")
-                .Annotation("Npgsql:Enum:user_type_enum.user_type", "standard_user,employee_self_service")
-                .Annotation("Npgsql:Enum:vacation_request_status_enum", "approved,cancelled,pending,rejected")
-                .Annotation("Npgsql:Enum:vacation_request_status_enum.vacation_request_status", "pending,approved,rejected,cancelled")
+                .Annotation("Npgsql:Enum:public.catalog_type_enum", "branches,work_areas,job_positions,document_types,banks,exchange_rates")
+                .Annotation("Npgsql:Enum:public.collaborator_status_enum", "active,inactive,vacation,subsidy,suspended,terminated,testing_process")
+                .Annotation("Npgsql:Enum:public.currency_enum", "nio,usd")
+                .Annotation("Npgsql:Enum:public.gender_type_enum", "man,women")
+                .Annotation("Npgsql:Enum:public.identification_type_enum", "cedula,pasaporte,cedula_residencia")
+                .Annotation("Npgsql:Enum:public.permission_type_enum", "read,create,update,delete")
+                .Annotation("Npgsql:Enum:public.role_type_enum", "administrator,supervisor,manager,operator")
+                .Annotation("Npgsql:Enum:public.salary_type_enum", "fixed,variable,professional_services")
+                .Annotation("Npgsql:Enum:public.user_status_enum", "active,inactive,locked")
+                .Annotation("Npgsql:Enum:public.user_type_enum", "standard_user,employee_self_service")
+                .Annotation("Npgsql:Enum:public.vacation_request_status_enum", "pending,approved,rejected,cancelled")
                 .Annotation("Npgsql:PostgresExtension:uuid-ossp", ",,");
 
             migrationBuilder.CreateTable(
@@ -51,6 +40,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     alias = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     image_url = table.Column<string>(type: "text", nullable: true),
+                    neutral_image_url = table.Column<string>(type: "text", nullable: true),
                     company_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")

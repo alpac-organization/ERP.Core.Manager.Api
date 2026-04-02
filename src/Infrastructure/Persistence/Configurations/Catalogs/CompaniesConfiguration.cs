@@ -33,6 +33,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
             builder.Property(e => e.ImageUrl)
                 .HasColumnName("image_url");
 
+            builder.Property(e => e.NeutralImageUrl)
+                .HasColumnName("neutral_image_url")
+                .HasDefaultValue(null);
+
             builder.Property(e => e.IsActive)
                 .HasColumnName("is_active")
                 .HasDefaultValue(true);

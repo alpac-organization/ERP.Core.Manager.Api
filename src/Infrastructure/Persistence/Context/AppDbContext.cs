@@ -35,35 +35,35 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
 
             #region Catalogos
 
-            modelBuilder.HasPostgresEnum<CatalogType>("catalog_type_enum");            
+            modelBuilder.HasPostgresEnum<CatalogType>("public","catalog_type_enum");            
             
             #endregion
 
             #region Creación de roles
             
-            modelBuilder.HasPostgresEnum<RoleType>("role_type_enum");
-            modelBuilder.HasPostgresEnum<PermissionType>("permission_type_enum");
+            modelBuilder.HasPostgresEnum<RoleType>("public","role_type_enum");
+            modelBuilder.HasPostgresEnum<PermissionType>("public","permission_type_enum");
 
             #endregion
 
             #region Crear un usuario
 
-            modelBuilder.HasPostgresEnum<UserType>("user_type_enum");            
-            modelBuilder.HasPostgresEnum<UserStatus>("user_status_enum");
+            modelBuilder.HasPostgresEnum<UserType>("public","user_type_enum");            
+            modelBuilder.HasPostgresEnum<UserStatus>("public","user_status_enum");
 
             #endregion
 
             #region Registrar Colaborador enums
 
-            modelBuilder.HasPostgresEnum<GenderType>("gender_type_enum");
-            modelBuilder.HasPostgresEnum<IdentificationType>("identification_type_enum");
-            modelBuilder.HasPostgresEnum<CollaboratorStatus>("collaborator_status_enum");
-            modelBuilder.HasPostgresEnum<SalaryType>("salary_type_enum");
-            modelBuilder.HasPostgresEnum<Currency>("currency_enum");
+            modelBuilder.HasPostgresEnum<GenderType>("public","gender_type_enum");
+            modelBuilder.HasPostgresEnum<IdentificationType>("public","identification_type_enum");
+            modelBuilder.HasPostgresEnum<CollaboratorStatus>("public","collaborator_status_enum");
+            modelBuilder.HasPostgresEnum<SalaryType>("public","salary_type_enum");
+            modelBuilder.HasPostgresEnum<Currency>("public","currency_enum");
 
             #endregion
     
-            modelBuilder.HasPostgresEnum<VacationRequestStatus>("vacation_request_status_enum");
+            modelBuilder.HasPostgresEnum<VacationRequestStatus>("public","vacation_request_status_enum");
 
             #region Registro Vacaciones
 
