@@ -109,5 +109,28 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 Status = status
             });            
         }
+
+        [Tags("Vacaciones")] 
+        [HttpPost("companies/{companie_id}/modules/{module_code}/vacation-requests/{vacation_request_id}/process")]      
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<IActionResult> ProcessVacationRequestAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid vacation_request_id,
+        [FromBody] ProcessVacationRequestCommand Payload
+        )
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            await _mediator.Send(new ProcessVacationRequestCommand()
+            {
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                VacationRequestId = vacation_request_id,
+                IsApproved = Payload.IsApproved
+            });
+
+            return Ok();            
+        }
     }
 }
