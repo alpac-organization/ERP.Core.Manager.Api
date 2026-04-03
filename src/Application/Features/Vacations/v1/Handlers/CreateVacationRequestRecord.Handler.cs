@@ -83,8 +83,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                     RejectedBy = null,
                     StartDate = request.StartDate,
                     EndDate = request.EndDate,
-                    RequestedBy = $"{collaborator.FirstName.ToCapitalize()} {collaborator.FirstLastname.ToCapitalize()}",
+                    RequestedBy = $"{collaborator.FirstName.ToCapitalize()} {collaborator.SecondName?.ToCapitalize() ?? string.Empty} {collaborator.FirstLastname.ToCapitalize()} {collaborator.SecondLastname?.ToCapitalize() ?? string.Empty}".Trim(),
                     Description = request.Description,
+                    CollaboratorCode = collaborator.CollaboratorCode,
                     Status = VacationRequestStatus.Pending,
                     AmountDays = AmountDays,
                 };

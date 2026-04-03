@@ -9,6 +9,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
 
         public string?  ApprovedBy { get; set; }
         public string?  RejectedBy { get; set; }
+        public string? CollaboratorCode { get; set; }
 
         public VacationRequestStatus Status { get; set; }
 
