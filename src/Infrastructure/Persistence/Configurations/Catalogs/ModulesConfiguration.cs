@@ -21,7 +21,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
             builder.Property(e => e.ModuleName)
                 .HasColumnName("module_name")
                 .HasMaxLength(180)
-                .HasDefaultValue("/dashboard")
                 .IsRequired();
 
             builder.Property(e => e.Code)
@@ -30,11 +29,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
 
             builder.Property(e => e.PathRedirect)
                 .HasColumnName("path_redirect")
+                .HasDefaultValue("/dashboard")
                 .IsRequired();  
 
             builder.Property(e => e.ImageUrl)
                 .HasColumnName("image_url")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(e => e.Description)
                 .HasColumnName("description");
