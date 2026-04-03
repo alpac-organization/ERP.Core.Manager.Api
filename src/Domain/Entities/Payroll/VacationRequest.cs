@@ -6,10 +6,13 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
     public class VacationRequest : BaseEntity<Guid>
     {
         public Guid CollaboratorId { get; set; }
-        public DateTime UpdatedAt { get; set; }
 
         public string?  ApprovedBy { get; set; }
+        public string?  RejectedBy { get; set; }
+
         public VacationRequestStatus Status { get; set; }
+
+        public int AmountDays { get; set; }
 
         public string? RequestedBy { get; set; }
         public string? Description { get; set; }

@@ -34,12 +34,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.ApprovedBy)
                 .HasColumnName("approved_by");
 
+            builder.Property(e => e.RejectedBy)
+                .HasColumnName("rejected_by");
+
             builder.Property(e => e.RequestedBy)
                 .HasColumnName("requested_by")
                 .IsRequired();
 
             builder.Property(e => e.Description)
                 .HasColumnName("description");
+
+            builder.Property(e => e.AmountDays)
+                .HasColumnName("amount_days")
+                .IsRequired();
 
             builder.Property(e => e.StartDate)
                 .HasColumnName("start_date")
@@ -48,9 +55,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.EndDate)
                 .HasColumnName("end_date")
                 .IsRequired();
-            
-            builder.Property(e => e.UpdatedAt)
-                .HasColumnName("updated_at");
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
