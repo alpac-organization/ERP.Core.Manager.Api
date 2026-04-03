@@ -1,12 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
-using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -17,7 +17,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     {
         [Tags("Vacaciones")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/vacations")]      
-        [ProducesResponseType(typeof(VacationDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(VacationDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<VacationDto> GetVacationBalanceAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
@@ -34,7 +34,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
         [Tags("Vacaciones")] 
-        [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/vacations")]      
+        [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/vacation-requests")]      
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
@@ -59,7 +59,33 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
         [Tags("Vacaciones")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/vacations")]      
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/vacation-requests")]      
+        [ProducesResponseType(typeof(List<VacationRequestDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<List<VacationRequestDto>> GetVacationRequestHistoryAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
+            [FromRoute] string identification_number,
+            [FromQuery] int page_size = 10, 
+            [FromQuery] int page_number = 1, 
+            [FromQuery] VacationRequestStatus? status = null
+        )
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            return await _mediator.Send(new GetVacationRequestHistoryQuery()
+            {
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                IdentificationNumber = identification_number,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                PageSize = page_size,
+                PageNumber = page_number,
+                Status = status
+            });
+        }
+
+        [Tags("Vacaciones")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/vacation-requests")]      
         [ProducesResponseType(typeof(List<VacationRequestDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
