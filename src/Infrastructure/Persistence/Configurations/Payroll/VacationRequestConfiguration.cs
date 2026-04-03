@@ -51,7 +51,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.StartDate)
                 .HasColumnName("start_date")
                 .IsRequired();
-                
+
+            builder.Property(e => e.CollaboratorCode)
+                .HasColumnName("collaborator_code")
+                .IsRequired();
+
             builder.Property(e => e.EndDate)
                 .HasColumnName("end_date")
                 .IsRequired();

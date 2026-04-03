@@ -7,7 +7,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Validators
     {
         public CreateVacationRequestRecordValidator()
         {
-             RuleFor(x => x.CompanyId)
+            RuleFor(x => x.CompanyId)
                 .NotEmpty()
                     .WithMessage("El id de la empresa no puedes vacio.")
                 .NotNull()

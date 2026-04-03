@@ -6,6 +6,7 @@ using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
+using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -59,14 +60,28 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         [Tags("Vacaciones")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/vacations")]      
-        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(List<VacationRequestDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<CreatedResult> GetVacationRequestsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code)
+        public async Task<List<VacationRequestDto>> GetVacationRequestsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
+            [FromQuery] string? identification_number, 
+            [FromQuery] int page_size = 10, 
+            [FromQuery] int page_number = 1, 
+            [FromQuery] VacationRequestStatus? status = null
+        )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
-            
-            return Created(string.Empty, null);
+
+            return await _mediator.Send(new GetVacationRequestQuery()
+            {
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                IdentificationNumber = identification_number,
+                PageSize = page_size,
+                PageNumber = page_number,
+                Status = status
+            });            
         }
     }
 }
