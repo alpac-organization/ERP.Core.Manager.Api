@@ -66,6 +66,8 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IWorkingInformationRepository, WorkingInformationRepository>();
             services.AddScoped<ISalariesRepository, SalariesRepository>();
             services.AddScoped<IVacationsRepository, VacationsRepository>();
+            services.AddScoped<IVacationRequestsRepository, VacationRequestRepository>();
+
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

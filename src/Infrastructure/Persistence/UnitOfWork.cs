@@ -20,7 +20,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         IWorkingInformationRepository workingInformationRepository,
         IPersonalInformationRepository personalInformationRepository,
         ISalariesRepository salariesRepository,
-        IVacationsRepository vacationsRepository
+        IVacationsRepository vacationsRepository,
+        IVacationRequestsRepository vacationRequestsRepository
     ) : IUnitOfWork
     {
         public AppDbContext Context => _context;
@@ -39,6 +40,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         public IWorkingInformationRepository WorkingInformations => workingInformationRepository;
         public ISalariesRepository Salaries => salariesRepository;
         public IVacationsRepository Vacations => vacationsRepository;
+        public IVacationRequestsRepository VacationRequests => vacationRequestsRepository;
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {

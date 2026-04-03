@@ -2,9 +2,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
 {
     public static class CalculatorUtils
     {
-        private const double DaysInYear = 365.0;
-        private const double VacationDaysPerYear = 30.0;
-
         /// <summary>
         /// Calcula los días transcurridos entre dos fechas (equivalente a tu función TS).
         /// </summary>
