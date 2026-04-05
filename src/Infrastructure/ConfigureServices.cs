@@ -39,6 +39,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
                     npgsqlOptions.MapEnum<SalaryType>("salary_type_enum");
                     npgsqlOptions.MapEnum<Currency>("currency_enum");
                     npgsqlOptions.MapEnum<VacationRequestStatus>("vacation_request_status_enum");
+                    npgsqlOptions.MapEnum<MaritalStatus>("marital_status_enum");
                 }));
 
 

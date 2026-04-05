@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ERP.Core.Manager.Api.Domain.Entities.Payroll;
+using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 {
@@ -32,6 +33,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.CollaboratorId)
                 .HasColumnName("collaborator_id")
+                .IsRequired();
+    
+            builder.Property(e => e.MaritalStatus)
+                .HasColumnName("marital_status")
+                .HasColumnType("marital_status_enum")
                 .IsRequired();
 
             builder.Property(e => e.Departament)

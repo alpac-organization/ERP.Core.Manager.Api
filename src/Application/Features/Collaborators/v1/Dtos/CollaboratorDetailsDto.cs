@@ -5,6 +5,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
     public class CollaboratorDetailsDto
     {
         public Guid CollaboratorId { get; set; }
+        public string? CollaboratorCode { get; set; }
         public string? FullName { get; set; }
         public string? WorkPosition { get; set; }
         public string?  Status { get; set; }
@@ -23,6 +24,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public string? PersonalEmail { get; set;}
         public string? PersonalPhoneNumber { get; set; }
         public string? Departament { get; set; }
+        public MaritalStatus MaritalStatus { get; set; }
+        public DateTime Birthdate { get; set; }
     }
 
     public class WorkingInformationDto

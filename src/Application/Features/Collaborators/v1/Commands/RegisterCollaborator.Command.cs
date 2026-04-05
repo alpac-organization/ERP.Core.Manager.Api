@@ -54,6 +54,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? Address { get; set; }
         public string? Departament { get; set; }
         public DateTime Birthdate { get; set; }
+        public MaritalStatus MaritalStatus { get; set; }
     }
 
     public class SalaryInformation

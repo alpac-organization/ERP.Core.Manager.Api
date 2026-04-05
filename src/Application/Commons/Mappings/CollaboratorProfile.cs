@@ -49,6 +49,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             CreateMap<PersonalInformation, PersonalInformationDto>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.PersonalEmail, opt => opt.MapFrom(src => src.PersonalEmail))
+                .ForMember(dest => dest.Birthdate, opt => opt.MapFrom(src => src.Birthdate))
                 .ForMember(dest => dest.PersonalPhoneNumber, opt => opt.MapFrom(src => src.PersonalPhoneNumber));
 
             CreateMap<WorkingInformation, WorkingInformationDto>()
@@ -67,6 +68,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             CreateMap<Collaborator, CollaboratorDetailsDto>()
                 .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkingInformation.WorkPosition.CatalogName))
+                .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => 
                     string.Join(" ", new[] 
                     { 
@@ -126,7 +128,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 PersonalEmail = info.PersonalEmail,
                 PersonalPhoneNumber = info.PersonalPhoneNumber,
                 Departament = info.Departament,
-                Birthdate = info.Birthdate
+                Birthdate = info.Birthdate,
+                MaritalStatus = info.MaritalStatus
             };
         }
 
