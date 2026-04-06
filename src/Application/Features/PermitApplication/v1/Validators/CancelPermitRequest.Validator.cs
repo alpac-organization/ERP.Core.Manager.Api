@@ -3,9 +3,9 @@ using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validators
 {
-    public class GetVacationRequestHistoryValidator : AbstractValidator<GetPermitApplicationHistoryQuery>
+    public class CancelPermitRequestValidator : AbstractValidator<CancelPermitRequestQuery>
     {
-        public GetVacationRequestHistoryValidator()
+        public CancelPermitRequestValidator()
         {
             RuleFor(x => x.CompanyId)
                 .NotEmpty()
@@ -24,10 +24,12 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .WithMessage("El id de usuario es requerido")
                 .NotNull()
                     .WithMessage("El id de usuario es requerido");
-            
-            RuleFor(x => x.PageNumber).GreaterThan(0).WithMessage("El número de página debe ser mayor que 0.");
-            
-            RuleFor(x => x.PageSize).GreaterThan(0).WithMessage("El tamaño de página debe ser mayor que 0.");
+
+            RuleFor(x => x.PermitApplicationRequestId)
+                .NotEmpty()
+                    .WithMessage("El id de la solictud es requeridad")
+                .NotNull()
+                    .WithMessage("El id de la solictud es requeridad");
         }
     }
 }

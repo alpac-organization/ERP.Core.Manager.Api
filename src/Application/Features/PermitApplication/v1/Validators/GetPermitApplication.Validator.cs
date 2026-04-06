@@ -1,7 +1,7 @@
-using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using FluentValidation;
+using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
 
-namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Validators
+namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validators
 {
     public class GetVacationRequestValidator : AbstractValidator<GetPermitApplicationQuery>
     {

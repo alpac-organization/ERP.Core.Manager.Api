@@ -1,4 +1,4 @@
-using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 using ERP.Core.Manager.Api.Domain.Enums;
 using FluentValidation;
 

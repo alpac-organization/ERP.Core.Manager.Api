@@ -4,10 +4,10 @@ using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
-using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
-using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -115,6 +115,26 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 UserId = Guid.Parse(userIdStr ?? ""),
                 VacationRequestId = vacation_request_id,
                 IsApproved = Payload.IsApproved
+            });
+
+            return Ok();            
+        }
+
+        [Tags("Vacaciones")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}/abort")]      
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<IActionResult> CancelPermitRequestAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid permit_application_id)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            await _mediator.Send(new CancelPermitRequestQuery()
+            {
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                PermitApplicationRequestId = permit_application_id,
+                UserId = Guid.Parse(userIdStr ?? "")
             });
 
             return Ok();            
