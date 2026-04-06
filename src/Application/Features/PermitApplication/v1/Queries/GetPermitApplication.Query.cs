@@ -9,6 +9,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries
     {
         public string? IdentificationNumber { get; set; }
         public PermitApplicationStatus? Status { get; set; }
+        public PermitApplicationType? Type { get; set; }
 
         public int PageSize { get; set; } = 10;
         public int PageNumber { get; set; } = 1;

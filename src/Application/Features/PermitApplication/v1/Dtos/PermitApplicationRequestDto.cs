@@ -21,5 +21,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos
         public TimeOnly? EndTime { get; set; }
 
         public PermitApplicationStatus Status { get; set; }
+        public PermitApplicationType Type { get; set; }
     }
 }

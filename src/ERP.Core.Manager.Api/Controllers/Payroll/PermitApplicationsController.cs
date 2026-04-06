@@ -35,6 +35,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 Description = Payload.Description,
                 EndDate = Payload.EndDate,
                 StartDate = Payload.StartDate,
+                PermitApplicationType = Payload.PermitApplicationType,
                 EndTime = Payload.EndTime,
                 StartTime = Payload.StartTime,
                 UserId = Guid.Parse(userIdStr ?? "")

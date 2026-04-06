@@ -33,28 +33,32 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     );
                 }
 
-                var vacationControl = await _unitOfWork.Vacations.Entities
-                    .Where(v => v.CollaboratorId == collaborator.Id)
-                    .Include(v => v.Collaborator)
-                        .Where(v => v.Collaborator.IdentificationNumber == request.IdentificationNumber && v.Collaborator.CompanyId == request.CompanyId)
-                    .FirstOrDefaultAsync(cancellationToken);
+                DateTime finalEndDate = request.EndDate ?? request.StartDate;
+                int totalDays = (int)(finalEndDate.Date - request.StartDate.Date).TotalDays + 1;
 
-                if(vacationControl is null)
+                if (request.PermitApplicationType == PermitApplicationType.Vacation)
                 {
-                    return _errorManager.ThrowBadRequest<bool>(
-                        $"No se encontró un control de vacaciones para el colaborador con número de identificación {request.IdentificationNumber} en esta empresa.", 
-                        "ERP:004"
-                    );
-                }
+                    var vacationControl = await _unitOfWork.Vacations.Entities
+                        .Where(v => v.CollaboratorId == collaborator.Id)
+                        .Include(v => v.Collaborator)
+                            .Where(v => v.Collaborator.IdentificationNumber == request.IdentificationNumber && v.Collaborator.CompanyId == request.CompanyId)
+                        .FirstOrDefaultAsync(cancellationToken);
 
-                var AmountDays = (int)(request.EndDate - request.StartDate).TotalDays + 1;
+                    if(vacationControl is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>(
+                            $"No se encontró un control de vacaciones para el colaborador con número de identificación {request.IdentificationNumber} en esta empresa.", 
+                            "ERP:004"
+                        );
+                    }
 
-                if (vacationControl.AvailableVacations < AmountDays)
-                {
-                    return _errorManager.ThrowBadRequest<bool>(
-                        $"El colaborador no tiene suficientes vacaciones disponibles para solicitar {AmountDays} días.",
-                        "ERP:005"
-                    );
+                    if (vacationControl.AvailableVacations < totalDays)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>(
+                            $"El colaborador no tiene suficientes vacaciones disponibles para solicitar {totalDays} días.",
+                            "ERP:005"
+                        );
+                    }
                 }
 
                 var overlappingRequests = await _unitOfWork.PermitApplications.Entities
@@ -75,21 +79,24 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     );
                 }
 
-                var VacationRequestEntity = new Domain.Entities.Payroll.PermitApplication()
+                var PermitApplicationEntity = new Domain.Entities.Payroll.PermitApplication()
                 {
                     CollaboratorId = collaborator.Id,
                     ApprovedBy = null,
                     RejectedBy = null,
                     StartDate = request.StartDate,
-                    EndDate = request.EndDate,
+                    Type = request.PermitApplicationType,
+                    EndDate = finalEndDate,
                     RequestedBy = $"{collaborator.FirstName.ToCapitalize()} {collaborator.SecondName?.ToCapitalize() ?? string.Empty} {collaborator.FirstLastname.ToCapitalize()} {collaborator.SecondLastname?.ToCapitalize() ?? string.Empty}".Trim(),
                     Description = request.Description,
                     CollaboratorCode = collaborator.CollaboratorCode,
                     Status = PermitApplicationStatus.Pending,
-                    AmountDays = AmountDays,
+                    AmountDays = totalDays,
+                    EndTime = request.EndTime,
+                    StartTime = request.StartTime
                 };
 
-                await _unitOfWork.PermitApplications.CreateVacationRequest(VacationRequestEntity);
+                await _unitOfWork.PermitApplications.CreateVacationRequest(PermitApplicationEntity);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }

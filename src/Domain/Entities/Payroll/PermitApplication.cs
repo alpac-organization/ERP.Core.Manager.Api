@@ -20,7 +20,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
         public string? Description { get; set; }
 
         public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         public TimeOnly? StartTime { get; set; }
         public TimeOnly? EndTime { get; set; }

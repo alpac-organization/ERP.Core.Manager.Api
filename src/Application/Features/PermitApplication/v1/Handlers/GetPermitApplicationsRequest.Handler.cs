@@ -36,6 +36,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 query = query.Where(info => info.Status == request.Status.Value);
             }
 
+            if (request.Type.HasValue)
+            {
+                query = query.Where(info => info.Type == request.Type.Value);
+            }
+
             var items = await query
                 .OrderByDescending(info => info.CreatedAt) 
                 .Skip((request.PageNumber - 1) * request.PageSize)
