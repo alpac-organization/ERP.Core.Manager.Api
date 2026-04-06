@@ -19,7 +19,7 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         IPersonalInformationRepository PersonalInformations { get; }
         ISalariesRepository Salaries { get; }
         IVacationsRepository Vacations { get; }
-        IVacationRequestsRepository VacationRequests { get; }
+        IPermitApplicationsRepository PermitApplications { get; }
 
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }

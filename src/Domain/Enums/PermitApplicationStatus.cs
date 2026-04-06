@@ -1,6 +1,6 @@
 namespace ERP.Core.Manager.Api.Domain.Enums
 {
-    public enum VacationRequestStatus
+    public enum PermitApplicationStatus
     {
         Pending = 1,
         

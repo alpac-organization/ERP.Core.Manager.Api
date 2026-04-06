@@ -38,12 +38,22 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<IActionResult> UpdateCollaboratoInformationrAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
+        public async Task<IActionResult> UpdateCollaboratoInformationrAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number,
+            [FromBody] UpdateCollaboratorInformationCommand Payload
+        )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
+            await _mediator.Send(new UpdateCollaboratorInformationCommand()
+            {
+                CompanyId = companie_id,
+                IdentificationNumber = identification_number,
+                ModuleCode = module_code,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                PersonalInformation = Payload.PersonalInformation,
+                WorkingInformation = Payload.WorkingInformation
+            });
             
-
             return Ok();
         }
 

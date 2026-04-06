@@ -3,8 +3,8 @@ using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll
 {
-    public interface IVacationRequestsRepository : IRepository<VacationRequest>
+    public interface IPermitApplicationsRepository : IRepository<PermitApplication>
     {
-        Task<VacationRequest> CreateVacationRequest(VacationRequest payload);
+        Task<PermitApplication> CreateVacationRequest(PermitApplication payload);
     }
 }

@@ -438,3 +438,4 @@ C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\De
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ERP.Core.Manager.Api.pdb
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ERP.Core.Manager.Api.genruntimeconfig.cache
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ref\ERP.Core.Manager.Api.dll
+C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\compressed\p8ysqzc4ed-{0}-64xebdz32h-64xebdz32h.gz

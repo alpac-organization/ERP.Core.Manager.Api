@@ -1,17 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
-using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
+using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
 {
-    public class CreateVacationRequestRecordHandler(IUnitOfWork _unitOfWork,IErrorManager _errorManager) : AlpacBaseHandler<CreateVacationRequestRecordCommand, bool>(_unitOfWork, _errorManager)
+    public class CreateVacationRequestRecordHandler(IUnitOfWork _unitOfWork,IErrorManager _errorManager) : AlpacBaseHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
-        public override async Task<bool> Handle(CreateVacationRequestRecordCommand request, CancellationToken cancellationToken)
+        public override async Task<bool> Handle(CreatePermitApplicationCommand request, CancellationToken cancellationToken)
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
@@ -58,11 +58,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                     );
                 }
 
-                var overlappingRequests = await _unitOfWork.VacationRequests.Entities
+                var overlappingRequests = await _unitOfWork.PermitApplications.Entities
                     .AnyAsync(vr => 
                         vr.CollaboratorId == collaborator.Id &&
-                        vr.Status != VacationRequestStatus.Rejected  && 
-                        vr.Status != VacationRequestStatus.Cancelled &&
+                        vr.Status != PermitApplicationStatus.Rejected  && 
+                        vr.Status != PermitApplicationStatus.Cancelled &&
                         request.StartDate <= vr.EndDate && 
                         request.EndDate >= vr.StartDate, 
                         cancellationToken
@@ -76,7 +76,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                     );
                 }
 
-                var VacationRequestEntity = new VacationRequest()
+                var VacationRequestEntity = new PermitApplication()
                 {
                     CollaboratorId = collaborator.Id,
                     ApprovedBy = null,
@@ -86,11 +86,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                     RequestedBy = $"{collaborator.FirstName.ToCapitalize()} {collaborator.SecondName?.ToCapitalize() ?? string.Empty} {collaborator.FirstLastname.ToCapitalize()} {collaborator.SecondLastname?.ToCapitalize() ?? string.Empty}".Trim(),
                     Description = request.Description,
                     CollaboratorCode = collaborator.CollaboratorCode,
-                    Status = VacationRequestStatus.Pending,
+                    Status = PermitApplicationStatus.Pending,
                     AmountDays = AmountDays,
                 };
 
-                await _unitOfWork.VacationRequests.CreateVacationRequest(VacationRequestEntity);
+                await _unitOfWork.PermitApplications.CreateVacationRequest(VacationRequestEntity);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }

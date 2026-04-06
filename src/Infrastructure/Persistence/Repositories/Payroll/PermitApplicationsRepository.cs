@@ -4,11 +4,11 @@ using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll
 {
-    public class VacationRequestRepository(AppDbContext _context): Repository<VacationRequest>(_context), IVacationRequestsRepository
+    public class PermitApplicationsRepository(AppDbContext _context): Repository<PermitApplication>(_context), IPermitApplicationsRepository
     {
-        public async Task<VacationRequest> CreateVacationRequest(VacationRequest payload)
+        public async Task<PermitApplication> CreateVacationRequest(PermitApplication payload)
         {
-            var vacationRequestCreated = await _context.VacationRequests.AddAsync(payload);    
+            var vacationRequestCreated = await _context.PermitApplications.AddAsync(payload);    
             return vacationRequestCreated.Entity;
         }
     }

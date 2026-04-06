@@ -38,7 +38,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
                     npgsqlOptions.MapEnum<CollaboratorStatus>("collaborator_status_enum");
                     npgsqlOptions.MapEnum<SalaryType>("salary_type_enum");
                     npgsqlOptions.MapEnum<Currency>("currency_enum");
-                    npgsqlOptions.MapEnum<VacationRequestStatus>("vacation_request_status_enum");
+                    npgsqlOptions.MapEnum<PermitApplicationStatus>("permite_application_status_enum");
                     npgsqlOptions.MapEnum<MaritalStatus>("marital_status_enum");
                 }));
 
@@ -67,7 +67,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IWorkingInformationRepository, WorkingInformationRepository>();
             services.AddScoped<ISalariesRepository, SalariesRepository>();
             services.AddScoped<IVacationsRepository, VacationsRepository>();
-            services.AddScoped<IVacationRequestsRepository, VacationRequestRepository>();
+            services.AddScoped<IPermitApplicationsRepository, PermitApplicationsRepository>();
 
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();

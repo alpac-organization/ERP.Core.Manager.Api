@@ -3,7 +3,7 @@ using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
 {
-    public class VacationRequest : BaseEntity<Guid>
+    public class PermitApplication : BaseEntity<Guid>
     {
         public Guid CollaboratorId { get; set; }
 
@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
         public string?  RejectedBy { get; set; }
         public string? CollaboratorCode { get; set; }
 
-        public VacationRequestStatus Status { get; set; }
+        public PermitApplicationStatus Status { get; set; }
 
         public int AmountDays { get; set; }
 
@@ -20,6 +20,9 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+
+        
+
 
         public virtual Collaborator Collaborator { get; set; } = null!;
     }
