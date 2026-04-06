@@ -4,32 +4,45 @@ using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 {
-    public class VacationRequetConfiguration : IEntityTypeConfiguration<VacationRequest>
+    public class PermitApplicationConfiguration : IEntityTypeConfiguration<PermitApplication>
     {
-        public void Configure(EntityTypeBuilder<VacationRequest> builder)
+        public void Configure(EntityTypeBuilder<PermitApplication> builder)
         {
-            builder.ToTable("vacation_requests");
+            builder.ToTable("permit_applications");
 
             builder.HasKey(e => e.Id);
 
             builder.Property(e => e.Id)
-                .HasColumnName("vacation_request_id")
+                .HasColumnName("permit_application_id")
                 .HasDefaultValueSql("gen_random_uuid()")
                 .ValueGeneratedOnAdd()
                 .IsRequired();
 
             builder.HasIndex(e => e.Id)
                 .IsUnique()
-                .HasDatabaseName("IX_vacation_collaborator_id");
+                .HasDatabaseName("ix_permit_application_id");
             
             builder.Property(e => e.Status)
                 .HasColumnName("status")
-                .HasColumnType("vacation_request_status_enum")
+                .HasColumnType("permit_application_status_enum")
+                .IsRequired();
+
+            builder.Property(e => e.Type)
+                .HasColumnName("permit_application_type")
+                .HasColumnType("permit_application_type_enum")
                 .IsRequired();
 
             builder.Property(e => e.CollaboratorId)
                 .HasColumnName("collaborator_id")
                 .IsRequired();
+
+            builder.Property(e => e.StartTime)
+                .HasColumnName("start_time")
+                .IsRequired(false);
+
+            builder.Property(e => e.EndTime)
+                .HasColumnName("end_time")
+                .IsRequired(false);
 
             builder.Property(e => e.ApprovedBy)
                 .HasColumnName("approved_by");
@@ -69,7 +82,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnName("deleted_at");
 
             builder.HasOne(c => c.Collaborator)
-                .WithMany(s => s.VacationRequests)
+                .WithMany(s => s.PermitApplications)
                 .HasForeignKey(s => s.CollaboratorId)
                 .OnDelete(DeleteBehavior.Restrict);
         }

@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 
-namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
+namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class GetVacationRequestHistoryHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GetVacationRequestHistoryQuery, List<VacationRequestDto>>(_unitOfWork, _errorManager)
+    public class GetPermitApplicationHistoryHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GetPermitApplicationHistoryQuery, List<PermitApplicationDto>>(_unitOfWork, _errorManager)
     {
-        public override async Task<List<VacationRequestDto>> Handle(GetVacationRequestHistoryQuery request, CancellationToken cancellationToken)
+        public override async Task<List<PermitApplicationDto>> Handle(GetPermitApplicationHistoryQuery request, CancellationToken cancellationToken)
         {
             //Comenzar logica para mapeo de datos
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
@@ -27,10 +27,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
 
             if (collaborator is null)
             {
-                return _errorManager.ThrowBadRequest<List<VacationRequestDto>>("Este colaborador no existe", "ERP:001");
+                return _errorManager.ThrowBadRequest<List<PermitApplicationDto>>("Este colaborador no existe", "ERP:001");
             }
 
-            var query = _unitOfWork.VacationRequests.Entities
+            var query = _unitOfWork.PermitApplications.Entities
                 .Include(info => info.Collaborator)
                 .Where(info => info.Collaborator.CompanyId == request.CompanyId)
                 .Where(info => info.Collaborator.IdentificationNumber == request.IdentificationNumber)
@@ -47,7 +47,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);            
 
-            return _mapper.Map<List<VacationRequestDto>>(items);
+            return _mapper.Map<List<PermitApplicationDto>>(items);
         }
     }
 }

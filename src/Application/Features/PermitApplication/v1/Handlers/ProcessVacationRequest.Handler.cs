@@ -1,16 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
-using ERP.Core.Manager.Api.Domain.Enums;
-using ERP.Core.Manager.Api.Domain.Entities.Payroll;
+using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 
-namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
+namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class ProcessVacationRequestHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<ProcessVacationRequestCommand, bool>(_unitOfWork, _errorManager)
+    public class ProcessVacationRequestHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
-        public override async Task<bool> Handle(ProcessVacationRequestCommand request, CancellationToken cancellationToken)
+        public override async Task<bool> Handle(ProcessPermitApplicationCommand request, CancellationToken cancellationToken)
         {
 
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
@@ -20,7 +19,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                 return access.ErrorResponse; 
             }
 
-            var vacationRequest = await _unitOfWork.VacationRequests.Entities
+            var vacationRequest = await _unitOfWork.PermitApplications.Entities
                 .Where(vr => vr.Id == request.VacationRequestId)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -69,10 +68,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
             if (!collaboratorAssociated && (access.Role!.RoleType == RoleType.Administrator || access.Role.RoleType == RoleType.Manager))
             {
                 //Actualizamos el estado de la solicitud de vacaciones
-                await _unitOfWork.VacationRequests.UpdateAsync(new ()
+                await _unitOfWork.PermitApplications.UpdateAsync(new ()
                 {
                     Id =          request.VacationRequestId,
-                    Status =      request.IsApproved ? VacationRequestStatus.Approved : VacationRequestStatus.Rejected,
+                    Status =      request.IsApproved ? PermitApplicationStatus.Approved : PermitApplicationStatus.Rejected,
                     ApprovedBy =  request.IsApproved ? user.Fullname : null,
                     RejectedBy = !request.IsApproved ? user.Fullname : null,
                 });  
@@ -82,10 +81,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
             }
             else if(collaboratorAssociated && access.Role!.RoleType == RoleType.Administrator)
             {
-                await _unitOfWork.VacationRequests.UpdateAsync(new ()
+                await _unitOfWork.PermitApplications.UpdateAsync(new ()
                 {
                     Id =          request.VacationRequestId,
-                    Status =      request.IsApproved ? VacationRequestStatus.Approved : VacationRequestStatus.Rejected,
+                    Status =      request.IsApproved ? PermitApplicationStatus.Approved : PermitApplicationStatus.Rejected,
                     ApprovedBy =  request.IsApproved ? user.Fullname : null,
                     RejectedBy = !request.IsApproved ? user.Fullname : null,
                 });

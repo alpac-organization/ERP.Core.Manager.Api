@@ -60,12 +60,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
             modelBuilder.HasPostgresEnum<CollaboratorStatus>("public","collaborator_status_enum");
             modelBuilder.HasPostgresEnum<SalaryType>("public","salary_type_enum");
             modelBuilder.HasPostgresEnum<Currency>("public","currency_enum");
+            modelBuilder.HasPostgresEnum<MaritalStatus>("public","marital_status_enum");
 
             #endregion
     
-            modelBuilder.HasPostgresEnum<PermitApplicationStatus>("public","permit_application_status_enum");
 
-            #region Registro Vacaciones
+            #region Registro de permisos
+    
+            modelBuilder.HasPostgresEnum<PermitApplicationStatus>("public","permit_application_status_enum");
+            modelBuilder.HasPostgresEnum<PermitApplicationType>("public","permit_application_type_enum");
 
             #endregion
 

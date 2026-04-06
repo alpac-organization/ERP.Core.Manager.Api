@@ -11,6 +11,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
         public string?  RejectedBy { get; set; }
         public string? CollaboratorCode { get; set; }
 
+        public PermitApplicationType Type { get; set; }
         public PermitApplicationStatus Status { get; set; }
 
         public int AmountDays { get; set; }
@@ -21,8 +22,8 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
-        
-
+        public TimeOnly? StartTime { get; set; }
+        public TimeOnly? EndTime { get; set; }
 
         public virtual Collaborator Collaborator { get; set; } = null!;
     }

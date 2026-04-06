@@ -1,9 +1,9 @@
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
 using FluentValidation;
 
-namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Validators
+namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validators
 {
-    public class CreateVacationRequestRecordValidator : AbstractValidator<CreateVacationRequestRecordCommand>
+    public class CreateVacationRequestRecordValidator : AbstractValidator<CreatePermitApplicationCommand>
     {
         public CreateVacationRequestRecordValidator()
         {

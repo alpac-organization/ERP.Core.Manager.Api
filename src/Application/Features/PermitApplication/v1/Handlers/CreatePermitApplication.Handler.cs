@@ -5,11 +5,10 @@ using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
-using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
-namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
+namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class CreateVacationRequestRecordHandler(IUnitOfWork _unitOfWork,IErrorManager _errorManager) : AlpacBaseHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
+    public class CreatePermitApplicationHandler(IUnitOfWork _unitOfWork,IErrorManager _errorManager) : AlpacBaseHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(CreatePermitApplicationCommand request, CancellationToken cancellationToken)
         {
@@ -76,7 +75,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                     );
                 }
 
-                var VacationRequestEntity = new PermitApplication()
+                var VacationRequestEntity = new Domain.Entities.Payroll.PermitApplication()
                 {
                     CollaboratorId = collaborator.Id,
                     ApprovedBy = null,

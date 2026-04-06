@@ -1,14 +1,13 @@
 ﻿using System;
-using ERP.Core.Manager.Api.Domain.Enums;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
+namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class AgregarImagenesNuetrals : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,12 +21,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 .Annotation("Npgsql:Enum:public.currency_enum", "nio,usd")
                 .Annotation("Npgsql:Enum:public.gender_type_enum", "man,women")
                 .Annotation("Npgsql:Enum:public.identification_type_enum", "cedula,pasaporte,cedula_residencia")
+                .Annotation("Npgsql:Enum:public.marital_status_enum", "none,single,married,divorced,widowed,domestic_partner,separated,other")
                 .Annotation("Npgsql:Enum:public.permission_type_enum", "read,create,update,delete")
+                .Annotation("Npgsql:Enum:public.permit_application_status_enum", "pending,approved,rejected,cancelled")
+                .Annotation("Npgsql:Enum:public.permit_application_type_enum", "vacation,medical_appointment,compensatory_time,paid_leave,unpaid_leave,special_leave")
                 .Annotation("Npgsql:Enum:public.role_type_enum", "administrator,supervisor,manager,operator")
                 .Annotation("Npgsql:Enum:public.salary_type_enum", "fixed,variable,professional_services")
                 .Annotation("Npgsql:Enum:public.user_status_enum", "active,inactive,locked")
                 .Annotation("Npgsql:Enum:public.user_type_enum", "standard_user,employee_self_service")
-                .Annotation("Npgsql:Enum:public.vacation_request_status_enum", "pending,approved,rejected,cancelled")
                 .Annotation("Npgsql:PostgresExtension:uuid-ossp", ",,");
 
             migrationBuilder.CreateTable(
@@ -59,9 +60,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     code = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
-                    module_name = table.Column<string>(type: "character varying(180)", maxLength: 180, nullable: false, defaultValue: "/dashboard"),
-                    path_redirect = table.Column<string>(type: "text", nullable: false),
-                    image_url = table.Column<string>(type: "text", nullable: false),
+                    module_name = table.Column<string>(type: "character varying(180)", maxLength: 180, nullable: false),
+                    path_redirect = table.Column<string>(type: "text", nullable: false, defaultValue: "/dashboard"),
+                    image_url = table.Column<string>(type: "text", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -78,7 +79,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     role_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     role_name = table.Column<string>(type: "character varying(180)", maxLength: 180, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
-                    role_type_Enum = table.Column<RoleType>(type: "role_type_enum", nullable: false),
+                    role_type_Enum = table.Column<int>(type: "integer", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -98,8 +99,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     fullname = table.Column<string>(type: "text", nullable: false),
                     password_hash = table.Column<string>(type: "text", nullable: false),
                     identification_number = table.Column<string>(type: "text", nullable: false),
-                    user_type = table.Column<UserType>(type: "user_type_enum", nullable: false),
-                    user_status = table.Column<UserStatus>(type: "user_status_enum", nullable: false),
+                    user_type = table.Column<int>(type: "user_type_enum", nullable: false),
+                    user_status = table.Column<int>(type: "user_status_enum", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -118,7 +119,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     catalog_name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
                     description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    catalog_type = table.Column<CatalogType>(type: "catalog_type_enum", nullable: false),
+                    catalog_type = table.Column<int>(type: "catalog_type_enum", nullable: false),
                     company_id = table.Column<Guid>(type: "uuid", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
@@ -141,7 +142,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     collaborator_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    picture_url = table.Column<string>(type: "text", nullable: false),
+                    picture_url = table.Column<string>(type: "text", nullable: true),
                     first_name = table.Column<string>(type: "text", nullable: false),
                     first_lastname = table.Column<string>(type: "text", nullable: false),
                     identification_number = table.Column<string>(type: "text", nullable: false),
@@ -151,9 +152,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     third_name = table.Column<string>(type: "text", nullable: true),
                     second_lastname = table.Column<string>(type: "text", nullable: true),
                     registered_by = table.Column<string>(type: "text", nullable: false),
-                    gender = table.Column<GenderType>(type: "gender_type_enum", nullable: false),
-                    status = table.Column<CollaboratorStatus>(type: "collaborator_status_enum", nullable: false),
-                    identification_type = table.Column<IdentificationType>(type: "identification_type_enum", nullable: false),
+                    gender = table.Column<int>(type: "gender_type_enum", nullable: false),
+                    status = table.Column<int>(type: "collaborator_status_enum", nullable: false),
+                    identification_type = table.Column<int>(type: "identification_type_enum", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -280,6 +281,40 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "permit_applications",
+                schema: "public",
+                columns: table => new
+                {
+                    permit_application_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    collaborator_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    approved_by = table.Column<string>(type: "text", nullable: true),
+                    rejected_by = table.Column<string>(type: "text", nullable: true),
+                    collaborator_code = table.Column<string>(type: "text", nullable: false),
+                    permit_application_type = table.Column<int>(type: "permit_application_type_enum", nullable: false),
+                    status = table.Column<int>(type: "permit_application_status_enum", nullable: false),
+                    amount_days = table.Column<int>(type: "integer", nullable: false),
+                    requested_by = table.Column<string>(type: "text", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    start_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    start_time = table.Column<TimeOnly>(type: "time without time zone", nullable: true),
+                    end_time = table.Column<TimeOnly>(type: "time without time zone", nullable: true),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_permit_applications", x => x.permit_application_id);
+                    table.ForeignKey(
+                        name: "FK_permit_applications_collaborators_collaborator_id",
+                        column: x => x.collaborator_id,
+                        principalSchema: "public",
+                        principalTable: "collaborators",
+                        principalColumn: "collaborator_id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "personal_informations",
                 schema: "public",
                 columns: table => new
@@ -291,6 +326,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     address = table.Column<string>(type: "text", nullable: true),
                     departament = table.Column<string>(type: "text", nullable: true),
                     birthdate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    marital_status = table.Column<int>(type: "marital_status_enum", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -317,8 +353,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                     amount_in_foreign = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
                     amount_salary = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
                     bank_id = table.Column<int>(type: "integer", nullable: false),
-                    currency = table.Column<Currency>(type: "currency_enum", nullable: false),
-                    salary_type = table.Column<SalaryType>(type: "salary_type_enum", nullable: false),
+                    currency = table.Column<int>(type: "currency_enum", nullable: false),
+                    salary_type = table.Column<int>(type: "salary_type_enum", nullable: false),
                     start_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -334,35 +370,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                         principalTable: "collaborators",
                         principalColumn: "collaborator_id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "vacation_requests",
-                schema: "public",
-                columns: table => new
-                {
-                    vacation_request_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    collaborator_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    approved_by = table.Column<string>(type: "text", nullable: true),
-                    status = table.Column<VacationRequestStatus>(type: "vacation_request_status_enum", nullable: false),
-                    requested_by = table.Column<string>(type: "text", nullable: false),
-                    description = table.Column<string>(type: "text", nullable: true),
-                    start_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_vacation_requests", x => x.vacation_request_id);
-                    table.ForeignKey(
-                        name: "FK_vacation_requests_collaborators_collaborator_id",
-                        column: x => x.collaborator_id,
-                        principalSchema: "public",
-                        principalTable: "collaborators",
-                        principalColumn: "collaborator_id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -549,6 +556,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 column: "role_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_permit_application_id",
+                schema: "public",
+                table: "permit_applications",
+                column: "permit_application_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_permit_applications_collaborator_id",
+                schema: "public",
+                table: "permit_applications",
+                column: "collaborator_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_personal_informations_collaborator_id",
                 schema: "public",
                 table: "personal_informations",
@@ -618,19 +638,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_vacation_collaborator_id",
-                schema: "public",
-                table: "vacation_requests",
-                column: "vacation_request_id",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_vacation_requests_collaborator_id",
-                schema: "public",
-                table: "vacation_requests",
-                column: "collaborator_id");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_vacations_collaborator_id",
                 schema: "public",
                 table: "vacations",
@@ -671,6 +678,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
+                name: "permit_applications",
+                schema: "public");
+
+            migrationBuilder.DropTable(
                 name: "personal_informations",
                 schema: "public");
 
@@ -684,10 +695,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "user_module_roles",
-                schema: "public");
-
-            migrationBuilder.DropTable(
-                name: "vacation_requests",
                 schema: "public");
 
             migrationBuilder.DropTable(

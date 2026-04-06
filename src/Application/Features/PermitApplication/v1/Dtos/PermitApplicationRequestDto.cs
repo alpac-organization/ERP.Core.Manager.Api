@@ -1,8 +1,8 @@
 using ERP.Core.Manager.Api.Domain.Enums;
 
-namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos
+namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos
 {
-    public class PermitApplicationRequestDto
+    public class PermitApplicationDto
     {
         public Guid PermitApllicationId { get; set; }
         public Guid CollaboratorId { get; set; }
@@ -16,6 +16,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos
         public string?  RejectedBy { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+        public TimeOnly? StartTime { get; set; }
+        public TimeOnly? EndTime { get; set; }
 
         public PermitApplicationStatus Status { get; set; }
     }

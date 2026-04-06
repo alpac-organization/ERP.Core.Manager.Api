@@ -1,11 +1,11 @@
-using FluentValidation;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
+using FluentValidation;
 
 namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Validators
 {
-    public class GetVacationRequestHistoryValidator : AbstractValidator<GetVacationRequestHistoryQuery>
+    public class GetVacationRequestValidator : AbstractValidator<GetPermitApplicationQuery>
     {
-        public GetVacationRequestHistoryValidator()
+        public GetVacationRequestValidator()
         {
             RuleFor(x => x.CompanyId)
                 .NotEmpty()

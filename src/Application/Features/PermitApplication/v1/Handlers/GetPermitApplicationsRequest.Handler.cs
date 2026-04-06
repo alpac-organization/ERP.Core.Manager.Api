@@ -1,18 +1,17 @@
-using MediatR;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
-using Microsoft.EntityFrameworkCore;
-using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
-using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 
-namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
+namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class GetVacationRequestHandler(IUnitOfWork _unitOfWork, IMapper  _mapper, IErrorManager _errorManager) : AlpacBaseHandler<GetVacationRequestQuery, List<VacationRequestDto>>(_unitOfWork, _errorManager)
+    public class GetPermitApplicationsRequestHandler(IUnitOfWork _unitOfWork, IMapper  _mapper, IErrorManager _errorManager) : AlpacBaseHandler<GetPermitApplicationQuery, List<PermitApplicationDto>>(_unitOfWork, _errorManager)
     {
-        public override async Task<List<VacationRequestDto>> Handle(GetVacationRequestQuery request, CancellationToken cancellationToken)
+        public override async Task<List<PermitApplicationDto>> Handle(GetPermitApplicationQuery request, CancellationToken cancellationToken)
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
@@ -21,10 +20,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                 return access.ErrorResponse!; 
             }
             
-            var query = _unitOfWork.VacationRequests.Entities
+            var query = _unitOfWork.PermitApplications.Entities
                 .Include(info => info.Collaborator)
                 .Where(info => info.Collaborator.CompanyId == request.CompanyId)
-                .Where(info => info.Status != VacationRequestStatus.Cancelled)
+                .Where(info => info.Status != PermitApplicationStatus.Cancelled)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.IdentificationNumber))
@@ -43,7 +42,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
-            return _mapper.Map<List<VacationRequestDto>>(items);
+            return _mapper.Map<List<PermitApplicationDto>>(items);
         }
     }
 }

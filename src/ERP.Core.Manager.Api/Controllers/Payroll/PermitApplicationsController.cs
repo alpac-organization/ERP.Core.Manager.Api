@@ -1,12 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
-using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
-using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -42,10 +43,10 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         [Tags("Permisos")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/permit-applications")]      
-        [ProducesResponseType(typeof(List<PermitApplicationRequestDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<PermitApplicationDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<List<PermitApplicationRequestDto>> GetPermitApplicatiobHistoryAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
+        public async Task<List<PermitApplicationDto>> GetPermitApplicatiobHistoryAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
             [FromRoute] string identification_number,
             [FromQuery] int page_size = 10, 
             [FromQuery] int page_number = 1, 
@@ -69,10 +70,10 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         //Modulo de solicitudes ver todas las solicitudes
         [Tags("Vacaciones")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/permit-applications")]      
-        [ProducesResponseType(typeof(List<PermitApplicationRequestDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<PermitApplicationDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<List<PermitApplicationRequestDto>> GetVacationRequestsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
+        public async Task<List<PermitApplicationDto>> GetVacationRequestsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
             [FromQuery] string? identification_number, 
             [FromQuery] int page_size = 10, 
             [FromQuery] int page_number = 1, 
@@ -81,7 +82,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            return await _mediator.Send(new GetVacationRequestQuery()
+            return await _mediator.Send(new GetPermitApplicationQuery()
             {
                 CompanyId = companie_id,
                 ModuleCode = module_code,
@@ -99,12 +100,12 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<IActionResult> ProcessVacationRequestAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid vacation_request_id,
-        [FromBody] ProcessVacationRequestCommand Payload
+        [FromBody] ProcessPermitApplicationCommand Payload
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            await _mediator.Send(new ProcessVacationRequestCommand()
+            await _mediator.Send(new ProcessPermitApplicationCommand()
             {
                 CompanyId = companie_id,
                 ModuleCode = module_code,
