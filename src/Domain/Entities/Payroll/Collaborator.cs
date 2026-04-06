@@ -33,6 +33,6 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
 
         //Multiples datos
         public virtual ICollection<Salary> Salaries { get; set; } = [];
-        public virtual ICollection<VacationRequest> VacationRequests { get; set; } = [];  
+        public virtual ICollection<PermitApplication> PermitApplications { get; set; } = [];  
     }
 }

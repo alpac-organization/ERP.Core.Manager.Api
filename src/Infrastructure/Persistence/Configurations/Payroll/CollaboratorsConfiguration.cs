@@ -118,7 +118,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .OnDelete(DeleteBehavior.Cascade); 
 
             //Registrar el control de solicitudes de vacaciones
-            builder.HasMany(c => c.VacationRequests)
+            builder.HasMany(c => c.PermitApplications)
                 .WithOne(s => s.Collaborator)
                 .HasForeignKey(s => s.CollaboratorId)
                 .OnDelete(DeleteBehavior.Cascade);

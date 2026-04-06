@@ -22,7 +22,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<PersonalInformation> PersonalInformations => Set<PersonalInformation>();
         public DbSet<WorkingInformation> WorkingInformation => Set<WorkingInformation>();
         public DbSet<Vacation> Vacations => Set<Vacation>();
-        public DbSet<VacationRequest> VacationRequests => Set<VacationRequest>();
+        public DbSet<PermitApplication> PermitApplications => Set<PermitApplication>();
         public DbSet<Catalog> Catalogs { get; set; }
         public DbSet<SubCatalog> SubCatalogs { get; set; }
         public DbSet<Salary> Salaries => Set<Salary>();
@@ -60,12 +60,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
             modelBuilder.HasPostgresEnum<CollaboratorStatus>("public","collaborator_status_enum");
             modelBuilder.HasPostgresEnum<SalaryType>("public","salary_type_enum");
             modelBuilder.HasPostgresEnum<Currency>("public","currency_enum");
+            modelBuilder.HasPostgresEnum<MaritalStatus>("public","marital_status_enum");
 
             #endregion
     
-            modelBuilder.HasPostgresEnum<VacationRequestStatus>("public","vacation_request_status_enum");
 
-            #region Registro Vacaciones
+            #region Registro de permisos
+    
+            modelBuilder.HasPostgresEnum<PermitApplicationStatus>("public","permit_application_status_enum");
+            modelBuilder.HasPostgresEnum<PermitApplicationType>("public","permit_application_type_enum");
 
             #endregion
 
@@ -93,12 +96,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
             }
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-        }
-
-        private static string ConvertToSnakeCase(string text)
-        {
-            if (string.IsNullOrEmpty(text)) return text;
-            return string.Concat(text.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString())).ToLower();
         }
     }
 }

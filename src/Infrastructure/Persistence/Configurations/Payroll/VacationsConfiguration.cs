@@ -20,7 +20,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.AvailableVacations)
                 .HasColumnName("available_vacations")
-                .HasColumnType("decimal(18,4)") // Define el tipo y la precisión
+                .HasColumnType("decimal(18,4)")
                 .IsRequired();
 
             builder.Property(e => e.EnjoyedVacation)
