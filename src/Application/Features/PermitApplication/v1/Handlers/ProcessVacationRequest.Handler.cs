@@ -55,7 +55,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             }
 
             //Descontamos los días de vacaciones si la solicitud es aprobada, de lo contrario no se descuenta
-            var amountDays = (vacationRequest.EndDate - vacationRequest.StartDate).Days + 1;
+            var amountDays = (vacationRequest.EndDate - vacationRequest.StartDate)?.Days ?? + 1;
 
             await _unitOfWork.Vacations.UpdateAsync(new ()
             {
@@ -83,7 +83,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             {
                 await _unitOfWork.PermitApplications.UpdateAsync(new ()
                 {
-                    Id =          request.VacationRequestId,
+                    Id =          request.VacationRequestId,    
                     Status =      request.IsApproved ? PermitApplicationStatus.Approved : PermitApplicationStatus.Rejected,
                     ApprovedBy =  request.IsApproved ? user.Fullname : null,
                     RejectedBy = !request.IsApproved ? user.Fullname : null,

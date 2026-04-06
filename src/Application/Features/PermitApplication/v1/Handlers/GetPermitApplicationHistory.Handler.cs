@@ -12,7 +12,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
     {
         public override async Task<List<PermitApplicationDto>> Handle(GetPermitApplicationHistoryQuery request, CancellationToken cancellationToken)
         {
-            //Comenzar logica para mapeo de datos
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
@@ -39,6 +38,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             if (request.Status.HasValue)
             {
                 query = query.Where(info => info.Status == request.Status.Value);
+            }
+
+            if( request.Type. HasValue)
+            {
+                query = query.Where(info => info.Type == request.Type.Value);
             }
 
             var items = await query
