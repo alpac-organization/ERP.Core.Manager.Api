@@ -5,6 +5,15 @@
 );
 
 START TRANSACTION;
+CREATE TYPE public.catalog_type_enum AS ENUM ('banks', 'branches', 'document_types', 'exchange_rates', 'job_positions', 'work_areas');
+CREATE TYPE public.collaborator_status_enum AS ENUM ('active', 'inactive', 'subsidy', 'suspended', 'terminated', 'testing_process', 'vacation');
+CREATE TYPE public.currency_enum AS ENUM ('nio', 'usd');
+CREATE TYPE public.gender_type_enum AS ENUM ('man', 'women');
+CREATE TYPE public.identification_type_enum AS ENUM ('cedula', 'cedula_residencia', 'pasaporte');
+CREATE TYPE public.marital_status_enum AS ENUM ('divorced', 'domestic_partner', 'married', 'none', 'other', 'separated', 'single', 'widowed');
+CREATE TYPE public.permission_type_enum AS ENUM ('create', 'delete', 'read', 'update');
+CREATE TYPE public.permit_application_status_enum AS ENUM ('approved', 'cancelled', 'pending', 'rejected');
+CREATE TYPE public.permit_application_type_enum AS ENUM ('compensatory_time', 'medical_appointment', 'paid_leave', 'special_leave', 'unpaid_leave', 'vacation');
 CREATE TYPE public.catalog_type_enum AS ENUM ('branches', 'work_areas', 'job_positions', 'document_types', 'banks', 'exchange_rates');
 CREATE TYPE public.collaborator_status_enum AS ENUM ('active', 'inactive', 'vacation', 'subsidy', 'suspended', 'terminated', 'testing_process');
 CREATE TYPE public.currency_enum AS ENUM ('nio', 'usd');
@@ -18,6 +27,10 @@ CREATE TYPE public.role_type_enum AS ENUM ('administrator', 'supervisor', 'manag
 CREATE TYPE public.salary_type_enum AS ENUM ('fixed', 'variable', 'professional_services');
 CREATE TYPE public.user_status_enum AS ENUM ('active', 'inactive', 'locked');
 CREATE TYPE public.user_type_enum AS ENUM ('standard_user', 'employee_self_service');
+CREATE TYPE public.role_type_enum AS ENUM ('administrator', 'manager', 'operator', 'supervisor');
+CREATE TYPE public.salary_type_enum AS ENUM ('fixed', 'professional_services', 'variable');
+CREATE TYPE public.user_status_enum AS ENUM ('active', 'inactive', 'locked');
+CREATE TYPE public.user_type_enum AS ENUM ('employee_self_service', 'standard_user');
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE public.companies (
@@ -50,7 +63,7 @@ CREATE TABLE public.roles (
     role_id uuid NOT NULL DEFAULT (gen_random_uuid()),
     role_name character varying(180) NOT NULL,
     description text,
-    "role_type_Enum" integer NOT NULL,
+    "role_type_Enum" role_type_enum NOT NULL,
     deleted_at timestamp with time zone,
     created_at timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT "PK_roles" PRIMARY KEY (role_id)
@@ -313,7 +326,7 @@ CREATE INDEX "IX_working_information_WorkAreaId" ON public.working_information (
 CREATE INDEX "IX_working_information_WorkPositionId" ON public.working_information ("WorkPositionId");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20260406194044_InitialMigration', '10.0.5');
+VALUES ('20260406195907_InitialMigration', '10.0.5');
 
 COMMIT;
 

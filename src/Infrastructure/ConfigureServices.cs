@@ -28,7 +28,19 @@ namespace ERP.Core.Manager.Api.Infrastructure
                 options.UseNpgsql(connectionString, npgsqlOptions =>
                 {
                     npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
-                    // Ya no mapeamos Enums aquí
+                    npgsqlOptions.MapEnum<CatalogType>("catalog_type_enum");
+                    npgsqlOptions.MapEnum<RoleType>("role_type_enum");
+                    npgsqlOptions.MapEnum<PermissionType>("permission_type_enum");
+                    npgsqlOptions.MapEnum<UserType>("user_type_enum");
+                    npgsqlOptions.MapEnum<UserStatus>("user_status_enum");
+                    npgsqlOptions.MapEnum<GenderType>("gender_type_enum");
+                    npgsqlOptions.MapEnum<IdentificationType>("identification_type_enum");
+                    npgsqlOptions.MapEnum<CollaboratorStatus>("collaborator_status_enum");
+                    npgsqlOptions.MapEnum<SalaryType>("salary_type_enum");
+                    npgsqlOptions.MapEnum<Currency>("currency_enum");
+                    npgsqlOptions.MapEnum<PermitApplicationStatus>("permit_application_status_enum");
+                    npgsqlOptions.MapEnum<PermitApplicationType>("permit_application_type_enum");
+                    npgsqlOptions.MapEnum<MaritalStatus>("marital_status_enum");
                 }));
 
             //Other Services.
@@ -55,6 +67,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<ISalariesRepository, SalariesRepository>();
             services.AddScoped<IVacationsRepository, VacationsRepository>();
             services.AddScoped<IPermitApplicationsRepository, PermitApplicationsRepository>();
+
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

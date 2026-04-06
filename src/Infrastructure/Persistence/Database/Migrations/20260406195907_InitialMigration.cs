@@ -1,4 +1,5 @@
 ﻿using System;
+using ERP.Core.Manager.Api.Domain.Enums;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -79,7 +80,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     role_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     role_name = table.Column<string>(type: "character varying(180)", maxLength: 180, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
-                    role_type_Enum = table.Column<int>(type: "integer", nullable: false),
+                    role_type_Enum = table.Column<RoleType>(type: "role_type_enum", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -99,8 +100,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     fullname = table.Column<string>(type: "text", nullable: false),
                     password_hash = table.Column<string>(type: "text", nullable: false),
                     identification_number = table.Column<string>(type: "text", nullable: false),
-                    user_type = table.Column<int>(type: "user_type_enum", nullable: false),
-                    user_status = table.Column<int>(type: "user_status_enum", nullable: false),
+                    user_type = table.Column<UserType>(type: "user_type_enum", nullable: false),
+                    user_status = table.Column<UserStatus>(type: "user_status_enum", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -119,7 +120,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     catalog_name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
                     description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    catalog_type = table.Column<int>(type: "catalog_type_enum", nullable: false),
+                    catalog_type = table.Column<CatalogType>(type: "catalog_type_enum", nullable: false),
                     company_id = table.Column<Guid>(type: "uuid", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
@@ -152,9 +153,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     third_name = table.Column<string>(type: "text", nullable: true),
                     second_lastname = table.Column<string>(type: "text", nullable: true),
                     registered_by = table.Column<string>(type: "text", nullable: false),
-                    gender = table.Column<int>(type: "gender_type_enum", nullable: false),
-                    status = table.Column<int>(type: "collaborator_status_enum", nullable: false),
-                    identification_type = table.Column<int>(type: "identification_type_enum", nullable: false),
+                    gender = table.Column<GenderType>(type: "gender_type_enum", nullable: false),
+                    status = table.Column<CollaboratorStatus>(type: "collaborator_status_enum", nullable: false),
+                    identification_type = table.Column<IdentificationType>(type: "identification_type_enum", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -290,8 +291,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     approved_by = table.Column<string>(type: "text", nullable: true),
                     rejected_by = table.Column<string>(type: "text", nullable: true),
                     collaborator_code = table.Column<string>(type: "text", nullable: false),
-                    permit_application_type = table.Column<int>(type: "permit_application_type_enum", nullable: false),
-                    status = table.Column<int>(type: "permit_application_status_enum", nullable: false),
+                    permit_application_type = table.Column<PermitApplicationType>(type: "permit_application_type_enum", nullable: false),
+                    status = table.Column<PermitApplicationStatus>(type: "permit_application_status_enum", nullable: false),
                     amount_days = table.Column<int>(type: "integer", nullable: false),
                     requested_by = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
@@ -326,7 +327,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     address = table.Column<string>(type: "text", nullable: true),
                     departament = table.Column<string>(type: "text", nullable: true),
                     birthdate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    marital_status = table.Column<int>(type: "marital_status_enum", nullable: false),
+                    marital_status = table.Column<MaritalStatus>(type: "marital_status_enum", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -353,8 +354,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     amount_in_foreign = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
                     amount_salary = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
                     bank_id = table.Column<int>(type: "integer", nullable: false),
-                    currency = table.Column<int>(type: "currency_enum", nullable: false),
-                    salary_type = table.Column<int>(type: "salary_type_enum", nullable: false),
+                    currency = table.Column<Currency>(type: "currency_enum", nullable: false),
+                    salary_type = table.Column<SalaryType>(type: "salary_type_enum", nullable: false),
                     start_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
