@@ -768,6 +768,10 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "Handlebars.Net": {
+              "target": "Package",
+              "version": "[2.1.6, )"
+            },
             "Nanoid": {
               "target": "Package",
               "version": "[3.1.0, )"
