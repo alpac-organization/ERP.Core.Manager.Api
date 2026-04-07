@@ -50,6 +50,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.PersonalEmail, opt => opt.MapFrom(src => src.PersonalEmail))
                 .ForMember(dest => dest.Birthdate, opt => opt.MapFrom(src => src.Birthdate))
+                .ForMember(dest => dest.Departament, opt => opt.MapFrom(src => src.Departament != null ? src.Departament.CatalogName : null))
                 .ForMember(dest => dest.PersonalPhoneNumber, opt => opt.MapFrom(src => src.PersonalPhoneNumber));
 
             CreateMap<WorkingInformation, WorkingInformationDto>()
