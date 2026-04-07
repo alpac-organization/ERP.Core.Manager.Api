@@ -35,6 +35,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
             
             builder.Property(e => e.IsGlobal)
                 .HasColumnName("is_global")
+                .HasDefaultValue(false)
                 .IsRequired(true);
 
             builder.Property(e => e.IsActive)
