@@ -40,9 +40,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnType("marital_status_enum")
                 .IsRequired();
 
-            builder.Property(e => e.Departament)
-                .HasColumnName("departament")
+            builder.Property(e => e.DepartamentId)
+                .HasColumnName("departament_id")
                 .IsRequired(false);
+
+            builder.HasOne(d => d.Departament)
+                .WithMany()
+                .HasForeignKey(d => d.DepartamentId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(e => e.Birthdate)
                 .HasColumnName("birthdate")

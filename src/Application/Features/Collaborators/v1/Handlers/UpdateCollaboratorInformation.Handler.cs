@@ -1,9 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
-using ERP.Core.Manager.Api.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
@@ -40,15 +40,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                     // Forzamos el valor actual si el del request es nulo
                     // WorkingInformation?.BranchId = request.WorkingInformation?.BranchId ?? WorkingInformation?.BranchId;
                     // WorkingInformation?.WorkAreaId = request.WorkingInformation?.WorkAreaId ?? WorkingInformation?.WorkAreaId;
+                    WorkingInformation?.InssNumber = request?.WorkingInformation?.InssNumber ?? WorkingInformation?.InssNumber;
+                    WorkingInformation?.BankAccountNumber = request?.WorkingInformation?.BankAccountNumber ?? WorkingInformation?.BankAccountNumber;
                 }
-
-                WorkingInformation?.InssNumber = request?.WorkingInformation?.InssNumber ?? WorkingInformation?.InssNumber;
-                WorkingInformation?.BankAccountNumber = request?.WorkingInformation?.BankAccountNumber ?? WorkingInformation?.BankAccountNumber;
             }
             if(access.Role.RoleType != RoleType.Supervisor)
             {
                 if (request?.PersonalInformation is not null)
                 {
+                    PersonalInformation?.PersonalEmail = request.PersonalInformation?.PersonalEmail ?? PersonalInformation?.PersonalEmail;
                     PersonalInformation?.MaritalStatus = request.PersonalInformation?.MaritalStatus ?? PersonalInformation.MaritalStatus;
                     PersonalInformation?.PersonalPhoneNumber = request.PersonalInformation?.PersonalPhoneNumber ?? PersonalInformation.PersonalPhoneNumber;
                     PersonalInformation?.Address = request.PersonalInformation?.Address ?? PersonalInformation.Address;
@@ -60,6 +60,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                     WorkingInformation?.WorkEmail = request.WorkingInformation?.WorkEmail ?? WorkingInformation.WorkEmail;  
                 }
             }
+
+            await _unitOfWork.Collaborators.UpdateAsync(collaborator);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return true;
         }

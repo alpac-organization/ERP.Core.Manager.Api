@@ -1,4 +1,5 @@
 using ERP.Core.Manager.Api.Domain.Commons;
+using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
 using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
@@ -9,7 +10,10 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
         public string? PersonalEmail { get; set; }
         public string? PersonalPhoneNumber { get; set; }
         public string? Address { get; set; }
-        public string? Departament { get; set; }
+
+        public int? DepartamentId { get; set; }
+        public virtual SubCatalog? Departament { get; set; } = null!;
+
         public DateTime Birthdate { get; set; }
         public MaritalStatus MaritalStatus { get; set; } = MaritalStatus.None;
         public virtual Collaborator Collaborator { get; set; } = null!;
