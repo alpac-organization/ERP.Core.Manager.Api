@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Catalogs
         public bool? IsGlobal { get; set; }
         public CatalogType CatalogType { get; set; }       
 
-        public Guid CompanyId { get; set; }
+        public Guid? CompanyId { get; set; }
         public virtual Company Company { get; set; } = null!;
 
         public virtual ICollection<SubCatalog> SubCatalogs { get; set; } = [];       

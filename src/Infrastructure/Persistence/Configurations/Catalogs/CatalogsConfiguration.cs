@@ -26,7 +26,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
 
             builder.Property(e => e.CompanyId)
                 .HasColumnName("company_id")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(e => e.CatalogType)
                 .HasColumnName("catalog_type")
