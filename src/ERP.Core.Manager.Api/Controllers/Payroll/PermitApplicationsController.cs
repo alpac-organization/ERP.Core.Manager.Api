@@ -148,6 +148,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
+            //Proceso para generar documento de solicitud de permisos.
+
             return Ok();            
         }
     }
