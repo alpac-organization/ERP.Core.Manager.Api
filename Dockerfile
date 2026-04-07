@@ -9,6 +9,7 @@ COPY ["src/Domain/Domain.csproj", "src/Domain/"]
 COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
 COPY ["src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj", "src/ERP.Core.Manager.Api/"]
 
+
 # Restaurar las dependencias del proyecto principal (esto restaura las demás por cascada)
 RUN dotnet restore "src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj"
 
@@ -27,6 +28,8 @@ RUN dotnet publish "ERP.Core.Manager.Api.csproj" -c Release -o /app/publish /p:U
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+# En la parte final de tu Dockerfile
+COPY --from=publish /app/publish/Templates ./Templates
 
 # Render usa el puerto 8080 por defecto. 
 # ASP.NET Core leerá esta variable para levantar el servidor ahí.

@@ -7,14 +7,13 @@ using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
     [HasToken]
     [ApiVersion("1.0")]
     [Route("api/v1/")]
-    public class PermitApplicationSController(IMediator _mediator) : ApiControllerBase
+    public class PermitApplicationsController(IMediator _mediator) : ApiControllerBase
     {
         [Tags("Permisos")] 
         [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/permit-applications")]      
@@ -71,7 +70,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
         //Modulo de solicitudes ver todas las solicitudes
-        [Tags("Vacaciones")] 
+        [Tags("Permisos")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/permit-applications")]      
         [ProducesResponseType(typeof(List<PermitApplicationDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
@@ -97,7 +96,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             });            
         }
 
-        [Tags("Vacaciones")] 
+        [Tags("Permisos")] 
         [HttpPost("companies/{companie_id}/modules/{module_code}/vacation-requests/{vacation_request_id}/process")]      
         [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
@@ -120,7 +119,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             return Ok();            
         }
 
-        [Tags("Vacaciones")] 
+        [Tags("Permisos")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}/abort")]      
         [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
@@ -136,6 +135,20 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 PermitApplicationRequestId = permit_application_id,
                 UserId = Guid.Parse(userIdStr ?? "")
             });
+
+            return Ok();            
+        }
+
+        [Tags("Permisos")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}/documents")]      
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<IActionResult> GenerateDocumentAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid permit_application_id)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            //Proceso para generar documento de solicitud de permisos.
 
             return Ok();            
         }

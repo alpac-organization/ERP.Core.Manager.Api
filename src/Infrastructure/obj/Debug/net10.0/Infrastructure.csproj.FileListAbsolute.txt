@@ -52,3 +52,4 @@ C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Infrastructure\obj
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Infrastructure\obj\Debug\net10.0\refint\Infrastructure.dll
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Infrastructure\obj\Debug\net10.0\Infrastructure.pdb
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Infrastructure\obj\Debug\net10.0\ref\Infrastructure.dll
+c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\Infrastructure\bin\Debug\net10.0\Templates\PermitApplication.html

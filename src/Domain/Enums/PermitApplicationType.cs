@@ -17,7 +17,7 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         /// </summary>
         CompensatoryTime = 3,
 
-        /// <summary>
+                /// <summary>
         /// Permiso con goce de salario (Paid Leave).
         /// </summary>
         PaidLeave = 4,

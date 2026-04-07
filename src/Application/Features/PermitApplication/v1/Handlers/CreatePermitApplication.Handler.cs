@@ -22,6 +22,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             if (access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Operator || access.Role!.RoleType == RoleType.Manager)
             {
 
+                #region Validaciones
+
                 var collaborator = await _unitOfWork.Collaborators.Entities
                     .FirstOrDefaultAsync(c => c.IdentificationNumber == request.IdentificationNumber && c.CompanyId == request.CompanyId, cancellationToken);
 
@@ -32,6 +34,39 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         "ERP:003"
                     );
                 }
+
+                var PermitApplication = await _unitOfWork.PermitApplications.Entities
+                    .Where(per => per.Status == PermitApplicationStatus.Pending)
+                    .AnyAsync(cancellationToken);
+
+                if (PermitApplication)
+                {
+                    return _errorManager.ThrowBadRequest<bool>("Ya se encuentra un solicitud pendiente, cancelar la solicitud o esperar aprobación", "ERP:02");
+                }
+
+
+                var overlappingRequests = await _unitOfWork.PermitApplications.Entities
+                    .AnyAsync(vr => 
+                        vr.CollaboratorId == collaborator.Id &&
+                        vr.Status != PermitApplicationStatus.Rejected  && 
+                        vr.Status != PermitApplicationStatus.Cancelled &&
+                        request.StartDate <= vr.EndDate && 
+                        request.EndDate >= vr.StartDate, 
+                        cancellationToken
+                    );
+
+                if (overlappingRequests)
+                {
+                    return _errorManager.ThrowBadRequest<bool>(
+                        $"El colaborador ya tiene una solicitud de vacaciones que se superpone con las fechas proporcionadas.",
+                        "ERP:006"
+                    );
+                }
+
+                #endregion Validaciones
+
+
+                #region Proceso cuando es vacaciones
 
                 DateTime finalEndDate = request.EndDate ?? request.StartDate;
                 int totalDays = (int)(finalEndDate.Date - request.StartDate.Date).TotalDays + 1;
@@ -61,24 +96,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     }
                 }
 
-                var overlappingRequests = await _unitOfWork.PermitApplications.Entities
-                    .AnyAsync(vr => 
-                        vr.CollaboratorId == collaborator.Id &&
-                        vr.Status != PermitApplicationStatus.Rejected  && 
-                        vr.Status != PermitApplicationStatus.Cancelled &&
-                        request.StartDate <= vr.EndDate && 
-                        request.EndDate >= vr.StartDate, 
-                        cancellationToken
-                    );
-
-                if (overlappingRequests)
-                {
-                    return _errorManager.ThrowBadRequest<bool>(
-                        $"El colaborador ya tiene una solicitud de vacaciones que se superpone con las fechas proporcionadas.",
-                        "ERP:006"
-                    );
-                }
-
+                #endregion Proceso cuando es vacaciones
+               
+               
                 var PermitApplicationEntity = new Domain.Entities.Payroll.PermitApplication()
                 {
                     CollaboratorId = collaborator.Id,
