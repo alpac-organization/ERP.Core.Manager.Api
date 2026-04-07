@@ -8,8 +8,6 @@ using ERP.Core.Manager.Api.Infrastructure.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 var root = builder.Environment.ContentRootPath;
-var path = Path.GetFullPath(Path.Combine(root, "..", "..", "Resources"));
-
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();

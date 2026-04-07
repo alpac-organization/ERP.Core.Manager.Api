@@ -24,6 +24,30 @@ RUN dotnet build "ERP.Core.Manager.Api.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "ERP.Core.Manager.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libgdiplus \
+        libc6-dev \
+        libx11-dev \
+        libxext-dev \
+        libxrender-dev \
+        libfontconfig1 \
+        libfreetype6 \
+        libjpeg62-turbo \
+        libpng16-16 \
+        libx11-6 \
+        libxcb1 \
+        libxext6 \
+        libxrender1 \
+        xfonts-75dpi \
+        xfonts-base \
+    && rm -rf /var/lib/apt/lists/*
+
+# 🔥 INSTALAR WKHTMLTOPDF
+RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.bullseye_amd64.deb \
+    && apt install -y ./wkhtmltox_0.12.6-1.bullseye_amd64.deb \
+    && rm wkhtmltox_0.12.6-1.bullseye_amd64.deb
+
 # 3. Imagen final de ejecución (Runtime)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app

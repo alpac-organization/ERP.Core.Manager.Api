@@ -14,6 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll;
 using ERP.Core.Manager.Api.Domain.Enums;
+using DinkToPdf.Contracts;
+using DinkToPdf;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -49,6 +51,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddTransient<ITemplateServices, TemplateServices>();
             services.AddTransient<IPdfServices, PdfServices>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
             //Services
             services.AddScoped<IAuthServices, AuthServices>();

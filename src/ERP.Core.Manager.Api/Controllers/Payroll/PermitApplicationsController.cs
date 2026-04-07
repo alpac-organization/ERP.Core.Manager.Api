@@ -52,7 +52,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromRoute] string identification_number,
             [FromQuery] int page_size = 10, 
             [FromQuery] int page_number = 1, 
-            [FromQuery] PermitApplicationStatus? status = null
+            [FromQuery] PermitApplicationStatus? status = null,
+            [FromQuery] PermitApplicationType? type = null
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
@@ -65,7 +66,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 UserId = Guid.Parse(userIdStr ?? ""),
                 PageSize = page_size,
                 PageNumber = page_number,
-                Status = status
+                Status = status,
+                Type = type
             });
         }
 
@@ -144,13 +146,19 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<IActionResult> GenerateDocumentAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid permit_application_id)
+        public async Task<PermitApplicationDocumentDto> GenerateDocumentAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid permit_application_id)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            //Proceso para generar documento de solicitud de permisos.
+            var query = new GenerateWorkPermitDocumentQuery 
+            { 
+                UserId = Guid.Parse(userIdStr ?? ""),
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                PermitApplicationRequestId = permit_application_id
+            };
 
-            return Ok();            
+            return await _mediator.Send(query);
         }
     }
 }
