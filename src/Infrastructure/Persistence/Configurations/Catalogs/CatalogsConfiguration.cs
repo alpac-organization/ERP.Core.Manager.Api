@@ -32,6 +32,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasColumnName("catalog_type")
                 .HasColumnType("catalog_type_enum")
                 .IsRequired();
+            
+            builder.Property(e => e.IsGlobal)
+                .HasColumnName("is_global")
+                .IsRequired(true);
 
             builder.Property(e => e.IsActive)
                 .HasColumnName("is_active")

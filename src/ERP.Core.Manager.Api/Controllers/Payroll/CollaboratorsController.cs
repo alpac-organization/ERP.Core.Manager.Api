@@ -34,7 +34,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
         [Tags("Colaboradores")] 
-        [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details")]      
+        [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details", Name = "UpdateCollaboratorInformation")]      
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  

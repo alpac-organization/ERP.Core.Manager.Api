@@ -34,6 +34,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnName("inss_number")
                 .IsRequired(false);
             
+            builder.Property(e => e.BranchId)
+                .HasColumnName("branch_id")
+                .IsRequired();
+            
+            builder.Property(e => e.WorkAreaId)
+                .HasColumnName("work_area_id")
+                .IsRequired();
+
+            builder.Property(e => e.WorkPositionId)
+                .HasColumnName("work_position_id")
+                .IsRequired();
+
             builder.HasOne(d => d.Branch)
                 .WithMany()
                 .HasForeignKey(d => d.BranchId)

@@ -43,6 +43,8 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         /// Almacena el valor diario de las monedas (ej. NIO vs USD) para el 
         /// cálculo automático de diferencial cambiario y transacciones bimonetarias.
         /// </summary>
-        ExchangeRates = 6
+        ExchangeRates = 6,
+        
+        Departaments = 7
     }
 }

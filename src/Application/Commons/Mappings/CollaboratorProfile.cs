@@ -127,7 +127,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 Address = info.Address,
                 PersonalEmail = info.PersonalEmail,
                 PersonalPhoneNumber = info.PersonalPhoneNumber,
-                Departament = info.Departament,
+                DepartamentId = info.DepartamentId,
                 Birthdate = info.Birthdate,
                 MaritalStatus = info.MaritalStatus
             };
