@@ -11,16 +11,21 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
     {
         public async Task<List<CatalogDetailsDto>> Handle(GetCatalogsDetailsByCatalogIdQuery request, CancellationToken cancellationToken)
         {
-            var catalog = await _unitOfWork.CatalogsRepository.FirstOrDefaultAsync(catalog => catalog.CompanyId == request.CompanyId && catalog.CatalogType == request.CatalogType, cancellationToken);
+            var catalog = await _unitOfWork.CatalogsRepository.FirstOrDefaultAsync(c => 
+                c.CatalogType == request.CatalogType && 
+                (c.IsGlobal || c.CompanyId == request.CompanyId), 
+                cancellationToken);
 
             if (catalog is null)
             {
-                return _erroManager.ThrowBadRequest<List<CatalogDetailsDto>>("Este tipo de catalogo no esta disponible para esta empresa", "ERP:001");
+                return _erroManager.ThrowBadRequest<List<CatalogDetailsDto>>(
+                    "El catálogo solicitado no existe o no tiene permisos para verlo.", 
+                    "ERP:001");
             }
 
-            var subCatalogs = await _unitOfWork.SubCatalogs.GetSubCatalogsByCatalogId(catalog!.Id, cancellationToken);
+            // Una vez validado el acceso al padre, traemos los hijos (SubCatalogs)
+            var subCatalogs = await _unitOfWork.SubCatalogs.GetSubCatalogsByCatalogId(catalog.Id, cancellationToken);
 
-            //Mapper
             return _mapper.Map<List<CatalogDetailsDto>>(subCatalogs);
         }
     }
