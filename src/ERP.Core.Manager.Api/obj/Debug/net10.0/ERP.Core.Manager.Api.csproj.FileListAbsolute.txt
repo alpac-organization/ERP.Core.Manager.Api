@@ -440,3 +440,4 @@ C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.A
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ERP.Core.Manager.Api.genruntimeconfig.cache
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ref\ERP.Core.Manager.Api.dll
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Handlebars.dll
+c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Templates\PermitApplication.html

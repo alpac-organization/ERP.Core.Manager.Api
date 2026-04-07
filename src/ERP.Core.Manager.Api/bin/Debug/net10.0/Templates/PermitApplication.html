@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        @page { size: letter landscape; margin: 0; }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 10mm;
+            display: flex;
+            justify-content: space-between;
+            background-color: #fff;
+            color: #333;
+        }
+
+        .ticket {
+            width: 47%;
+            border: 1px solid #ddd;
+            padding: 15px;
+            box-sizing: border-box;
+            position: relative;
+            min-height: 180mm;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .logo-img {
+            max-height: 50px;
+            max-width: 150px;
+            margin-bottom: 5px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .company-name {
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .title {
+            font-weight: 700;
+            font-size: 15px;
+            text-decoration: underline;
+            margin-top: 5px;
+        }
+
+        .form-row {
+            margin: 10px 0;
+            font-size: 11px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .line {
+            border-bottom: 1px solid #000;
+            flex-grow: 1;
+            margin-left: 5px;
+            min-height: 16px;
+            padding-left: 5px;
+            font-weight: 600;
+        }
+
+        .main-content {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        /* Tabla de permisos */
+        .permisos-table {
+            border-collapse: collapse;
+            width: 58%;
+        }
+
+        .permisos-table td {
+            border: 1px solid #000;
+            padding: 5px;
+            font-size: 10px;
+        }
+
+        .check-cell {
+            width: 25px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 12px;
+            background-color: #f9f9f9;
+        }
+
+        /* Tabla de tiempos */
+        .days-table {
+            border-collapse: collapse;
+            width: 38%;
+            text-align: center;
+        }
+
+        .days-table th, .days-table td {
+            border: 1px solid #000;
+            font-size: 10px;
+            height: 25px;
+        }
+
+        .days-table th { background-color: #f0f0f0; }
+
+        .objetivo-section {
+            margin-top: 20px;
+            font-size: 11px;
+        }
+
+        .signatures {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .sig-box {
+            width: 30%;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            font-weight: 600;
+        }
+
+        .vertical-text {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: rotate(90deg);
+            font-size: 9px;
+            color: #888;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .footer-note {
+            margin-top: 25px;
+            font-size: 8px;
+            color: #666;
+            line-height: 1.2;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket">
+        <div class="header">
+            {{#if logo_url}}
+            <img src="{{logo_url}}" class="logo-img" alt="Logo">
+            {{/if}}
+            <div class="company-name">{{company_name}}</div>
+            <div class="title">SOLICITUD DE PERMISO</div>
+        </div>
+
+        <div class="form-row">ÁREA: <div class="line">{{area_name}}</div> Fecha: <div class="line" style="flex-grow:0; width:100px;">{{current_date}}</div></div>
+        <div class="form-row">YO: <div class="line">{{collaborator_fullname}}</div></div>
+        
+        <div class="form-row" style="font-weight:700; margin-top:15px; border-bottom: 1px solid #eee;">SOLICITO EL SIGUIENTE PERMISO:</div>
+
+        <div class="main-content">
+            <table class="permisos-table">
+                <tr><td>Vacación</td><td class="check-cell">{{check_vacation}}</td></tr>
+                <tr><td>Consulta Médica / Enfermedad</td><td class="check-cell">{{check_medical}}</td></tr>
+                <tr><td>Compensatorio</td><td class="check-cell">{{check_comp}}</td></tr>
+                <tr><td>Con goce de sueldo</td><td class="check-cell">{{check_paid}}</td></tr>
+                <tr><td>Sin goce de sueldo</td><td class="check-cell">{{check_unpaid}}</td></tr>
+                <tr><td>Licencia Especial</td><td class="check-cell">{{check_special}}</td></tr>
+            </table>
+
+            <table class="days-table">
+                <thead>
+                    <tr><th>DÍAS</th><th>HORAS</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>{{amount_days}}</td><td>{{amount_hours}}</td></tr>
+                    <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+                    <tr>
+                        <td colspan="2" style="border:none; text-align:right; font-size:8px; padding-top:5px; color: #777;">
+                            Día / Fecha / Año
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="objetivo-section">
+            <div class="form-row">OBJETIVO / MOTIVO: <div class="line">{{description}}</div></div>
+        </div>
+
+        <div class="signatures">
+            <div class="sig-box">Jefe Inmediato</div>
+            <div class="sig-box">Firma del interesado</div>
+            <div class="sig-box">Talento Humano</div>
+        </div>
+
+        <div class="vertical-text">Expediente RRHH</div>
+        
+        <div class="footer-note">
+            Prohibida la edición de este formato sin autorización del área de Talento Humano. Alpac ERP 2026.
+        </div>
+    </div>
+
+    <div class="ticket">
+        <div class="header">
+            {{#if logo_url}}
+            <img src="{{logo_url}}" class="logo-img">
+            {{/if}}
+            <div class="company-name">{{company_name}}</div>
+            <div class="title">SOLICITUD DE PERMISO (Copia)</div>
+        </div>
+        <div class="form-row">ÁREA: <div class="line">{{area_name}}</div> Fecha: <div class="line" style="flex-grow:0; width:100px;">{{current_date}}</div></div>
+        <div class="form-row">YO: <div class="line">{{collaborator_name}}</div></div>
+        <div class="main-content">
+            <table class="permisos-table">
+                <tr><td>Vacación</td><td class="check-cell">{{check_vacation}}</td></tr>
+                <tr><td>Consulta Médica / Enfermedad</td><td class="check-cell">{{check_medical}}</td></tr>
+                <tr><td>Compensatorio</td><td class="check-cell">{{check_comp}}</td></tr>
+                <tr><td>Con goce de sueldo</td><td class="check-cell">{{check_paid}}</td></tr>
+                <tr><td>Sin goce de sueldo</td><td class="check-cell">{{check_unpaid}}</td></tr>
+                <tr><td>Licencia Especial</td><td class="check-cell">{{check_special}}</td></tr>
+            </table>
+            <table class="days-table">
+                <tr><th>DÍAS</th><th>HORAS</th></tr>
+                <tr><td>{{amount_days}}</td><td>{{amount_hours}}</td></tr>
+            </table>
+        </div>
+        <div class="objetivo-section"><div class="form-row">OBJETIVO: <div class="line">{{description}}</div></div></div>
+        <div class="signatures">
+            <div class="sig-box">Jefe Inmediato</div>
+            <div class="sig-box">Firma del interesado</div>
+            <div class="sig-box">Talento Humano</div>
+        </div>
+        <div class="footer-note">Alpac ERP 2026.</div>
+    </div>
+
+</body>
+</html>

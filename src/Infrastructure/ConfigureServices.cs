@@ -46,6 +46,8 @@ namespace ERP.Core.Manager.Api.Infrastructure
             //Other Services.
             services.AddSingleton<ICodeGenerator, CodeGenerator>();
             services.AddTransient<IErrorManager, ErrorManager>();
+            services.AddTransient<ITemplateServices, TemplateServices>();
+            services.AddTransient<IPdfServices, PdfServices>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
 
             //Services
