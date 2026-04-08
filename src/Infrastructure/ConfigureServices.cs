@@ -19,7 +19,6 @@ using ERP.Core.Infrastructure.Services;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Infrastructure.Services;
 
-
 namespace ERP.Core.Manager.Api.Infrastructure
 {
     public static class ConfigureServices
@@ -48,9 +47,10 @@ namespace ERP.Core.Manager.Api.Infrastructure
                     npgsqlOptions.MapEnum<MaritalStatus>("marital_status_enum");
                 }));
 
-            //Other Services.
+            //Other Services del paquete de la empresa.
             services.AddSingleton<ICodeGenerator, CodeGenerator>();
             services.AddTransient<IErrorManager, ErrorManager>();
+
             services.AddTransient<ITemplateServices, TemplateServices>();
             services.AddTransient<IPdfServices, PdfServices>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
