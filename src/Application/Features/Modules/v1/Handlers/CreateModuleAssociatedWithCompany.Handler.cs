@@ -2,6 +2,7 @@ using MediatR;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Commands;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Handlers
 {

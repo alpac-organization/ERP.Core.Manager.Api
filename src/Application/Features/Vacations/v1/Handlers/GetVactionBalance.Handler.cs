@@ -5,6 +5,7 @@ using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using ERP.Core.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
 {

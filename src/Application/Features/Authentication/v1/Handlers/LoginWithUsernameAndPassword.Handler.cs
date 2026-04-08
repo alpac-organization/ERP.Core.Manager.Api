@@ -1,4 +1,5 @@
 using MediatR;
+using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;

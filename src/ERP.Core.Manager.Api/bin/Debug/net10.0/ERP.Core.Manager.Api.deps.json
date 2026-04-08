@@ -43,6 +43,38 @@
           }
         }
       },
+      "ERP.Core.Application/1.0.5": {
+        "dependencies": {
+          "ERP.Core.Domain": "1.0.5",
+          "FluentValidation.DependencyInjectionExtensions": "12.1.1",
+          "MediatR": "14.1.0"
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ERP.Core.Domain/1.0.5": {
+        "runtime": {
+          "lib/net9.0/ERP.Core.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ERP.Core.Infrastructure/1.0.5": {
+        "dependencies": {
+          "ERP.Core.Application": "1.0.5"
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Infrastructure.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "FluentValidation/12.1.1": {
         "runtime": {
           "lib/net8.0/FluentValidation.dll": {
@@ -681,6 +713,7 @@
           "AutoMapper": "13.0.1",
           "BCrypt.Net-Next": "4.1.0",
           "Domain": "1.0.0",
+          "ERP.Core.Application": "1.0.5",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0",
           "Microsoft.EntityFrameworkCore": "10.0.5"
@@ -693,6 +726,9 @@
         }
       },
       "Domain/1.0.0": {
+        "dependencies": {
+          "ERP.Core.Domain": "1.0.5"
+        },
         "runtime": {
           "Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -704,6 +740,7 @@
         "dependencies": {
           "Application": "1.0.0",
           "DinkToPdf": "1.0.8",
+          "ERP.Core.Infrastructure": "1.0.5",
           "Handlebars.Net": "2.1.6",
           "Nanoid": "3.1.0",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1",
@@ -744,6 +781,27 @@
       "sha512": "sha512-wJDlcNXjQ+OnBFwh3LBeAXgrXqlKl0RsgN60XpxEFbyqzdaG9ASb5HTXQjXQPaBguSCOrGZZESPnpcng34TEkw==",
       "path": "dinktopdf/1.0.8",
       "hashPath": "dinktopdf.1.0.8.nupkg.sha512"
+    },
+    "ERP.Core.Application/1.0.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JlImBpP39p1my8NLjmIdj60JkDPL9h7GA7STHur7SjuG1bnmNbKFk4axTeMS5xtfy7LZwCDnM6sPvn77tOIfRg==",
+      "path": "erp.core.application/1.0.5",
+      "hashPath": "erp.core.application.1.0.5.nupkg.sha512"
+    },
+    "ERP.Core.Domain/1.0.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-tjITk+bjU7rYPPkCiRfXoqZt76DoqUiqaNn+ZqDaRwuDk0U/08qgtKwtFLOPABXW29WaLOga+WQqAAxhrRC+6w==",
+      "path": "erp.core.domain/1.0.5",
+      "hashPath": "erp.core.domain.1.0.5.nupkg.sha512"
+    },
+    "ERP.Core.Infrastructure/1.0.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-tAuXciMLiFJJQ2GPHbHxyqLBT8hUDixTjeyhc9VYKCMR4APxiAN83iViVJCFhLVX6Sq38LbsDjRwCV+5RYlDcg==",
+      "path": "erp.core.infrastructure/1.0.5",
+      "hashPath": "erp.core.infrastructure.1.0.5.nupkg.sha512"
     },
     "FluentValidation/12.1.1": {
       "type": "package",

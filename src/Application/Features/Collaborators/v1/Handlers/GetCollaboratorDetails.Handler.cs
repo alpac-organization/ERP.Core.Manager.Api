@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+
+using ERP.Core.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
