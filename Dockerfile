@@ -2,13 +2,22 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
+ARG GH_PACKAGE_TOKEN
+ARG GH_USER
+
+# Creamos un nuget.config temporal para la restauración
+RUN dotnet nuget add source "https://nuget.pkg.github.com/alpac-organization/index.json" \
+    --name "GitHub" \
+    --username "$GH_USER" \
+    --password "$GH_PACKAGE_TOKEN" \
+    --store-password-in-clear-text
+
 # Copiar los archivos .csproj de todas las capas para restaurar dependencias
 # Esto es vital para que Docker aproveche el caché si no cambian las dependencias
 COPY ["src/Application/Application.csproj", "src/Application/"]
 COPY ["src/Domain/Domain.csproj", "src/Domain/"]
 COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
 COPY ["src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj", "src/ERP.Core.Manager.Api/"]
-
 
 # Restaurar las dependencias del proyecto principal (esto restaura las demás por cascada)
 RUN dotnet restore "src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj"
