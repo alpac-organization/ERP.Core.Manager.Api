@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
-using ERP.Core.Manager.Api.Domain.Entities.Errors;
+using ERP.Core.Domain.Entities.Errors;
 
 namespace ERP.Core.Manager.Api.Controllers.Auth
 {
