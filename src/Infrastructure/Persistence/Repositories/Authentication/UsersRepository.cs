@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
-using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentication
 {

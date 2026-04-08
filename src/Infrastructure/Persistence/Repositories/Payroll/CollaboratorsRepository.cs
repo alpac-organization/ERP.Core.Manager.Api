@@ -1,3 +1,4 @@
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
@@ -8,7 +9,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll
     {
         public async Task<Collaborator> RegisterCollaborator(Collaborator collaborator, CancellationToken cancellationToken)
         {
-            collaborator.Status = Domain.Enums.CollaboratorStatus.Active;
+            collaborator.Status = CollaboratorStatus.Active;
             collaborator.PictureUrl = null;
 
             var collaboratorRegistered = await _context.Collaborators.AddAsync(collaborator, cancellationToken);

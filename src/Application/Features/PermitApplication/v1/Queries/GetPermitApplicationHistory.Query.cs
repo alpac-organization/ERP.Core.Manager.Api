@@ -1,5 +1,5 @@
 using MediatR;
-using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 

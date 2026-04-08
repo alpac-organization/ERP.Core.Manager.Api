@@ -1,5 +1,5 @@
 using MediatR;
-using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries

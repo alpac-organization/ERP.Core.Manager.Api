@@ -1,5 +1,5 @@
-using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Commons;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
 {

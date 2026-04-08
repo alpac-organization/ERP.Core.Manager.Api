@@ -58,6 +58,15 @@
           "lib/net9.0/ERP.Core.Application.dll": {}
         }
       },
+      "ERP.Core.Database.Domain/1.0.13": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/ERP.Core.Database.Domain.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Database.Domain.dll": {}
+        }
+      },
       "ERP.Core.Domain/1.0.10": {
         "type": "package",
         "compile": {
@@ -1044,6 +1053,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
+          "ERP.Core.Database.Domain": "1.0.13",
           "ERP.Core.Domain": "1.0.10"
         },
         "compile": {
@@ -1144,6 +1154,17 @@
         "erp.core.application.1.0.10.nupkg.sha512",
         "erp.core.application.nuspec",
         "lib/net9.0/ERP.Core.Application.dll"
+      ]
+    },
+    "ERP.Core.Database.Domain/1.0.13": {
+      "sha512": "twsVsfeBN7XHmNRRL+HhigKfZWarlBXvNeHVBE5fm2PNgFSImfWInnJemH4icOrptaz5gLYWRuF/g/+WuT3ODA==",
+      "type": "package",
+      "path": "erp.core.database.domain/1.0.13",
+      "files": [
+        ".nupkg.metadata",
+        "erp.core.database.domain.1.0.13.nupkg.sha512",
+        "erp.core.database.domain.nuspec",
+        "lib/net9.0/ERP.Core.Database.Domain.dll"
       ]
     },
     "ERP.Core.Domain/1.0.10": {

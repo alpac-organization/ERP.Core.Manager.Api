@@ -1,11 +1,13 @@
 using MediatR;
-using ERP.Core.Manager.Api.Domain.Enums;
+
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Application.Commons.Interfaces;
+
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
-using ERP.Core.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
 {

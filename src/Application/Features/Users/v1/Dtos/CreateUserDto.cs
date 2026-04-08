@@ -1,4 +1,4 @@
-using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos
 {

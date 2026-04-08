@@ -56,6 +56,14 @@
           }
         }
       },
+      "ERP.Core.Database.Domain/1.0.13": {
+        "runtime": {
+          "lib/net9.0/ERP.Core.Database.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "ERP.Core.Domain/1.0.10": {
         "runtime": {
           "lib/net9.0/ERP.Core.Domain.dll": {
@@ -728,6 +736,7 @@
       },
       "Domain/1.0.0": {
         "dependencies": {
+          "ERP.Core.Database.Domain": "1.0.13",
           "ERP.Core.Domain": "1.0.10"
         },
         "runtime": {
@@ -788,6 +797,13 @@
       "sha512": "sha512-v4G4bmauGpCe0JOEOqK8u/Mu86+v53EkhwnwEpfs8uXtLu7FFbJXn2VPGnioZ4z2xA0r8Vnz+mh+TK2ZfCrEFQ==",
       "path": "erp.core.application/1.0.10",
       "hashPath": "erp.core.application.1.0.10.nupkg.sha512"
+    },
+    "ERP.Core.Database.Domain/1.0.13": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-twsVsfeBN7XHmNRRL+HhigKfZWarlBXvNeHVBE5fm2PNgFSImfWInnJemH4icOrptaz5gLYWRuF/g/+WuT3ODA==",
+      "path": "erp.core.database.domain/1.0.13",
+      "hashPath": "erp.core.database.domain.1.0.13.nupkg.sha512"
     },
     "ERP.Core.Domain/1.0.10": {
       "type": "package",

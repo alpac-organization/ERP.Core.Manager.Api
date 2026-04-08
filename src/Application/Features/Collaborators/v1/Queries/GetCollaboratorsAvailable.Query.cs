@@ -1,6 +1,6 @@
 using MediatR;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
-using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries
 {
