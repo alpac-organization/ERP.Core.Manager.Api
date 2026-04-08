@@ -9,15 +9,16 @@ using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authenticatio
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ERP.Core.Manager.Api.Infrastructure.Services;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll;
-using ERP.Core.Manager.Api.Domain.Enums;
-using DinkToPdf.Contracts;
-using DinkToPdf;
+
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Infrastructure.Services;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Infrastructure.Services;
+using DinkToPdf.Contracts;
+using DinkToPdf;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {

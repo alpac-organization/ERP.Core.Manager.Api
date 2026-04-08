@@ -1,7 +1,7 @@
 using MediatR;
+using ERP.Core.Database.Domain.Enums;
 using System.Text.Json.Serialization;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
-using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Commands
 {

@@ -1,5 +1,5 @@
 ﻿using System;
-using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Database.Domain.Enums;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 

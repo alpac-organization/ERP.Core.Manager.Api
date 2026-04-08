@@ -1,10 +1,10 @@
 using MediatR;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
-using AutoMapper;
-using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {

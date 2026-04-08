@@ -1,6 +1,6 @@
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Commons;
 using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
-using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Domain.Entities.Payroll
 {

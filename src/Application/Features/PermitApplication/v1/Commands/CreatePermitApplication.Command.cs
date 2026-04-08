@@ -1,6 +1,6 @@
 using MediatR;
+using ERP.Core.Database.Domain.Enums;
 using System.Text.Json.Serialization;
-using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands
