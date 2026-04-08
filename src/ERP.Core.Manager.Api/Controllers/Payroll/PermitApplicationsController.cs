@@ -30,14 +30,11 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             {
                 CompanyId = companie_id,
                 ModuleCode = module_code,
+                UserId = Guid.Parse(userIdStr ?? ""),
                 IdentificationNumber = identification_number,
                 Description = Payload.Description,
-                EndDate = Payload.EndDate,
-                StartDate = Payload.StartDate,
+                PermitApplicationVacation = Payload.PermitApplicationVacation,
                 PermitApplicationType = Payload.PermitApplicationType,
-                EndTime = Payload.EndTime,
-                StartTime = Payload.StartTime,
-                UserId = Guid.Parse(userIdStr ?? "")
             });
 
             return Created(string.Empty, null);

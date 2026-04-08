@@ -4,6 +4,7 @@ using ERP.Core.Manager.Api.Application;
 using ERP.Core.Manager.Api.Infrastructure;
 using System.Text.Json.Serialization;
 using ERP.Core.Manager.Api.Infrastructure.Middlewares;
+using ERP.Core.Infrastructure.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 

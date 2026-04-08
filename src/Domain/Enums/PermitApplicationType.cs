@@ -17,7 +17,7 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         /// </summary>
         CompensatoryTime = 3,
 
-                /// <summary>
+        /// <summary>
         /// Permiso con goce de salario (Paid Leave).
         /// </summary>
         PaidLeave = 4,
@@ -30,6 +30,11 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         /// <summary>
         /// Opcional: Para licencias por duelo, paternidad, etc.
         /// </summary>
-        SpecialLeave = 6
+        SpecialLeave = 6,
+
+        /// <summary>
+        /// Vacaciones cedidas o donadas por otro colaborador (Donated Vacations).
+        /// </summary>
+        DonatedVacations = 7
     }
 }
