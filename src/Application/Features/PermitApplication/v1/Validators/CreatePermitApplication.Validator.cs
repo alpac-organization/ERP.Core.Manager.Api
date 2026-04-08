@@ -32,58 +32,49 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                 .NotNull()
                     .WithMessage("El número de identificación es requerido");   
 
-            RuleSet("TimeValidation", () => {
-                RuleFor(x => x.StartTime)
-                    .NotEmpty().NotNull()
-                    .WithMessage("La hora de inicio es requerida para este tipo de permiso.")
-                    .When(x => x.PermitApplicationType != PermitApplicationType.Vacation && 
-                               x.PermitApplicationType != PermitApplicationType.SpecialLeave);
+            RuleFor(x => x.Description)
+                .MaximumLength(500)
+                .WithMessage("La descripción no puede exceder los 500 caracteres");
 
-                RuleFor(x => x.EndTime)
-                    .NotEmpty().NotNull()
-                    .WithMessage("La hora de fin es requerida para este tipo de permiso.")
-                    .When(x => x.PermitApplicationType != PermitApplicationType.Vacation && 
-                               x.PermitApplicationType != PermitApplicationType.SpecialLeave);
-                
-                RuleFor(x => x)
-                    .Must(x => x.EndTime > x.StartTime)
-                    .WithMessage("La hora de fin debe ser posterior a la hora de inicio.")
-                    .When(x => x.StartTime.HasValue && x.EndTime.HasValue &&
-                               x.PermitApplicationType != PermitApplicationType.Vacation && 
-                               x.PermitApplicationType != PermitApplicationType.SpecialLeave);
-            });
-            
             RuleFor(x => x.PermitApplicationType)
                 .NotNull()
                     .WithMessage("El tipo de permiso es requerido.")
                 .IsInEnum()
                     .WithMessage("El tipo de permiso seleccionado no es válido.");
-                    
-            RuleFor(x => x.StartDate)
-                .NotEmpty()
-                .Must(date => date.Date >= DateTime.UtcNow.Date)
-                .WithMessage("La fecha de inicio no puede ser en el pasado");
 
-            RuleFor(x => x.EndDate)
-                .NotEmpty()
-                .NotNull()
-                .WithMessage("La fecha de fin es obligatoria para solicitudes de vacaciones.")
-                .GreaterThan(x => x.StartDate)
-                .WithMessage("Las vacaciones deben durar al menos un día (la fecha de fin debe ser mayor a la de inicio).")
-                .When(x => x.PermitApplicationType == PermitApplicationType.Vacation);
+            When(x => x.PermitApplicationType == PermitApplicationType.Vacation, () => 
+            {
+                RuleFor(x => x.PermitApplicationVacation)
+                    .NotNull()
+                    .WithMessage("Los datos de la solicitud de vacaciones son obligatorios.");
 
-            RuleFor(x => x)
-                .Must(x => {
-                    if (!x.EndDate.HasValue) return true;
-                    return (x.EndDate.Value.Date - x.StartDate.Date).TotalDays <= 30;
-                })
-                .WithMessage("No puedes solicitar más de 30 días de vacaciones.")
-                .When(x => x.PermitApplicationType == PermitApplicationType.Vacation);
+                When(x => x.PermitApplicationVacation != null, () => 
+                {
+                    RuleFor(x => x.PermitApplicationVacation!.StartDate)
+                        .NotEmpty()
+                        .WithMessage("La fecha de inicio es requerida.");
+
+                    RuleFor(x => x.PermitApplicationVacation!.EndDate)
+                        .NotEmpty()
+                        .WithMessage("La fecha de fin es requerida.")
+                        .Must((command, endDate) => endDate.Date >= command.PermitApplicationVacation!.StartDate.Date)
+                        .WithMessage("La fecha de fin no puede ser menor a la de inicio.");
+
+                    RuleFor(x => x)
+                        .Must(x => {
+                            var days = (x.PermitApplicationVacation!.EndDate.Date - x.PermitApplicationVacation.StartDate.Date).Days + 1;
+                            return days <= 30;
+                        })
+                        .WithMessage("No puedes solicitar más de 30 días de vacaciones.");
+                });
+            });
 
 
-            RuleFor(x => x.Description)
-                .MaximumLength(500)
-                .WithMessage("La descripción no puede exceder los 500 caracteres");
+            When(x => x.PermitApplicationType == PermitApplicationType.DonatedVacations, () =>
+            {
+                
+            });
+
         }
     }
 }

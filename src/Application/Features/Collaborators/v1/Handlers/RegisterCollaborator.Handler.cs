@@ -5,7 +5,6 @@ using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 using ERP.Core.Application.Commons.Interfaces;
 

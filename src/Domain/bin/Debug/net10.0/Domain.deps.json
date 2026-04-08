@@ -8,13 +8,13 @@
     ".NETCoreApp,Version=v10.0": {
       "Domain/1.0.0": {
         "dependencies": {
-          "ERP.Core.Domain": "1.0.5"
+          "ERP.Core.Domain": "1.0.10"
         },
         "runtime": {
           "Domain.dll": {}
         }
       },
-      "ERP.Core.Domain/1.0.5": {
+      "ERP.Core.Domain/1.0.10": {
         "runtime": {
           "lib/net9.0/ERP.Core.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -30,12 +30,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ERP.Core.Domain/1.0.5": {
+    "ERP.Core.Domain/1.0.10": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-tjITk+bjU7rYPPkCiRfXoqZt76DoqUiqaNn+ZqDaRwuDk0U/08qgtKwtFLOPABXW29WaLOga+WQqAAxhrRC+6w==",
-      "path": "erp.core.domain/1.0.5",
-      "hashPath": "erp.core.domain.1.0.5.nupkg.sha512"
+      "sha512": "sha512-bKqe4quZUUfmGmE3i5S1p9Bi91tH6NNTFZXKSpAq8Ih3meogZY78hW028MoLBOjLEFxBAyHGtVnkYw3zM7pjKA==",
+      "path": "erp.core.domain/1.0.10",
+      "hashPath": "erp.core.domain.1.0.10.nupkg.sha512"
     }
   }
 }

@@ -1,11 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
-using ERP.Core.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
@@ -20,113 +18,137 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 return access.ErrorResponse; 
             }
 
+            #region Validaciones
+
+            var collaborator = await _unitOfWork.Collaborators.Entities
+                .FirstOrDefaultAsync(c => c.IdentificationNumber == request.IdentificationNumber && c.CompanyId == request.CompanyId, cancellationToken);
+
+            if (collaborator is null)
+            {
+                return _errorManager.ThrowBadRequest<bool>(
+                    $"No se encontró un colaborador con el número de identificación {request.IdentificationNumber} en esta empresa.", 
+                    "ERP:003"
+                );
+            }
+
+            var hasPending = await _unitOfWork.PermitApplications.Entities
+                .AnyAsync(per => per.CollaboratorId == collaborator.Id && per.Status == PermitApplicationStatus.Pending, cancellationToken);
+
+            if (hasPending)
+            {
+                return _errorManager.ThrowBadRequest<bool>("Ya se encuentra un solicitud pendiente, cancelar la solicitud o esperar aprobación", "ERP:02");
+            }
+
+            #endregion Validaciones
+
+            var permitApplication  = new Domain.Entities.Payroll.PermitApplication();
+
             if (access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Operator || access.Role!.RoleType == RoleType.Manager)
             {
-
-                #region Validaciones
-
-                var collaborator = await _unitOfWork.Collaborators.Entities
-                    .FirstOrDefaultAsync(c => c.IdentificationNumber == request.IdentificationNumber && c.CompanyId == request.CompanyId, cancellationToken);
-
-                if (collaborator is null)
+                switch (request.PermitApplicationType)
                 {
-                    return _errorManager.ThrowBadRequest<bool>(
-                        $"No se encontró un colaborador con el número de identificación {request.IdentificationNumber} en esta empresa.", 
-                        "ERP:003"
-                    );
-                }
-
-                var PermitApplication = await _unitOfWork.PermitApplications.Entities
-                    .Where(per => per.Status == PermitApplicationStatus.Pending)
-                    .AnyAsync(cancellationToken);
-
-                if (PermitApplication)
-                {
-                    return _errorManager.ThrowBadRequest<bool>("Ya se encuentra un solicitud pendiente, cancelar la solicitud o esperar aprobación", "ERP:02");
-                }
-
-
-                var overlappingRequests = await _unitOfWork.PermitApplications.Entities
-                    .AnyAsync(vr => 
-                        vr.CollaboratorId == collaborator.Id &&
-                        vr.Status != PermitApplicationStatus.Rejected  && 
-                        vr.Status != PermitApplicationStatus.Cancelled &&
-                        request.StartDate <= vr.EndDate && 
-                        request.EndDate >= vr.StartDate, 
-                        cancellationToken
-                    );
-
-                if (overlappingRequests)
-                {
-                    return _errorManager.ThrowBadRequest<bool>(
-                        $"El colaborador ya tiene una solicitud de vacaciones que se superpone con las fechas proporcionadas.",
-                        "ERP:006"
-                    );
-                }
-
-                #endregion Validaciones
-
-
-                #region Proceso cuando es vacaciones
-
-                DateTime finalEndDate = request.EndDate ?? request.StartDate;
-                int totalDays = (int)(finalEndDate.Date - request.StartDate.Date).TotalDays + 1;
-
-                if (request.PermitApplicationType == PermitApplicationType.Vacation)
-                {
-                    var vacationControl = await _unitOfWork.Vacations.Entities
-                        .Where(v => v.CollaboratorId == collaborator.Id)
-                        .Include(v => v.Collaborator)
-                            .Where(v => v.Collaborator.IdentificationNumber == request.IdentificationNumber && v.Collaborator.CompanyId == request.CompanyId)
-                        .FirstOrDefaultAsync(cancellationToken);
-
-                    if(vacationControl is null)
+                    case PermitApplicationType.Vacation : 
                     {
-                        return _errorManager.ThrowBadRequest<bool>(
-                            $"No se encontró un control de vacaciones para el colaborador con número de identificación {request.IdentificationNumber} en esta empresa.", 
-                            "ERP:004"
+                        var overlappingRequests = await CheckOverlappingDates(
+                            collaborator.Id, request.PermitApplicationVacation!.StartDate, request.PermitApplicationVacation.EndDate, 
+                            cancellationToken
                         );
+
+                        if (overlappingRequests)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                $"El colaborador ya tiene una solicitud fechas proporcionadas.",
+                                "ERP:006"
+                            );
+                        } 
+
+                        var vacationControl = await _unitOfWork.Vacations.Entities
+                            .Where(col => col.CollaboratorId == collaborator.Id)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (vacationControl is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                $"Este colaborador no cuenta con un control de vacaciones",
+                                "ERP:006"
+                            );
+                        }
+
+                        var isValid = IsValidDates(request.PermitApplicationVacation!.StartDate, request.PermitApplicationVacation.EndDate);
+
+                        if (isValid is false)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                $"La fecha de fin no puede ser menor a la fecha de inicio",
+                                "ERP:006"
+                            );
+                        }
+
+                        int requestedDays = (request.PermitApplicationVacation.EndDate.Date - request.PermitApplicationVacation.StartDate.Date).Days + 1;
+
+                        if (vacationControl.AvailableVacations < requestedDays)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                $"La cantidad de dias es mayor a la cantidad de dias disponibles",
+                                "ERP:006"
+                            );
+                        }
+
+                        var fullNames = new[] 
+                        { 
+                            collaborator.FirstName, 
+                            collaborator.SecondName, 
+                            collaborator.FirstLastname, 
+                            collaborator.SecondLastname 
+                        };
+
+                        permitApplication.RequestedBy = string.Join(" ", fullNames.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n?.Trim()));
+                        permitApplication.StartDate = request.PermitApplicationVacation.StartDate;
+                        permitApplication.EndDate = request.PermitApplicationVacation.EndDate;
+                        permitApplication.AmountDays = requestedDays;
+                        permitApplication.CollaboratorId = collaborator.Id;
+                        permitApplication.Status = PermitApplicationStatus.Pending;
+                        permitApplication.Type = PermitApplicationType.Vacation;
+                        permitApplication.CollaboratorCode = collaborator.CollaboratorCode;
+
+                        await _unitOfWork.PermitApplications.CreateVacationRequest(permitApplication);
+
+                        // Solicitud Registrada con exito.
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        break;
                     }
 
-                    if (vacationControl.AvailableVacations < totalDays)
+                    case PermitApplicationType.DonatedVacations :
                     {
-                        return _errorManager.ThrowBadRequest<bool>(
-                            $"El colaborador no tiene suficientes vacaciones disponibles para solicitar {totalDays} días.",
-                            "ERP:005"
-                        );
+
+
+
+
+                        break;   
+                    }
+                    default : {
+                        return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no encuentra disponible", "001");
                     }
                 }
-
-                #endregion Proceso cuando es vacaciones
-               
-               
-                var PermitApplicationEntity = new Domain.Entities.Payroll.PermitApplication()
-                {
-                    CollaboratorId = collaborator.Id,
-                    ApprovedBy = null,
-                    RejectedBy = null,
-                    StartDate = request.StartDate,
-                    Type = request.PermitApplicationType,
-                    EndDate = finalEndDate,
-                    RequestedBy = $"{collaborator.FirstName.ToCapitalize()} {collaborator.SecondName?.ToCapitalize() ?? string.Empty} {collaborator.FirstLastname.ToCapitalize()} {collaborator.SecondLastname?.ToCapitalize() ?? string.Empty}".Trim(),
-                    Description = request.Description,
-                    CollaboratorCode = collaborator.CollaboratorCode,
-                    Status = PermitApplicationStatus.Pending,
-                    AmountDays = totalDays,
-                    EndTime = request.EndTime,
-                    StartTime = request.StartTime
-                };
-
-                await _unitOfWork.PermitApplications.CreateVacationRequest(PermitApplicationEntity);
-
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-            }
-            else
-            {
-                return _errorManager.ThrowBadRequest<bool>("No tienes permisos para crear registros de solicitudes de vacaciones.", "ERP:002");   
             }
 
             return true;
         }
+
+        private static bool IsValidDates(DateTime startDate, DateTime endDate)
+        {
+            return endDate >= startDate;
+        }
+
+        private async Task<bool> CheckOverlappingDates(Guid collaboratorId, DateTime start, DateTime end, CancellationToken ct)
+        {
+            return await _unitOfWork.PermitApplications.Entities
+                .AnyAsync(vr => 
+                    vr.CollaboratorId == collaboratorId &&
+                    vr.Status != PermitApplicationStatus.Rejected && 
+                    vr.Status != PermitApplicationStatus.Cancelled &&
+                    start <= vr.EndDate && 
+                    end >= vr.StartDate, ct);
+        }
     }
-}
+}   

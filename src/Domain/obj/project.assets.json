@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net10.0": {
-      "ERP.Core.Domain/1.0.5": {
+      "ERP.Core.Domain/1.0.10": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Domain.dll": {}
@@ -14,13 +14,13 @@
     }
   },
   "libraries": {
-    "ERP.Core.Domain/1.0.5": {
-      "sha512": "tjITk+bjU7rYPPkCiRfXoqZt76DoqUiqaNn+ZqDaRwuDk0U/08qgtKwtFLOPABXW29WaLOga+WQqAAxhrRC+6w==",
+    "ERP.Core.Domain/1.0.10": {
+      "sha512": "bKqe4quZUUfmGmE3i5S1p9Bi91tH6NNTFZXKSpAq8Ih3meogZY78hW028MoLBOjLEFxBAyHGtVnkYw3zM7pjKA==",
       "type": "package",
-      "path": "erp.core.domain/1.0.5",
+      "path": "erp.core.domain/1.0.10",
       "files": [
         ".nupkg.metadata",
-        "erp.core.domain.1.0.5.nupkg.sha512",
+        "erp.core.domain.1.0.10.nupkg.sha512",
         "erp.core.domain.nuspec",
         "lib/net9.0/ERP.Core.Domain.dll"
       ]
@@ -28,7 +28,7 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "ERP.Core.Domain >= 1.0.5"
+      "ERP.Core.Domain >= 1.0.10"
     ]
   },
   "packageFolders": {
@@ -86,7 +86,7 @@
         "dependencies": {
           "ERP.Core.Domain": {
             "target": "Package",
-            "version": "[1.0.5, )"
+            "version": "[1.0.10, )"
           }
         },
         "imports": [
