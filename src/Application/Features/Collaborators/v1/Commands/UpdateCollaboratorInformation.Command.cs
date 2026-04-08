@@ -1,7 +1,6 @@
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
-using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
-using ERP.Core.Manager.Api.Domain.Enums;
 using MediatR;
+using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
 {
@@ -17,7 +16,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? PersonalEmail { get; set; }
         public string? PersonalPhoneNumber { get; set; }
         public string? Address { get; set; }
-        public int? DeparatamentId { get; set; }
+        public int? DepartamentId { get; set; }
         public MaritalStatus MaritalStatus { get; set; }
     }
 
