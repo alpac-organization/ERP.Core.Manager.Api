@@ -11,8 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
         public PermitApplicationType PermitApplicationType { get; set; }
     
         public PermitApplicationVacation? PermitApplicationVacation { get; set; }
-
-
+        public PermitApplicationDonatedVacations? PermitApplicationDonatedVacations { get; set; }
 
         [JsonIgnore]
         public string? IdentificationNumber { get; set; }

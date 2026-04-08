@@ -84,7 +84,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             );
                         }
 
-                        int requestedDays = (request.PermitApplicationVacation.EndDate.Date - request.PermitApplicationVacation.StartDate.Date).Days + 1;
+                        decimal requestedDays = CalculateBusinessDays(request.PermitApplicationVacation.StartDate, request.PermitApplicationVacation.EndDate);
 
                         if (vacationControl.AvailableVacations < requestedDays)
                         {
@@ -115,14 +115,53 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         // Solicitud Registrada con exito.
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
-                        break;
+                        break;  
                     }
 
                     case PermitApplicationType.DonatedVacations :
                     {
 
+                        var collaboratorToReceive = await _unitOfWork.Collaborators.Entities
+                            .Where(col => col.IdentificationNumber == request.PermitApplicationDonatedVacations!.IdentificationCollaboratorToReceive)
+                            .FirstOrDefaultAsync(cancellationToken);
 
+                        if (collaboratorToReceive is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                $"El colaborador seleccionado para la donación de vacaciones no existe en el sistema!",
+                                "ERP:006"
+                            );   
+                        }
 
+                        var isValid = IsValidDates(request.PermitApplicationDonatedVacations!.StartDate, request.PermitApplicationDonatedVacations.EndDate);
+
+                        if (isValid is false)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                $"La fecha de fin no puede ser menor a la fecha de inicio",
+                                "ERP:006"
+                            );
+                        }
+
+                        decimal requestedDays = CalculateBusinessDays(request.PermitApplicationDonatedVacations.StartDate, request.PermitApplicationDonatedVacations.EndDate);
+ 
+                        var fullNames = new[] 
+                        { 
+                            collaborator.FirstName, 
+                            collaborator.SecondName, 
+                            collaborator.FirstLastname, 
+                            collaborator.SecondLastname 
+                        };
+
+                        permitApplication.RequestedBy = string.Join(" ", fullNames.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n?.Trim()));
+                        permitApplication.StartDate = request.PermitApplicationDonatedVacations.StartDate;
+                        permitApplication.EndDate = request.PermitApplicationDonatedVacations.EndDate;
+                        permitApplication.AmountDays = requestedDays;
+                        permitApplication.CollaboratorId = collaborator.Id;
+                        permitApplication.Status = PermitApplicationStatus.Pending;
+                        permitApplication.Type = PermitApplicationType.DonatedVacations;
+                        permitApplication.CollaboratorCode = collaborator.CollaboratorCode;
+                        permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations.IdentificationCollaboratorToReceive;
 
                         break;   
                     }
@@ -138,6 +177,32 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
         private static bool IsValidDates(DateTime startDate, DateTime endDate)
         {
             return endDate >= startDate;
+        }
+
+        private static decimal CalculateBusinessDays(DateTime start, DateTime end)
+        {
+            decimal totalDays = 0;
+            DateTime current = start.Date;
+
+            while (current <= end.Date)
+            {
+                if (current.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    
+                }
+                else if (current.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    totalDays += 0.5m;
+                }
+                else
+                {
+                    totalDays += 1.0m;
+                }
+
+                current = current.AddDays(1);
+            }
+
+            return totalDays;
         }
 
         private async Task<bool> CheckOverlappingDates(Guid collaboratorId, DateTime start, DateTime end, CancellationToken ct)

@@ -72,7 +72,33 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
 
             When(x => x.PermitApplicationType == PermitApplicationType.DonatedVacations, () =>
             {
-                
+                RuleFor(x => x.PermitApplicationDonatedVacations)
+                    .NotNull()
+                    .WithMessage("Los datos de la solicitud de vacaciones son obligatorios.");
+
+                When(x => x.PermitApplicationDonatedVacations != null, () => 
+                {
+                    RuleFor(x => x.PermitApplicationDonatedVacations!.IdentificationCollaboratorToReceive)
+                        .NotEmpty()
+                        .WithMessage("La identificación del colaborador que recibira las vacaciones es requerida!");
+
+                    RuleFor(x => x.PermitApplicationDonatedVacations!.StartDate)
+                        .NotEmpty()
+                        .WithMessage("La fecha de inicio es requerida.");
+
+                    RuleFor(x => x.PermitApplicationDonatedVacations!.EndDate)
+                        .NotEmpty()
+                        .WithMessage("La fecha de fin es requerida.")
+                        .Must((command, endDate) => endDate.Date >= command.PermitApplicationVacation!.StartDate.Date)
+                        .WithMessage("La fecha de fin no puede ser menor a la de inicio.");
+
+                    RuleFor(x => x)
+                        .Must(x => {
+                            var days = (x.PermitApplicationVacation!.EndDate.Date - x.PermitApplicationVacation.StartDate.Date).Days + 1;
+                            return days <= 30;
+                        })
+                        .WithMessage("No puedes solicitar más de 30 días de vacaciones.");
+                });
             });
 
         }
