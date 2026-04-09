@@ -67,7 +67,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.StartDate)
                 .HasColumnName("start_date")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(e => e.CollaboratorCode)
                 .HasColumnName("collaborator_code")
@@ -75,7 +75,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.EndDate)
                 .HasColumnName("end_date")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
