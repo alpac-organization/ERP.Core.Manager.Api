@@ -43,6 +43,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.EndTime)
                 .HasColumnName("end_time")
                 .IsRequired(false);
+            
+            builder.Property(e => e.IdentificationCollaboratorToReceive)
+                .HasColumnName("identification_collaborator_to_receive");
 
             builder.Property(e => e.ApprovedBy)
                 .HasColumnName("approved_by");
@@ -59,11 +62,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.AmountDays)
                 .HasColumnName("amount_days")
+                .HasColumnType("decimal(18,4)")
                 .IsRequired();
 
             builder.Property(e => e.StartDate)
                 .HasColumnName("start_date")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(e => e.CollaboratorCode)
                 .HasColumnName("collaborator_code")
@@ -71,7 +75,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.EndDate)
                 .HasColumnName("end_date")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")

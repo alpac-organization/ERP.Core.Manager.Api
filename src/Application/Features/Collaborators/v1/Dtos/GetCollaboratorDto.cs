@@ -9,8 +9,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public string? Status { get; set; }
         public string? IdentificationNumber { get; set; }
         public string? CollaboratorCode { get; set; }
+        public string? BranchName { get; set; }
         public string? WorkArea { get; set; }
         public string? WorkPosition { get; set; }
+        public decimal Vacations { get; set; }
     }
 
    public record PagedResponse<T>(

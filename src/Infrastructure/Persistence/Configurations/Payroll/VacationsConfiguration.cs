@@ -33,6 +33,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnType("decimal(18,4)")
                 .IsRequired();
 
+            builder.Property(e => e.DonatedVacation)
+                .HasColumnName("donated_vacation")
+                .HasColumnType("decimal(18,4)")
+                .HasDefaultValue(0)
+                .IsRequired();
+
             builder.Property(e => e.CollaboratorId)
                 .HasColumnName("collaborator_id")
                 .IsRequired();

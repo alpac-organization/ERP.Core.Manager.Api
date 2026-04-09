@@ -27,6 +27,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                     .ThenInclude(w => w.WorkArea)
                 .Include(c => c.WorkingInformation)
                     .ThenInclude(w => w.WorkPosition)
+                .Include(c => c.WorkingInformation)
+                    .ThenInclude(w => w.Branch)
+                .Include(c => c.Vacation)
                 .AsQueryable();
 
             if (request.Status.HasValue)

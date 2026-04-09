@@ -1,12 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Domain.Entities.Errors;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -19,7 +19,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/permit-applications")]      
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]     
         public async Task<CreatedResult> CreateVacationRequestRecordAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number, 
             [FromBody] CreatePermitApplicationCommand Payload 
         )
@@ -33,8 +33,9 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 UserId = Guid.Parse(userIdStr ?? ""),
                 IdentificationNumber = identification_number,
                 Description = Payload.Description,
-                PermitApplicationVacation = Payload.PermitApplicationVacation,
                 PermitApplicationType = Payload.PermitApplicationType,
+                PermitApplicationVacation = Payload.PermitApplicationVacation,
+                PermitApplicationDonatedVacations = Payload.PermitApplicationDonatedVacations
             });
 
             return Created(string.Empty, null);

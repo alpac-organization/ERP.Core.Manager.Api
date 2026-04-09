@@ -38,8 +38,24 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                     src.WorkingInformation != null && src.WorkingInformation.WorkPosition != null 
                     ? src.WorkingInformation.WorkPosition.CatalogName 
                     : string.Empty))
-                    
+
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => 
+                    src.WorkingInformation != null && src.WorkingInformation.Branch != null 
+                    ? src.WorkingInformation.Branch.CatalogName 
+                    : string.Empty))
+
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => 
+                    src.WorkingInformation != null && src.WorkingInformation.Branch != null 
+                    ? src.WorkingInformation.Branch.CatalogName 
+                    : string.Empty))
+
+                .ForMember(dest => dest.Vacations, opt => opt.MapFrom(src => 
+                    src.WorkingInformation != null && src.Vacation != null 
+                    ? src.Vacation.AvailableVacations 
+                    : 0))
+
                 .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
+            
                 .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.IdentificationNumber));
                 
             #endregion
@@ -59,7 +75,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.WorkPhoneNumber, opt => opt.MapFrom(src => src.WorkPhoneNumber))
                 .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(src => src.EntryDate))
                 .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkPosition.CatalogName))
-                .ForMember(dest => dest.BankName, opt => opt.MapFrom(src => src.Branch.CatalogName));
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.CatalogName));
 
             CreateMap<Salary, SalaryInformationDto>()
                 .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.AmountSalary))
