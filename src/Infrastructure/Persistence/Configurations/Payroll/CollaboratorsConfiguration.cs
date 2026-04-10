@@ -52,7 +52,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .IsRequired();
 
             builder.HasIndex(e => e.IdentificationNumber)
-                .IsUnique()
                 .HasDatabaseName("IX_collaborators_identification_number");
 
             builder.Property(e => e.IdentificationType)
