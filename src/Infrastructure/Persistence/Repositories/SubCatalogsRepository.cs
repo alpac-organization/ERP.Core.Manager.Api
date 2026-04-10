@@ -11,6 +11,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories
         {
             return await _context.SubCatalogs
                 .Where(sc => sc.CatalogId == CatalogId && sc.IsActive)
+                .OrderBy(src => src.CatalogName)
                 .ToListAsync(cancellationToken);
         }
     }
