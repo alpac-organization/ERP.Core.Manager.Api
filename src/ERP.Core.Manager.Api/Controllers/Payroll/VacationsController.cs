@@ -1,10 +1,10 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
-using ERP.Core.Domain.Entities.Errors;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -29,6 +29,20 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 ModuleCode = module_code,
                 UserId = Guid.Parse(userIdStr ?? "")
             });
+        }
+
+        [Tags("Vacaciones")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/vacations")]      
+        [ProducesResponseType(typeof(VacationDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<IActionResult> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+
+
+            return Ok();
         }
     }
 }

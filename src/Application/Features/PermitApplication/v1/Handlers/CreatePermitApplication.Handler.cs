@@ -46,12 +46,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             if (access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Operator || access.Role!.RoleType == RoleType.Manager)
             {
-
                 permitApplication.StartDate = null;
                 permitApplication.EndDate   = null;
                 permitApplication.EndTime   = null;
                 permitApplication.StartTime = null;
                 permitApplication.Status    = PermitApplicationStatus.Pending;
+                permitApplication.CollaboratorCode = collaborator.CollaboratorCode;
+                permitApplication.CollaboratorId = collaborator.Id;
 
                 var fullNames = new[] 
                 { 
@@ -127,6 +128,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         else
                         {
 
+                            permitApplication.Type = PermitApplicationType.DonatedVacations;
                             permitApplication.AmountDays = request.PermitApplicationDonatedVacations.AmountDays;
                             permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations.IdentificationCollaboratorToReceive;
 
