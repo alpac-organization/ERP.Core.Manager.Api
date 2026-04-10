@@ -39,8 +39,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         public async Task<IActionResult> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
-
-
+            //Enlistar control de vacaciones.
+            
 
             return Ok();
         }
