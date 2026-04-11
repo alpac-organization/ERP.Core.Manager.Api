@@ -6,7 +6,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries
 {
     public class GetVacationControl : BaseRequest, IRequest<List<VacationControlDto>>
     {
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        //Rango de fechas
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 }

@@ -34,10 +34,16 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
 
     public class PermitApplicationMedicalAppointment
     {
+        //Fecha de solicitud
         public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+
+        //Hora de inicio
         public TimeOnly? StartTime { get; set; }
+
+        //Hora de entrada
         public TimeOnly? EndTime { get; set; }
+        
+        public bool IsFullDay { get; set; } = false;
     }
 
     public class PermitApplicationDonatedVacations

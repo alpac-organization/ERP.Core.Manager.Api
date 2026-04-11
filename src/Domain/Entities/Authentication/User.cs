@@ -12,6 +12,8 @@ namespace ERP.Core.Manager.Api.Domain.Entities.Authentication
         public string? PasswordHash { get; set; }
         public string? IdentificationNumber { get; set; }
 
+        public int AreaId { get; set; }
+
         public UserType UserType { get; set; }
         public UserStatus UserStatus { get; set; }
 

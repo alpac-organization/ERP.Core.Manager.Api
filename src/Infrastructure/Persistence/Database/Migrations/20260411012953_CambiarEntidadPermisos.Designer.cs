@@ -4,6 +4,7 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260411012953_CambiarEntidadPermisos")]
+    partial class CambiarEntidadPermisos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -686,6 +689,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasColumnType("decimal(18,4)")
                         .HasColumnName("amount_days");
 
+                    b.Property<string>("ApprovedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("CollaboratorCode")
                         .IsRequired()
                         .HasColumnType("text")
@@ -728,6 +734,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     b.Property<string>("ManagerFullname")
                         .HasColumnType("text")
                         .HasColumnName("manager_fullname");
+
+                    b.Property<string>("RejectedBy")
+                        .HasColumnType("text");
 
                     b.Property<string>("RequestedBy")
                         .IsRequired()

@@ -28,7 +28,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                     .Where(prt => prt.Type == PermitApplicationType.DonatedVacations || prt.Type == PermitApplicationType.Vacation)
                     .ToListAsync(cancellationToken);
 
-                return [];
+                return [];  
             }
             else
             {

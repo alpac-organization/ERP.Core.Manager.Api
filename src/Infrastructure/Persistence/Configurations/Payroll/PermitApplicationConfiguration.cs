@@ -36,6 +36,21 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnName("collaborator_id")
                 .IsRequired();
 
+
+            // Nombres claves en el proceso de solicitudes
+            builder.Property(e => e.FirtsStepApproved)
+                .HasColumnName("first_step_approved");
+
+            builder.Property(e => e.SecondStepApproved)
+                .HasColumnName("second_step_approved");
+
+            builder.Property(e => e.ManagerFullname)
+                .HasColumnName("manager_fullname");
+
+            builder.Property(e => e.AdministratorFullName)
+                .HasColumnName("administrator_fullname");
+            //Nombres claves en el proceso de solicitudes
+
             builder.Property(e => e.StartTime)
                 .HasColumnName("start_time")
                 .IsRequired(false);
@@ -43,15 +58,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.EndTime)
                 .HasColumnName("end_time")
                 .IsRequired(false);
+    
+            builder.Property(e => e.AdditionalData)
+                .HasColumnName("additional_data")
+                .HasColumnType("jsonb"); // Indica explícitamente el tipo de Postgres
             
             builder.Property(e => e.IdentificationCollaboratorToReceive)
                 .HasColumnName("identification_collaborator_to_receive");
-
-            builder.Property(e => e.ApprovedBy)
-                .HasColumnName("approved_by");
-
-            builder.Property(e => e.RejectedBy)
-                .HasColumnName("rejected_by");
 
             builder.Property(e => e.RequestedBy)
                 .HasColumnName("requested_by")

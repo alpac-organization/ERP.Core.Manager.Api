@@ -12,8 +12,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos
         public string? Description { get; set; }
         public string? RequestedBy { get; set; }
 
-        public string?  ApprovedBy { get; set; }
-        public string?  RejectedBy { get; set; }
+        
+        //Nombres de los aprobadores
+        public string? ManagerFullname { get; set; }
+        public string? AdministratorFullName { get; set; }
+
+        public bool? FirtsStepApproved { get; set; } = null;
+        public bool? SecondStepApproved { get; set; } = null; 
 
         public DateTime CreatedAt { get; set; }
 
