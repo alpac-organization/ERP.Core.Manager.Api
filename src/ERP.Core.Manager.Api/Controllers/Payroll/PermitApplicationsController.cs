@@ -34,8 +34,14 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 IdentificationNumber = identification_number,
                 Description = Payload.Description,
                 PermitApplicationType = Payload.PermitApplicationType,
+                
+                //Vacaciones
                 PermitApplicationVacation = Payload.PermitApplicationVacation,
+
+                //Donación
                 PermitApplicationDonatedVacations = Payload.PermitApplicationDonatedVacations,
+
+                //Cita Medica
                 PermitApplicationMedicalAppointment = Payload.PermitApplicationMedicalAppointment
             });
 
