@@ -18,7 +18,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos
         public string? AdministratorFullName { get; set; }
 
         public bool? FirtsStepApproved { get; set; } = null;
-        public bool? SecondStepApproved { get; set; } = null; 
+        public bool? SecondStepApproved { get; set; } = null;   
+
+        public decimal? AmountDays { get; set; }
+        public string? IdentificationCollaboratorToReceive { get; set; }
 
         public DateTime CreatedAt { get; set; }
 
