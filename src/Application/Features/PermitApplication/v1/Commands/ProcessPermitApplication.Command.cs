@@ -9,6 +9,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
         public bool IsApproved { get; set; }
 
         [JsonIgnore]
-        public Guid VacationRequestId { get; set; }
+        public Guid PermitApplicationId { get; set; }
     }
 }

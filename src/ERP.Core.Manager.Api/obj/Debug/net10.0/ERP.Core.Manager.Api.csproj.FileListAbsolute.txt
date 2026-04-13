@@ -446,4 +446,4 @@ c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.A
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Domain.dll
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Infrastructure.dll
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Database.Domain.dll
-c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\compressed\dndlc7ahhh-{0}-wa26nnao1u-wa26nnao1u.gz
+c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\compressed\dndlc7ahhh-{0}-6fuvt2eqqa-6fuvt2eqqa.gz
