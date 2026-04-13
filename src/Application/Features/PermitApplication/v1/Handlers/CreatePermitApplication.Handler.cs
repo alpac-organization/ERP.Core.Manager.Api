@@ -4,6 +4,7 @@ using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
+using System.Text.Json;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
@@ -41,157 +42,109 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             #endregion Validaciones
 
-            var permitApplication  = new Domain.Entities.Payroll.PermitApplication();
-
-
-            if (access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Operator || access.Role!.RoleType == RoleType.Manager)
+            var permitApplication = new Domain.Entities.Payroll.PermitApplication
             {
-                permitApplication.StartDate = null;
-                permitApplication.EndDate   = null;
-                permitApplication.EndTime   = null;
-                permitApplication.StartTime = null;
-                permitApplication.Status    = PermitApplicationStatus.Pending;
-                permitApplication.CollaboratorCode = collaborator.CollaboratorCode;
-                permitApplication.CollaboratorId = collaborator.Id;
+                StartDate = null,
+                EndDate = null,
+                EndTime = null,
+                StartTime = null,
+                Status = PermitApplicationStatus.Pending,
+                CollaboratorCode = collaborator.CollaboratorCode,
+                CollaboratorId = collaborator.Id,
+                Description = request.Description
+            };
 
-                var fullNames = new[] 
-                { 
-                    collaborator.FirstName, 
-                    collaborator.SecondName, 
-                    collaborator.FirstLastname, 
-                    collaborator.SecondLastname 
-                };
+            var AdditionalData = new AdditionalDataPermitApplication();
 
-                permitApplication.RequestedBy = string.Join(" ", fullNames.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n?.Trim()));
+            var fullNames = new[] 
+            { 
+                collaborator.FirstName, 
+                collaborator.SecondName, 
+                collaborator.FirstLastname, 
+                collaborator.SecondLastname 
+            };
 
-                switch (request.PermitApplicationType)
+            permitApplication.RequestedBy = string.Join(" ", fullNames.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n?.Trim()));
+
+            var startTimeLimit = new TimeOnly(8, 0);
+            var endTimeLimit   = new TimeOnly(14, 30);
+
+            switch (request.PermitApplicationType)
+            {
+                case PermitApplicationType.MedicalAppointment:
                 {
-                    case PermitApplicationType.DonatedVacations :
+                    var medicalReq = request.PermitApplicationMedicalAppointment!;
+
+                    if (medicalReq.StartTime < startTimeLimit || medicalReq.EndTime > endTimeLimit)
                     {
-                        var collaboratorToReceive = await _unitOfWork.Collaborators.Entities
-                            .Where(col => col.IdentificationNumber == request.PermitApplicationDonatedVacations!.IdentificationCollaboratorToReceive)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (collaboratorToReceive is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                $"El colaborador seleccionado para la donación de vacaciones no existe en el sistema!",
-                                "ERP:006"
-                            );   
-                        }
-
-                        var personalInformation = await _unitOfWork.Collaborators.Entities
-                            .Where(col => col.IdentificationNumber == request.IdentificationNumber)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (personalInformation is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                $"No se pudo encontrar la información de colaborador de este usuario",
-                                "ERP:006"
-                            );  
-                        }
-
-                        var personalVacationControl = await _unitOfWork.Vacations.Entities
-                            .Where(col => col.CollaboratorId == personalInformation.Id)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-
-                        if (personalVacationControl is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                $"No se encontro un control de vacaciones",
-                                "ERP:006"
-                            );  
-                        }
-
-                        if (request.PermitApplicationDonatedVacations?.AmountDays is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                $"Debe especificar la cantidad de dias a donar",
-                                "ERP:006"
-                            );
-                        }
-
-                        var vacationCotrolOfOtherCollaborator = await _unitOfWork.Vacations.Entities
-                            .Where(col => col.Id == collaboratorToReceive.Id)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-
-                        if (personalVacationControl.AvailableVacations < request.PermitApplicationDonatedVacations.AmountDays)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                $"No cuenta con la cantidad de dias suficientes para donar la cantidad solicitada",
-                                "ERP:006"
-                            ); 
-                        }
-                        else
-                        {
-
-                            permitApplication.Type = PermitApplicationType.DonatedVacations;
-                            permitApplication.AmountDays = request.PermitApplicationDonatedVacations.AmountDays;
-                            permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations.IdentificationCollaboratorToReceive;
-
-                            //Registramos y guardamos cambios
-                            await _unitOfWork.PermitApplications.CreateVacationRequest(permitApplication);
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
-                        }
-
-                        return true;
+                        return _errorManager.ThrowBadRequest<bool>(
+                            "El horario solicitado está fuera del rango permitido (08:00 AM - 02:30 PM).", 
+                            "ERP:TIME_OUT_OF_RANGE"
+                        );
                     }
-                    default : {
-                        return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no encuentra disponible", "001");
+
+                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType);
+                    permitApplication.Type = PermitApplicationType.MedicalAppointment;
+                    permitApplication.AmountDays = request.PermitApplicationDonatedVacations?.AmountDays;
+                    permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive;
+                    permitApplication.StartDate = request.PermitApplicationMedicalAppointment?.StartDate;
+                    permitApplication.StartTime = request.PermitApplicationMedicalAppointment?.StartTime;
+                    permitApplication.EndTime = request.PermitApplicationMedicalAppointment?.EndTime;
+                    
+                    //Calcular las horas que solicito para evitar, falsos positivos
+                    var duration = medicalReq.EndTime!.Value - medicalReq.StartTime!.Value;
+                    decimal totalHours = (decimal)duration.TotalHours;
+
+                    if (totalHours >= 5)
+                    {
+                        AdditionalData.MedicalAppointmentData.IsFullDay = true;   
                     }
+                    else
+                    {
+                        AdditionalData.MedicalAppointmentData.IsFullDay = request.PermitApplicationMedicalAppointment?.IsFullDay ?? false;
+                        permitApplication.AmountDays = 0;
+                    }
+
+                    permitApplication.AmountDays = 0.5m;
+
+                    break;
+                }
+
+                case PermitApplicationType.DonatedVacations:
+                {
+                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType);
+                    permitApplication.Type = PermitApplicationType.DonatedVacations;
+
+
+                    break;   
+                }
+
+
+                default:
+                {
+                    return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible de momento", "ERP:ErrorRequest"); 
                 }
             }
+
+            //Registrar Solicitud
+            permitApplication.AdditionalData = JsonSerializer.Serialize(AdditionalData);
+            await _unitOfWork.PermitApplications.CreateVacationRequest(permitApplication);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return true;
         }
 
-    //     private static bool IsValidDates(DateTime startDate, DateTime endDate)
-    //     {
-    //         return endDate >= startDate;
-    //     }
-
-    //     private static decimal CalculateBusinessDays(DateTime start, DateTime end)
-    //     {
-    //         int totalCalendarDays = (end.Date - start.Date).Days + 1;
-
-    //         if (totalCalendarDays >= 7)
-    //         {
-    //             return totalCalendarDays;
-    //         }
-
-    //         decimal totalDays = 0;
-
-    //         DateTime current = start.Date;
-
-    //         while (current <= end.Date)
-    //         {
-    //             if (current.DayOfWeek == DayOfWeek.Saturday)
-    //             {
-    //                 totalDays += 0.5m;
-    //             }
-    //             else if (current.DayOfWeek != DayOfWeek.Sunday)
-    //             {
-    //                 totalDays += 1.0m;
-    //             }
-
-    //             current = current.AddDays(1);
-    //         }
-
-    //         return totalDays;
-    //     }
-
-    //     private async Task<bool> CheckOverlappingDates(Guid collaboratorId, DateTime start, DateTime end, CancellationToken ct)
-    //     {
-    //         return await _unitOfWork.PermitApplications.Entities
-    //             .AnyAsync(vr => 
-    //                 vr.CollaboratorId == collaboratorId &&
-    //                 vr.Status != PermitApplicationStatus.Rejected && 
-    //                 vr.Status != PermitApplicationStatus.Cancelled &&
-    //                 start <= vr.EndDate && 
-    //                 end >= vr.StartDate, ct);
-    //     }
+        public static async void MapperCaseDefaultValues(Domain.Entities.Payroll.PermitApplication entity, RoleType role)
+        {
+            if (role == RoleType.Administrator || role == RoleType.Manager)
+            {
+                entity.FirtsStepApproved = true;    
+                entity.ManagerFullname = "Control Administración";
+            }
+            else if (role == RoleType.Operator)
+            {
+                entity.FirtsStepApproved = null;
+            }
+        }
     }
 }   

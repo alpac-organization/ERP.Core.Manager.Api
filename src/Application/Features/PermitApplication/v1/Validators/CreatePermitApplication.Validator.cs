@@ -31,12 +31,19 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                 .NotNull().WithMessage("El tipo de permiso es requerido.")
                 .IsInEnum().WithMessage("El tipo de permiso seleccionado no es válido.");
 
-            When(x => x.PermitApplicationType == PermitApplicationType.DonatedVacations, () =>
+            When(x => x.PermitApplicationType == PermitApplicationType.MedicalAppointment, () =>
             {
-                RuleFor(x => x.PermitApplicationDonatedVacations)
+                RuleFor(x => x.PermitApplicationMedicalAppointment)
                     .NotNull().WithMessage("Los datos de la solicitud de donación son obligatorios.")
-                    .SetValidator(new PermitApplicationDonatedVacationsValidator());
+                    .SetValidator(new PermitApplicationMedicalAppointmentValidator());
             });
+
+            // When(x => x.PermitApplicationType == PermitApplicationType.DonatedVacations, () =>
+            // {
+            //     RuleFor(x => x.PermitApplicationDonatedVacations)
+            //         .NotNull().WithMessage("Los datos de la solicitud de donación son obligatorios.")
+            //         .SetValidator(new PermitApplicationDonatedVacationsValidator());
+            // });
         }
 
         #region Validar Solicitud de donación de vacaciones
@@ -55,5 +62,32 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
         }
 
         #endregion Validar Solicitud de donación de vacaciones
+
+        public class PermitApplicationMedicalAppointmentValidator : AbstractValidator<PermitApplicationMedicalAppointment?>
+        {
+            public PermitApplicationMedicalAppointmentValidator()
+            {
+                RuleFor(x => x!.IsFullDay)
+                    .NotNull()
+                    .WithMessage("Debe especificar si la cita médica es por el día completo.");
+
+                RuleFor(x => x!.StartDate)
+                    .NotEmpty()
+                    .WithMessage("El día de la cita médica es obligatorio.");
+
+                RuleFor(x => x!.StartTime)
+                    .NotEmpty()
+                    .When(x => x != null && !x.IsFullDay)
+                    .WithMessage("La hora de inicio es requerida cuando no es un día completo.");
+
+                RuleFor(x => x!.EndTime)
+                    .NotEmpty()
+                        .When(x => x != null && !x.IsFullDay)
+                        .WithMessage("La hora de finalización es requerida cuando no es un día completo.")
+                    .GreaterThan(x => x!.StartTime)
+                        .When(x => x != null && x.StartTime != null && !x.IsFullDay)
+                        .WithMessage("La hora de finalización debe ser posterior a la hora de inicio.");
+            }
+        }
     }
 }

@@ -9,8 +9,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         public PermitApplicationProfile()
         {
             CreateMap<PermitApplication, PermitApplicationDto>()
-                .ForMember(dest => dest.ApprovedBy, opt => opt.MapFrom(src => src.ApprovedBy))
-                .ForMember(dest => dest.RejectedBy, opt => opt.MapFrom(src => src.RejectedBy))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.RequestedBy, opt => opt.MapFrom(src => src.RequestedBy))

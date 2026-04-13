@@ -19,25 +19,31 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 return access.ErrorResponse!; 
             }
 
-            var permission = await _unitOfWork.PermitApplications.Entities
-                .FirstOrDefaultAsync(per => per.Id == request.PermitApplicationRequestId, cancellationToken);
+            var requestApplication = await _unitOfWork.PermitApplications.Entities
+                .Where(per => per.Id == request.PermitApplicationRequestId && per.Status == PermitApplicationStatus.Pending)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (permission is null)
+            if (requestApplication is null)
             {
-                return _errorManager.ThrowBadRequest<bool>("La solicitud de permiso no existe.", "ERP:01");
+                return _errorManager.ThrowBadRequest<bool>("No se encontro la solicitud que desea cancelar", "ERP:01");
             }
 
-            if (permission.Status != PermitApplicationStatus.Pending)
+            if (access.Role!.RoleType == RoleType.Operator)
             {
-                return _errorManager.ThrowBadRequest<bool>(
-                    $"No se puede cancelar una solicitud que ya está {permission.Status.ToString().ToLower()}.", 
-                    "ERP:02"
-                );
+                //Reglas para operados para cancelar solicitud
+                if (requestApplication.FirtsStepApproved is true)
+                {
+                    return _errorManager.ThrowBadRequest<bool>("Ya no puedes cancelar esta solicitud, Esperar al personal de administración", "ERP:02");
+                }
+                
+                requestApplication.Status = PermitApplicationStatus.Cancelled;
+            }
+            if (access.Role!.RoleType == RoleType.Manager || access.Role.RoleType == RoleType.Administrator)
+            {
+                requestApplication.Status = PermitApplicationStatus.Cancelled;
             }
 
-            permission.Status = PermitApplicationStatus.Cancelled;
-
-            await _unitOfWork.PermitApplications.UpdateAsync(permission);
+            await _unitOfWork.PermitApplications.UpdateAsync(requestApplication);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             
             return true;

@@ -35,7 +35,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 Description = Payload.Description,
                 PermitApplicationType = Payload.PermitApplicationType,
                 PermitApplicationVacation = Payload.PermitApplicationVacation,
-                PermitApplicationDonatedVacations = Payload.PermitApplicationDonatedVacations
+                PermitApplicationDonatedVacations = Payload.PermitApplicationDonatedVacations,
+                PermitApplicationMedicalAppointment = Payload.PermitApplicationMedicalAppointment
             });
 
             return Created(string.Empty, null);
