@@ -38,12 +38,12 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .SetValidator(new PermitApplicationMedicalAppointmentValidator());
             });
 
-            // When(x => x.PermitApplicationType == PermitApplicationType.DonatedVacations, () =>
-            // {
-            //     RuleFor(x => x.PermitApplicationDonatedVacations)
-            //         .NotNull().WithMessage("Los datos de la solicitud de donación son obligatorios.")
-            //         .SetValidator(new PermitApplicationDonatedVacationsValidator());
-            // });
+            When(x => x.PermitApplicationType == PermitApplicationType.DonatedVacations, () =>
+            {
+                RuleFor(x => x.PermitApplicationDonatedVacations)
+                    .NotNull().WithMessage("Los datos de la solicitud de donación son obligatorios.")
+                    .SetValidator(new PermitApplicationDonatedVacationsValidator());
+            });
         }
 
         #region Validar Solicitud de donación de vacaciones

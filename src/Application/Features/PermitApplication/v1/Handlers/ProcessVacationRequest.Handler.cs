@@ -38,29 +38,43 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 return _errorManager.ThrowBadRequest<bool>("No se encontro el usuario asociado a la solicitud", "ERP:001");
             }
 
-            var collaboratorAssociated = await _unitOfWork.Collaborators.Entities
+            var collaboratorInformation = await _unitOfWork.Collaborators.Entities
                 .Where(c => c.CompanyId == request.CompanyId)
                 .Where(c => c.Id == vacationRequest.CollaboratorId)
                 .Where(c => c.IdentificationNumber == user.IdentificationNumber)
                 .AnyAsync(cancellationToken);
 
+
+
+            //Información de vacaciones para reducción de información
             var vacationInformation = await _unitOfWork.Vacations.Entities
                 .Where(v => v.CollaboratorId == vacationRequest.CollaboratorId)
                 .FirstOrDefaultAsync(cancellationToken);
+
+            if (vacationInformation is null)
+            {
+                return _errorManager.ThrowBadRequest<bool>("No se encontro registro de vacaciones del colaborador que tienes presente la solicitud", "ERP:01");
+            }
 
             switch (vacationRequest.Type)
             {
                 case PermitApplicationType.DonatedVacations:
                 {
-                    var permitApplication = await _unitOfWork.PermitApplications.Entities
-                        .Where(permit => permit.Id == request.VacationRequestId)
-                        .FirstOrDefaultAsync(cancellationToken);
 
                     
                     
 
                     //Validar las vacaciones, descontar las vacaciones
                     break;
+                }
+                case PermitApplicationType.MedicalAppointment:
+                {
+
+
+
+                    
+
+                    break;   
                 }
                 default:
                 {

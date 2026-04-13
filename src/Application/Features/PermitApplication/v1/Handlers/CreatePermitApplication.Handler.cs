@@ -85,8 +85,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                     MapperCaseDefaultValues(permitApplication, access.Role!.RoleType);
                     permitApplication.Type = PermitApplicationType.MedicalAppointment;
-                    permitApplication.AmountDays = request.PermitApplicationDonatedVacations?.AmountDays;
-                    permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive;
                     permitApplication.StartDate = request.PermitApplicationMedicalAppointment?.StartDate;
                     permitApplication.StartTime = request.PermitApplicationMedicalAppointment?.StartTime;
                     permitApplication.EndTime = request.PermitApplicationMedicalAppointment?.EndTime;
@@ -112,15 +110,47 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                 case PermitApplicationType.DonatedVacations:
                 {
+                    //Validamos la cedula de la persona que viene a recibir el gozo de vacaciones donadas.
+                    if (request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("La identificación del colaborador que recibiras las vacaciones es requerido!", "ERP:02"); 
+                    }
+
+                    var collaboratoToReceive = await _unitOfWork.Collaborators.Entities
+                        .Where(col => col.IdentificationNumber == request.PermitApplicationDonatedVacations!.IdentificationCollaboratorToReceive)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (collaboratoToReceive is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("El colaborador beneficiado por las vacaciones donadas no se existe!", "ERP:03");       
+                    }
+
+                    var vacationControl = await _unitOfWork.Vacations.Entities
+                        .Where(vac => vac.CollaboratorId == collaborator.Id)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+
+                    if (vacationControl is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No se encontro su control de vacaciones no puede generar esta solicitud", "ERP:04");       
+                    }
+
+                    if (vacationControl.AvailableVacations < request.PermitApplicationDonatedVacations.AmountDays)
+                    {
+                         return _errorManager.ThrowBadRequest<bool>("No se cuentas con sufientes dias de vacaciones para donar", "ERP:05");       
+                    }
+
+                    //Mapeamos la data para crear la solicitud de permiso
                     MapperCaseDefaultValues(permitApplication, access.Role!.RoleType);
                     permitApplication.Type = PermitApplicationType.DonatedVacations;
-
+                    permitApplication.AmountDays = request.PermitApplicationDonatedVacations?.AmountDays ?? 0;
+                    permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive ?? string.Empty;
 
                     break;   
                 }
 
 
-                default:
+                default:    
                 {
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible de momento", "ERP:ErrorRequest"); 
                 }
