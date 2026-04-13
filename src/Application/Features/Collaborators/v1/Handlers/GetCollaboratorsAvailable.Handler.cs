@@ -49,7 +49,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             var filteredRecordsCount = await gridQuery.CountAsync(cancellationToken);
 
             var collaborators = await gridQuery
-                .OrderBy(c => c.FirstName)
+                .OrderBy(c => c.CreatedAt)
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);

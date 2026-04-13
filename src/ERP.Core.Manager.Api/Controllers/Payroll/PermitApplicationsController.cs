@@ -1,12 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
+
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
-using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Domain.Entities.Errors;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -15,6 +16,26 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     [Route("api/v1/")]
     public class PermitApplicationsController(IMediator _mediator) : ApiControllerBase
     {
+        [Tags("Permisos")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/permit-applications/{collaborator_code}/details")]      
+        [ProducesResponseType(typeof(PermitApplicationDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]     
+        public async Task<PermitApplicationDto> GetPermitApplicationByCollaboratorCodeAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string collaborator_code)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+        
+           return await _mediator.Send (
+            new GetPermitApplicationByCollaboratorCodeQuery()
+                {
+                    CollaboratorCode = collaborator_code,
+                    CompanyId = companie_id,
+                    ModuleCode = module_code,
+                    UserId = Guid.Parse(userIdStr ?? "")
+                }
+           );
+        }
+
         [Tags("Permisos")] 
         [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/permit-applications")]      
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status201Created)]
