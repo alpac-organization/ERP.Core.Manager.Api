@@ -20,11 +20,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 return access.ErrorResponse; 
             }
 
-            var vacationRequest = await _unitOfWork.PermitApplications.Entities
-                .Where(vr => vr.Id == request.VacationRequestId)
+            var permitApplication = await _unitOfWork.PermitApplications.Entities
+                .Where(vr => vr.Id == request.PermitApplicationId)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (vacationRequest is null)
+            if (permitApplication is null)
             {
                 return _errorManager.ThrowBadRequest<bool>("No se encontro la solicitud de vacaciones", "ERP:001");
             }
@@ -40,31 +40,141 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             var collaboratorInformation = await _unitOfWork.Collaborators.Entities
                 .Where(c => c.CompanyId == request.CompanyId)
-                .Where(c => c.Id == vacationRequest.CollaboratorId)
+                .Where(c => c.Id == permitApplication.CollaboratorId)
                 .Where(c => c.IdentificationNumber == user.IdentificationNumber)
                 .AnyAsync(cancellationToken);
 
-
-
             //Información de vacaciones para reducción de información
-            var vacationInformation = await _unitOfWork.Vacations.Entities
-                .Where(v => v.CollaboratorId == vacationRequest.CollaboratorId)
+            var vacationInformationSolicitante = await _unitOfWork.Vacations.Entities
+                .Where(v => v.CollaboratorId == permitApplication.CollaboratorId)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (vacationInformation is null)
+            if (vacationInformationSolicitante is null)
             {
-                return _errorManager.ThrowBadRequest<bool>("No se encontro registro de vacaciones del colaborador que tienes presente la solicitud", "ERP:01");
+                return _errorManager.ThrowBadRequest<bool>("No se encontro registro de vacaciones del solicitante", "ERP:02");
             }
 
-            switch (vacationRequest.Type)
+            switch (permitApplication.Type)
             {
                 case PermitApplicationType.DonatedVacations:
                 {
 
-                    
-                    
+                    #region Aprobar Primer paso de la solicitud
+                    if (permitApplication.FirtsStepApproved is null && request.IsApproved is true)
+                    {
+                        //Procesos de aplicación
+                        if (access.Role!.RoleType != RoleType.Supervisor || access.Role.RoleType != RoleType.Operator)
+                        {
+                            permitApplication.FirtsStepApproved = true;
+                            permitApplication.ManagerFullname = $"{user.Fullname}";
 
-                    //Validar las vacaciones, descontar las vacaciones
+                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                            return true;
+                        }
+                        else
+                        {
+                            _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar esta solicitud", "ERP:01");   
+                        }
+                    }
+                    else if(permitApplication.FirtsStepApproved is null && request.IsApproved is false)
+                    {
+                        if (access.Role!.RoleType != RoleType.Supervisor || access.Role.RoleType != RoleType.Operator)
+                        {
+                            permitApplication.FirtsStepApproved = false;
+                            permitApplication.ManagerFullname = $"{user.Fullname}";
+
+                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                            return false;
+                        }
+                        else
+                        {
+                            _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar esta solicitud", "ERP:01");   
+                        }   
+                    }
+                    #endregion
+
+                    #region Aprobación de solicitud del colaborador
+                    if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved)
+                    {
+
+                        if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No puedes aprobarte el proceso, no eres administrador", "ERP:03");
+                        }
+
+                        if (access.Role!.RoleType == RoleType.Administrator)
+                        {
+                            var vacationControlToReceive = await _unitOfWork.Vacations.Entities
+                                .Include(vac  => vac.Collaborator)
+                                .Where(vac  => vac.Collaborator.IdentificationNumber == permitApplication.IdentificationCollaboratorToReceive)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (vacationControlToReceive is null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>("El colaborador que recibira las vacaciones no tiene proceso de vacaciones", "ERP:03");                            
+                            }
+
+                            //Reducimos las vacaciones para el solicitante.
+                            vacationInformationSolicitante.AvailableVacations -= permitApplication.AmountDays ?? 0m;
+                            vacationInformationSolicitante.EnjoyedVacation += permitApplication.AmountDays ?? 0;
+                            
+                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+
+                            //Le aumentamos la vacaciones a la persona que recibira las vacaciones.
+                            vacationControlToReceive.AvailableVacations += permitApplication.AmountDays ?? 0m;
+                            vacationControlToReceive.DonatedVacation += permitApplication.AmountDays ?? 0m;
+
+                            await _unitOfWork.Vacations.UpdateAsync(vacationControlToReceive);
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                            permitApplication.AdministratorFullName = $"{user.Fullname}";
+                            permitApplication.SecondStepApproved = true;
+                            permitApplication.Status = PermitApplicationStatus.Approved;
+
+                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                            return true;
+                        }
+                        else
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden aprobar el ultimo proceso de solicitud", "ERP:02");   
+                        }
+                    }
+                    #endregion
+
+                    #region Rechazar Solicitud de colaborador
+                    else if((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved is false)
+                    {
+
+                        if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No puedes rechazar el proceso, no eres administrador", "ERP:03");
+                        }
+
+                        if (access.Role!.RoleType == RoleType.Administrator)
+                        {
+                            permitApplication.AdministratorFullName = $"{user.Fullname}";
+                            permitApplication.SecondStepApproved = false;
+
+                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                            return false;
+                        }
+                        else
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03");   
+                        }
+                    }
+                    #endregion
+
                     break;
                 }
                 case PermitApplicationType.MedicalAppointment:
@@ -81,53 +191,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible", "ERP:001");
                 }
             }
-
-            // if (vacationInformation is null)
-            // {
-            //     return _errorManager.ThrowBadRequest<bool>("No se encontro registro de información de vacaciones", "ERP:001");
-            // }
-
-            // //Descontamos los días de vacaciones si la solicitud es aprobada, de lo contrario no se descuenta
-            // var amountDays = (vacationRequest.EndDate - vacationRequest.StartDate)?.Days ?? + 1;
-
-            // await _unitOfWork.Vacations.UpdateAsync(new ()
-            // {
-            //     Id = vacationInformation.Id,
-            //     CollaboratorId = vacationRequest.CollaboratorId,
-            //     AvailableVacations = request.IsApproved ? vacationInformation.AvailableVacations - amountDays : vacationInformation.AvailableVacations,
-            //     EnjoyedVacation = request.IsApproved ? vacationInformation.EnjoyedVacation + amountDays : vacationInformation.EnjoyedVacation,
-            // });
-
-            // if (!collaboratorAssociated && (access.Role!.RoleType == RoleType.Administrator || access.Role.RoleType == RoleType.Manager))
-            // {
-            //     //Actualizamos el estado de la solicitud de vacaciones
-            //     await _unitOfWork.PermitApplications.UpdateAsync(new ()
-            //     {
-            //         Id =          request.VacationRequestId,
-            //         Status =      request.IsApproved ? PermitApplicationStatus.Approved : PermitApplicationStatus.Rejected,
-            //         ApprovedBy =  request.IsApproved ? user.Fullname : null,
-            //         RejectedBy = !request.IsApproved ? user.Fullname : null,
-            //     });  
-
-            //     await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            // }
-            // else if(collaboratorAssociated && access.Role!.RoleType == RoleType.Administrator)
-            // {
-            //     await _unitOfWork.PermitApplications.UpdateAsync(new ()
-            //     {
-            //         Id =          request.VacationRequestId,    
-            //         Status =      request.IsApproved ? PermitApplicationStatus.Approved : PermitApplicationStatus.Rejected,
-            //         ApprovedBy =  request.IsApproved ? user.Fullname : null,
-            //         RejectedBy = !request.IsApproved ? user.Fullname : null,
-            //     });
-
-            //     await _unitOfWork.SaveChangesAsync(cancellationToken);
-            // }
-            // else if(collaboratorAssociated && access.Role!.RoleType == RoleType.Manager)
-            // {
-            //     return _errorManager.ThrowBadRequest<bool>("No tienes permisos para procesar esta solicitud, una persona de administración debe revisarla", "ERP:003");
-            // }
 
             return true;
         }

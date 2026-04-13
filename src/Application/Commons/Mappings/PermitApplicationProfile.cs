@@ -10,7 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         {
             CreateMap<PermitApplication, PermitApplicationDto>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-
+                .ForMember(dest => dest.PermitApllicationId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
                 .ForMember(dest => dest.FirtsStepApproved, opt => opt.MapFrom(src => src.FirtsStepApproved))
                 .ForMember(dest => dest.SecondStepApproved, opt => opt.MapFrom(src => src.SecondStepApproved))
