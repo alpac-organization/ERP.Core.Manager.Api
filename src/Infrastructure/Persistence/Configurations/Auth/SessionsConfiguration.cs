@@ -1,6 +1,6 @@
+using ERP.Core.Database.Domain.Entities.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Auth
 {

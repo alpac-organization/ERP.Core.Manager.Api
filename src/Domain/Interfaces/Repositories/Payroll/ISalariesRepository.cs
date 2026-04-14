@@ -1,5 +1,5 @@
+using ERP.Core.Database.Domain.Entities.Payroll;
 using ERP.Core.Manager.Api.Domain.Commons.Interfaces;
-using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll
 {

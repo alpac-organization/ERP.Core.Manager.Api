@@ -1,5 +1,5 @@
+using ERP.Core.Database.Domain.Entities.Catalogs;
 using Microsoft.EntityFrameworkCore;
-using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalogs

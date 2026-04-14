@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-
-using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
-using ERP.Core.Manager.Api.Domain.Entities.Authentication;
-using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Domain.Entities.Auth;
+using ERP.Core.Database.Domain.Entities.Catalogs;
+using ERP.Core.Database.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
 {

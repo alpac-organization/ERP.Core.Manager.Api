@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using ERP.Core.Database.Domain.Entities.Payroll;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ERP.Core.Manager.Api.Domain.Entities.Payroll;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 {

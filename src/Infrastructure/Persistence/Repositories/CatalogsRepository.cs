@@ -1,4 +1,4 @@
-using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
+using ERP.Core.Database.Domain.Entities.Catalogs;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 
