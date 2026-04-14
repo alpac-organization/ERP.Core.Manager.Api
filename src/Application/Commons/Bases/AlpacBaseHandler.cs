@@ -1,7 +1,7 @@
-using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Domain.Entities.Authentication;
-using ERP.Core.Manager.Api.Domain.Interfaces;
 using MediatR;
+using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Entities.Auth;
+using ERP.Core.Manager.Api.Domain.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Bases
 {

@@ -42,7 +42,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             #endregion Validaciones
 
-            var permitApplication = new Domain.Entities.Payroll.PermitApplication
+            var permitApplication = new Database.Domain.Entities.Payroll.PermitApplication
             {
                 StartDate = null,
                 EndDate = null,
@@ -164,7 +164,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             return true;
         }
 
-        public static async void MapperCaseDefaultValues(Domain.Entities.Payroll.PermitApplication entity, RoleType role)
+        public static async void MapperCaseDefaultValues(Database.Domain.Entities.Payroll.PermitApplication entity, RoleType role)
         {
             if (role == RoleType.Administrator || role == RoleType.Manager)
             {

@@ -1,6 +1,6 @@
+using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
-using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentication
 {

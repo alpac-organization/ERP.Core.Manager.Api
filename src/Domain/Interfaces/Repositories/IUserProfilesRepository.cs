@@ -1,5 +1,5 @@
+using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Manager.Api.Domain.Commons.Interfaces;
-using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 
 namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories
 {

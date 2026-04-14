@@ -1,5 +1,5 @@
 using AutoMapper;
-using ERP.Core.Manager.Api.Domain.Entities.Authentication;
+using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings

@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "R0cZVC9XF2s=",
+  "dgSpecHash": "xOpcE8bAPJ0=",
   "success": true,
   "projectFilePath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\desarrollo\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512",
-    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.application\\1.0.10\\erp.core.application.1.0.10.nupkg.sha512",
-    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.database.domain\\1.0.13\\erp.core.database.domain.1.0.13.nupkg.sha512",
-    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.domain\\1.0.10\\erp.core.domain.1.0.10.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.application\\1.0.16\\erp.core.application.1.0.16.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.database.domain\\1.0.16\\erp.core.database.domain.1.0.16.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.domain\\1.0.16\\erp.core.domain.1.0.16.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\fluentvalidation\\12.1.1\\fluentvalidation.12.1.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\12.1.1\\fluentvalidation.dependencyinjectionextensions.12.1.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\mediatr\\14.1.0\\mediatr.14.1.0.nupkg.sha512",
