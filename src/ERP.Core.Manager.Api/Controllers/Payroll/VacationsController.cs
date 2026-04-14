@@ -33,16 +33,27 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         [Tags("Vacaciones")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/vacations")]      
-        [ProducesResponseType(typeof(VacationDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<VacationControlDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<IActionResult> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
+        public async Task<List<VacationControlDto>> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code,
+            [FromQuery] DateTime start_date,
+            [FromQuery] DateTime end_date,
+            [FromQuery] int page_number = 1,
+            [FromQuery] int page_size = 10
+        )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
-            //Enlistar control de vacaciones.
-            
-
-            return Ok();
+            return await _mediator.Send(new GetVacationControlQuery()
+            {
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                EndDate = end_date,
+                StartDate = start_date,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                PageNumber = page_number,
+                PageSize = page_size
+            });
         }
     }
 }

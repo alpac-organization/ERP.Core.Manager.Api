@@ -3,7 +3,7 @@ using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Validators
 {
-    public class GetVacationControlValidator: AbstractValidator<GetVacationControl>
+    public class GetVacationControlValidator: AbstractValidator<GetVacationControlQuery>
     {
         public GetVacationControlValidator()
         {
