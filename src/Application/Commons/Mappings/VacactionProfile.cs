@@ -23,7 +23,17 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.EnjoyedVacation, opt => opt.MapFrom(src => src.Item1.EnjoyedVacation));
 
             CreateMap<PermitApplication, VacationControlDto>()
-                .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode));
+                .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
+                .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.Collaborator.WorkingInformation.WorkPosition.CatalogName))
+                .ForMember(dest => dest.PermitApplicationType, opt => opt.MapFrom(src => src.Type))
+                .ForMember(dest => dest.AmountDays, opt => opt.MapFrom(src => src.AmountDays))
+                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => 
+                    string.Join(" ", new[] { 
+                        src.Collaborator.FirstName, src.Collaborator.SecondName, src.Collaborator.FirstLastname, src.Collaborator.SecondLastname 
+                    }
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => s.ToCapitalize())))
+                );
 
         }
     }

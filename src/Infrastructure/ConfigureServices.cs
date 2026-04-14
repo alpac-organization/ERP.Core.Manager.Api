@@ -17,8 +17,6 @@ using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Infrastructure.Services;
-using DinkToPdf.Contracts;
-using DinkToPdf;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -46,6 +44,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
                     npgsqlOptions.MapEnum<PermitApplicationStatus>("permit_application_status_enum");
                     npgsqlOptions.MapEnum<PermitApplicationType>("permit_application_type_enum");
                     npgsqlOptions.MapEnum<MaritalStatus>("marital_status_enum");
+                    npgsqlOptions.MapEnum<DeductionType>("deduction_type_enum");
                 }));
 
             //Other Services del paquete de la empresa.
@@ -53,9 +52,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddTransient<IErrorManager, ErrorManager>();
 
             services.AddTransient<ITemplateServices, TemplateServices>();
-            services.AddTransient<IPdfServices, PdfServices>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
-            services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
             //Services
             services.AddScoped<IAuthServices, AuthServices>();

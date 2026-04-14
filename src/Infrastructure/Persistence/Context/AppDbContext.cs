@@ -71,6 +71,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
 
             #endregion
 
+            modelBuilder.HasPostgresEnum<DeductionType>("public","deduction_type_enum");
+
             
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

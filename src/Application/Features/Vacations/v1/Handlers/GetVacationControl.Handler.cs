@@ -9,11 +9,10 @@ using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
 {
-    public class GetVacationControlHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GetVacationControl, List<VacationControlDto>>(_unitOfWork, _errorManager)
+    public class GetVacationControlHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GetVacationControlQuery, List<VacationControlDto>>(_unitOfWork, _errorManager)
     {
-        public override async Task<List<VacationControlDto>> Handle(GetVacationControl request, CancellationToken cancellationToken)
+       public override async Task<List<VacationControlDto>> Handle(GetVacationControlQuery request, CancellationToken cancellationToken)
         {
-            //Comenzar logica para mapeo de datos
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
@@ -21,14 +20,35 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                 return access.ErrorResponse!; 
             }
 
-            if(access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Supervisor || access.Role!.RoleType == RoleType.Supervisor)
+            bool hasPermission = access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Supervisor;
+
+            if (hasPermission)
             {
-                var permitApplications = await _unitOfWork.PermitApplications.Entities
+                var query = _unitOfWork.PermitApplications.Entities
                     .Include(prt => prt.Collaborator)
+                        .ThenInclude(c => c.WorkingInformation)
+                            .ThenInclude(w => w.WorkPosition)
                     .Where(prt => prt.Type == PermitApplicationType.DonatedVacations || prt.Type == PermitApplicationType.Vacation)
+                    .Where(prt => prt.Status == PermitApplicationStatus.Approved)
+                    .AsNoTracking();
+
+                if (request.StartDate.HasValue)
+                {
+                    query = query.Where(prt => prt.StartDate >= request.StartDate.Value);
+                }
+
+                if (request.EndDate.HasValue)
+                {
+                    query = query.Where(prt => prt.EndDate <= request.EndDate.Value);
+                }
+
+                var permitApplications = await query
+                    .OrderByDescending(prt => prt.StartDate) 
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
                     .ToListAsync(cancellationToken);
 
-                return [];  
+                return _mapper.Map<List<VacationControlDto>>(permitApplications);
             }
             else
             {
