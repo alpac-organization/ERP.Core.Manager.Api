@@ -135,21 +135,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             return _errorManager.ThrowBadRequest<bool>("No puedes rechazar el proceso, no eres administrador", "ERP:03");
                         }
 
-                        if (access.Role!.RoleType == RoleType.Administrator)
-                        {
-                            permitApplication.AdministratorFullName = $"{user.Fullname}";
-                            permitApplication.SecondStepApproved = false;
-                            permitApplication.Status = PermitApplicationStatus.Rejected;
+                        var IsSuccess = RejectPermitApplication(access.Role.RoleType, permitApplication, user.Fullname!);
 
+                        if (IsSuccess)
+                        {
                             await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                            return false;
-                        }
-                        else
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03");   
-                        }
+                        } else return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03"); 
                     }
                     #endregion
 
@@ -209,27 +201,82 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     }
                     #endregion
 
-                    #region Rechazar solicitud del colaborador ¿
+                    #region Rechazar solicitud del colaborador
                     else if((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved is false)
                     {
-                        if (access.Role!.RoleType == RoleType.Administrator)
-                        {
-                            permitApplication.AdministratorFullName = $"{user.Fullname}";
-                            permitApplication.SecondStepApproved = false;
-                            permitApplication.Status = PermitApplicationStatus.Rejected;
+                        var IsSuccess = RejectPermitApplication(access.Role.RoleType, permitApplication, user.Fullname!);
 
+                        if (IsSuccess)
+                        {
                             await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                            return false;
-                        }
-                        else
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03");   
-                        }
+                        } else return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03");
                     }     
                     #endregion           
                 
+                    break;
+                }
+                case PermitApplicationType.Vacation:
+                {
+                    #region Primero proceso de aprobación
+                    var response = MapperInformationToApprovedFirstStep(
+                        permitApplication, 
+                        access.Role!.RoleType, 
+                        request.IsApproved, 
+                        user.Fullname ?? "unknow user"
+                    );
+
+                    if (response)
+                    {
+                        await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    }                            
+                    else return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar esta solicitud", "ERP:01"); 
+                    #endregion
+
+                    #region Aprobar solicitud de vacaciones
+                    if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved)
+                    {
+                        if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No puedes aprobarte el proceso, no eres administrador", "ERP:03");
+                        }
+
+                        if (access.Role!.RoleType == RoleType.Administrator)
+                        {
+                            vacationInformationSolicitante.AvailableVacations -= permitApplication.AmountDays ?? 0.0m;
+                            vacationInformationSolicitante.EnjoyedVacation += permitApplication.AmountDays ?? 0.0m;
+                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);  
+    
+                            permitApplication.AdministratorFullName = $"{user.Fullname}";
+                            permitApplication.SecondStepApproved = true;
+                            permitApplication.Status = PermitApplicationStatus.Approved;
+
+                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+
+                            //Actualizamos la información del solicitante
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                            return true;
+                        }    
+                    }
+                    #endregion
+
+                    #region Rechazar solicitud de vacaciones
+
+                    else if((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved is false)
+                    {    
+                        var IsSuccess = RejectPermitApplication(access.Role.RoleType, permitApplication, user.Fullname!);
+
+                        if (IsSuccess)
+                        {
+                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        } else return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden rechazar la solicitud", "ERP:03"); 
+                    }
+
+                    #endregion
+
                     break;
                 }
                 default:
@@ -239,6 +286,19 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             }
 
             return true;
+        }
+
+        private static bool RejectPermitApplication(RoleType roleType, Database.Domain.Entities.Payroll.PermitApplication permitApplication, string userFullname)
+        {
+            if (roleType == RoleType.Administrator)
+            {
+                permitApplication.AdministratorFullName = $"{userFullname}";
+                permitApplication.SecondStepApproved = false;
+                permitApplication.Status = PermitApplicationStatus.Rejected;
+
+                return true;
+            }
+            else return false;
         }
 
         private static bool MapperInformationToApprovedFirstStep(Database.Domain.Entities.Payroll.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
