@@ -54,6 +54,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 UserId = Guid.Parse(userIdStr ?? ""),
                 IdentificationNumber = identification_number,
                 Description = Payload.Description,
+                Channel = Payload.Channel,
                 PermitApplicationType = Payload.PermitApplicationType,
                 
                 //Vacaciones

@@ -13,7 +13,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
 
         public PersonalInformationDto PersonalInformation { get; set; } = new();
         public WorkingInformationDto WorkingInformation { get; set; } = new();
-        public SalaryInformationDto SalaryInformation { get; set; } = new();   
+        public SalaryInformationDto SalaryInformation { get; set; } = new(); 
+        public VacationInformationDto VacationInformation { get; set; } = new();  
     }
 
     public class PersonalInformationDto
@@ -46,6 +47,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public decimal Salary { get; set; }
         public string? Currency { get; set;}
         public string? SalaryType { get; set; }
+    }
+
+    public class VacationInformationDto
+    {
+        public decimal AvailableVacations { get; set; }
     }
 
 }

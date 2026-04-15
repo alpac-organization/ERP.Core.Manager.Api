@@ -5,6 +5,6 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll
 {
     public interface IPermitApplicationsRepository : IRepository<PermitApplication>
     {
-        Task<PermitApplication> CreateVacationRequest(PermitApplication payload);
+        Task<PermitApplication> CreatePermitApplication(PermitApplication payload);
     }
 }

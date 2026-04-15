@@ -82,6 +82,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency.ToString()))
                 .ForMember(dest => dest.SalaryType, opt => opt.MapFrom(src => src.SalaryType.ToString()));
 
+            CreateMap<Vacation, VacationInformationDto>()
+                .ForMember(dest => dest.AvailableVacations, opt => opt.MapFrom(src => src.AvailableVacations));
+
             CreateMap<Collaborator, CollaboratorDetailsDto>()
                 .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkingInformation.WorkPosition.CatalogName))
@@ -95,8 +98,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 
                 .ForMember(dest => dest.PersonalInformation, opt => opt.MapFrom(src => src.PersonalInformation))
                 .ForMember(dest => dest.WorkingInformation, opt => opt.MapFrom(src => src.WorkingInformation))
+                .ForMember(dest => dest.VacationInformation, opt => opt.MapFrom(src => src.Vacation))
                 .ForMember(dest => dest.SalaryInformation, opt => opt.MapFrom(src => src.Salaries != null ? src.Salaries.FirstOrDefault() : null))
-
                 
                 .AfterMap((src, dest) => {
                     if (dest.PersonalInformation != null)

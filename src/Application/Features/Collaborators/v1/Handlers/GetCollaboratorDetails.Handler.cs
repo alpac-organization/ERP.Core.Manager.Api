@@ -17,6 +17,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 .AsNoTracking()
                 
                 .Include(c => c.PersonalInformation)
+
+                .Include(c => c.Vacation)
                 
                 .Include(c => c.WorkingInformation)
                     .ThenInclude(w => w.WorkArea)
