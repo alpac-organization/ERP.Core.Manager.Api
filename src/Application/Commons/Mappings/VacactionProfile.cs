@@ -27,6 +27,19 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.Collaborator.WorkingInformation.WorkPosition.CatalogName))
                 .ForMember(dest => dest.PermitApplicationType, opt => opt.MapFrom(src => src.Type))
                 .ForMember(dest => dest.AmountDays, opt => opt.MapFrom(src => src.AmountDays))
+                .ForMember(dest => dest.PermitApplicationId, opt => opt.MapFrom(src => src.Id))
+
+
+                .ForMember(dest => dest.IdentificationCollaboratorToReceive, opt => opt.MapFrom(src => src.IdentificationCollaboratorToReceive))
+                .ForMember(dest => dest.ApprovedBy, opt => opt.MapFrom(src => src.AdministratorFullName))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate))
+                
+                .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
+                .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
+
                 .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => 
                     string.Join(" ", new[] { 
                         src.Collaborator.FirstName, src.Collaborator.SecondName, src.Collaborator.FirstLastname, src.Collaborator.SecondLastname 
