@@ -127,7 +127,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         );
                     }
 
-                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel);
+                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
                     permitApplication.Type = PermitApplicationType.MedicalAppointment;
                     permitApplication.StartDate = request.PermitApplicationMedicalAppointment?.StartDate;
                     permitApplication.StartTime = request.PermitApplicationMedicalAppointment?.StartTime;
@@ -184,7 +184,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     }
 
                     //Mapeamos la data para crear la solicitud de permiso
-                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel);
+                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
                     permitApplication.Type = PermitApplicationType.DonatedVacations;
                     permitApplication.AmountDays = request.PermitApplicationDonatedVacations?.AmountDays ?? 0;
                     permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive ?? string.Empty;
@@ -200,6 +200,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     permitApplication.EndDate = vacationData.EndDate;
                     permitApplication.StartDate = vacationData.StartDate;
                     permitApplication.Type = PermitApplicationType.Vacation;
+                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
 
                     var vacationControl = await _unitOfWork.Vacations.Entities
                         .Include(vtl => vtl.Collaborator)
