@@ -28,18 +28,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                     .Include(prt => prt.Collaborator)
                         .ThenInclude(c => c.WorkingInformation)
                             .ThenInclude(w => w.WorkPosition)
+                    .Where(prt => prt.Collaborator.CompanyId == request.CompanyId)
                     .Where(prt => prt.Type == PermitApplicationType.DonatedVacations || prt.Type == PermitApplicationType.Vacation)
                     .Where(prt => prt.Status == PermitApplicationStatus.Approved)
                     .AsNoTracking();
 
                 if (request.StartDate.HasValue)
                 {
-                    query = query.Where(prt => prt.StartDate >= request.StartDate.Value);
+                    query = query.Where(prt => prt.CreatedAt >= request.StartDate.Value);
                 }
 
                 if (request.EndDate.HasValue)
                 {
-                    query = query.Where(prt => prt.EndDate <= request.EndDate.Value);
+                    query = query.Where(prt => prt.CreatedAt <= request.EndDate.Value);
                 }
 
                 var permitApplications = await query
