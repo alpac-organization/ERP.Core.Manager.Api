@@ -22,7 +22,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
 
             RuleFor(x => x.IdentificationNumber)
                 .NotEmpty().WithMessage("El número de identificación es requerido")
-                .NotNull().WithMessage("El número de identificación es requerido"); 
+                .NotNull().WithMessage("El número de identificación es requerido");
+
+            RuleFor(x => x.Channel)
+                .NotEmpty().WithMessage("El canal es requerido.")
+                .NotNull().WithMessage("El canal es requerido.");
 
             RuleFor(x => x.Description)
                 .MaximumLength(500).WithMessage("La descripción no puede exceder los 500 caracteres");
@@ -44,9 +48,14 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .NotNull().WithMessage("Los datos de la solicitud de donación son obligatorios.")
                     .SetValidator(new PermitApplicationDonatedVacationsValidator());
             });
-        }
 
-        #region Validar Solicitud de donación de vacaciones
+            When(x => x.PermitApplicationType == PermitApplicationType.Vacation, () =>
+            {
+                RuleFor(x => x.PermitApplicationVacation)
+                    .NotNull().WithMessage("Los datos de la solicitud de vacaciones son obligatorios")
+                    .SetValidator(new PermitApplicationVacationValidator());
+            });
+        }
 
         public class PermitApplicationDonatedVacationsValidator : AbstractValidator<PermitApplicationDonatedVacations?>
         {
@@ -60,8 +69,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .NotEmpty().WithMessage("La identificación del colaborador que recibirá las vacaciones es requerida.");
             }
         }
-
-        #endregion Validar Solicitud de donación de vacaciones
 
         public class PermitApplicationMedicalAppointmentValidator : AbstractValidator<PermitApplicationMedicalAppointment?>
         {
@@ -87,6 +94,52 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .GreaterThan(x => x!.StartTime)
                         .When(x => x != null && x.StartTime != null && !x.IsFullDay)
                         .WithMessage("La hora de finalización debe ser posterior a la hora de inicio.");
+            }
+        }
+
+        public class PermitApplicationVacationValidator : AbstractValidator<PermitApplicationVacation?>
+        {
+            public PermitApplicationVacationValidator()
+            {
+                RuleFor(x => x).NotNull().WithMessage("La información de la solicitud es obligatoria.");
+
+                When(x => x != null, () =>
+                {
+                    RuleFor(x => x!.IsFullDay)
+                        .NotNull().WithMessage("Debe especificar si es el día completo");
+
+                    RuleFor(x => x!.WithRangeHours)
+                        .NotNull().WithMessage("Debe especificar si es con rango de horas");
+
+                    RuleFor(x => x!.IsItMidday)
+                        .NotNull().WithMessage("Debe especificar si solo es medio día");
+
+                    RuleFor(x => x!.StartDate)
+                        .NotEmpty().WithMessage("La fecha de inicio es obligatoria.");
+
+                    RuleFor(x => x!.StartTime)
+                        .NotEmpty().WithMessage("La hora de inicio es obligatoria cuando se solicita por rango de horas")
+                        .When(x => x!.WithRangeHours);
+
+                    RuleFor(x => x!.EndTime)
+                        .NotEmpty().WithMessage("La hora de fin es obligatoria cuando se solicita por rango de horas")
+                        .When(x => x!.WithRangeHours);
+
+                    RuleFor(x => x!.EndTime)
+                        .Must((request, endTime) => endTime > request!.StartTime)
+                        .WithMessage("La hora de fin debe ser mayor a la hora de inicio")
+                        .When(x => x!.WithRangeHours && x.StartTime.HasValue && x.EndTime.HasValue);
+                    
+                    RuleFor(x => x!.StartTime)
+                        .Must(t => t!.Value.Minute == 0)
+                        .WithMessage("La hora de inicio debe ser una hora exacta (ej. 08:00)")
+                        .When(x => x!.WithRangeHours && x.StartTime.HasValue);
+
+                    RuleFor(x => x!.EndTime)
+                        .Must(t => t!.Value.Minute == 0)
+                        .WithMessage("La hora de fin debe ser una hora exacta (ej. 14:00)")
+                        .When(x => x!.WithRangeHours && x.EndTime.HasValue);
+                });
             }
         }
     }

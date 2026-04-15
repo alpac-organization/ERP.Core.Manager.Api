@@ -18,7 +18,17 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         public async Task<LoginDto> LoginWithUsernameOrEmailWithPasswordAsync([FromRoute] Guid companie_id, [FromBody] LoginWithUsernameAndPasswordCommand payload)
         {
-            var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            // 1. Intentar obtener la IP desde el header de Render (X-Forwarded-For)
+            var xForwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            
+            // 2. Lógica de selección de IP
+            string clientIp = !string.IsNullOrWhiteSpace(xForwardedFor) 
+                ? xForwardedFor.Split(',')[0].Trim() 
+                : HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            // 3. Normalizar localhost
+            if (clientIp == "::1") clientIp = "127.0.0.1";
+
             var deviceName = Request.Headers["x-device-name"].ToString();
 
             return await _mediator.Send(
@@ -31,7 +41,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
                     SessionDetails = new()
                     {
                         DeviceName = deviceName,
-                        IpAddress = remoteIp
+                        IpAddress = clientIp
                     }
                 }
             );
