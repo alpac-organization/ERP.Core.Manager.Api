@@ -15,7 +15,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public decimal Vacations { get; set; }
     }
 
-   public record PagedResponse<T>(
+    public record PagedResponse<T>(
         List<T> Data, 
         int TotalRecords, 
         int PageNumber, 

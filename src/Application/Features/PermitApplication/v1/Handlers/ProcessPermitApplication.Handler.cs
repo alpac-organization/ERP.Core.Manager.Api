@@ -246,7 +246,21 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         {
                             vacationInformationSolicitante.AvailableVacations -= permitApplication.AmountDays ?? 0.0m;
                             vacationInformationSolicitante.EnjoyedVacation += permitApplication.AmountDays ?? 0.0m;
-                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);  
+                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
+
+                            // Obtenemos la fecha actual sin horas para una comparación exacta de días
+                            DateTime hoy = DateTime.Today;
+
+                            if (hoy >= permitApplication.StartDate && hoy <= permitApplication.EndDate)
+                            {
+                                var collaborator = await _unitOfWork.Collaborators.Entities
+                                    .Where(col => col.Id == permitApplication.CollaboratorId)
+                                    .FirstOrDefaultAsync(cancellationToken);
+                                
+                                collaborator!.Status = CollaboratorStatus.Vacation;
+
+                                await _unitOfWork.Collaborators.UpdateAsync(collaborator);
+                            }
     
                             permitApplication.AdministratorFullName = $"{user.Fullname}";
                             permitApplication.SecondStepApproved = true;
@@ -254,7 +268,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                             await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
 
-                            //Actualizamos la información del solicitante
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                             return true;
@@ -288,7 +301,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             return true;
         }
 
-        private static bool RejectPermitApplication(RoleType roleType, Database.Domain.Entities.Payroll.PermitApplication permitApplication, string userFullname)
+        private static bool RejectPermitApplication(RoleType roleType, Database.Domain.Entities.Payrolls.PermitApplication permitApplication, string userFullname)
         {
             if (roleType == RoleType.Administrator)
             {
@@ -301,7 +314,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             else return false;
         }
 
-        private static bool MapperInformationToApprovedFirstStep(Database.Domain.Entities.Payroll.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
+        private static bool MapperInformationToApprovedFirstStep(Database.Domain.Entities.Payrolls.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
         {
             if (permitApplication.FirtsStepApproved is null && isApproved is true)
             {

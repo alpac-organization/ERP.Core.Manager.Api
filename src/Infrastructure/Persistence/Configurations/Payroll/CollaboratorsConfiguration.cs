@@ -1,4 +1,4 @@
-using ERP.Core.Database.Domain.Entities.Payroll;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -124,6 +124,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             //Registrar el control de salarios
             builder.HasMany(c => c.Salaries)
+                .WithOne(s => s.Collaborator)
+                .HasForeignKey(s => s.CollaboratorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(c => c.WorkPositionHistory)
+                .WithOne(s => s.Collaborator)
+                .HasForeignKey(s => s.CollaboratorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //Control de sus nominas quincenales
+            builder.HasMany(c => c.OrdinaryPayrolls)
+                .WithOne(s => s.Collaborator)
+                .HasForeignKey(s => s.CollaboratorId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            builder.HasMany(c => c.Deductions)
                 .WithOne(s => s.Collaborator)
                 .HasForeignKey(s => s.CollaboratorId)
                 .OnDelete(DeleteBehavior.Cascade);

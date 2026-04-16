@@ -7,7 +7,7 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
-using ERP.Core.Database.Domain.Entities.Payroll;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {

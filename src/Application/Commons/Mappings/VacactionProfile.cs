@@ -1,7 +1,7 @@
 using AutoMapper;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
-using ERP.Core.Database.Domain.Entities.Payroll;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 {

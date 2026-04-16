@@ -1,5 +1,5 @@
 using AutoMapper;
-using ERP.Core.Database.Domain.Entities.Payroll;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 

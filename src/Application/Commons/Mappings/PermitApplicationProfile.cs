@@ -1,5 +1,5 @@
 using AutoMapper;
-using ERP.Core.Database.Domain.Entities.Payroll;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
