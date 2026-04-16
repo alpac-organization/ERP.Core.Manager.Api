@@ -30,6 +30,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "identification_type_enum", new[] { "cedula", "cedula_residencia", "pasaporte" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "marital_status_enum", new[] { "divorced", "domestic_partner", "married", "none", "other", "separated", "single", "widowed" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payroll_status_enum", new[] { "cancelled", "closed", "completed", "progress" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payroll_type_enum", new[] { "none", "ordinary", "provided" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "permission_type_enum", new[] { "create", "delete", "read", "update" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "permit_application_status_enum", new[] { "approved", "cancelled", "pending", "rejected" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "permit_application_type_enum", new[] { "compensatory_time", "donated_vacations", "medical_appointment", "paid_leave", "special_leave", "unpaid_leave", "vacation" });
@@ -41,6 +42,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "identification_type_enum", new[] { "cedula", "pasaporte", "cedula_residencia" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "marital_status_enum", new[] { "none", "single", "married", "divorced", "widowed", "domestic_partner", "separated", "other" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "payroll_status_enum", new[] { "progress", "closed", "cancelled", "completed" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "payroll_type_enum", new[] { "none", "ordinary", "provided" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "permission_type_enum", new[] { "read", "create", "update", "delete" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "permit_application_status_enum", new[] { "pending", "approved", "rejected", "cancelled" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "permit_application_type_enum", new[] { "vacation", "medical_appointment", "compensatory_time", "paid_leave", "unpaid_leave", "special_leave", "donated_vacations" });
@@ -819,13 +821,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_date");
 
+                    b.Property<PayrollType>("PayrollType")
+                        .HasColumnType("payroll_type_enum")
+                        .HasColumnName("payroll_type");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("start_date");
 
                     b.Property<PayrollStatus>("Status")
                         .HasColumnType("payroll_status_enum")
-                        .HasColumnName("status");
+                        .HasColumnName("payroll_status");
 
                     b.Property<decimal>("TotalToPay")
                         .ValueGeneratedOnAdd()

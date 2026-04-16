@@ -199,6 +199,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                     permitApplication.EndDate = vacationData.EndDate;
                     permitApplication.StartDate = vacationData.StartDate;
+                    permitApplication.StartTime = vacationData.StartTime;
+                    permitApplication.EndTime = vacationData.EndTime;
+                    
                     permitApplication.Type = PermitApplicationType.Vacation;
                     MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
 
