@@ -21,7 +21,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         IPersonalInformationRepository personalInformationRepository,
         ISalariesRepository salariesRepository,
         IVacationsRepository vacationsRepository,
-        IPermitApplicationsRepository permitApplicationsRepository
+        IPermitApplicationsRepository permitApplicationsRepository,
+        IDeductionsRepository deductionsRepository,
+        IPayrollsRepository payrollsRepository,
+        IOrdinaryPayrollsRepository ordinaryPayrollsRepository,
+        IWorkPositionsHistoryRepository workPositionsHistoryRepository
     ) : IUnitOfWork
     {
         public AppDbContext Context => _context;
@@ -41,6 +45,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         public ISalariesRepository Salaries => salariesRepository;
         public IVacationsRepository Vacations => vacationsRepository;
         public IPermitApplicationsRepository PermitApplications => permitApplicationsRepository;
+        public IDeductionsRepository Deductions => deductionsRepository;
+        public IPayrollsRepository Payrolls => payrollsRepository;
+        public IOrdinaryPayrollsRepository OrdinaryPayrolls => ordinaryPayrollsRepository;
+        public IWorkPositionsHistoryRepository WorkPositionHistories => workPositionsHistoryRepository;
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {

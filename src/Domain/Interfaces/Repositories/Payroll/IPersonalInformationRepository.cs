@@ -1,4 +1,4 @@
-using ERP.Core.Database.Domain.Entities.Payroll;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Domain.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll

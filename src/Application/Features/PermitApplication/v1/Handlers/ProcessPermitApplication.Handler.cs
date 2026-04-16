@@ -301,7 +301,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             return true;
         }
 
-        private static bool RejectPermitApplication(RoleType roleType, Database.Domain.Entities.Payroll.PermitApplication permitApplication, string userFullname)
+        private static bool RejectPermitApplication(RoleType roleType, Database.Domain.Entities.Payrolls.PermitApplication permitApplication, string userFullname)
         {
             if (roleType == RoleType.Administrator)
             {
@@ -314,7 +314,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             else return false;
         }
 
-        private static bool MapperInformationToApprovedFirstStep(Database.Domain.Entities.Payroll.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
+        private static bool MapperInformationToApprovedFirstStep(Database.Domain.Entities.Payrolls.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
         {
             if (permitApplication.FirtsStepApproved is null && isApproved is true)
             {

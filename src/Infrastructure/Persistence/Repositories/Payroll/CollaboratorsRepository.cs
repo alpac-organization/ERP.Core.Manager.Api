@@ -1,4 +1,4 @@
-using ERP.Core.Database.Domain.Entities.Payroll;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;

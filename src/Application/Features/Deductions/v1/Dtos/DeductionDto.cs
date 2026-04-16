@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Dtos
 
     public record PagedResponseDeduction<T>(
         List<T> Data, 
-        int PageNumber, 
+        int PageNumber,
         int PageSize,
 
         int TotalDeductions = 0,

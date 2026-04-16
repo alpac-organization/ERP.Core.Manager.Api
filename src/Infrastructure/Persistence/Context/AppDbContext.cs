@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Database.Domain.Entities.Catalogs;
-using ERP.Core.Database.Domain.Entities.Payroll;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
 {
@@ -25,6 +25,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<Catalog> Catalogs { get; set; }
         public DbSet<SubCatalog> SubCatalogs { get; set; }
         public DbSet<Salary> Salaries => Set<Salary>();
+
+        public DbSet<Deduction> Deductions => Set<Deduction>();
+        public DbSet<Payroll> Payrolls => Set<Payroll>();
+        public DbSet<OrdinaryPayroll> OrdinaryPayrolls => Set<OrdinaryPayroll>();
+        public DbSet<WorkPositionHistory> WorkPositionHistories => Set<WorkPositionHistory>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -72,6 +77,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
             #endregion
 
             modelBuilder.HasPostgresEnum<DeductionType>("public","deduction_type_enum");
+            modelBuilder.HasPostgresEnum<PayrollStatus>("public","payroll_status_enum");
 
             
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())

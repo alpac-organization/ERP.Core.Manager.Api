@@ -45,6 +45,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
                     npgsqlOptions.MapEnum<PermitApplicationType>("permit_application_type_enum");
                     npgsqlOptions.MapEnum<MaritalStatus>("marital_status_enum");
                     npgsqlOptions.MapEnum<DeductionType>("deduction_type_enum");
+                    npgsqlOptions.MapEnum<PayrollStatus>("payroll_status_enum");
                 }));
 
             //Other Services del paquete de la empresa.
@@ -73,7 +74,10 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<ISalariesRepository, SalariesRepository>();
             services.AddScoped<IVacationsRepository, VacationsRepository>();
             services.AddScoped<IPermitApplicationsRepository, PermitApplicationsRepository>();
-
+            services.AddScoped<IDeductionsRepository, DeductionsRepository>();
+            services.AddScoped<IPayrollsRepository, PayrollsRepository>();
+            services.AddScoped<IOrdinaryPayrollsRepository, OrdinaryPayrollsRepository>();
+            services.AddScoped<IWorkPositionsHistoryRepository, WorkPositionsHistoryRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

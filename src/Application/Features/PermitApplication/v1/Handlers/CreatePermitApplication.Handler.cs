@@ -86,7 +86,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             #endregion Validaciones
 
-            var permitApplication = new Database.Domain.Entities.Payroll.PermitApplication
+            var permitApplication = new Database.Domain.Entities.Payrolls.PermitApplication
             {
                 StartDate = null,
                 EndDate = null,
@@ -327,7 +327,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             return (false, string.Empty);
         }
 
-        public static async void MapperCaseDefaultValues(Database.Domain.Entities.Payroll.PermitApplication entity, RoleType role, Channels channels, string moduleCode)
+        public static async void MapperCaseDefaultValues(Database.Domain.Entities.Payrolls.PermitApplication entity, RoleType role, Channels channels, string moduleCode)
         {
             if (moduleCode == "SOL-6NF2" && channels == Channels.DirectManagerPanel && role == RoleType.Manager)
             {

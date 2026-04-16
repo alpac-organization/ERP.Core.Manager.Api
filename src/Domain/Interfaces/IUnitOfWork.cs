@@ -20,6 +20,10 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         ISalariesRepository Salaries { get; }
         IVacationsRepository Vacations { get; }
         IPermitApplicationsRepository PermitApplications { get; }
+        IDeductionsRepository Deductions { get; }
+        IPayrollsRepository Payrolls { get; }
+        IOrdinaryPayrollsRepository OrdinaryPayrolls { get; }
+        IWorkPositionsHistoryRepository WorkPositionHistories { get; }
 
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }

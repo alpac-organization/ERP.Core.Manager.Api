@@ -8,14 +8,14 @@
     ".NETCoreApp,Version=v10.0": {
       "Domain/1.0.0": {
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.16",
-          "ERP.Core.Domain": "1.0.16"
+          "ERP.Core.Database.Domain": "1.0.22",
+          "ERP.Core.Domain": "1.0.20"
         },
         "runtime": {
           "Domain.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.16": {
+      "ERP.Core.Database.Domain/1.0.22": {
         "runtime": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -23,7 +23,7 @@
           }
         }
       },
-      "ERP.Core.Domain/1.0.16": {
+      "ERP.Core.Domain/1.0.20": {
         "runtime": {
           "lib/net9.0/ERP.Core.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -39,19 +39,19 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ERP.Core.Database.Domain/1.0.16": {
+    "ERP.Core.Database.Domain/1.0.22": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-aGZdFD7clXCPWmwSIPfCZCzuxAMp73RQZdoekfDtAwflU1AZ/G1eqnGDPQWO8ho0i7llF+74wRHZgQA/+qSAOA==",
-      "path": "erp.core.database.domain/1.0.16",
-      "hashPath": "erp.core.database.domain.1.0.16.nupkg.sha512"
+      "sha512": "sha512-r8M7XE52YQ5/CTKep5FQDRZnuNXC8Kf054g1XBi5m1wI+2EdlVjObd8We0LNCarvVcMZpSstqtmUv6u2z1/cAQ==",
+      "path": "erp.core.database.domain/1.0.22",
+      "hashPath": "erp.core.database.domain.1.0.22.nupkg.sha512"
     },
-    "ERP.Core.Domain/1.0.16": {
+    "ERP.Core.Domain/1.0.20": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-pJQqRLKZb8hoxBU5HXwX12nlMEs4FAjKDbEOmrFaMClONYHtZEEdyJJ7DydpzBglwiqgIvnwdYqn9wpwDUTaAg==",
-      "path": "erp.core.domain/1.0.16",
-      "hashPath": "erp.core.domain.1.0.16.nupkg.sha512"
+      "sha512": "sha512-VbX3cfj9C3Ltp/EDldMDTzgWOycjugvKcJsD8kbCl/v05mhsxATX1kFocY70rGM1650mxar2Ps/yJZFE5OWymg==",
+      "path": "erp.core.domain/1.0.20",
+      "hashPath": "erp.core.domain.1.0.20.nupkg.sha512"
     }
   }
 }
