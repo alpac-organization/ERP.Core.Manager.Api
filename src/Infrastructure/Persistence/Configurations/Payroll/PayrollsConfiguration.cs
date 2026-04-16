@@ -28,8 +28,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .IsRequired();
 
             builder.Property(e => e.Status)
-                .HasColumnName("status")
+                .HasColumnName("payroll_status")
+                .HasColumnType("payroll_status_enum")
                 .IsRequired();
+
+            builder.Property(e => e.PayrollType)
+                .HasColumnName("payroll_type")
+                .HasColumnType("payroll_type_enum");
 
             builder.Property(e => e.CompanyId)
                 .HasColumnName("company_id")

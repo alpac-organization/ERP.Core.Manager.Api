@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net10.0": {
-      "ERP.Core.Database.Domain/1.0.22": {
+      "ERP.Core.Database.Domain/1.0.28": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
@@ -11,7 +11,7 @@
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
         }
       },
-      "ERP.Core.Domain/1.0.20": {
+      "ERP.Core.Domain/1.0.26": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Domain.dll": {}
@@ -23,24 +23,24 @@
     }
   },
   "libraries": {
-    "ERP.Core.Database.Domain/1.0.22": {
-      "sha512": "r8M7XE52YQ5/CTKep5FQDRZnuNXC8Kf054g1XBi5m1wI+2EdlVjObd8We0LNCarvVcMZpSstqtmUv6u2z1/cAQ==",
+    "ERP.Core.Database.Domain/1.0.28": {
+      "sha512": "AlPPlHr2cMOPMBRWgNFr1vFMF2cQyeImAqv3RZJRz1DieoY0qMZPvUJWSeeYBZRN1/myTvwEOIxD/scyZ+/tMg==",
       "type": "package",
-      "path": "erp.core.database.domain/1.0.22",
+      "path": "erp.core.database.domain/1.0.28",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.domain.1.0.22.nupkg.sha512",
+        "erp.core.database.domain.1.0.28.nupkg.sha512",
         "erp.core.database.domain.nuspec",
         "lib/net9.0/ERP.Core.Database.Domain.dll"
       ]
     },
-    "ERP.Core.Domain/1.0.20": {
-      "sha512": "VbX3cfj9C3Ltp/EDldMDTzgWOycjugvKcJsD8kbCl/v05mhsxATX1kFocY70rGM1650mxar2Ps/yJZFE5OWymg==",
+    "ERP.Core.Domain/1.0.26": {
+      "sha512": "1E8IqNWVoOoKhpC37qyqeqNpXJDLbD0OytVVkovWvA+TGHt+/PT9apET/c/moYqG6nM/SVx199fScvyo2noxpw==",
       "type": "package",
-      "path": "erp.core.domain/1.0.20",
+      "path": "erp.core.domain/1.0.26",
       "files": [
         ".nupkg.metadata",
-        "erp.core.domain.1.0.20.nupkg.sha512",
+        "erp.core.domain.1.0.26.nupkg.sha512",
         "erp.core.domain.nuspec",
         "lib/net9.0/ERP.Core.Domain.dll"
       ]
@@ -48,8 +48,8 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "ERP.Core.Database.Domain >= 1.0.22",
-      "ERP.Core.Domain >= 1.0.20"
+      "ERP.Core.Database.Domain >= 1.0.28",
+      "ERP.Core.Domain >= 1.0.26"
     ]
   },
   "packageFolders": {
@@ -107,11 +107,11 @@
         "dependencies": {
           "ERP.Core.Database.Domain": {
             "target": "Package",
-            "version": "[1.0.22, )"
+            "version": "[1.0.28, )"
           },
           "ERP.Core.Domain": {
             "target": "Package",
-            "version": "[1.0.20, )"
+            "version": "[1.0.26, )"
           }
         },
         "imports": [

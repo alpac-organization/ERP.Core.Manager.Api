@@ -5,6 +5,7 @@ using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -33,10 +34,10 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         [Tags("Vacaciones")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/vacations")]      
-        [ProducesResponseType(typeof(List<VacationControlDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PagedResponse<VacationControlDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<List<VacationControlDto>> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code,
+        public async Task<PagedResponse<VacationControlDto>> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code,
             [FromQuery] DateTime start_date,
             [FromQuery] DateTime end_date,
             [FromQuery] int page_number = 1,

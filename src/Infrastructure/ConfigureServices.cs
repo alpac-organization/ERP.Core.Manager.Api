@@ -46,6 +46,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
                     npgsqlOptions.MapEnum<MaritalStatus>("marital_status_enum");
                     npgsqlOptions.MapEnum<DeductionType>("deduction_type_enum");
                     npgsqlOptions.MapEnum<PayrollStatus>("payroll_status_enum");
+                    npgsqlOptions.MapEnum<PayrollType>("payroll_type_enum");
                 }));
 
             //Other Services del paquete de la empresa.
