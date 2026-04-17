@@ -80,7 +80,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                         decimal DailySalary = MonthlySalary / 30;
 
                         //Analizar Bonos, Horas Extras, Salario Quincenal.
-                        decimal Overtime = 0.0m; 
+                        decimal Overtime = 0.0m;
 
                         //Calculos salariales
                         decimal GrossSalary = BiweeklySalary;
