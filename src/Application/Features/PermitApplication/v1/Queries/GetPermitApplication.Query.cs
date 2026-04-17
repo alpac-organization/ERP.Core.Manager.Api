@@ -5,7 +5,7 @@ using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries
 {
-    public class GetPermitApplicationQuery : BaseRequest, IRequest<List<PermitApplicationDto>>
+    public class GetPermitApplicationQuery : BaseRequest, IRequest<PagedResponse<PermitApplicationDto>>
     {
         public string? IdentificationNumber { get; set; }
         public PermitApplicationStatus? Status { get; set; }

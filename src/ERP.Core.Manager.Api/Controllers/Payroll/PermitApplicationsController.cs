@@ -8,6 +8,7 @@ using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -101,10 +102,10 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         //Modulo de solicitudes ver todas las solicitudes
         [Tags("Permisos")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/permit-applications")]      
-        [ProducesResponseType(typeof(List<PermitApplicationDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PagedResponse<PermitApplicationDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<List<PermitApplicationDto>> GetVacationRequestsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
+        public async Task<PagedResponse<PermitApplicationDto>> GetVacationRequestsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
             [FromQuery] string? identification_number, 
             [FromQuery] int page_size = 10, 
             [FromQuery] int page_number = 1, 
