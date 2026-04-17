@@ -28,47 +28,47 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.Inss)
                 .HasColumnName("inss")
-                .HasPrecision(18, 4)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.Ir)
                 .HasColumnName("ir")
-                .HasPrecision(18, 4)
+                .HasPrecision(18, 2)
                 .IsRequired();
             
             builder.Property(e => e.TotalDeducctions)
                 .HasColumnName("total_deductions")
-                .HasPrecision(18, 4)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.Deductions)
                 .HasColumnName("deductions")
-                .HasPrecision(18, 4)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.GrossSalary)
                 .HasColumnName("gross_salary")
-                .HasPrecision(18, 4)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.Vacations)
                 .HasColumnName("vacations")
-                .HasPrecision(18, 4)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.Overtime)
                 .HasColumnName("overtimes")
-                .HasPrecision(18, 4)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.Bonus)
                 .HasColumnName("bonus")
-                .HasPrecision(18, 4)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.TotalToPay)
                 .HasColumnName("total_to_pay")
-                .HasPrecision(18, 4)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.PayrollId)

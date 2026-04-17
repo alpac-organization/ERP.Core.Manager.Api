@@ -2,9 +2,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
 {
     public static class CalculatorUtils
     {
-        /// <summary>
-        /// Calcula los días transcurridos entre dos fechas (equivalente a tu función TS).
-        /// </summary>
         public static int CalculateDaysElapsedCommercial(DateTime entryDate)
         {
             var start = entryDate.Date;

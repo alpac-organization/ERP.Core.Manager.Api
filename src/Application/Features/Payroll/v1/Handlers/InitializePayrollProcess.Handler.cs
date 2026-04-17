@@ -58,65 +58,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             {
                 case PayrollType.Ordinary:
                 {
-                    
                     //Recorremos todos los colaboradores
                     foreach(var collaborator in collaborators)
                     {
-                        var salary = await _unitOfWork.Salaries.Entities   
-                            .Where(salary => salary.EndDate == null)
-                            .Where(salary => salary.SalaryType == SalaryType.Fixed)
-                            .Where(salary => salary.CollaboratorId == collaborator.Id)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (salary is null)
-                        {
-                            // _logger.LogInformation($"No se encontro información salarial del colaborador con identificación {collaborator.IdentificationNumber}");
-                            continue;
-                        }
-
-                        //Constantes Salariales
-                        decimal MonthlySalary = salary.AmountSalary;
-                        decimal BiweeklySalary = MonthlySalary / 2;
-                        decimal DailySalary = MonthlySalary / 30;
-
-                        //Analizar Bonos, Horas Extras, Salario Quincenal.
-                        decimal Overtime = 0.0m;
-
-                        //Calculos salariales
-                        decimal GrossSalary = BiweeklySalary;
-
-                        //Calculamos el inss
-                        decimal Inss = GrossSalary * 0.7m;
-
-                        //Calculo de ir
-                        decimal Ir = 0.0m;
-
-                        //Calcular Deducciones, en esta caso ir a buscar deducciones activas del colaborador para deducir.
-                        decimal Deductions = 0.0m;
-
-                        decimal TotalLegalDeductions = Inss + Ir;
-
-                        decimal TotalDeductions = TotalLegalDeductions + Deductions;
-
-
-                        var payload = new OrdinaryPayroll()
-                        {
-                            CollaboratorId = collaborator.Id,
-                            PayrollId = newPayroll.Id,
-                            GrossSalary = GrossSalary,
-                            Bonus = 0.0m,
-                            Inss = Inss,
-                            Ir = Ir,
-                            Overtime = Overtime,
-
-                            Deductions = Deductions,
-                            TotalDeducctions = TotalDeductions,
-                            Vacations = 0.0m,
-
-                        };
-
-                        await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        
                     }
 
                     break;
