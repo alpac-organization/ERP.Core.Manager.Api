@@ -61,8 +61,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<PayrollDto> GetCurrentPayrollInProgressAsync([FromRoute] Guid companie_id,  [FromRoute] string module_code, 
             [FromQuery] PayrollType type,
-            [FromQuery] int PageNumber = 1,
-            [FromQuery] int PageSize = 10
+            [FromQuery] int page_number = 1,
+            [FromQuery] int page_size = 10
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
@@ -73,8 +73,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 ModuleCode = module_code,
                 Type = type,
                 UserId = Guid.Parse(userIdStr ?? ""),
-                PageNumber = PageNumber,    
-                PageSize = PageSize
+                PageNumber = page_number,    
+                PageSize = page_size
             });
 
             return result;
