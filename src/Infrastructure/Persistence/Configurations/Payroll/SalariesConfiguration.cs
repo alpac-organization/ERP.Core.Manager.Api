@@ -26,17 +26,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             
             builder.Property(e => e.AmountInForeign)
                 .HasColumnName("amount_in_foreign")
-                .HasPrecision(18, 3) 
+                .HasPrecision(18, 2) 
                 .IsRequired();
 
             builder.Property(e => e.AmountInLocal)
                 .HasColumnName("amount_in_local")
-                .HasPrecision(18, 3)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.AmountSalary)
                 .HasColumnName("amount_salary")
-                .HasPrecision(18, 3)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(e => e.SalaryType)
