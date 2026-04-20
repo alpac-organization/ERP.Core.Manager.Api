@@ -1,11 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
-using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -14,7 +15,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     [Route("api/v1/")]
     public class PayrollsController(IMediator _mediator) : ApiControllerBase
     {
-        [Tags("Deducciones")] 
+        [Tags("Nomina")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/payrolls-status")]      
         [ProducesResponseType(typeof(CheckPayrollDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
@@ -30,6 +31,53 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 PayrollType = payrol_type,
                 UserId = Guid.Parse(userIdStr ?? "")
             });
+        }
+
+        [Tags("Nomina")] 
+        [HttpPost("companies/{companie_id}/modules/{module_code}/payrolls")]      
+        [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<CreatedResult> InitializePayrollProcessAsync([FromRoute] Guid companie_id,  [FromRoute] string module_code, [FromBody] InitializePayrollProcessCommand payload)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+            //Solo administradores pueden aperturar ciclo de nomina.
+
+            await _mediator.Send(new InitializePayrollProcessCommand(){
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                Type = payload.Type,
+                UserId = Guid.Parse(userIdStr ?? "")
+            });
+
+            return Created(string.Empty, null);
+        }
+
+
+        [Tags("Nomina")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/payrolls", Name = "GetPayrollActive")]      
+        [ProducesResponseType(typeof(PayrollDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<PayrollDto> GetCurrentPayrollInProgressAsync([FromRoute] Guid companie_id,  [FromRoute] string module_code, 
+            [FromQuery] PayrollType type,
+            [FromQuery] int PageNumber = 1,
+            [FromQuery] int PageSize = 10
+        )
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+            //Solo administradores pueden aperturar ciclo de nomina.
+
+            var result = await _mediator.Send(new GetCurrenPayrollInProgresssQuery(){
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                Type = type,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                PageNumber = PageNumber,    
+                PageSize = PageSize
+            });
+
+            return result;
         }
     }
 }

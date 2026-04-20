@@ -1,40 +1,78 @@
-using ERP.Core.Database.Domain.Entities.Payrolls;
-using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Domain.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
-    public class CalculatorDeductions(IUnitOfWork _unitOfWork) : ICalculatorDeductions
+    public class CalculatorDeductions(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : ICalculatorDeductions
     {
-        public decimal CalculateInss(decimal Salary)
+        public async Task<decimal> CalculateInss(decimal GrossSalary, CancellationToken cancellationToken)
         {
-            decimal inss = Salary * 0.07m;
-            return inss;
-        }
+            //Realizar la consulta a la tabla constantes de deducciones de ley,
+            var valuesDeductions = await _unitOfWork.ValidityDeductions.Entities
+                .Where(deduction => deduction.Type == TaxType.Inss)
+                .Where(deduction => deduction.Status == true)
+                .FirstOrDefaultAsync(cancellationToken);
 
-        //Salario Mensual = MonthlySalary, 
-        public decimal CalculateIR(decimal GrossSalary, int DaysWorked)
-        {
+            if (valuesDeductions is null)
+            {
+                _logger.LogWarning("No se encontró configuración activa de INSS");
+                return 0.0m;
+            }
+
+            _logger.LogInformation("Iniciando calculo de Inss");
             
+            var result = GrossSalary * valuesDeductions.Value;
 
-
-
-
-
-            return 0;
+            return Math.Round(result, 2, MidpointRounding.AwayFromZero);
         }
 
-        public async Task RegisterOrdinaryPayrollForCollaborator(Guid PayrollId, Guid CollaboratorId, CancellationToken cancellationToken)
+        public async Task<decimal> CalculateIr(decimal GrossSalary, int daysWorked, CancellationToken cancellationToken)
         {
-            //Obtener detalles de la nomina
+            //Para sacar el ir proporcional y debemos aprender a tomar en cuenta las horas extras y bonos
+            if (daysWorked <= 0 || GrossSalary <= 0) return 0;
+
+            //Iniciando proceso de calculo de ir
+            var InssBiweekly = await CalculateInss(GrossSalary, cancellationToken);
+            var BiweeklyTaxableBase = GrossSalary - InssBiweekly;
+
+            decimal StandardizedBiweeklyBase = (BiweeklyTaxableBase / daysWorked) * 15;
+
+            //Sacar la anualidad salarial para aplicar regla del ir.
+            decimal AnnualSalary = StandardizedBiweeklyBase * 24;
+            decimal AnnualIr;
+
+            // Tabla del ir.
+            if (AnnualSalary <= 100000)
+                AnnualIr = 0;
+            else if (AnnualSalary <= 200000)
+                AnnualIr = (AnnualSalary - 100000) * 0.15m;
+            else if (AnnualSalary <= 350000)
+                AnnualIr = ((AnnualSalary - 200000) * 0.20m) + 15000;
+            else if (AnnualSalary <= 500000)
+                AnnualIr = ((AnnualSalary - 350000) * 0.25m) + 45000;
+            else
+                AnnualIr = ((AnnualSalary - 500000) * 0.30m) + 82500;
+
+            decimal StandardBiweeklyIr = AnnualIr / 24;
+            decimal irProporcionalFinal = StandardBiweeklyIr / 15 * daysWorked;
+
+            return irProporcionalFinal;
+        }
+
+        public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
+        {
+            //Id de la nomina a la que vamos hacer el registro de insert.
             var payrollCreated = await _unitOfWork.Payrolls.Entities
-                .Where(payroll => payroll.Id == PayrollId)
+                .Where(payroll => payroll.Id == payrollId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (payrollCreated is null)
             {
+                _logger.LogInformation("No pudistmos encontrar el registro de nomina para hacer el insert de calculos");
                 return;
             }
 
@@ -43,73 +81,69 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     .ThenInclude(salary => salary.WorkingInformation)
                 .Where(salary => salary.EndDate == null)
                 .Where(salary => salary.SalaryType == SalaryType.Fixed)
-                .Where(salary => salary.CollaboratorId == CollaboratorId)
+                .Where(salary => salary.CollaboratorId == collaborator.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (salary is null)
             {
+                #pragma warning disable CA1873
+
+                _logger.LogInformation("No pudistmos encontrar la información salarial del colaborador con cedula => {identificacion}", collaborator.IdentificationNumber);
+                
+                #pragma warning restore CA1873
+                
                 return;
             }
 
-            //Constantes Salariales
-            decimal MonthlySalary   = salary.AmountSalary;
-            decimal BiweeklySalary  = MonthlySalary / 2;
-            decimal DailySalary     = MonthlySalary / 30;
+            //Fecha de ingreso a la empresa a laborar
+            DateTime entryDate = salary.Collaborator.WorkingInformation.EntryDate;
+            DateTime payrollStart = payrollCreated.StartDate;
 
-            //Buscar Registros de horas extras
+            DateTime payrollEnd = payrollCreated.EndDate ?? payrollStart.AddDays(14);
 
-            // await _unitOfWork.Overtimes.Entities.FindFirstOrDefaultAsync(cancellatonToken);
+            int daysWorked = 15;
+
+            //Calculamos los dias que laboro.
+            if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
+            else  daysWorked = 15; 
+
+            // Validaciones de seguridad para evitar días negativos o excesivos
+            if (daysWorked < 0) daysWorked = 0;
+            if (daysWorked > 15) daysWorked = 15;
+
+            decimal monthlySalary   = salary.AmountInLocal;
+            decimal dailySalary     = monthlySalary / 30;
+
+            decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
+
             decimal Overtime = 0.0m;
-
-            //await CalculateOvertimes(CollaboratorId);
-
-            //Buscar Registros de Bonos
             decimal Bonus = 0.0m;
 
-            //await GetBonuses(CollaboratorId);
+            decimal  GrossSalary = Overtime + Bonus + ProportionalBiweeklySalary;
 
-            //Salario Bruto, Sumamos Horas Extras, Bonos, Salario Quincenal
-            decimal GrossSalary = BiweeklySalary + Overtime + Bonus;
+            //Este inss es proporcional a los dias laborados
+            decimal InssBiweekly = await CalculateInss(GrossSalary, cancellationToken);
+            decimal IrBiweekly  = await CalculateIr(GrossSalary, daysWorked, cancellationToken);
 
-            //Deducimos Inss regla del 0.07%, aqui es quincenal el salario. por lo tanto el inss es quincenal
-            decimal InssBiweekly = CalculateInss(GrossSalary);
-
-            //Verificar si es un colaborador nuevo que acaba de ingresar o ya es viejo
-            DateTime EntryDate = salary.Collaborator.WorkingInformation.EntryDate;
-            DateTime PayrollStartDate = payrollCreated.StartDate;
-
-            // int StarndardDays = 15;
-            // int ProportionalDays = 0;
-
-
-            //Calculo de ir
-            // decimal Ir = CalculateIR();
-
-            //Calcular Deducciones, en esta caso ir a buscar deducciones activas del colaborador para deducir.
-            decimal Deductions = 0.0m;
-
-            decimal TotalLegalDeductions = Inss + Ir;
-
-            decimal TotalDeductions = TotalLegalDeductions + Deductions;
-
+            
+            decimal TotalToPay = GrossSalary - InssBiweekly - IrBiweekly;
 
             var payload = new OrdinaryPayroll()
             {
-                CollaboratorId   = CollaboratorId,
-                PayrollId        = PayrollId,
-
-                GrossSalary      = GrossSalary,
-                Bonus            = Bonus,
-                Inss             = InssBiweekly,
-                Ir               = 0.0m,
+                CollaboratorId   = collaborator.Id,
+                PayrollId        = payrollId,
                 Overtime         = Overtime,
-                Deductions       = Deductions,
-                TotalDeducctions = TotalDeductions,
+                Bonus            = Bonus,
+                GrossSalary      = GrossSalary,
+                Inss             = InssBiweekly,
+                Ir               = IrBiweekly,
                 Vacations        = 0.0m,
+                Deductions       = 0.0m,
+                TotalDeducctions = 0.0m,
+                TotalToPay       = TotalToPay,
             };
 
             await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

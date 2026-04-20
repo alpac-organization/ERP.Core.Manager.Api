@@ -1,20 +1,31 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Commands;
-using ERP.Core.Database.Domain.Enums;
-using Microsoft.Extensions.Logging;
-using ERP.Core.Database.Domain.Entities.Payrolls;
-
-namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
+namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class InitializePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, 
-        ILogger<InitializePayrollProcessHandler> _logger): AlpacBaseHandler<InitializePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
+    public class InitializePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ICalculatorDeductions _calculatorDeductions): AlpacBaseHandler<InitializePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(InitializePayrollProcessCommand request, CancellationToken cancellationToken)
         {
+
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess) 
+            {
+                return access.ErrorResponse!; 
+            }
+
+            //Solo Administradores puede realizar la apertura de la nomina.
+
+            if (access.Role!.RoleType != RoleType.Administrator)
+            {
+                return _errorManager.ThrowBadRequest<bool>("Solo los administradores pueden aperturar el ciclo de la nomina", "ERP:001");
+            }
 
             var lastPayroll = await _unitOfWork.Payrolls.Entities 
                 .Where(payroll => payroll.CompanyId == request.CompanyId)
@@ -61,8 +72,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                     //Recorremos todos los colaboradores
                     foreach(var collaborator in collaborators)
                     {
-                        
+                        await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
                     }
+                    
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                     break;
                 }
@@ -72,9 +85,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 }
             }
 
-
-
-            await _unitOfWork.Payrolls.InitializePayroll(newPayroll);
 
             return true;
         }

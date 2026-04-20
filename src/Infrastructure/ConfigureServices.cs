@@ -17,6 +17,8 @@ using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Infrastructure.Services;
+using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Catalogs;
+using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Catalogs;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -47,6 +49,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
                     npgsqlOptions.MapEnum<DeductionType>("deduction_type_enum");
                     npgsqlOptions.MapEnum<PayrollStatus>("payroll_status_enum");
                     npgsqlOptions.MapEnum<PayrollType>("payroll_type_enum");
+                    npgsqlOptions.MapEnum<TaxType>("tax_type_enum");
                 }));
 
             //Other Services del paquete de la empresa.
@@ -55,6 +58,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
 
             services.AddTransient<ITemplateServices, TemplateServices>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<ICalculatorDeductions, CalculatorDeductions>();
 
             //Services
             services.AddScoped<IAuthServices, AuthServices>();
@@ -79,6 +83,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IPayrollsRepository, PayrollsRepository>();
             services.AddScoped<IOrdinaryPayrollsRepository, OrdinaryPayrollsRepository>();
             services.AddScoped<IWorkPositionsHistoryRepository, WorkPositionsHistoryRepository>();
+            services.AddScoped<IValidityDeductionsRepository, ValidityDeductionsRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

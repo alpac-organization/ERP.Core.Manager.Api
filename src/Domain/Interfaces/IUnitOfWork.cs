@@ -1,4 +1,5 @@
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Catalogs;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
 
 namespace ERP.Core.Manager.Api.Domain.Interfaces
@@ -24,6 +25,7 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         IPayrollsRepository Payrolls { get; }
         IOrdinaryPayrollsRepository OrdinaryPayrolls { get; }
         IWorkPositionsHistoryRepository WorkPositionHistories { get; }
+        IValidityDeductionsRepository ValidityDeductions { get; }
 
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
