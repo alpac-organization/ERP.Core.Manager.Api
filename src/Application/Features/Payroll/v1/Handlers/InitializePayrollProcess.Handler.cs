@@ -62,7 +62,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Include(c => c.WorkingInformation)
                 .Where(c => c.CompanyId == request.CompanyId)
                 .Where(c => c.Status != CollaboratorStatus.Inactive)
-                .Where(c => c.Salaries.Any(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed)) 
+                .Where(c => c.Salaries.Any(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed))
+                .Where(c => c.WorkingInformation.Branch.CatalogId == request.BranchId)
                 .ToListAsync(cancellationToken);
 
             switch (request.Type)
