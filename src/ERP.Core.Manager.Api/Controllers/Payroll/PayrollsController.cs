@@ -20,7 +20,9 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(CheckPayrollDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<CheckPayrollDto> CheckIfThereIsPayrollInProgressAsync([FromRoute] Guid companie_id,  [FromRoute] string module_code, [FromQuery] PayrollType payrol_type)
+        public async Task<CheckPayrollDto> CheckIfThereIsPayrollInProgressAsync([FromRoute] Guid companie_id,  [FromRoute] string module_code, [FromQuery] PayrollType payrol_type,
+            [FromQuery] int branch_id
+        )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
@@ -28,6 +30,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             {
                 CompanyId = companie_id,
                 ModuleCode = module_code,
+                BranchId = branch_id,
                 PayrollType = payrol_type,
                 UserId = Guid.Parse(userIdStr ?? "")
             });

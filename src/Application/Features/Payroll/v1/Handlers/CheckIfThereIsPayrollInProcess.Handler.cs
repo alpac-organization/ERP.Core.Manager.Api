@@ -25,6 +25,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Where(payroll => payroll.CompanyId == request.CompanyId)
                 .Where(payroll => payroll.Status == PayrollStatus.Progress)
                 .Where(payroll => payroll.PayrollType == request.PayrollType)
+                .Where(payroll => payroll.BranchId == request.BranchId)
                 .AnyAsync(cancellationToken);
            
            return new ()
