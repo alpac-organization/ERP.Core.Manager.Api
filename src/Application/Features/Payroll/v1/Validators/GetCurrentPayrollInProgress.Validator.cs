@@ -30,6 +30,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Validators
                     .WithMessage("El tipo de nomina es requerido")
                 .NotNull()
                     .WithMessage("El tipo de nomina es requerido");
+
+            RuleFor(x => x.BranchId)
+                .NotEmpty()
+                    .WithMessage("Seleccione una sucursal")
+                .NotNull()
+                    .WithMessage("Seleccione una sucursal");
         }
     }
 }
