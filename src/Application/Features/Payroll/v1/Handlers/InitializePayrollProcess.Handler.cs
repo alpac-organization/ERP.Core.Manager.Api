@@ -50,7 +50,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 Status = PayrollStatus.Progress,
                 PayrollType = request.Type,
                 CompanyId = request.CompanyId,
-                TotalToPay = 0.0m
+                TotalToPay = 0.0m,
+                BranchId = request.BranchId
             };
 
             //Inicializamos el proceso con exito
@@ -62,28 +63,48 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Include(c => c.WorkingInformation)
                 .Where(c => c.CompanyId == request.CompanyId)
                 .Where(c => c.Status != CollaboratorStatus.Inactive)
-                .Where(c => c.Salaries.Any(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed)) 
+                .Where(c => c.Salaries.Any(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed))
+                .Where(c => c.WorkingInformation.BranchId == request.BranchId)
                 .ToListAsync(cancellationToken);
 
-            switch (request.Type)
+            if (request.BranchId == 80)
             {
-                case PayrollType.Ordinary:
-                {
-                    //Recorremos todos los colaboradores
-                    foreach(var collaborator in collaborators)
-                    {
-                        await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
-                    }
-                    
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                    break;
-                }
-                default:
-                {
-                    return _errorManager.ThrowBadRequest<bool>("Error la crear esta nomina, el tipo de nomina no es valido", "ERP:01");    
-                }
+                //ALPAC EVENTUALES
             }
+            else if (request.BranchId == 68)
+            {
+                //ALPAC Managua
+                switch (request.Type)
+                {
+                    case PayrollType.Ordinary:
+                    {
+                        //Recorremos todos los colaboradores
+                        foreach(var collaborator in collaborators)
+                        {
+                            await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
+                        }
+
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        break;
+                    }
+                    default:
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("Error la crear esta nomina, el tipo de nomina no es valido", "ERP:01");    
+                    }
+                }
+                
+            }
+            else if (request.BranchId == 67)
+            {
+                //ALPAC Corinto
+                
+            }
+            else
+            {
+                return _errorManager.ThrowBadRequest<bool>("Esta sucursal no esta registrada en el sitema", "ERP:01");
+            }
+
+            
 
 
             return true;

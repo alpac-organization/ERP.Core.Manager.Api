@@ -46,6 +46,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             await _mediator.Send(new InitializePayrollProcessCommand(){
                 CompanyId = companie_id,
                 ModuleCode = module_code,
+                BranchId = payload.BranchId,
                 Type = payload.Type,
                 UserId = Guid.Parse(userIdStr ?? "")
             });
@@ -61,6 +62,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<PayrollDto> GetCurrentPayrollInProgressAsync([FromRoute] Guid companie_id,  [FromRoute] string module_code, 
             [FromQuery] PayrollType type,
+            [FromQuery] int branch_id,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
         )
@@ -73,6 +75,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 ModuleCode = module_code,
                 Type = type,
                 UserId = Guid.Parse(userIdStr ?? ""),
+                BranchId = branch_id,
                 PageNumber = page_number,    
                 PageSize = page_size
             });

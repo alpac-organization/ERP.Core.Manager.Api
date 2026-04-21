@@ -32,7 +32,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Where( 
                     p => p.CompanyId == request.CompanyId && 
                     p.PayrollType == request.Type && 
-                    p.Status == PayrollStatus.Progress
+                    p.Status == PayrollStatus.Progress &&
+                    p.BranchId == request.BranchId
                 )
                 .Select(p => new PayrollDto
                 {

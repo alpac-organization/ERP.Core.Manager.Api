@@ -4,6 +4,7 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260421161616_AgregarNuevoValorEnumsNomina")]
+    partial class AgregarNuevoValorEnumsNomina
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -917,10 +920,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasColumnName("payroll_id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<int>("BranchId")
-                        .HasColumnType("integer")
-                        .HasColumnName("branch_id");
-
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uuid")
                         .HasColumnName("company_id");
@@ -958,8 +957,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasColumnName("total_to_pay");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BranchId");
 
                     b.HasIndex("CompanyId");
 
@@ -1485,19 +1482,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
 
             modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Payrolls.Payroll", b =>
                 {
-                    b.HasOne("ERP.Core.Database.Domain.Entities.Catalogs.SubCatalog", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("ERP.Core.Database.Domain.Entities.Catalogs.Company", "Company")
                         .WithMany("Payrolls")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Branch");
 
                     b.Navigation("Company");
                 });

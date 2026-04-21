@@ -31,6 +31,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnType("payroll_status_enum")
                 .IsRequired();
 
+            builder.Property(e => e.BranchId)
+                .HasColumnName("branch_id")
+                .IsRequired();
+
             builder.Property(e => e.PayrollType)
                 .HasColumnName("payroll_type")
                 .HasColumnType("payroll_type_enum");
@@ -42,6 +46,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.StartDate)
                 .HasColumnName("start_date")
                 .IsRequired();
+
+            builder.HasOne(d => d.Branch)
+                .WithMany()
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(e => e.EndDate)
                 .HasColumnName("end_date")
