@@ -7,7 +7,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries
 {
     public class GetCurrenPayrollInProgresssQuery: BaseRequest, IRequest<PayrollDto>
     {
-        public int BranchId { get; set; }
+        public Guid BranchId { get; set; }
         public PayrollType Type { get; set; }
         
         public int PageSize { get; set; }

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "zlNyLDyzYrw=",
+  "dgSpecHash": "CIUeQos/Ess=",
   "success": true,
   "projectFilePath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\ERP.Core.Manager.Api\\ERP.Core.Manager.Api.csproj",
   "expectedPackageFiles": [
@@ -8,7 +8,7 @@
     "C:\\Users\\desarrollo\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\dinktopdf\\1.0.8\\dinktopdf.1.0.8.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.application\\1.0.43\\erp.core.application.1.0.43.nupkg.sha512",
-    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.database.domain\\1.0.43\\erp.core.database.domain.1.0.43.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.database.domain\\1.0.45\\erp.core.database.domain.1.0.45.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.domain\\1.0.43\\erp.core.domain.1.0.43.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.infrastructure\\1.0.43\\erp.core.infrastructure.1.0.43.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\fluentvalidation\\12.1.1\\fluentvalidation.12.1.1.nupkg.sha512",

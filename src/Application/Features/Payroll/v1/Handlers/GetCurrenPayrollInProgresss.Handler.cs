@@ -22,18 +22,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
             //Solo Administradores puede realizar la apertura de la nomina.
 
-            // if (access.Role!.RoleType != RoleType.Administrator || access.Role!.RoleType != RoleType.Operator)
-            // {
-            //     return _errorManager.ThrowBadRequest<PayrollDto>("Solo los administradores pueden aperturar el ciclo de la nomina", "ERP:001");
-            // }
-
             var payroll = await _unitOfWork.Payrolls.Entities
                 .AsNoTracking()
+                .Include(p => p.Branch)
+                    .ThenInclude(branch => branch.Company)
                 .Where( 
-                    p => p.CompanyId == request.CompanyId && 
+                    p => p.Branch.Company.Id == request.CompanyId && 
                     p.PayrollType == request.Type && 
                     p.Status == PayrollStatus.Progress &&
-                    p.BranchId == request.BranchId
+                    p.Branch.Id == request.BranchId
                 )
                 .Select(p => new PayrollDto
                 {
