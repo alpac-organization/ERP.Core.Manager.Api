@@ -234,7 +234,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     else return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar esta solicitud", "ERP:01"); 
                     #endregion
 
-                    #region Aprobar solicitud de vacaciones
+                    #region Aprobar solicitud de vacaciones 
                     if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved)
                     {
                         if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
@@ -285,7 +285,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         {
                             await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
-                        } else return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden rechazar la solicitud", "ERP:03"); 
+                        } 
+                        else
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden rechazar la solicitud", "ERP:03"); 
+                        }
                     }
 
                     #endregion
@@ -303,11 +307,18 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
         private static bool RejectPermitApplication(RoleType roleType, Database.Domain.Entities.Payrolls.PermitApplication permitApplication, string userFullname)
         {
-            if (roleType == RoleType.Administrator)
+            if (roleType == RoleType.Administrator )
             {
                 permitApplication.AdministratorFullName = $"{userFullname}";
                 permitApplication.SecondStepApproved = false;
                 permitApplication.Status = PermitApplicationStatus.Rejected;
+
+                return true;
+            }
+            else if(roleType == RoleType.Manager)
+            {
+                permitApplication.ManagerFullname = $"{userFullname}";
+                permitApplication.FirtsStepApproved = false;
 
                 return true;
             }

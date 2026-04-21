@@ -11,7 +11,7 @@
           "AutoMapper": "13.0.1",
           "BCrypt.Net-Next": "4.1.0",
           "Domain": "1.0.0",
-          "ERP.Core.Application": "1.0.37",
+          "ERP.Core.Application": "1.0.41",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0",
           "Microsoft.EntityFrameworkCore": "10.0.5",
@@ -40,9 +40,9 @@
           }
         }
       },
-      "ERP.Core.Application/1.0.37": {
+      "ERP.Core.Application/1.0.41": {
         "dependencies": {
-          "ERP.Core.Domain": "1.0.37",
+          "ERP.Core.Domain": "1.0.41",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0"
         },
@@ -53,7 +53,7 @@
           }
         }
       },
-      "ERP.Core.Database.Domain/1.0.37": {
+      "ERP.Core.Database.Domain/1.0.41": {
         "runtime": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -61,7 +61,7 @@
           }
         }
       },
-      "ERP.Core.Domain/1.0.37": {
+      "ERP.Core.Domain/1.0.41": {
         "runtime": {
           "lib/net9.0/ERP.Core.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -265,8 +265,8 @@
       },
       "Domain/1.0.0": {
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.37",
-          "ERP.Core.Domain": "1.0.37"
+          "ERP.Core.Database.Domain": "1.0.41",
+          "ERP.Core.Domain": "1.0.41"
         },
         "runtime": {
           "Domain.dll": {
@@ -297,26 +297,26 @@
       "path": "bcrypt.net-next/4.1.0",
       "hashPath": "bcrypt.net-next.4.1.0.nupkg.sha512"
     },
-    "ERP.Core.Application/1.0.37": {
+    "ERP.Core.Application/1.0.41": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-vOQIKT+lI/Z9/r5pkdNfn0dCrOrDbrf67wkqQ+W+L8FJtNw1Mrn9Vw27HqYUAMkIOyQlyJx31v3PcWPr+U4qDA==",
-      "path": "erp.core.application/1.0.37",
-      "hashPath": "erp.core.application.1.0.37.nupkg.sha512"
+      "sha512": "sha512-4m4uABhxhxH3LMG6prl0Ft/1DZM/fKjM4aMNpWyWwk6JI5EqaMfcXPsvETnt4MWl0bNITtSy2wDegLrhKRO4rg==",
+      "path": "erp.core.application/1.0.41",
+      "hashPath": "erp.core.application.1.0.41.nupkg.sha512"
     },
-    "ERP.Core.Database.Domain/1.0.37": {
+    "ERP.Core.Database.Domain/1.0.41": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Gq8aLa1tmUoYhvFKVVeQYOpuuUkSpCaodh1Hwnfrru7QxaRnqP6nu1iRLXC1dzukejpbQfsx1kyiu/Pc0Yh9Ww==",
-      "path": "erp.core.database.domain/1.0.37",
-      "hashPath": "erp.core.database.domain.1.0.37.nupkg.sha512"
+      "sha512": "sha512-nfNxDi4qB6oIpwuABKPOOOJMPVfMMMK6j0SMZyKxTjl4pgyQzG3x4Y+Mb1Zpeesr+1252CJ+nvcLDfhBgHL71g==",
+      "path": "erp.core.database.domain/1.0.41",
+      "hashPath": "erp.core.database.domain.1.0.41.nupkg.sha512"
     },
-    "ERP.Core.Domain/1.0.37": {
+    "ERP.Core.Domain/1.0.41": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Qzld7C0qjqaQdbQ6KY59ZpmU/50gWBJ4aBOP7hZ0t6Miv/D8e0PSbmbP5z9nCc0HiJs8CHgc8xrQ9ynqOpo+zQ==",
-      "path": "erp.core.domain/1.0.37",
-      "hashPath": "erp.core.domain.1.0.37.nupkg.sha512"
+      "sha512": "sha512-xV+mRHDZ6MMMQZ1AvD5cY1PJOtX2c2IQ3ZkEqtgxOxHN+GH1X5lWRUDsdBu2+ljBhIPXddIakfdaHSmIQCsfNA==",
+      "path": "erp.core.domain/1.0.41",
+      "hashPath": "erp.core.domain.1.0.41.nupkg.sha512"
     },
     "FluentValidation/12.1.1": {
       "type": "package",

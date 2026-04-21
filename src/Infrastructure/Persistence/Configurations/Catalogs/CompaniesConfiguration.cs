@@ -22,6 +22,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasColumnName("alias")
                 .HasMaxLength(100);
 
+            builder.Property(e => e.Ruc)
+                .HasColumnName("ruc")
+                .HasMaxLength(120);
+
             builder.Property(e => e.CompanieName)
                 .HasColumnName("company_name")
                 .HasMaxLength(200);
@@ -50,6 +54,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasColumnName("deleted_at");
 
             builder.HasMany(c => c.Catalogs)
+                .WithOne(m => m.Company)
+                .HasForeignKey(m => m.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(c => c.Branches)
                 .WithOne(m => m.Company)
                 .HasForeignKey(m => m.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
