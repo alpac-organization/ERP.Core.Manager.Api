@@ -26,7 +26,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 .Include(info => info.Collaborator)
                 .Where(info => info.Collaborator.CompanyId == request.CompanyId)
                 .Where(info => info.Status != PermitApplicationStatus.Cancelled)
-                .Where(info => info.FirtsStepApproved == true)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.IdentificationNumber))
