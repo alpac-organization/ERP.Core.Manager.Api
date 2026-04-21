@@ -26,6 +26,7 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         IOrdinaryPayrollsRepository OrdinaryPayrolls { get; }
         IWorkPositionsHistoryRepository WorkPositionHistories { get; }
         IValidityDeductionsRepository ValidityDeductions { get; }
+        IBranchesRepository Branches { get; }
 
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }

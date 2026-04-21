@@ -84,6 +84,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IOrdinaryPayrollsRepository, OrdinaryPayrollsRepository>();
             services.AddScoped<IWorkPositionsHistoryRepository, WorkPositionsHistoryRepository>();
             services.AddScoped<IValidityDeductionsRepository, ValidityDeductionsRepository>();
+            services.AddScoped<IBranchesRepository, BranchesRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

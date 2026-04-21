@@ -358,6 +358,55 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     b.ToTable("users_profiles", "public");
                 });
 
+            modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Catalogs.Branch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("BranchAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("branch_address");
+
+                    b.Property<string>("BranchName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("branch_name");
+
+                    b.Property<string>("CompanyAlias")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("company_alias");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text")
+                        .HasColumnName("phone_number");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("IX_branches_company_id");
+
+                    b.ToTable("branches", "public");
+                });
+
             modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Catalogs.Catalog", b =>
                 {
                     b.Property<int>("Id")
@@ -462,6 +511,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     b.Property<string>("NeutralImageUrl")
                         .HasColumnType("text")
                         .HasColumnName("neutral_image_url");
+
+                    b.Property<string>("Ruc")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("ruc");
 
                     b.HasKey("Id");
 
@@ -1421,6 +1475,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Catalogs.Branch", b =>
+                {
+                    b.HasOne("ERP.Core.Database.Domain.Entities.Catalogs.Company", "Company")
+                        .WithMany("Branches")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Catalogs.Catalog", b =>
                 {
                     b.HasOne("ERP.Core.Database.Domain.Entities.Catalogs.Company", "Company")
@@ -1633,6 +1698,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
 
             modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Catalogs.Company", b =>
                 {
+                    b.Navigation("Branches");
+
                     b.Navigation("Catalogs");
 
                     b.Navigation("Collaborators");

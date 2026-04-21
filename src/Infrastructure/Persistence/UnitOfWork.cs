@@ -27,7 +27,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         IPayrollsRepository payrollsRepository,
         IOrdinaryPayrollsRepository ordinaryPayrollsRepository,
         IWorkPositionsHistoryRepository workPositionsHistoryRepository,
-        IValidityDeductionsRepository validityDeductionsRepository
+        IValidityDeductionsRepository validityDeductionsRepository,
+        IBranchesRepository branchesRepository
     ) : IUnitOfWork
     {
         public AppDbContext Context => _context;
@@ -52,6 +53,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         public IOrdinaryPayrollsRepository OrdinaryPayrolls => ordinaryPayrollsRepository;
         public IWorkPositionsHistoryRepository WorkPositionHistories => workPositionsHistoryRepository;
         public IValidityDeductionsRepository ValidityDeductions => validityDeductionsRepository;
+        public IBranchesRepository Branches => branchesRepository;
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
