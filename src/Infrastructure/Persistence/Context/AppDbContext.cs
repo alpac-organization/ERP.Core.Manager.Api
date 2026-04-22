@@ -22,8 +22,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<WorkingInformation> WorkingInformation => Set<WorkingInformation>();
         public DbSet<Vacation> Vacations => Set<Vacation>();
         public DbSet<PermitApplication> PermitApplications => Set<PermitApplication>();
-        public DbSet<Catalog> Catalogs { get; set; }
-        public DbSet<SubCatalog> SubCatalogs { get; set; }
+        public DbSet<Catalog> Catalogs => Set<Catalog>();
+        public DbSet<SubCatalog> SubCatalogs => Set<SubCatalog>();
         public DbSet<Salary> Salaries => Set<Salary>();
 
         public DbSet<Deduction> Deductions => Set<Deduction>();
