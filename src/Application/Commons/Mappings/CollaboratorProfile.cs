@@ -40,13 +40,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                     : string.Empty))
 
                 .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => 
-                    src.WorkingInformation != null && src.WorkingInformation.Branch != null 
-                    ? src.WorkingInformation.Branch.CatalogName 
-                    : string.Empty))
-
-                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => 
-                    src.WorkingInformation != null && src.WorkingInformation.Branch != null 
-                    ? src.WorkingInformation.Branch.CatalogName 
+                    src.WorkingInformation != null && src.WorkingInformation.BranchInfo != null 
+                    ? src.WorkingInformation.BranchInfo.BranchName 
                     : string.Empty))
 
                 .ForMember(dest => dest.Vacations, opt => opt.MapFrom(src => 
@@ -75,7 +70,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.WorkPhoneNumber, opt => opt.MapFrom(src => src.WorkPhoneNumber))
                 .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(src => src.EntryDate))
                 .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkPosition.CatalogName))
-                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.CatalogName));
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.BranchInfo.BranchName));
 
             CreateMap<Salary, SalaryInformationDto>()
                 .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.AmountSalary))
@@ -161,7 +156,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 CollaboratorId = collaboratorId,
                 WorkAreaId = info.WorkAreaId,
                 WorkPositionId = info.WorkPositionId,
-                BranchId = info.BranchId,
+                CompanyBranchId = info.BranchId,
                 BankAccountNumber = info.BankAccountNumber,
                 WorkPhoneNumber = info.WorkPhoneNumber,
                 WorkEmail = info.WorkEmail,

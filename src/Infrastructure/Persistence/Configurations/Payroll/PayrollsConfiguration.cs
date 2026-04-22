@@ -24,7 +24,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.TotalToPay)
                 .HasColumnName("total_to_pay")
                 .HasDefaultValue(0)
-                .IsRequired();
+                .IsRequired();  
 
             builder.Property(e => e.Status)
                 .HasColumnName("payroll_status")
@@ -32,7 +32,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .IsRequired();
 
             builder.Property(e => e.BranchId)
-                .HasColumnName("branch_id")
+                .HasColumnName("company_branch_id")
                 .IsRequired();
 
             builder.Property(e => e.PayrollType)

@@ -26,8 +26,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 .Include(c => c.WorkingInformation)
                     .ThenInclude(w => w.WorkPosition)
 
-                .Include(c => c.WorkingInformation)
-                    .ThenInclude(w => w.Branch)
+                // .Include(c => c.WorkingInformation)
+                //     .ThenInclude(w => w.Branch)
 
                 .Include(c => c.Salaries.Where(s => s.EndDate == null))
 

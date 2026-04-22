@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "CduFFG0EAh8=",
+  "dgSpecHash": "nx9GpyQiOpQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.database.domain\\1.0.45\\erp.core.database.domain.1.0.45.nupkg.sha512",
-    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.domain\\1.0.43\\erp.core.domain.1.0.43.nupkg.sha512"
+    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.database.domain\\1.0.49\\erp.core.database.domain.1.0.49.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.domain\\1.0.49\\erp.core.domain.1.0.49.nupkg.sha512"
   ],
   "logs": []
 }

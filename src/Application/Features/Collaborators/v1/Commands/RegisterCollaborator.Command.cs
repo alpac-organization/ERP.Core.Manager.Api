@@ -42,7 +42,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         //Catalogs
         public int WorkAreaId { get; set; }
         public int WorkPositionId { get; set; }
-        public int BranchId { get; set; }
+        public Guid BranchId { get; set; }
 
         public DateTime EntryDate { get; set; }
     }
