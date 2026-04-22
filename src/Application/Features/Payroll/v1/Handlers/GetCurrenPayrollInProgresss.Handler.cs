@@ -34,10 +34,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 )
                 .Select(p => new PayrollDto
                 {
-                    PayrollId = p.Id,
-                    StartDate = p.StartDate,
-                    EndDate   = p.EndDate ?? p.StartDate.AddDays(14),
-                    Type      = p.PayrollType
+                    PayrollId  = p.Id,
+                    StartDate  = p.StartDate,
+                    EndDate    = p.EndDate ?? p.StartDate.AddDays(14),
+                    Type       = p.PayrollType,
+                    BranchName = p.Branch.BranchName
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 

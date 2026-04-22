@@ -8,6 +8,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public PayrollType Type { get; set; }
+        public string? BranchName { get; set; }
 
         public PaginatedDetailsDto PayrollDetails { get; set; } = new();
     }
