@@ -128,6 +128,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             decimal TotalToPay = GrossSalary - InssBiweekly - IrBiweekly;
 
+            decimal TotalLegalDeductions = InssBiweekly + IrBiweekly;
+            decimal Deductions = 0.0m;
+
+            decimal TotalDeducctions = TotalLegalDeductions;
+
             var payload = new OrdinaryPayroll()
             {
                 CollaboratorId   = collaborator.Id,
@@ -137,9 +142,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 GrossSalary      = GrossSalary,
                 Inss             = InssBiweekly,
                 Ir               = IrBiweekly,
-                Vacations        = 0.0m,
-                Deductions       = 0.0m,
-                TotalDeducctions = 0.0m,
+                TotalLegalDeductions = TotalLegalDeductions,
+                Deductions       = Deductions,
+                TotalDeducctions = TotalDeducctions,
                 TotalToPay       = TotalToPay,
             };
 
