@@ -68,8 +68,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             //ALPAC: Managua
-            if (request.BranchId == Guid.Parse("f9c8c488-f53e-46c2-9594-1e9b23cf805c"))
-            {
+            // if (request.BranchId == Guid.Parse("f9c8c488-f53e-46c2-9594-1e9b23cf805c"))
+            // {
                 switch (request.Type)
                 {
                     case PayrollType.Ordinary:
@@ -98,11 +98,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     }
                 }
                 
-            }
-            else
-            {
-                return _errorManager.ThrowBadRequest<bool>("Esta sucursal no esta registrada en el sitema", "ERP:01");
-            }
+            // }
+            // else
+            // {
+            //     return _errorManager.ThrowBadRequest<bool>("Esta sucursal no esta registrada en el sitema", "ERP:01");
+            // }
 
             return true;
         }
