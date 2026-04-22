@@ -63,8 +63,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     Ir = op.Ir,
                     Inss = op.Inss,
                     GrossSalary = op.GrossSalary,
+                    BiweeklySalary = op.BiweeklySalary,
                     Deductions = op.Deductions,
                     TotalToPay = op.TotalToPay,
+                    TotalLegalDeductions = op.TotalLegalDeductions,
                     Collaborator = new CollaboratorInformationDto
                     {
                         FullName = $"{op.Collaborator.FirstName} {op.Collaborator.SecondName ?? ""} {op.Collaborator.FirstLastname} {op.Collaborator.SecondLastname ?? ""}",

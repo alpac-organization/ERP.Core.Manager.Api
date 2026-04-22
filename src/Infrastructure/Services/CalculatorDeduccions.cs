@@ -112,6 +112,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (daysWorked > 15) daysWorked = 15;
 
             decimal monthlySalary   = salary.AmountInLocal;
+            decimal BiweeklySalary  = monthlySalary / 2;
             decimal dailySalary     = monthlySalary / 30;
 
             decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
@@ -125,8 +126,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal InssBiweekly = await CalculateInss(GrossSalary, cancellationToken);
             decimal IrBiweekly  = await CalculateIr(GrossSalary, daysWorked, cancellationToken);
 
-            
             decimal TotalToPay = GrossSalary - InssBiweekly - IrBiweekly;
+
+            decimal TotalLegalDeductions = InssBiweekly + IrBiweekly;
+            decimal Deductions = 0.0m;
+
+            decimal TotalDeducctions = TotalLegalDeductions;
 
             var payload = new OrdinaryPayroll()
             {
@@ -134,12 +139,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 PayrollId        = payrollId,
                 Overtime         = Overtime,
                 Bonus            = Bonus,
+                BiweeklySalary   = BiweeklySalary,
                 GrossSalary      = GrossSalary,
                 Inss             = InssBiweekly,
                 Ir               = IrBiweekly,
-                Vacations        = 0.0m,
-                Deductions       = 0.0m,
-                TotalDeducctions = 0.0m,
+                TotalLegalDeductions = TotalLegalDeductions,
+                Deductions       = Deductions,
+                TotalDeducctions = TotalDeducctions,
                 TotalToPay       = TotalToPay,
             };
 

@@ -25,8 +25,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
     public class PyrollDtailsDto
     {
         public Guid OrdinaryPayrollId { get; set; }
+        public decimal BiweeklySalary { get; set; }
         public decimal Ir { get; set; }
         public decimal Inss { get; set; }
+        public decimal TotalLegalDeductions { get; set; }
         public decimal GrossSalary { get; set; }
         public decimal Deductions { get; set; }
         public decimal TotalToPay { get; set; }

@@ -22,8 +22,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<WorkingInformation> WorkingInformation => Set<WorkingInformation>();
         public DbSet<Vacation> Vacations => Set<Vacation>();
         public DbSet<PermitApplication> PermitApplications => Set<PermitApplication>();
-        public DbSet<Catalog> Catalogs { get; set; }
-        public DbSet<SubCatalog> SubCatalogs { get; set; }
+        public DbSet<Catalog> Catalogs => Set<Catalog>();
+        public DbSet<SubCatalog> SubCatalogs => Set<SubCatalog>();
         public DbSet<Salary> Salaries => Set<Salary>();
 
         public DbSet<Deduction> Deductions => Set<Deduction>();
@@ -80,7 +80,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
             modelBuilder.HasPostgresEnum<PayrollStatus>("public","payroll_status_enum");
             modelBuilder.HasPostgresEnum<PayrollType>("public","payroll_type_enum");
             modelBuilder.HasPostgresEnum<TaxType>("public","tax_type_enum");
-
+            modelBuilder.HasPostgresEnum<SourceDeductionPayment>("public","source_deduction_payment_enum");
             
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

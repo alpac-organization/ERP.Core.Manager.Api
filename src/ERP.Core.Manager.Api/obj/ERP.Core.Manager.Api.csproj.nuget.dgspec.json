@@ -70,7 +70,7 @@
             },
             "ERP.Core.Application": {
               "target": "Package",
-              "version": "[1.0.43, )"
+              "version": "[1.0.51, )"
             },
             "FluentValidation.DependencyInjectionExtensions": {
               "target": "Package",
@@ -434,11 +434,11 @@
           "dependencies": {
             "ERP.Core.Database.Domain": {
               "target": "Package",
-              "version": "[1.0.49, )"
+              "version": "[1.0.53, )"
             },
             "ERP.Core.Domain": {
               "target": "Package",
-              "version": "[1.0.49, )"
+              "version": "[1.0.53, )"
             }
           },
           "imports": [
@@ -1307,7 +1307,7 @@
             },
             "ERP.Core.Infrastructure": {
               "target": "Package",
-              "version": "[1.0.43, )"
+              "version": "[1.0.51, )"
             },
             "Handlebars.Net": {
               "target": "Package",

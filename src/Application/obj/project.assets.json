@@ -31,10 +31,10 @@
           }
         }
       },
-      "ERP.Core.Application/1.0.43": {
+      "ERP.Core.Application/1.0.51": {
         "type": "package",
         "dependencies": {
-          "ERP.Core.Domain": "1.0.43",
+          "ERP.Core.Domain": "1.0.51",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0"
         },
@@ -45,7 +45,7 @@
           "lib/net9.0/ERP.Core.Application.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.49": {
+      "ERP.Core.Database.Domain/1.0.53": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
@@ -54,7 +54,7 @@
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
         }
       },
-      "ERP.Core.Domain/1.0.49": {
+      "ERP.Core.Domain/1.0.53": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Domain.dll": {}
@@ -382,8 +382,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.49",
-          "ERP.Core.Domain": "1.0.49"
+          "ERP.Core.Database.Domain": "1.0.53",
+          "ERP.Core.Domain": "1.0.53"
         },
         "compile": {
           "bin/placeholder/Domain.dll": {}
@@ -439,35 +439,35 @@
         "readme.md"
       ]
     },
-    "ERP.Core.Application/1.0.43": {
-      "sha512": "8Cf1Q5Ip+fUCuHhrl8BQD2hirnrwiYzB9RxsZMT6M5g2rzI2i0FReguACifX4+yYMxxhK6qST2PHsee9khdISw==",
+    "ERP.Core.Application/1.0.51": {
+      "sha512": "hYliW7OKr5Qrtmx0hk2xQdyzfqFKMM76/5it4vuyviEbXKWDj9Eup/E8ZMdpvidNG7Z7JMn/9giFVPjonjNBFg==",
       "type": "package",
-      "path": "erp.core.application/1.0.43",
+      "path": "erp.core.application/1.0.51",
       "files": [
         ".nupkg.metadata",
-        "erp.core.application.1.0.43.nupkg.sha512",
+        "erp.core.application.1.0.51.nupkg.sha512",
         "erp.core.application.nuspec",
         "lib/net9.0/ERP.Core.Application.dll"
       ]
     },
-    "ERP.Core.Database.Domain/1.0.49": {
-      "sha512": "lQkQtn/KwKbFXk3XPzjai7NMH84rmLzDRjJo1kdqWorlz4kH9N0A16YV4iVTZpscsTqvb5gzTzFWy/ptcOgEmQ==",
+    "ERP.Core.Database.Domain/1.0.53": {
+      "sha512": "Q3wgwhis4wEAo3AIOPcNytsH6pzNMu9aKJ/5geL2s4JrdHlT8B6xw+TaK27B4HnOIJisMxxkM+NPUnpnnDLVhg==",
       "type": "package",
-      "path": "erp.core.database.domain/1.0.49",
+      "path": "erp.core.database.domain/1.0.53",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.domain.1.0.49.nupkg.sha512",
+        "erp.core.database.domain.1.0.53.nupkg.sha512",
         "erp.core.database.domain.nuspec",
         "lib/net9.0/ERP.Core.Database.Domain.dll"
       ]
     },
-    "ERP.Core.Domain/1.0.49": {
-      "sha512": "IDgOlJn5UcjbUgIIguElSpps6WiXKt21q7BfekQYk6RtF2LkHAFcGFtTypRrfRfBvPUEvhfb1V6MSh7jHGWjHg==",
+    "ERP.Core.Domain/1.0.53": {
+      "sha512": "Z2bJGX3aMyhLppJXIUtpXA3Uh/PQli3WtIV/oGdcW98qzPC8I2+Kei4DZ3iMvkBENkco3dx3RkdKoMCyepQzMw==",
       "type": "package",
-      "path": "erp.core.domain/1.0.49",
+      "path": "erp.core.domain/1.0.53",
       "files": [
         ".nupkg.metadata",
-        "erp.core.domain.1.0.49.nupkg.sha512",
+        "erp.core.domain.1.0.53.nupkg.sha512",
         "erp.core.domain.nuspec",
         "lib/net9.0/ERP.Core.Domain.dll"
       ]
@@ -990,7 +990,7 @@
       "AutoMapper >= 13.0.1",
       "BCrypt.Net-Next >= 4.1.0",
       "Domain >= 1.0.0",
-      "ERP.Core.Application >= 1.0.43",
+      "ERP.Core.Application >= 1.0.51",
       "FluentValidation.DependencyInjectionExtensions >= 12.1.1",
       "MediatR >= 14.1.0",
       "Microsoft.EntityFrameworkCore >= 10.0.5",
@@ -1067,7 +1067,7 @@
           },
           "ERP.Core.Application": {
             "target": "Package",
-            "version": "[1.0.43, )"
+            "version": "[1.0.51, )"
           },
           "FluentValidation.DependencyInjectionExtensions": {
             "target": "Package",
