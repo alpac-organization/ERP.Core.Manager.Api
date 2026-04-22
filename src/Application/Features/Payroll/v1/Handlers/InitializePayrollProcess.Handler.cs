@@ -67,15 +67,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             await _unitOfWork.Payrolls.InitializePayroll(newPayroll);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var collaborators = await _unitOfWork.Collaborators.Entities
-                .Include(c => c.Salaries.Where(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed))
-                .Include(c => c.WorkingInformation)
-                .Where(c => c.CompanyId == request.CompanyId)
-                .Where(c => c.Status != CollaboratorStatus.Inactive)
-                .Where(c => c.Salaries.Any(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed))
-                .Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId)
-                .ToListAsync(cancellationToken);
-
             //ALPAC: Managua
             if (request.BranchId == Guid.Parse("f9c8c488-f53e-46c2-9594-1e9b23cf805c"))
             {
@@ -83,6 +74,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 {
                     case PayrollType.Ordinary:
                     {
+
+                        var collaborators = await _unitOfWork.Collaborators.Entities
+                            .Include(c => c.Salaries.Where(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed))
+                            .Include(c => c.WorkingInformation)
+                            .Where(c => c.CompanyId == request.CompanyId)
+                            .Where(c => c.Status != CollaboratorStatus.Inactive)
+                            .Where(c => c.Salaries.Any(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed))
+                            .Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId)
+                            .ToListAsync(cancellationToken);
+
                         foreach(var collaborator in collaborators)
                         {
                             await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
