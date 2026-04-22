@@ -12,7 +12,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
     {
         public override async Task<bool> Handle(InitializePayrollProcessCommand request, CancellationToken cancellationToken)
         {
-
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
@@ -28,7 +27,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             }
 
             var lastPayroll = await _unitOfWork.Payrolls.Entities 
-                .Where(payroll => payroll.CompanyId == request.CompanyId)
+                .Where(payroll => payroll.BranchId == request.BranchId)
+                .Include(payroll => payroll.Branch)
+                    .ThenInclude(branch => branch.Company)
+                .Where(payroll => payroll.Branch.Company.Id == request.CompanyId)
                 .Where(payroll => payroll.Status == PayrollStatus.Progress)
                 .Where(payroll => payroll.PayrollType == request.Type)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -49,7 +51,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 EndDate = endDate,
                 Status = PayrollStatus.Progress,
                 PayrollType = request.Type,
-                CompanyId = request.CompanyId,
                 TotalToPay = 0.0m,
                 BranchId = request.BranchId
             };
@@ -64,45 +65,45 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Where(c => c.CompanyId == request.CompanyId)
                 .Where(c => c.Status != CollaboratorStatus.Inactive)
                 .Where(c => c.Salaries.Any(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed))
-                .Where(c => c.WorkingInformation.BranchId == request.BranchId)
+                .Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId)
                 .ToListAsync(cancellationToken);
 
-            if (request.BranchId == 80)
-            {
-                //ALPAC EVENTUALES
-            }
-            else if (request.BranchId == 68)
-            {
-                //ALPAC Managua
-                switch (request.Type)
-                {
-                    case PayrollType.Ordinary:
-                    {
-                        //Recorremos todos los colaboradores
-                        foreach(var collaborator in collaborators)
-                        {
-                            await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
-                        }
+            // if (request.BranchId == 80)
+            // {
+            //     //ALPAC EVENTUALES
+            // }
+            // else if (request.BranchId == 68)
+            // {
+            //     //ALPAC Managua
+            //     switch (request.Type)
+            //     {
+            //         case PayrollType.Ordinary:
+            //         {
+            //             //Recorremos todos los colaboradores
+            //             foreach(var collaborator in collaborators)
+            //             {
+            //                 await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
+            //             }
 
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
-                        break;
-                    }
-                    default:
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("Error la crear esta nomina, el tipo de nomina no es valido", "ERP:01");    
-                    }
-                }
+            //             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            //             break;
+            //         }
+            //         default:
+            //         {
+            //             return _errorManager.ThrowBadRequest<bool>("Error la crear esta nomina, el tipo de nomina no es valido", "ERP:01");    
+            //         }
+            //     }
                 
-            }
-            else if (request.BranchId == 67)
-            {
-                //ALPAC Corinto
+            // }
+            // else if (request.BranchId == 67)
+            // {
+            //     //ALPAC Corinto
                 
-            }
-            else
-            {
-                return _errorManager.ThrowBadRequest<bool>("Esta sucursal no esta registrada en el sitema", "ERP:01");
-            }
+            // }
+            // else
+            // {
+            //     return _errorManager.ThrowBadRequest<bool>("Esta sucursal no esta registrada en el sitema", "ERP:01");
+            // }
 
             
 

@@ -24,7 +24,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.TotalToPay)
                 .HasColumnName("total_to_pay")
                 .HasDefaultValue(0)
-                .IsRequired();
+                .IsRequired();  
 
             builder.Property(e => e.Status)
                 .HasColumnName("payroll_status")
@@ -32,25 +32,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .IsRequired();
 
             builder.Property(e => e.BranchId)
-                .HasColumnName("branch_id")
+                .HasColumnName("company_branch_id")
                 .IsRequired();
 
             builder.Property(e => e.PayrollType)
                 .HasColumnName("payroll_type")
                 .HasColumnType("payroll_type_enum");
 
-            builder.Property(e => e.CompanyId)
-                .HasColumnName("company_id")
-                .IsRequired();
-
             builder.Property(e => e.StartDate)
                 .HasColumnName("start_date")
                 .IsRequired();
-
-            builder.HasOne(d => d.Branch)
-                .WithMany()
-                .HasForeignKey(d => d.BranchId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(e => e.EndDate)
                 .HasColumnName("end_date")
@@ -64,9 +55,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.DeletedAt)
                 .HasColumnName("deleted_at");
 
-            builder.HasOne(c => c.Company)
+            builder.HasOne(c => c.Branch)
                 .WithMany(s => s.Payrolls)
-                .HasForeignKey(s => s.CompanyId)
+                .HasForeignKey(s => s.BranchId)
                 .OnDelete(DeleteBehavior.Restrict);    
 
             builder.HasMany(c => c.OrdinaryPayrolls)

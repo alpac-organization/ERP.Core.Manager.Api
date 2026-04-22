@@ -42,6 +42,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasForeignKey(s => s.CompanyId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasMany(c => c.Payrolls)
+                .WithOne(m => m.Branch)
+                .HasForeignKey(m => m.BranchId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

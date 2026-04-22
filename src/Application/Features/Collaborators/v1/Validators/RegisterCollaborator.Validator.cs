@@ -83,7 +83,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
                 .WithMessage("La fecha de ingreso no es válida");
 
             RuleFor(x => x.BranchId) 
-                .GreaterThan(0)
                 .NotEmpty()
                 .WithMessage("La sucural de trabajo es obligatoria");
 

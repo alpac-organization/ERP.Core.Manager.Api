@@ -58,7 +58,7 @@
           "lib/net9.0/ERP.Core.Application.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.43": {
+      "ERP.Core.Database.Domain/1.0.49": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
@@ -67,7 +67,7 @@
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
         }
       },
-      "ERP.Core.Domain/1.0.43": {
+      "ERP.Core.Domain/1.0.49": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Domain.dll": {}
@@ -1053,8 +1053,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.43",
-          "ERP.Core.Domain": "1.0.43"
+          "ERP.Core.Database.Domain": "1.0.49",
+          "ERP.Core.Domain": "1.0.49"
         },
         "compile": {
           "bin/placeholder/Domain.dll": {}
@@ -1156,24 +1156,24 @@
         "lib/net9.0/ERP.Core.Application.dll"
       ]
     },
-    "ERP.Core.Database.Domain/1.0.43": {
-      "sha512": "0LTa+bP+j12WBkc29F34RRPrMVZDVR/qi3pQ6KwN/5olssjLMlWkGq72hApSG9/lOdT8mip3X7EcqZo63M04zQ==",
+    "ERP.Core.Database.Domain/1.0.49": {
+      "sha512": "lQkQtn/KwKbFXk3XPzjai7NMH84rmLzDRjJo1kdqWorlz4kH9N0A16YV4iVTZpscsTqvb5gzTzFWy/ptcOgEmQ==",
       "type": "package",
-      "path": "erp.core.database.domain/1.0.43",
+      "path": "erp.core.database.domain/1.0.49",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.domain.1.0.43.nupkg.sha512",
+        "erp.core.database.domain.1.0.49.nupkg.sha512",
         "erp.core.database.domain.nuspec",
         "lib/net9.0/ERP.Core.Database.Domain.dll"
       ]
     },
-    "ERP.Core.Domain/1.0.43": {
-      "sha512": "LnEBmAqYKGMJtGqZTI+vKQOF8pei/Fcug0cjk6hQsV2mY3VOukY6HbC14QTRMHZxpzOt13/urAmK81R95Gi/Hg==",
+    "ERP.Core.Domain/1.0.49": {
+      "sha512": "IDgOlJn5UcjbUgIIguElSpps6WiXKt21q7BfekQYk6RtF2LkHAFcGFtTypRrfRfBvPUEvhfb1V6MSh7jHGWjHg==",
       "type": "package",
-      "path": "erp.core.domain/1.0.43",
+      "path": "erp.core.domain/1.0.49",
       "files": [
         ".nupkg.metadata",
-        "erp.core.domain.1.0.43.nupkg.sha512",
+        "erp.core.domain.1.0.49.nupkg.sha512",
         "erp.core.domain.nuspec",
         "lib/net9.0/ERP.Core.Domain.dll"
       ]

@@ -33,11 +33,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.InssNumber)
                 .HasColumnName("inss_number")
                 .IsRequired(false);
-            
-            builder.Property(e => e.BranchId)
-                .HasColumnName("branch_id")
+
+            builder.Property(e => e.CompanyBranchId)
+                .HasColumnName("company_branch_id")
                 .IsRequired();
-            
+
+            builder.HasOne(d => d.BranchInfo)
+                .WithMany()
+                .HasForeignKey(d => d.CompanyBranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.Property(e => e.WorkAreaId)
                 .HasColumnName("work_area_id")
                 .IsRequired();
@@ -45,11 +50,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
             builder.Property(e => e.WorkPositionId)
                 .HasColumnName("work_position_id")
                 .IsRequired();
-
-            builder.HasOne(d => d.Branch)
-                .WithMany()
-                .HasForeignKey(d => d.BranchId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(d => d.WorkArea)
                     .WithMany()
@@ -71,13 +71,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.DepartureDate)
                 .HasColumnName("departure_date")
-                .HasDefaultValue(null)
-                .ValueGeneratedOnAdd();
-                
-            builder.Property(e => e.CreatedAt)
-                .HasColumnName("created_at")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .ValueGeneratedOnAdd();
+                .IsRequired(false);
 
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")

@@ -28,7 +28,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 .Include(c => c.WorkingInformation)
                     .ThenInclude(w => w.WorkPosition)
                 .Include(c => c.WorkingInformation)
-                    .ThenInclude(w => w.Branch)
+                    .ThenInclude(w => w.BranchInfo)
                 .Include(c => c.Vacation)
                 .AsQueryable();
 
@@ -40,8 +40,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
                 gridQuery = gridQuery.Where(c => c.IdentificationNumber == request.IdentificationNumber);
 
-            if (request.BranchSubCatalogId > 0)
-                gridQuery = gridQuery.Where(c => c.WorkingInformation.BranchId == request.BranchSubCatalogId);
+            if (!string.IsNullOrEmpty(request.BranchId.ToString()))
+                gridQuery = gridQuery.Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId);
 
             if (request.AreaSubCatalogId > 0)
                 gridQuery = gridQuery.Where(c => c.WorkingInformation.WorkAreaId == request.AreaSubCatalogId);

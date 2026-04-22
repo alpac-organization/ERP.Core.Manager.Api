@@ -6,7 +6,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries
 {
     public class CheckIfThereIsPayrollInProgressQuery: BaseRequest, IRequest<CheckPayrollDto>
     {
-        public int BranchId { get; set; }
+        public Guid BranchId { get; set; }
         public PayrollType PayrollType { get; set; }
     }
 }

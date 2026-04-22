@@ -22,7 +22,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             }
 
             var isTherePending = await _unitOfWork.Payrolls.Entities
-                .Where(payroll => payroll.CompanyId == request.CompanyId)
+                .Include(payroll => payroll.Branch)
+                    .ThenInclude(branch => branch.Company)
+                .Where(payroll => payroll.Branch.CompanyId == request.CompanyId)
                 .Where(payroll => payroll.Status == PayrollStatus.Progress)
                 .Where(payroll => payroll.PayrollType == request.PayrollType)
                 .Where(payroll => payroll.BranchId == request.BranchId)
