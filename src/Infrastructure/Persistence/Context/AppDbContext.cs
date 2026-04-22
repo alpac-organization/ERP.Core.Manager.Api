@@ -80,7 +80,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
             modelBuilder.HasPostgresEnum<PayrollStatus>("public","payroll_status_enum");
             modelBuilder.HasPostgresEnum<PayrollType>("public","payroll_type_enum");
             modelBuilder.HasPostgresEnum<TaxType>("public","tax_type_enum");
-
+            modelBuilder.HasPostgresEnum<SourceDeductionPayment>("public","source_deduction_payment_enum");
             
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

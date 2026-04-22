@@ -43,6 +43,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .WithMany(s => s.Deductions)
                 .HasForeignKey(s => s.CollaboratorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(c => c.PaymentHistories)
+                .WithOne(s => s.Deduction)
+                .HasForeignKey(s => s.DeductionId)
+                .OnDelete(DeleteBehavior.Cascade); 
         }
     }
 }

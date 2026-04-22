@@ -45,7 +45,7 @@
           "lib/net9.0/ERP.Core.Application.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.51": {
+      "ERP.Core.Database.Domain/1.0.53": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
@@ -54,7 +54,7 @@
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
         }
       },
-      "ERP.Core.Domain/1.0.51": {
+      "ERP.Core.Domain/1.0.53": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Domain.dll": {}
@@ -382,8 +382,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.51",
-          "ERP.Core.Domain": "1.0.51"
+          "ERP.Core.Database.Domain": "1.0.53",
+          "ERP.Core.Domain": "1.0.53"
         },
         "compile": {
           "bin/placeholder/Domain.dll": {}
@@ -450,24 +450,24 @@
         "lib/net9.0/ERP.Core.Application.dll"
       ]
     },
-    "ERP.Core.Database.Domain/1.0.51": {
-      "sha512": "fqXg1nalLKTLKtxZgzHwLxAvG9YpqMP/UGBWCwZP7k3ebvEdzL63ysjkrXjTTMQ61GbUaALx1L/T4fnHq8U7HA==",
+    "ERP.Core.Database.Domain/1.0.53": {
+      "sha512": "Q3wgwhis4wEAo3AIOPcNytsH6pzNMu9aKJ/5geL2s4JrdHlT8B6xw+TaK27B4HnOIJisMxxkM+NPUnpnnDLVhg==",
       "type": "package",
-      "path": "erp.core.database.domain/1.0.51",
+      "path": "erp.core.database.domain/1.0.53",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.domain.1.0.51.nupkg.sha512",
+        "erp.core.database.domain.1.0.53.nupkg.sha512",
         "erp.core.database.domain.nuspec",
         "lib/net9.0/ERP.Core.Database.Domain.dll"
       ]
     },
-    "ERP.Core.Domain/1.0.51": {
-      "sha512": "xMihFf72nL7RD8uRCJ3BuL+vh/mcOwvB8W2WLnDhmpq5k/os/o24vvcCd2P7MjijE7KiSsB15rM1GrYIN6OpIQ==",
+    "ERP.Core.Domain/1.0.53": {
+      "sha512": "Z2bJGX3aMyhLppJXIUtpXA3Uh/PQli3WtIV/oGdcW98qzPC8I2+Kei4DZ3iMvkBENkco3dx3RkdKoMCyepQzMw==",
       "type": "package",
-      "path": "erp.core.domain/1.0.51",
+      "path": "erp.core.domain/1.0.53",
       "files": [
         ".nupkg.metadata",
-        "erp.core.domain.1.0.51.nupkg.sha512",
+        "erp.core.domain.1.0.53.nupkg.sha512",
         "erp.core.domain.nuspec",
         "lib/net9.0/ERP.Core.Domain.dll"
       ]
@@ -1004,17 +1004,17 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
+      "projectUniqueName": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
       "projectName": "Application",
-      "projectPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
+      "projectPath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
       "packagesPath": "C:\\Users\\desarrollo\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\obj\\",
+      "outputPath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\NuGet.Config",
+        "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\NuGet.Config",
         "C:\\Users\\desarrollo\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -1032,8 +1032,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj": {
-              "projectPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj"
+            "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj": {
+              "projectPath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj"
             }
           }
         }
