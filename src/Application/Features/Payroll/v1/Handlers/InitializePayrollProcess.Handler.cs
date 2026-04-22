@@ -19,11 +19,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 return access.ErrorResponse!; 
             }
 
-            //Solo Administradores puede realizar la apertura de la nomina.
-
             if (access.Role!.RoleType != RoleType.Administrator)
             {
                 return _errorManager.ThrowBadRequest<bool>("Solo los administradores pueden aperturar el ciclo de la nomina", "ERP:001");
+            }
+
+            var branch = await _unitOfWork.Branches.Entities
+                .Where(branch => branch.Id == request.BranchId && branch.CompanyId == request.CompanyId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+
+            if (branch is null)
+            {
+                return _errorManager.ThrowBadRequest<bool>("La sucursal seleccionada no estas asociado a este compañia", "ERP:BrachNotFound");
             }
 
             var lastPayroll = await _unitOfWork.Payrolls.Entities 
@@ -68,45 +76,32 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId)
                 .ToListAsync(cancellationToken);
 
-            // if (request.BranchId == 80)
-            // {
-            //     //ALPAC EVENTUALES
-            // }
-            // else if (request.BranchId == 68)
-            // {
-            //     //ALPAC Managua
-            //     switch (request.Type)
-            //     {
-            //         case PayrollType.Ordinary:
-            //         {
-            //             //Recorremos todos los colaboradores
-            //             foreach(var collaborator in collaborators)
-            //             {
-            //                 await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
-            //             }
+            //ALPAC: Managua
+            if (request.BranchId == Guid.Parse("f9c8c488-f53e-46c2-9594-1e9b23cf805c"))
+            {
+                switch (request.Type)
+                {
+                    case PayrollType.Ordinary:
+                    {
+                        foreach(var collaborator in collaborators)
+                        {
+                            await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
+                        }
 
-            //             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            //             break;
-            //         }
-            //         default:
-            //         {
-            //             return _errorManager.ThrowBadRequest<bool>("Error la crear esta nomina, el tipo de nomina no es valido", "ERP:01");    
-            //         }
-            //     }
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        break;
+                    }
+                    default:
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("Error la crear esta nomina, el tipo de nomina no es valido", "ERP:01");    
+                    }
+                }
                 
-            // }
-            // else if (request.BranchId == 67)
-            // {
-            //     //ALPAC Corinto
-                
-            // }
-            // else
-            // {
-            //     return _errorManager.ThrowBadRequest<bool>("Esta sucursal no esta registrada en el sitema", "ERP:01");
-            // }
-
-            
-
+            }
+            else
+            {
+                return _errorManager.ThrowBadRequest<bool>("Esta sucursal no esta registrada en el sitema", "ERP:01");
+            }
 
             return true;
         }
