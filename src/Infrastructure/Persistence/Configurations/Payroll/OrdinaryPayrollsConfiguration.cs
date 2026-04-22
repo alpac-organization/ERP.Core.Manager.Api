@@ -51,11 +51,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasPrecision(18, 2)
                 .IsRequired();
 
-            builder.Property(e => e.Vacations)
-                .HasColumnName("vacations")
-                .HasPrecision(18, 2)
-                .IsRequired();
-
             builder.Property(e => e.Overtime)
                 .HasColumnName("overtimes")
                 .HasPrecision(18, 2)
@@ -68,6 +63,21 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.TotalToPay)
                 .HasColumnName("total_to_pay")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            builder.Property(e => e.TotalDeducctions)
+                .HasColumnName("total_deductions")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            builder.Property(e => e.BiweeklySalary)
+                .HasColumnName("biweekly_salary")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            builder.Property(e => e.TotalLegalDeductions)
+                .HasColumnName("total_legal_deductions")
                 .HasPrecision(18, 2)
                 .IsRequired();
 
