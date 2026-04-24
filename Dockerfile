@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation \
     libnss3 \
     libxss1 \
-    libasound2 \
+    libasound2t64 \
     libatk-bridge2.0-0 \
     libgtk-3-0 \
     libgbm1 \
