@@ -37,8 +37,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
+    chromium-browser \
     fonts-liberation \
-    chromium \
     libnss3 \
     libxss1 \
     libasound2t64 \
@@ -50,9 +50,9 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN which chromium || echo "Chromium no encontrado"
+RUN which chromium-browser || echo "Chromium no encontrado"
 
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV DOTNET_RUNNING_IN_CONTAINER=true
     
 COPY --from=publish /app/publish .
