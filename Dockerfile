@@ -59,7 +59,7 @@ RUN apt-get update && apt-get install -y \
     libxcb-dri3-0 \
     libdrm2 \
     libgbm1 \
-    libasound2 \
+    libasound2t64 \
     libxshmfence1 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
