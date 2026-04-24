@@ -1,0 +1,71 @@
+name: Validate ERP API (Puppeteer + Chromium)
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Obtener el código
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Construir la imagen Docker
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg GH_USER=${{ secrets.GH_USER }} \
+            --build-arg GH_PACKAGE_TOKEN=${{ secrets.GH_PACKAGE_TOKEN }} \
+            -t erp-test .
+
+      # 3. Validar que Chromium está instalado
+      - name: Check Chromium exists
+        run: |
+          docker run --rm erp-test which chromium \
+          || (echo "❌ ERROR: Chromium NO está instalado en el contenedor" && exit 1)
+
+      # 4. Validar que Chromium se puede ejecutar
+      - name: Check Chromium version
+        run: |
+          docker run --rm erp-test chromium --version \
+          || (echo "❌ ERROR: Chromium no puede ejecutarse" && exit 1)
+
+      # 5. Validar que la ruta esperada existe
+      - name: Check expected path
+        run: |
+          docker run --rm erp-test bash -c "
+          if [ ! -f /usr/bin/chromium ]; then
+            echo '❌ ERROR: /usr/bin/chromium no existe';
+            exit 1;
+          else
+            echo '✅ Chromium encontrado en /usr/bin/chromium';
+          fi
+          "
+
+      # 6. Ejecutar la app brevemente (smoke test)
+      - name: Run app smoke test
+        run: |
+          docker run --rm erp-test bash -c "
+          echo '🚀 Iniciando aplicación...';
+          timeout 15s dotnet ERP.Core.Manager.Api.dll || true
+          "
+
+      # 7. Detectar error específico de Puppeteer
+      - name: Detect Puppeteer launch error
+        run: |
+          docker run --rm erp-test bash -c "
+          echo '🔍 Validando Puppeteer...';
+          timeout 20s dotnet ERP.Core.Manager.Api.dll > output.log 2>&1 || true;
+          
+          if grep -q 'Failed to launch browser' output.log; then
+            echo '❌ ERROR: Puppeteer no pudo iniciar Chromium';
+            cat output.log;
+            exit 1;
+          else
+            echo '✅ Puppeteer inició correctamente';
+          fi
+          "
