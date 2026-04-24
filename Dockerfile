@@ -41,22 +41,25 @@ USER root
 
 # 2. Instalar Chromium y dependencias actualizadas para Ubuntu 24.04
 RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    && add-apt-repository -y ppa:xtradeb/apps \
-    && apt-get update && apt-get install -y \
-    chromium \
+    wget \
+    ca-certificates \
     fonts-liberation \
     libnss3 \
+    libatk-bridge2.0-0 \
+    libxss1 \
+    libasound2 \
     libgbm1 \
-    libasound2t64 \
-    libglib2.0-0t64 \
-    libnspr4 \
+    libgtk-3-0 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libxkbcommon0 \
+    libpango-1.0-0 \
+    libcups2 \
+    libdrm2 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
-
-# 3. Configurar variables de entorno
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-ENV DOTNET_RUNNING_IN_CONTAINER=true
 
 RUN which chromium || echo "Chromium no encontrado"
     
