@@ -36,20 +36,15 @@ RUN dotnet publish "ERP.Core.Manager.Api.csproj" -c Release -o /app/publish /p:U
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y gnupg wget --no-install-recommends && \
+    echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/debian.list && \
+    apt-get update && apt-get install -y \
     chromium \
-    chromium-browser \
     fonts-liberation \
     libnss3 \
-    libxss1 \
-    libasound2t64 \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
     libgbm1 \
-    libxshmfence1 \
-    libxkbcommon0 \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN which chromium || echo "Chromium no encontrado"
 
