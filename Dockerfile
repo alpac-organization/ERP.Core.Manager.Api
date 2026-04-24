@@ -37,15 +37,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    chromium \
-    # ... (todas las librerías que pusimos antes)
-    && ln -s /usr/bin/chromium /usr/bin/chromium-browser || true \
-    && rm -rf /var/lib/apt/lists/*
-
-# Definir la ruta exacta
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-
-RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
     libnss3 \
