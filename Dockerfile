@@ -47,7 +47,7 @@ RUN apt-get update && apt-get install -y \
     libnss3 \
     libatk-bridge2.0-0 \
     libxss1 \
-    libasound2 \
+    libasound2t64 \
     libgbm1 \
     libgtk-3-0 \
     libx11-xcb1 \
@@ -58,6 +58,7 @@ RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
     libcups2 \
     libdrm2 \
+    libglib2.0-0t64 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
