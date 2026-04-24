@@ -38,6 +38,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     fonts-liberation \
+    chromium \
     libnss3 \
     libxss1 \
     libasound2t64 \
@@ -49,9 +50,6 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y chromium
-
-# 🔍 DEBUG (puedes quitar luego)
 RUN which chromium || echo "Chromium no encontrado"
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
