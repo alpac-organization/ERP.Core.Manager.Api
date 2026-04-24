@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     libnss3 \
     libxss1 \
-    libasound2 \
+    libasound2t64 \
     libatk1.0-0 \
     libatk-bridge2.0-0 \
     libcups2 \
@@ -53,12 +53,12 @@ RUN apt-get update && apt-get install -y \
     libxkbcommon0 \
     fonts-liberation \
     libfontconfig1 \
-    chromium \
+    chromium-browser \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Variable de entorno crítica para PuppeteerSharp
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+# Variable de entorno para que PuppeteerSharp sepa dónde está el navegador
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
     
 COPY --from=publish /app/publish .
 COPY --from=publish /app/publish/Templates ./Templates
