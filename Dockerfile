@@ -51,7 +51,7 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN which chromium-browser || echo "Chromium no encontrado"
+RUN which chromium || echo "Chromium no encontrado"
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV DOTNET_RUNNING_IN_CONTAINER=true
