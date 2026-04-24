@@ -36,20 +36,27 @@ RUN dotnet publish "ERP.Core.Manager.Api.csproj" -c Release -o /app/publish /p:U
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y gnupg wget --no-install-recommends && \
-    echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/debian.list && \
-    apt-get update && apt-get install -y \
+# 1. Usar root para instalar
+USER root
+
+# 2. Instalar dependencias y Chromium evitando SNAP
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    && add-apt-repository -y ppa:xtradeb/apps \
+    && apt-get update && apt-get install -y \
     chromium \
     fonts-liberation \
     libnss3 \
     libgbm1 \
-    --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+    libasound2 \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN which chromium || echo "Chromium no encontrado"
-
+# 3. Definir la ruta (En este PPA la ruta suele ser /usr/bin/chromium)
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+RUN which chromium || echo "Chromium no encontrado"
     
 COPY --from=publish /app/publish .
 COPY --from=publish /app/publish/Templates ./Templates

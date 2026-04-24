@@ -9,64 +9,66 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     environment: GH_USER  
+    timeout-minutes: 3
 
     steps:
-      # 1. Obtener el código
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Construir la imagen Docker
       - name: Build Docker image
         run: |
-          docker build --no-cache --pull\
+          docker build \
             --build-arg GH_USER=${{ secrets.GH_USER }} \
             --build-arg GH_PACKAGE_TOKEN=${{ secrets.GH_PACKAGE_TOKEN }} \
             -t erp-test .
 
-      # 3. Validar que Chromium está instalado
-      - name: Check Chromium exists
+      # CONSOLIDADO: Validar existencia y ejecución en un solo paso rápido
+      - name: Verify Chromium Installation
+        id: check_chrom
         run: |
-          docker run --rm erp-test which chromium-browser \
-          || (echo "❌ ERROR: Chromium NO está instalado en el contenedor" && exit 1)
-
-      # 4. Validar que Chromium se puede ejecutar
-      - name: Check Chromium version
-        run: |
-          docker run --rm erp-test chromium-browser --version \
-          || (echo "❌ ERROR: Chromium no puede ejecutarse" && exit 1)
-
-      # 5. Validar que la ruta esperada existe
-      - name: Check expected path
-        run: |
-          docker run --rm erp-test bash -c "
-          if [ ! -f /usr/bin/chromium-browser ]; then
-            echo '❌ ERROR: /usr/bin/chromium-browser no existe';
-            exit 1;
-          else
-            echo '✅ Chromium encontrado en /usr/bin/chromium-browser';
+          echo "🔍 Verificando binario..."
+          # Intentamos encontrar 'chromium' o 'chromium-browser'
+          CHROM_PATH=$(docker run --rm erp-test which chromium || docker run --rm erp-test which chromium-browser)
+          
+          if [ -z "$CHROM_PATH" ]; then
+            echo "❌ ERROR: Chromium no está instalado en ninguna ruta conocida (/usr/bin/chromium)."
+            exit 1
           fi
-          "
+          
+          echo "✅ Encontrado en: $CHROM_PATH"
+          echo "🔍 Probando ejecución de versión..."
+          
+          # Si no puede ejecutar la versión (por falta de librerías), falla aquí
+          docker run --rm erp-test $CHROM_PATH --version || (echo "❌ ERROR: El binario existe pero no puede ejecutarse (faltan dependencias libshared)." && exit 1)
 
-      # 6. Ejecutar la app brevemente (smoke test)
+      # SMOKE TEST: Ejecutar la app con un timeout estricto
       - name: Run app smoke test
         run: |
-          docker run --rm erp-test bash -c "
-          echo '🚀 Iniciando aplicación...';
-          timeout 15s dotnet ERP.Core.Manager.Api.dll || true
-          "
+          echo "🚀 Iniciando aplicación para prueba de humo..."
+          # Usamos --entrypoint para asegurar que no se quede colgado si el DLL tarda
+          # El timeout de 15s es suficiente para ver si Kestrel levanta o crashea por Puppeteer
+          timeout 15s docker run --rm erp-test || {
+            EXIT_CODE=$?
+            if [ $EXIT_CODE -eq 124 ]; then
+              echo "✅ App levantó correctamente (timeout esperado)"
+            else
+              echo "❌ App crasheó con código $EXIT_CODE"
+              exit 1
+            fi
+          }
 
-      # 7. Detectar error específico de Puppeteer
+      # DETECCIÓN FINAL: Buscar errores en logs sin dejarlo colgado
       - name: Detect Puppeteer launch error
         run: |
-          docker run --rm erp-test bash -c "
-          echo '🔍 Validando Puppeteer...';
-          timeout 20s dotnet ERP.Core.Manager.Api.dll > output.log 2>&1 || true;
+          echo "🔍 Validando logs de Puppeteer..."
+          # Corremos 20 segundos y guardamos el log
+          timeout 20s docker run --name test-container erp-test > output.log 2>&1 || true
           
-          if grep -q 'Failed to launch browser' output.log; then
-            echo '❌ ERROR: Puppeteer no pudo iniciar Chromium';
-            cat output.log;
-            exit 1;
-          else
-            echo '✅ Puppeteer inició correctamente';
+          if grep -q "PuppeteerSharp.ProcessException" output.log || grep -q "snap install chromium" output.log; then
+            echo "❌ ERROR CRÍTICO: Se detectó error de Snap o Puppeteer en los logs."
+            cat output.log
+            docker rm test-container
+            exit 1
           fi
-          "
+          echo "✅ Todo parece correcto."
+          docker rm test-container
