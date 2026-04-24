@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+        
+        .logo-container img {
+            width: 120px; /* Tamaño optimizado para que se vea bien */
+            height: auto;
+            object-fit: contain;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: #000;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 0 12%;
+        }
+
+        .main-content {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .title {
+            text-align: center;
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: 22px;
+            margin-bottom: 40px;
+        }
+
+        .content {
+            text-align: justify;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .signature {
+            margin-top: 80px;
+            text-align: center;
+        }
+
+        .line {
+            margin: 60px auto 10px auto;
+            width: 300px;
+            border-top: 1px solid #000;
+        }
+
+        .footer {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-container">
+        <img src="{{CompanyImageUrl}}" alt="Logo Empresa">
+    </div>
+
+    <div class="page-wrapper">
+        <div class="main-content">
+
+            <div class="title">CONSTANCIA</div>
+
+            <div class="content">
+                <p>
+                    La suscrita Gerente de Talento Humano de 
+                    <strong>{{CompanyName}}</strong>, 
+                    Lic. Angela Aracelly Guillén Somarriba, por este medio hace constar que la Sr (a). 
+                    <strong>{{CollaboratorFullname}}</strong>, labora para esta empresa, desde 
+                    <strong>{{EntryDateText}}</strong> hasta la fecha desempeñándose en el cargo de 
+                    <strong>{{JobPositionName}}</strong> con un salario de  
+                    <strong>C$ {{CurrentSalary}}</strong> (<strong>{{SalaryInLetters}}</strong>) mensuales.
+                </p>
+
+                <p>
+                    Extendemos la presente a solicitud de parte interesada, a los 
+                    <strong>{{CurrentDay}}</strong> días del mes 
+                    <strong>{{CurrentMonthName}}</strong> del año 
+                    <strong>{{CurrentYear}}</strong>.
+                </p>
+            </div>
+
+            <div class="signature">
+                <p>Atentamente,</p>
+
+                <div class="line"></div>
+
+                <div class="footer">
+                    <strong>Lic. Angela Aracelly Guillén S.</strong><br>
+                    Gerente Talento Humano
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
