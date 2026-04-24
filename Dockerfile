@@ -37,20 +37,28 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    chromium \
+    curl \
+    gnupg \
     libnss3 \
+    libxss1 \
+    libasound2 \
     libatk1.0-0 \
     libatk-bridge2.0-0 \
     libcups2 \
-    libxkbcommon0 \
-    libxcomposite1 \
-    libxrandr2 \
+    libdrm2 \
     libgbm1 \
     libgtk-3-0 \
-    libasound2 \
-    libkrb5-3 \
+    libpangocairo-1.0-0 \
+    libxshmfence1 \
+    libxkbcommon0 \
     fonts-liberation \
+    libfontconfig1 \
+    chromium \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+
+# Variable de entorno crítica para PuppeteerSharp
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
     
 COPY --from=publish /app/publish .
 COPY --from=publish /app/publish/Templates ./Templates
