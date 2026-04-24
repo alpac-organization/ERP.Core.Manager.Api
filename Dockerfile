@@ -37,10 +37,20 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
+    chromium \
+    # ... (todas las librerías que pusimos antes)
+    && ln -s /usr/bin/chromium /usr/bin/chromium-browser || true \
+    && rm -rf /var/lib/apt/lists/*
+
+# Definir la ruta exacta
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
     libnss3 \
     libxss1 \
+    chromium \
     libasound2t64 \
     libatk1.0-0 \
     libatk-bridge2.0-0 \
@@ -55,11 +65,11 @@ RUN apt-get update && apt-get install -y \
     libfontconfig1 \
     chromium-browser \
     --no-install-recommends \
+    && ln -s /usr/bin/chromium /usr/bin/chromium-browser || true \
     && rm -rf /var/lib/apt/lists/*
 
 # Variable de entorno para que PuppeteerSharp sepa dónde está el navegador
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV DOTNET_RUNNING_IN_CONTAINER=true
     
 COPY --from=publish /app/publish .
 COPY --from=publish /app/publish/Templates ./Templates
