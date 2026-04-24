@@ -7,52 +7,57 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class PdfGeneratorServices(ITemplateServices templateServices, IErrorManager errorManager): IPdfGeneratorServices
     {
-        public async Task<byte[]> GenerateAsync<T>(string templateName, object data)
+       public async Task<byte[]> GenerateAsync<T>(string templateName, object data)
         {
-            if (data is null)
-            {
-                return errorManager.ThrowBadRequest<byte[]>("No se encontro la informacion", "ERP:01");
-            }
-
             string templateContent = templateServices.Render(templateName, data);
+            
+            var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
 
-        var options = new LaunchOptions { Headless = true };
-
-        // Si estamos en Docker/Linux, usamos el Chromium que instalamos con apt-get
-        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
-        {
-            options.ExecutablePath = "/usr/bin/chromium-browser";
-            options.Args = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"];
-        }
-        else 
-        {
-            var browserFetcher = new BrowserFetcher();
-            await browserFetcher.DownloadAsync();
-        }
-
-        await using var browser = await Puppeteer.LaunchAsync(options);
-
-            await using var page = await browser.NewPageAsync();
-            await page.SetContentAsync(templateContent);
-
-            var pdfOptions = new PdfOptions
+            var options = new LaunchOptions
             {
-                Format = PaperFormat.A4,
-                PrintBackground = true,
-                MarginOptions = new MarginOptions
-                {
-                    Top = "10mm",
-                    Bottom = "10mm",
-                    Left = "10mm",
-                    Right = "10mm"
-                },
+                Headless = true,
+                ExecutablePath = isDocker ? "/usr/bin/chromium" : null,
+                Args = isDocker 
+                    ? [
+                        "--no-sandbox", 
+                        "--disable-setuid-sandbox", 
+                        "--disable-dev-shm-usage", 
+                        "--disable-gpu",
+                        "--no-zygote",
+                        "--single-process" 
+                    ]
+                    : ["--no-sandbox"]
             };
 
-            byte[] pdfBytes = await page.PdfDataAsync(pdfOptions);
+            // Solo descargamos en local
+            if (!isDocker)
+            {
+                await new BrowserFetcher().DownloadAsync();
+            }
 
-            await browser.CloseAsync();
+            try 
+            {
+                await using var browser = await Puppeteer.LaunchAsync(options);
+                await using var page = await browser.NewPageAsync();
+                
+                // Networkidle0 es clave para esperar que carguen estilos/imágenes
+                await page.SetContentAsync(templateContent, new NavigationOptions 
+                { 
+                    WaitUntil = [WaitUntilNavigation.Networkidle0] 
+                });
 
-            return pdfBytes;
+                return await page.PdfDataAsync(new PdfOptions
+                {
+                    Format = PaperFormat.A4,
+                    PrintBackground = true
+                });
+            }
+            catch (Exception ex)
+            {
+                // Esto te permitirá ver el error real en los logs de Render
+                Console.WriteLine($"PUPPETEER ERROR: {ex.Message}");
+                throw;
+            }
         }
     }
 }
