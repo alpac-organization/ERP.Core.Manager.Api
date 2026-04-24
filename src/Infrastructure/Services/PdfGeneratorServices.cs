@@ -5,18 +5,19 @@ using PuppeteerSharp.Media;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
-    public class PdfGeneratorServices(ITemplateServices templateServices, IErrorManager errorManager): IPdfGeneratorServices
+    public class PdfGeneratorServices(ITemplateServices templateServices): IPdfGeneratorServices
     {
-       public async Task<byte[]> GenerateAsync<T>(string templateName, object data)
+        public async Task<byte[]> GenerateAsync<T>(string templateName, object data)
         {
             string templateContent = templateServices.Render(templateName, data);
             
             var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+            var dockerPath = Environment.GetEnvironmentVariable("PUPPETEER_EXECUTABLE_PATH");
 
             var options = new LaunchOptions
             {
                 Headless = true,
-                ExecutablePath = isDocker ? "/usr/bin/chromium" : null,
+                ExecutablePath = isDocker ? dockerPath : null,
                 Args = isDocker 
                     ? [
                         "--no-sandbox", 
@@ -29,35 +30,27 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     : ["--no-sandbox"]
             };
 
-            // Solo descargamos en local
             if (!isDocker)
             {
                 await new BrowserFetcher().DownloadAsync();
             }
 
-            try 
-            {
-                await using var browser = await Puppeteer.LaunchAsync(options);
-                await using var page = await browser.NewPageAsync();
-                
-                // Networkidle0 es clave para esperar que carguen estilos/imágenes
-                await page.SetContentAsync(templateContent, new NavigationOptions 
-                { 
-                    WaitUntil = [WaitUntilNavigation.Networkidle0] 
-                });
+            await using var browser = await Puppeteer.LaunchAsync(options);
+            await using var page = await browser.NewPageAsync();
+            
+            await page.SetContentAsync(templateContent, new NavigationOptions 
+            { 
+                WaitUntil = [WaitUntilNavigation.Networkidle0] 
+            });
 
-                return await page.PdfDataAsync(new PdfOptions
-                {
-                    Format = PaperFormat.A4,
-                    PrintBackground = true
-                });
-            }
-            catch (Exception ex)
+            var pdfBytes = await page.PdfDataAsync(new PdfOptions
             {
-                // Esto te permitirá ver el error real en los logs de Render
-                Console.WriteLine($"PUPPETEER ERROR: {ex.Message}");
-                throw;
-            }
+                Format = PaperFormat.A4,
+                PrintBackground = true
+            });
+
+            await browser.CloseAsync();
+            return pdfBytes;
         }
     }
 }
