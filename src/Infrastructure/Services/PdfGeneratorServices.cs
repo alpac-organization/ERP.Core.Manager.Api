@@ -16,14 +16,21 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             string templateContent = templateServices.Render(templateName, data);
 
+        var options = new LaunchOptions { Headless = true };
+
+        // Si estamos en Docker/Linux, usamos el Chromium que instalamos con apt-get
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+        {
+            options.ExecutablePath = "/usr/bin/chromium-browser";
+            options.Args = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"];
+        }
+        else 
+        {
             var browserFetcher = new BrowserFetcher();
             await browserFetcher.DownloadAsync();
+        }
 
-            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions 
-            { 
-                Headless = true,
-                Args = ["--no-sandbox", "--disable-setuid-sandbox"] 
-            });
+        await using var browser = await Puppeteer.LaunchAsync(options);
 
             await using var page = await browser.NewPageAsync();
             await page.SetContentAsync(templateContent);
@@ -38,7 +45,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     Bottom = "10mm",
                     Left = "10mm",
                     Right = "10mm"
-                }
+                },
             };
 
             byte[] pdfBytes = await page.PdfDataAsync(pdfOptions);
