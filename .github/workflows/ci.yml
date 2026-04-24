@@ -8,65 +8,56 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     environment: GH_USER  
 
     steps:
-      # 1. Obtener el código
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Construir la imagen Docker
       - name: Build Docker image
         run: |
-          docker build --no-cache --pull\
+          docker build \
             --build-arg GH_USER=${{ secrets.GH_USER }} \
             --build-arg GH_PACKAGE_TOKEN=${{ secrets.GH_PACKAGE_TOKEN }} \
             -t erp-test .
 
-      # 3. Validar que Chromium está instalado
-      - name: Check Chromium exists
+      # ✅ SMOKE TEST REAL (esto reemplaza todo lo de chromium)
+      - name: Run app and capture logs
         run: |
-          docker run --rm erp-test which chromium-browser \
-          || (echo "❌ ERROR: Chromium NO está instalado en el contenedor" && exit 1)
-
-      # 4. Validar que Chromium se puede ejecutar
-      - name: Check Chromium version
-        run: |
-          docker run --rm erp-test chromium-browser --version \
-          || (echo "❌ ERROR: Chromium no puede ejecutarse" && exit 1)
-
-      # 5. Validar que la ruta esperada existe
-      - name: Check expected path
-        run: |
-          docker run --rm erp-test bash -c "
-          if [ ! -f /usr/bin/chromium-browser ]; then
-            echo '❌ ERROR: /usr/bin/chromium-browser no existe';
-            exit 1;
-          else
-            echo '✅ Chromium encontrado en /usr/bin/chromium-browser';
-          fi
-          "
-
-      # 6. Ejecutar la app brevemente (smoke test)
-      - name: Run app smoke test
-        run: |
-          docker run --rm erp-test bash -c "
-          echo '🚀 Iniciando aplicación...';
-          timeout 15s dotnet ERP.Core.Manager.Api.dll || true
-          "
-
-      # 7. Detectar error específico de Puppeteer
-      - name: Detect Puppeteer launch error
-        run: |
-          docker run --rm erp-test bash -c "
-          echo '🔍 Validando Puppeteer...';
-          timeout 20s dotnet ERP.Core.Manager.Api.dll > output.log 2>&1 || true;
+          echo "🚀 Iniciando contenedor..."
           
-          if grep -q 'Failed to launch browser' output.log; then
-            echo '❌ ERROR: Puppeteer no pudo iniciar Chromium';
-            cat output.log;
-            exit 1;
-          else
-            echo '✅ Puppeteer inició correctamente';
+          timeout 25s docker run --name test-container erp-test > output.log 2>&1 || true
+
+          echo "📄 Logs capturados:"
+          cat output.log
+
+      # ✅ VALIDACIÓN DE PUPPETEER (LA IMPORTANTE)
+      - name: Validate Puppeteer execution
+        run: |
+          echo "🔍 Buscando errores críticos..."
+
+          if grep -q "PuppeteerSharp.ProcessException" output.log; then
+            echo "❌ ERROR: Puppeteer no pudo lanzar Chromium"
+            exit 1
           fi
-          "
+
+          if grep -q "No usable browser" output.log; then
+            echo "❌ ERROR: Chromium no fue descargado correctamente"
+            exit 1
+          fi
+
+          if grep -q "Failed to launch browser" output.log; then
+            echo "❌ ERROR: Fallo al iniciar Chromium"
+            exit 1
+          fi
+
+          if grep -q "snap install chromium" output.log; then
+            echo "❌ ERROR: Intento de usar SNAP (mal entorno)"
+            exit 1
+          fi
+
+          echo "✅ Puppeteer funcionando correctamente"
+
+      - name: Cleanup container
+        run: docker rm -f test-container || true

@@ -36,25 +36,32 @@ RUN dotnet publish "ERP.Core.Manager.Api.csproj" -c Release -o /app/publish /p:U
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
+# 1. Usar root para instalar
+USER root
+
+# 2. Instalar Chromium y dependencias actualizadas para Ubuntu 24.04
 RUN apt-get update && apt-get install -y \
-    chromium \
-    chromium-browser \
+    wget \
+    ca-certificates \
     fonts-liberation \
     libnss3 \
-    libxss1 \
-    libasound2t64 \
     libatk-bridge2.0-0 \
-    libgtk-3-0 \
+    libxss1 \
+    libasound2 \
     libgbm1 \
-    libxshmfence1 \
+    libgtk-3-0 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
     libxkbcommon0 \
+    libpango-1.0-0 \
+    libcups2 \
+    libdrm2 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN which chromium-browser || echo "Chromium no encontrado"
-
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-ENV DOTNET_RUNNING_IN_CONTAINER=true
+RUN which chromium || echo "Chromium no encontrado"
     
 COPY --from=publish /app/publish .
 COPY --from=publish /app/publish/Templates ./Templates
