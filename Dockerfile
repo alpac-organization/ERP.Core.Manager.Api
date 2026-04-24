@@ -50,7 +50,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y chromium
-RUN apk add chromium
 
 # 🔍 DEBUG (puedes quitar luego)
 RUN which chromium || echo "Chromium no encontrado"
