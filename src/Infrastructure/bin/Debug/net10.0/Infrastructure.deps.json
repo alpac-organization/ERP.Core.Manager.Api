@@ -13,6 +13,7 @@
           "ERP.Core.Infrastructure": "1.0.51",
           "Handlebars.Net": "2.1.6",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1",
+          "PuppeteerSharp": "24.40.0",
           "System.IdentityModel.Tokens.Jwt": "8.16.0"
         },
         "runtime": {
@@ -202,6 +203,14 @@
           }
         }
       },
+      "Microsoft.IO.RecyclableMemoryStream/3.0.1": {
+        "runtime": {
+          "lib/net6.0/Microsoft.IO.RecyclableMemoryStream.dll": {
+            "assemblyVersion": "3.0.1.0",
+            "fileVersion": "3.0.1.0"
+          }
+        }
+      },
       "Nanoid/3.1.0": {
         "runtime": {
           "lib/net8.0/Nanoid.dll": {
@@ -231,6 +240,18 @@
           }
         }
       },
+      "PuppeteerSharp/24.40.0": {
+        "dependencies": {
+          "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
+          "WebDriverBiDi": "0.0.45"
+        },
+        "runtime": {
+          "lib/net10.0/PuppeteerSharp.dll": {
+            "assemblyVersion": "24.40.0.0",
+            "fileVersion": "24.40.0.0"
+          }
+        }
+      },
       "System.IdentityModel.Tokens.Jwt/8.16.0": {
         "dependencies": {
           "Microsoft.IdentityModel.JsonWebTokens": "8.16.0",
@@ -240,6 +261,14 @@
           "lib/net10.0/System.IdentityModel.Tokens.Jwt.dll": {
             "assemblyVersion": "8.16.0.0",
             "fileVersion": "8.16.0.26043"
+          }
+        }
+      },
+      "WebDriverBiDi/0.0.45": {
+        "runtime": {
+          "lib/net10.0/WebDriverBiDi.dll": {
+            "assemblyVersion": "0.0.45.0",
+            "fileVersion": "0.0.45.0"
           }
         }
       },
@@ -413,6 +442,13 @@
       "path": "microsoft.identitymodel.tokens/8.16.0",
       "hashPath": "microsoft.identitymodel.tokens.8.16.0.nupkg.sha512"
     },
+    "Microsoft.IO.RecyclableMemoryStream/3.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-s/s20YTVY9r9TPfTrN5g8zPF1YhwxyqO6PxUkrYTGI2B+OGPe9AdajWZrLhFqXIvqIW23fnUE4+ztrUWNU1+9g==",
+      "path": "microsoft.io.recyclablememorystream/3.0.1",
+      "hashPath": "microsoft.io.recyclablememorystream.3.0.1.nupkg.sha512"
+    },
     "Nanoid/3.1.0": {
       "type": "package",
       "serviceable": true,
@@ -434,12 +470,26 @@
       "path": "npgsql.entityframeworkcore.postgresql/10.0.1",
       "hashPath": "npgsql.entityframeworkcore.postgresql.10.0.1.nupkg.sha512"
     },
+    "PuppeteerSharp/24.40.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vVvHFHCRW6772ptQmwzIxmc2CdkEv+F9kTlCncv4VFSGev1ev5mtlL9aVOPdHc6ss5ck6sArP4b2JtNy/7GzGA==",
+      "path": "puppeteersharp/24.40.0",
+      "hashPath": "puppeteersharp.24.40.0.nupkg.sha512"
+    },
     "System.IdentityModel.Tokens.Jwt/8.16.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-rrs2u7DRMXQG2yh0oVyF/vLwosfRv20Ld2iEpYcKwQWXHjfV+gFXNQsQ9p008kR9Ou4pxBs68Q6/9zC8Gi1wjg==",
       "path": "system.identitymodel.tokens.jwt/8.16.0",
       "hashPath": "system.identitymodel.tokens.jwt.8.16.0.nupkg.sha512"
+    },
+    "WebDriverBiDi/0.0.45": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lMQhMh32mqZCIBOkEP5DX+vtuoImuyKEAotqw33OuTZUgFFUFl+tEVPZ8fTIhsTCAXp5Nbhy2d3FeVxHYLehFw==",
+      "path": "webdriverbidi/0.0.45",
+      "hashPath": "webdriverbidi.0.0.45.nupkg.sha512"
     },
     "Application/1.0.0": {
       "type": "project",

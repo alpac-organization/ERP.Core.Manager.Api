@@ -60,6 +60,9 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddTransient<ITemplateServices, TemplateServices>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<ICalculatorDeductions, CalculatorDeductions>();
+            
+            services.AddScoped<ITemplateServices, TemplateServices>();
+            services.AddScoped<IPdfGeneratorServices, PdfGeneratorServices>();
 
             //Services
             services.AddScoped<IAuthServices, AuthServices>();

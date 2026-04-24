@@ -7,6 +7,7 @@ using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Errors;
+using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -112,6 +113,30 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             });
 
             return collaborator;
+        }
+
+        [Tags("Colaboradores")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/documents/{document_type}/generator", Name = "GenerateDocument")]      
+        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GenerateDocumentToCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
+            [FromRoute] DocumentType document_type,
+            [FromRoute] string identification_number
+        )   
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            var document = await _mediator.Send(new GenerateDocumentToCollaboratorQuery()
+            {
+                CompanyId = companie_id,
+                DocumentType = document_type,
+                IdentificationNumber = identification_number,
+                ModuleCode = module_code,
+                UserId = Guid.Parse(userIdStr ?? "")
+            });
+
+            return File(document, "application/pdf", $"Documento_{identification_number}.pdf");;
         }
     }
 }
