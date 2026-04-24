@@ -129,7 +129,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal TotalToPay = GrossSalary - InssBiweekly - IrBiweekly;
 
             decimal TotalLegalDeductions = InssBiweekly + IrBiweekly;
-            decimal Deductions = 0.0m;
 
             decimal TotalDeducctions = TotalLegalDeductions;
 
@@ -144,7 +143,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Inss             = InssBiweekly,
                 Ir               = IrBiweekly,
                 TotalLegalDeductions = TotalLegalDeductions,
-                Deductions       = Deductions,
                 TotalDeducctions = TotalDeducctions,
                 TotalToPay       = TotalToPay,
             };

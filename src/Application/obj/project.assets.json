@@ -31,10 +31,10 @@
           }
         }
       },
-      "ERP.Core.Application/1.0.51": {
+      "ERP.Core.Application/1.0.55": {
         "type": "package",
         "dependencies": {
-          "ERP.Core.Domain": "1.0.51",
+          "ERP.Core.Domain": "1.0.55",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0"
         },
@@ -45,7 +45,7 @@
           "lib/net9.0/ERP.Core.Application.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.53": {
+      "ERP.Core.Database.Domain/1.0.55": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
@@ -54,7 +54,7 @@
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
         }
       },
-      "ERP.Core.Domain/1.0.53": {
+      "ERP.Core.Domain/1.0.55": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Domain.dll": {}
@@ -382,8 +382,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.53",
-          "ERP.Core.Domain": "1.0.53"
+          "ERP.Core.Database.Domain": "1.0.55",
+          "ERP.Core.Domain": "1.0.55"
         },
         "compile": {
           "bin/placeholder/Domain.dll": {}
@@ -439,35 +439,35 @@
         "readme.md"
       ]
     },
-    "ERP.Core.Application/1.0.51": {
-      "sha512": "hYliW7OKr5Qrtmx0hk2xQdyzfqFKMM76/5it4vuyviEbXKWDj9Eup/E8ZMdpvidNG7Z7JMn/9giFVPjonjNBFg==",
+    "ERP.Core.Application/1.0.55": {
+      "sha512": "KaxCOGyhjJHpqnuETNP2lVbE1Fnjw+wJXPL8NLEe8D1lby+echvVluG1dR/pgZaY/phCU0h1zkbRyAh+81Rimw==",
       "type": "package",
-      "path": "erp.core.application/1.0.51",
+      "path": "erp.core.application/1.0.55",
       "files": [
         ".nupkg.metadata",
-        "erp.core.application.1.0.51.nupkg.sha512",
+        "erp.core.application.1.0.55.nupkg.sha512",
         "erp.core.application.nuspec",
         "lib/net9.0/ERP.Core.Application.dll"
       ]
     },
-    "ERP.Core.Database.Domain/1.0.53": {
-      "sha512": "Q3wgwhis4wEAo3AIOPcNytsH6pzNMu9aKJ/5geL2s4JrdHlT8B6xw+TaK27B4HnOIJisMxxkM+NPUnpnnDLVhg==",
+    "ERP.Core.Database.Domain/1.0.55": {
+      "sha512": "RpC+HCMq8VvFGbcf2Iwy3wfvfRVEIFMD1kHg7iNOoHUAVMJOEjUMlUxs0wjwn4VELWXw1M9roYOpCyneaBevEw==",
       "type": "package",
-      "path": "erp.core.database.domain/1.0.53",
+      "path": "erp.core.database.domain/1.0.55",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.domain.1.0.53.nupkg.sha512",
+        "erp.core.database.domain.1.0.55.nupkg.sha512",
         "erp.core.database.domain.nuspec",
         "lib/net9.0/ERP.Core.Database.Domain.dll"
       ]
     },
-    "ERP.Core.Domain/1.0.53": {
-      "sha512": "Z2bJGX3aMyhLppJXIUtpXA3Uh/PQli3WtIV/oGdcW98qzPC8I2+Kei4DZ3iMvkBENkco3dx3RkdKoMCyepQzMw==",
+    "ERP.Core.Domain/1.0.55": {
+      "sha512": "Yzk5Ws8vaXABZ0BaTyq+YBYHV+Tfk9R72kucQ+LKFgyPc9xlVMsKyEH4djpBHeE6BsTrckQFIJNiRZIZMyqKQw==",
       "type": "package",
-      "path": "erp.core.domain/1.0.53",
+      "path": "erp.core.domain/1.0.55",
       "files": [
         ".nupkg.metadata",
-        "erp.core.domain.1.0.53.nupkg.sha512",
+        "erp.core.domain.1.0.55.nupkg.sha512",
         "erp.core.domain.nuspec",
         "lib/net9.0/ERP.Core.Domain.dll"
       ]
@@ -990,7 +990,7 @@
       "AutoMapper >= 13.0.1",
       "BCrypt.Net-Next >= 4.1.0",
       "Domain >= 1.0.0",
-      "ERP.Core.Application >= 1.0.51",
+      "ERP.Core.Application >= 1.0.55",
       "FluentValidation.DependencyInjectionExtensions >= 12.1.1",
       "MediatR >= 14.1.0",
       "Microsoft.EntityFrameworkCore >= 10.0.5",
@@ -1004,17 +1004,17 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
+      "projectUniqueName": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
       "projectName": "Application",
-      "projectPath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
+      "projectPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
       "packagesPath": "C:\\Users\\desarrollo\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\obj\\",
+      "outputPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\NuGet.Config",
+        "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\NuGet.Config",
         "C:\\Users\\desarrollo\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -1032,8 +1032,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj": {
-              "projectPath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj"
+            "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj": {
+              "projectPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj"
             }
           }
         }
@@ -1067,7 +1067,7 @@
           },
           "ERP.Core.Application": {
             "target": "Package",
-            "version": "[1.0.51, )"
+            "version": "[1.0.55, )"
           },
           "FluentValidation.DependencyInjectionExtensions": {
             "target": "Package",

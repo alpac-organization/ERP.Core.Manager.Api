@@ -64,7 +64,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     Inss = op.Inss,
                     GrossSalary = op.GrossSalary,
                     BiweeklySalary = op.BiweeklySalary,
-                    Deductions = op.Deductions,
                     TotalToPay = op.TotalToPay,
                     TotalLegalDeductions = op.TotalLegalDeductions,
                     Collaborator = new CollaboratorInformationDto

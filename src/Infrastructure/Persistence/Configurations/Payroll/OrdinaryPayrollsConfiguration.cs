@@ -41,10 +41,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasPrecision(18, 2)
                 .IsRequired();
 
-            builder.Property(e => e.Deductions)
-                .HasColumnName("deductions")
-                .HasPrecision(18, 2)
-                .IsRequired();
+            builder.Property(e => e.DeductionsAdditionalData)
+                .HasColumnName("deductions_additional_data")
+                .HasColumnType("jsonb");
+
+            builder.Property(e => e.Vacations)
+                .HasColumnName("vacations")
+                .HasPrecision(18, 2);
 
             builder.Property(e => e.GrossSalary)
                 .HasColumnName("gross_salary")
