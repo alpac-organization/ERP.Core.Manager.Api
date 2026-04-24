@@ -32,32 +32,26 @@ RUN dotnet build "ERP.Core.Manager.Api.csproj" -c Release -o /app/build
 # 2. Etapa de publicación
 FROM build AS publish
 RUN dotnet publish "ERP.Core.Manager.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
-# 3. Imagen final de ejecución (Runtime)
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg \
+    chromium \
+    fonts-liberation \
     libnss3 \
     libxss1 \
-    chromium \
-    libasound2t64 \
-    libatk1.0-0 \
+    libasound2 \
     libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libgbm1 \
     libgtk-3-0 \
-    libpangocairo-1.0-0 \
+    libgbm1 \
     libxshmfence1 \
     libxkbcommon0 \
-    fonts-liberation \
-    libfontconfig1 \
-    chromium-browser \
     --no-install-recommends \
-    && ln -s /usr/bin/chromium /usr/bin/chromium-browser || true \
     && rm -rf /var/lib/apt/lists/*
+
+# 🔍 DEBUG (puedes quitar luego)
+RUN which chromium || echo "Chromium no encontrado"
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV DOTNET_RUNNING_IN_CONTAINER=true
