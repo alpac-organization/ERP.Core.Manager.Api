@@ -26,24 +26,24 @@ jobs:
       # 3. Validar que Chromium está instalado
       - name: Check Chromium exists
         run: |
-          docker run --rm erp-test which chromium \
+          docker run --rm erp-test which chromium-browser \
           || (echo "❌ ERROR: Chromium NO está instalado en el contenedor" && exit 1)
 
       # 4. Validar que Chromium se puede ejecutar
       - name: Check Chromium version
         run: |
-          docker run --rm erp-test chromium --version \
+          docker run --rm erp-test chromium-browser --version \
           || (echo "❌ ERROR: Chromium no puede ejecutarse" && exit 1)
 
       # 5. Validar que la ruta esperada existe
       - name: Check expected path
         run: |
           docker run --rm erp-test bash -c "
-          if [ ! -f /usr/bin/chromium ]; then
-            echo '❌ ERROR: /usr/bin/chromium no existe';
+          if [ ! -f /usr/bin/chromium-browser ]; then
+            echo '❌ ERROR: /usr/bin/chromium-browser no existe';
             exit 1;
           else
-            echo '✅ Chromium encontrado en /usr/bin/chromium';
+            echo '✅ Chromium encontrado en /usr/bin/chromium-browser';
           fi
           "
 
