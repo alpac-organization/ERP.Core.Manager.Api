@@ -61,6 +61,8 @@ RUN apt-get update && apt-get install -y \
     libgbm1 \
     libasound2t64 \
     libxshmfence1 \
+    libpulse0 \
+    libxss1 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
