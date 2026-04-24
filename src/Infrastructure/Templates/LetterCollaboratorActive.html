@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Configuraciones de página para impresión */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'OpenSans', sans-serif;
+            color: #000;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Contenedor del Logo: Posicionamiento absoluto para que no afecte el centrado del texto */
+        .logo-container {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+        
+        .logo-container img {
+            width: 125px; /* Tamaño optimizado para que se vea bien */
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* Contenedor principal: Ocupa todo el alto y centra el contenido */
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centrado vertical */
+            align-items: center;     /* Centrado horizontal */
+            flex-grow: 1;
+            padding: 0 10%; /* Márgenes laterales de seguridad */
+        }
+
+        .main-content {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .header-title {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 50px;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+
+        .content-body {
+            text-align: justify; /* Mantiene la formalidad solicitada */
+            line-height: 1.8;
+            margin-bottom: 60px;
+            font-size: 16px;
+        }
+
+        /* Bloque de firma */
+        .signature-section {
+            margin-top: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 250px;
+            margin-bottom: 10px;
+        }
+
+        .footer-info {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-container">
+        <img src="{{CompanyImageUrl}}" alt="Logo Empresa">
+    </div>
+
+    <div class="page-wrapper">
+        <div class="main-content">
+            
+            <div class="header-title">
+                CONSTANCIA
+            </div>
+
+            <div class="content-body">
+                <p>
+                    La suscrita Gerente de Talento Humano de <strong>{{CompanyName}}</strong>, 
+                    Lic. Angela Aracelly Guillén Somarriba, por este medio hace constar que la Sr (a). 
+                    <strong>{{CollaboratorFullname}}</strong>, labora para esta empresa, desde el 
+                    <strong>{{EntryDate}}</strong> hasta la fecha desempeñándose en el cargo de 
+                    <strong>{{JobPositionName}}</strong>.
+                </p>
+
+                <p>
+                    Extendemos la presente a solicitud de parte interesada, a los <strong>{{CurrentDay}}</strong> días del mes 
+                    <strong>{{CurrentMonthName}}</strong> del año <strong>{{CurrentYear}}</strong>.
+                </p>
+            </div>
+
+            <div class="signature-section">
+                <p>Atentamente,</p>
+                <div style="margin-top: 60px;">
+                    <div class="signature-line"></div>
+                    <div class="footer-info">
+                        <strong>Lic. Angela Aracelly Guillén S.</strong><br>
+                        Gerente Talento Humano
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

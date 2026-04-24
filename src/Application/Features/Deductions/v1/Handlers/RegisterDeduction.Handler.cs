@@ -21,10 +21,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
             {
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para registrar una dedución", "ERP:01");
             }
-
-
             
-            //Verificar si hay una nomina en progreso y actualizamos sus datos en el sistema. si y solo si esta la nomina.
 
 
             return true; 

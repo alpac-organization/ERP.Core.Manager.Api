@@ -4,8 +4,8 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
-using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -20,8 +20,37 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<PagedResponseDeduction<DeductionDto>> GetDeductionsHistoryAsync(
-            [FromRoute] Guid companie_id, 
-            [FromRoute] string module_code, 
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromQuery] string? identification_number,
+            [FromQuery] DeductionType? type,
+            [FromQuery] int page_number = 1,
+            [FromQuery] int page_size = 10
+        )
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            var deductionHistory = await _mediator.Send(new GetDeductionsHistoryQuery()
+            {
+                CompanyId = companie_id,
+                DeductionType = type,
+                IdentificationNumber = identification_number,
+                ModuleCode = module_code,
+                PageNumber = page_number,
+                PageSize = page_size,
+                UserId = Guid.Parse(userIdStr ?? "")
+            });
+
+            return deductionHistory;            
+        }
+
+        [Tags("Deducciones")] 
+        [HttpPost("companies/{companie_id}/modules/{module_code}/deductions")]
+        [ProducesResponseType(typeof(PagedResponseDeduction<DeductionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<PagedResponseDeduction<DeductionDto>> RegisterDeductionAsync([FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
             [FromQuery] string? identification_number,
             [FromQuery] DeductionType? type,
             [FromQuery] int page_number = 1,
