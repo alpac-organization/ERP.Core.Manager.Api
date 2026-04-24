@@ -161,7 +161,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 WorkPhoneNumber = info.WorkPhoneNumber,
                 WorkEmail = info.WorkEmail,
                 InssNumber = info.InssNumber,
-                EntryDate = DateTime.UtcNow 
+                EntryDate = info.EntryDate
             };
         }
 
