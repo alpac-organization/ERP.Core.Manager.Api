@@ -52,6 +52,7 @@ USER root
 # =========================
 RUN apt-get update && apt-get install -y \
     chromium \
+    chromium-browser \
     fonts-liberation \
     libnss3 \
     libatk-bridge2.0-0 \
@@ -69,8 +70,9 @@ RUN apt-get update && apt-get install -y \
 # =========================
 # 🔥 VERIFICACIÓN CHROMIUM
 # =========================
+
 RUN echo "===== CHECK CHROMIUM =====" && \
-    which chromium || true && \
+    RUN which chromium-browser || which chromium || true && \
     chromium --version || true && \
     echo "✅ Chromium instalado correctamente" && \
     echo "========================="
