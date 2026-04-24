@@ -37,7 +37,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    chromium \
     fonts-liberation \
     libnss3 \
     libxss1 \
@@ -49,6 +48,9 @@ RUN apt-get update && apt-get install -y \
     libxkbcommon0 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y chromium
+RUN apk add chromium
 
 # 🔍 DEBUG (puedes quitar luego)
 RUN which chromium || echo "Chromium no encontrado"
