@@ -1,4 +1,3 @@
-using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;

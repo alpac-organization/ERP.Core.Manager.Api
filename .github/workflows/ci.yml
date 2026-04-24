@@ -8,6 +8,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    environment: GH_USER  
 
     steps:
       # 1. Obtener el código
@@ -17,7 +18,7 @@ jobs:
       # 2. Construir la imagen Docker
       - name: Build Docker image
         run: |
-          docker build \
+          docker build --no-cache --pull\
             --build-arg GH_USER=${{ secrets.GH_USER }} \
             --build-arg GH_PACKAGE_TOKEN=${{ secrets.GH_PACKAGE_TOKEN }} \
             -t erp-test .
