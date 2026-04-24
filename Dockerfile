@@ -35,8 +35,24 @@ RUN dotnet publish "ERP.Core.Manager.Api.csproj" -c Release -o /app/publish /p:U
 # 3. Imagen final de ejecución (Runtime)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    chromium \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxrandr2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libasound2 \
+    libkrb5-3 \
+    fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+    
 COPY --from=publish /app/publish .
-# En la parte final de tu Dockerfile
 COPY --from=publish /app/publish/Templates ./Templates
 
 # Render usa el puerto 8080 por defecto. 
