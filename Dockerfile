@@ -59,6 +59,7 @@ RUN apt-get update && apt-get install -y \
 
 # Variable de entorno para que PuppeteerSharp sepa dónde está el navegador
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV DOTNET_RUNNING_IN_CONTAINER=true
     
 COPY --from=publish /app/publish .
 COPY --from=publish /app/publish/Templates ./Templates
