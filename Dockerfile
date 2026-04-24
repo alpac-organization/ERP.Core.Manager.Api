@@ -39,7 +39,7 @@ WORKDIR /app
 # 1. Usar root para instalar
 USER root
 
-# 2. Instalar dependencias y Chromium evitando SNAP
+# 2. Instalar Chromium y dependencias actualizadas para Ubuntu 24.04
 RUN apt-get update && apt-get install -y \
     software-properties-common \
     && add-apt-repository -y ppa:xtradeb/apps \
@@ -48,11 +48,13 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation \
     libnss3 \
     libgbm1 \
-    libasound2 \
+    libasound2t64 \
+    libglib2.0-0t64 \
+    libnspr4 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. Definir la ruta (En este PPA la ruta suele ser /usr/bin/chromium)
+# 3. Configurar variables de entorno
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 
