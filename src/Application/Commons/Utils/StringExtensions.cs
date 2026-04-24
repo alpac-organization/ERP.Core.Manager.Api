@@ -22,5 +22,71 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
 
             return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(text.ToLower());
         }
+
+        public static string ToNumberToLetters(decimal amount)
+        {
+            long entero = (long)Math.Floor(amount);
+            int decimales = (int)((amount - entero) * 100);
+
+            return $"{ConvertirEntero(entero)} con {decimales:00}/100";
+        }
+
+        public static string ConvertirEntero(long numero)
+        {
+            if (numero == 0) return "cero";
+            if (numero == 18) return "dieciocho";
+            if (numero == 1000) return "mil";
+
+            if (numero < 20)
+            {
+                string[] unidades = {
+                    "", "uno", "dos", "tres", "cuatro", "cinco",
+                    "seis", "siete", "ocho", "nueve", "diez",
+                    "once", "doce", "trece", "catorce", "quince",
+                    "dieciséis", "diecisiete", "dieciocho", "diecinueve"
+                };
+                return unidades[numero];
+            }
+
+            if (numero < 100)
+            {
+                string[] decenas = {
+                    "", "", "veinte", "treinta", "cuarenta",
+                    "cincuenta", "sesenta", "setenta", "ochenta", "noventa"
+                };
+
+                int d = (int)(numero / 10);
+                int u = (int)(numero % 10);
+
+                return u == 0 ? decenas[d] : $"{decenas[d]} y {ConvertirEntero(u)}";
+            }
+
+            if (numero < 1000)
+            {
+                string[] centenas = {
+                    "", "ciento", "doscientos", "trescientos", "cuatrocientos",
+                    "quinientos", "seiscientos", "setecientos", "ochocientos", "novecientos"
+                };
+
+                if (numero == 100) return "cien";
+
+                int c = (int)(numero / 100);
+                int resto = (int)(numero % 100);
+
+                return resto == 0 ? centenas[c] : $"{centenas[c]} {ConvertirEntero(resto)}";
+            }
+
+            if (numero < 1000000)
+            {
+                int miles = (int)(numero / 1000);
+                int resto = (int)(numero % 1000);
+
+                string milesTexto = miles == 1 ? "mil" : $"{ConvertirEntero(miles)} mil";
+
+                return resto == 0 ? milesTexto : $"{milesTexto} {ConvertirEntero(resto)}";
+            }
+
+            return numero.ToString(); // fallback
+        }
     }
 }

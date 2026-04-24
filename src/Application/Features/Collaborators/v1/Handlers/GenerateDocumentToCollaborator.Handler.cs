@@ -6,6 +6,8 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 using ERP.Core.Manager.Api.Domain.Enums;
+using System.Globalization;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
@@ -32,7 +34,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 return _errorManager.ThrowBadRequest<byte[]>("Este colaborador no existe en nuestro sistema", "ERP;:01");
             }
 
-
             var fullName = string.Join(" ", new[] 
             { 
                 collaboratorInformation.FirstName, 
@@ -43,7 +44,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
             var now = DateTime.Now;
-            var culture = new System.Globalization.CultureInfo("es-NI");
+            var culture = new CultureInfo("es-NI");
 
 
             var payload = new DocumentDto()
@@ -64,6 +65,23 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 case DocumentType.LetterCollaboratorActive :
                 {
                     return await pdfGeneratorServices.GenerateAsync<DocumentDto>("LetterCollaboratorActive", payload);
+                }
+                case DocumentType.SalaryLetter :
+                {
+
+                    var salaryInfo = await _unitOfWork.Salaries.Entities
+                        .Where(salary => salary.CollaboratorId == collaboratorInformation.Id)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (salaryInfo is null)
+                    {
+                        return _errorManager.ThrowBadRequest<byte[]>("Ocurrio un error al consultar la información salarial. Consulte con el departamento de IT", "erp:001");
+                    }
+
+                    payload.CurrentSalary = salaryInfo.AmountInLocal.ToString("N2", culture);
+                    payload.SalaryInLetters = StringExtensions.ToNumberToLetters(salaryInfo.AmountInLocal);
+
+                    return await pdfGeneratorServices.GenerateAsync<DocumentDto>("SalaryLetter", payload);   
                 }
                 default:
                 {
