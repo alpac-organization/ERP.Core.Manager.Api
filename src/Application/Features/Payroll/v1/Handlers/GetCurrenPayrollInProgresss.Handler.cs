@@ -60,18 +60,33 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Select(op => new PyrollDtailsDto
                 {
                     OrdinaryPayrollId = op.Id,
+                    BiweeklySalary = op.BiweeklySalary,
+
+                    NumberOfOvertime = op.NumberOfOvertime,
+                    Overtime = op.Overtime,
+                    Bonus = op.Bonus,
+                    GrossSalary = op.GrossSalary,
+
                     Ir = op.Ir,
                     Inss = op.Inss,
-                    GrossSalary = op.GrossSalary,
-                    BiweeklySalary = op.BiweeklySalary,
-                    Deductions = op.Deductions,
-                    TotalToPay = op.TotalToPay,
                     TotalLegalDeductions = op.TotalLegalDeductions,
+
+                    DeductionsAdditionalData = op.DeductionsAdditionalData,
+                    TotalDeducctions = op.TotalDeducctions,
+                    
+                    TravelExpenses = op.TravelExpenses,
+                    FoodTravelAllowance = op.FoodTravelAllowance,
+                    Lodging = op.Lodging,
+
+                    TotalToPay = op.TotalToPay,
+                    Vacations = op.Vacations,
+
                     Collaborator = new CollaboratorInformationDto
                     {
                         FullName = $"{op.Collaborator.FirstName} {op.Collaborator.SecondName ?? ""} {op.Collaborator.FirstLastname} {op.Collaborator.SecondLastname ?? ""}",
                         CollaboratorCode = op.Collaborator.CollaboratorCode,
-                        IdentificationNumber = op.Collaborator.IdentificationNumber
+                        IdentificationNumber = op.Collaborator.IdentificationNumber,
+                        InssNumber = op.Collaborator.WorkingInformation.InssNumber
                     }
                 })
                 .ToListAsync(cancellationToken);

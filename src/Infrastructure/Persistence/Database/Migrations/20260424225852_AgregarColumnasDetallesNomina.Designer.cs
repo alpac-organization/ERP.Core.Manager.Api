@@ -4,6 +4,7 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260424225852_AgregarColumnasDetallesNomina")]
+    partial class AgregarColumnasDetallesNomina
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1000,11 +1003,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
-                    b.Property<decimal>("FoodTravelAllowance")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("food_travel_allowance");
-
                     b.Property<decimal>("GrossSalary")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -1020,14 +1018,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("ir");
 
-                    b.Property<decimal>("Lodging")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("lodging");
-
-                    b.Property<int>("NumberOfOvertime")
-                        .HasColumnType("integer")
-                        .HasColumnName("number_of_overtime");
+                    b.Property<int>("NumberOfOvetime")
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("Overtime")
                         .HasPrecision(18, 2)
@@ -1054,9 +1046,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasColumnName("total_to_pay");
 
                     b.Property<decimal>("TravelExpenses")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("travel_expenses");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("Vacations")
                         .HasPrecision(18, 2)

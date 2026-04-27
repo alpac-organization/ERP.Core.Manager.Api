@@ -4,6 +4,8 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Domain.Entities.Payrolls;
+using System.Text.Json.Nodes;
+using System.Text.Json;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
@@ -118,6 +120,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
 
             decimal Overtime = 0.0m;
+            int NumberOfOvertime = 0;
+
             decimal Bonus = 0.0m;
 
             decimal  GrossSalary = Overtime + Bonus + ProportionalBiweeklySalary;
@@ -125,28 +129,51 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             //Este inss es proporcional a los dias laborados
             decimal InssBiweekly = await CalculateInss(GrossSalary, cancellationToken);
             decimal IrBiweekly  = await CalculateIr(GrossSalary, daysWorked, cancellationToken);
-
             decimal TotalToPay = GrossSalary - InssBiweekly - IrBiweekly;
 
             decimal TotalLegalDeductions = InssBiweekly + IrBiweekly;
-            decimal Deductions = 0.0m;
+
+            //Hacer un proceso de verificación de deducciones.
+            
+            var AdditionalDeducctions = new DeductionsAdditionalData()
+            {
+                Absences = 0.0m,
+                CashShortage  = 0.0m,
+                ChildSupportGarnishment = 0.0m,
+                ChristmasBonusAdvance = 0.0m,
+                DeductionForLossesBulk = 0.0m,
+                JudicialSeizures = 0.0m,
+                LateArrivals = 0.0m,
+                Loans = 0.0m,
+                OtherDeductions = 0.0m,
+                Purisima = 0.0m,
+                SalaryAdvance = 0.0m,
+                Sanction = 0.0m,
+                UniformDeduction = 0.0m
+            };
 
             decimal TotalDeducctions = TotalLegalDeductions;
 
             var payload = new OrdinaryPayroll()
             {
-                CollaboratorId   = collaborator.Id,
-                PayrollId        = payrollId,
-                Overtime         = Overtime,
-                Bonus            = Bonus,
-                BiweeklySalary   = BiweeklySalary,
-                GrossSalary      = GrossSalary,
-                Inss             = InssBiweekly,
-                Ir               = IrBiweekly,
+                CollaboratorId       = collaborator.Id,
+                PayrollId            = payrollId,
+                
+                BiweeklySalary       = BiweeklySalary,
+                
+                Overtime             = Overtime,
+                NumberOfOvertime     = NumberOfOvertime,
+                Bonus                = Bonus,
+                GrossSalary          = GrossSalary,
+
+                Inss                 = InssBiweekly,
+                Ir                   = IrBiweekly,
                 TotalLegalDeductions = TotalLegalDeductions,
-                Deductions       = Deductions,
-                TotalDeducctions = TotalDeducctions,
-                TotalToPay       = TotalToPay,
+
+                DeductionsAdditionalData = JsonSerializer.Serialize(AdditionalDeducctions),
+
+                TotalDeducctions     = TotalDeducctions,
+                TotalToPay           = TotalToPay,
             };
 
             await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
