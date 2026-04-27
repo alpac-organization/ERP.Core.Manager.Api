@@ -92,6 +92,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasPrecision(18, 2)
                 .IsRequired();
 
+            builder.Property(e => e.TotalTravelExpenses)
+                .HasColumnName("total_travel_expenses")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
             builder.Property(e => e.Vacations)
                 .HasColumnName("vacations")
                 .HasPrecision(18, 2);
