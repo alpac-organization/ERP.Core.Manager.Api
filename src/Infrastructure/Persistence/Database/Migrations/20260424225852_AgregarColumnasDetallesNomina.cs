@@ -21,7 +21,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                 .Annotation("Npgsql:Enum:catalog_type_enum", "banks,branches,departaments,document_types,exchange_rates,job_positions,work_areas")
                 .Annotation("Npgsql:Enum:collaborator_status_enum", "active,inactive,subsidy,suspended,terminated,testing_process,vacation")
                 .Annotation("Npgsql:Enum:currency_enum", "nio,usd")
-                .Annotation("Npgsql:Enum:deduction_type_enum", "advance_christmas_bonus,late_arrivals,loans,other_deductions,purisima,salary_advance,sanction")
                 .Annotation("Npgsql:Enum:gender_type_enum", "man,women")
                 .Annotation("Npgsql:Enum:identification_type_enum", "cedula,cedula_residencia,pasaporte")
                 .Annotation("Npgsql:Enum:marital_status_enum", "divorced,domestic_partner,married,none,other,separated,single,widowed")
@@ -58,7 +57,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                 .OldAnnotation("Npgsql:Enum:catalog_type_enum", "banks,branches,departaments,document_types,exchange_rates,job_positions,work_areas")
                 .OldAnnotation("Npgsql:Enum:collaborator_status_enum", "active,inactive,subsidy,suspended,terminated,testing_process,vacation")
                 .OldAnnotation("Npgsql:Enum:currency_enum", "nio,usd")
-                .OldAnnotation("Npgsql:Enum:deduction_type_enum", "advance_christmas_bonus,late_arrivals,loans,other_deductions")
                 .OldAnnotation("Npgsql:Enum:gender_type_enum", "man,women")
                 .OldAnnotation("Npgsql:Enum:identification_type_enum", "cedula,cedula_residencia,pasaporte")
                 .OldAnnotation("Npgsql:Enum:marital_status_enum", "divorced,domestic_partner,married,none,other,separated,single,widowed")
@@ -131,7 +129,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                 table: "deductions",
                 type: "currency_enum",
                 nullable: false,
-                defaultValue: (Currency)0);
+                defaultValue: (Currency)1);
 
             migrationBuilder.AddColumn<decimal>(
                 name: "FortnightlyAmountInDollars",
@@ -248,7 +246,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                 .OldAnnotation("Npgsql:Enum:catalog_type_enum", "banks,branches,departaments,document_types,exchange_rates,job_positions,work_areas")
                 .OldAnnotation("Npgsql:Enum:collaborator_status_enum", "active,inactive,subsidy,suspended,terminated,testing_process,vacation")
                 .OldAnnotation("Npgsql:Enum:currency_enum", "nio,usd")
-                .OldAnnotation("Npgsql:Enum:deduction_type_enum", "advance_christmas_bonus,late_arrivals,loans,other_deductions,purisima,salary_advance,sanction")
                 .OldAnnotation("Npgsql:Enum:gender_type_enum", "man,women")
                 .OldAnnotation("Npgsql:Enum:identification_type_enum", "cedula,cedula_residencia,pasaporte")
                 .OldAnnotation("Npgsql:Enum:marital_status_enum", "divorced,domestic_partner,married,none,other,separated,single,widowed")

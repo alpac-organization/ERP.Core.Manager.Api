@@ -26,32 +26,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnName("collaborator_id")
                 .IsRequired();
 
-            builder.Property(e => e.Inss)
-                .HasColumnName("inss")
+            builder.Property(e => e.BiweeklySalary)
+                .HasColumnName("biweekly_salary")
                 .HasPrecision(18, 2)
-                .IsRequired();
+                .IsRequired();      
 
-            builder.Property(e => e.Ir)
-                .HasColumnName("ir")
-                .HasPrecision(18, 2)
-                .IsRequired();
-            
-            builder.Property(e => e.TotalDeducctions)
-                .HasColumnName("total_deductions")
-                .HasPrecision(18, 2)
-                .IsRequired();
-
-            builder.Property(e => e.DeductionsAdditionalData)
-                .HasColumnName("deductions_additional_data")
-                .HasColumnType("jsonb");
-
-            builder.Property(e => e.Vacations)
-                .HasColumnName("vacations")
-                .HasPrecision(18, 2);
-
-            builder.Property(e => e.GrossSalary)
-                .HasColumnName("gross_salary")
-                .HasPrecision(18, 2)
+            builder.Property(e => e.NumberOfOvertime)
+                .HasColumnName("number_of_overtime")
                 .IsRequired();
 
             builder.Property(e => e.Overtime)
@@ -64,23 +45,59 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasPrecision(18, 2)
                 .IsRequired();
 
-            builder.Property(e => e.TotalToPay)
-                .HasColumnName("total_to_pay")
+            builder.Property(e => e.GrossSalary)
+                .HasColumnName("gross_salary")
                 .HasPrecision(18, 2)
                 .IsRequired();
+
+            builder.Property(e => e.Inss)
+                .HasColumnName("inss")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            builder.Property(e => e.Ir)
+                .HasColumnName("ir")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            builder.Property(e => e.TotalLegalDeductions)
+                .HasColumnName("total_legal_deductions")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            builder.Property(e => e.DeductionsAdditionalData)
+                .HasColumnName("deductions_additional_data")
+                .HasColumnType("jsonb");
 
             builder.Property(e => e.TotalDeducctions)
                 .HasColumnName("total_deductions")
                 .HasPrecision(18, 2)
                 .IsRequired();
 
-            builder.Property(e => e.BiweeklySalary)
-                .HasColumnName("biweekly_salary")
+            //Transporte
+            builder.Property(e => e.TravelExpenses)
+                .HasColumnName("travel_expenses")
                 .HasPrecision(18, 2)
                 .IsRequired();
 
-            builder.Property(e => e.TotalLegalDeductions)
-                .HasColumnName("total_legal_deductions")
+            // Alimentación
+            builder.Property(e => e.FoodTravelAllowance)
+                .HasColumnName("food_travel_allowance")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            //Hospedaje
+            builder.Property(e => e.Lodging)
+                .HasColumnName("lodging")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            builder.Property(e => e.Vacations)
+                .HasColumnName("vacations")
+                .HasPrecision(18, 2);
+
+            builder.Property(e => e.TotalToPay)
+                .HasColumnName("total_to_pay")
                 .HasPrecision(18, 2)
                 .IsRequired();
 
