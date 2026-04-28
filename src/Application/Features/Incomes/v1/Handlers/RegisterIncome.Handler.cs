@@ -15,11 +15,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
         public override async Task<bool> Handle(RegisterIncomeCommand request, CancellationToken cancellationToken)
         {
 
-            #pragma warning disable CA1873 // Avoid potentially expensive logging
+            // #pragma warning disable CA1873 // Avoid potentially expensive logging
             
             // logger.LogInformation("data: {data}", JsonSerializer.Serialize(request));
             
-            #pragma warning restore CA1873 // Avoid potentially expensive logging
+            // #pragma warning restore CA1873 // Avoid potentially expensive logging
 
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 

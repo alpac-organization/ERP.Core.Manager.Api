@@ -22,7 +22,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            await _mediator.Send(new RegisterIncomeCommand()
+            await _mediator.Send(new RegisterIncomeCommand()    
             {
                 AmountHours = payload.AmountHours,
                 CompanyId = companie_id,
@@ -30,6 +30,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 IncomeAmount = payload.IncomeAmount,
                 ModuleCode = module_code,
                 TypeIncomeId = payload.TypeIncomeId,
+                Description = payload.Description ?? "Sin descripción",
                 UserId = Guid.Parse(userIdStr ?? "")
             });
 
