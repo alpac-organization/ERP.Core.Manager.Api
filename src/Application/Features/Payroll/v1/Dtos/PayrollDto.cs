@@ -57,6 +57,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
         public string? FullName { get; set; }
         public string? InssNumber { get; set; }
         public string? CollaboratorCode { get; set; }
+        public string? JobPosition { get; set; }
+        public string? WorkArea { get; set; }
         public string? IdentificationNumber { get; set; }
     }
 }
