@@ -23,6 +23,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Catalog
                 .HasColumnName("income_title")
                 .IsRequired();
 
+            builder.Property(e => e.IncomeCode)
+                .HasColumnName("income_code")
+                .IsRequired(false);
+
             builder.Property(e => e.IncomeDescription)
                 .HasColumnName("income_description")
                 .IsRequired();
