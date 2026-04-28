@@ -66,7 +66,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         public async Task<PayrollDto> GetCurrentPayrollInProgressAsync([FromRoute] Guid companie_id,  [FromRoute] string module_code, 
             [FromQuery] PayrollType type,
             [FromQuery] Guid branch_id,
-            [FromQuery] string identification_number,
+            [FromQuery] string? identification_number,
             [FromQuery] int? work_area_id,
             [FromQuery] int? job_position_id,
             [FromQuery] int page_number = 1,
