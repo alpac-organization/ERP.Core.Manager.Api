@@ -1449,6 +1449,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
+                    b.Property<string>("IncomeCode")
+                        .HasColumnType("text")
+                        .HasColumnName("income_code");
+
                     b.Property<string>("IncomeDescription")
                         .IsRequired()
                         .HasColumnType("text")
