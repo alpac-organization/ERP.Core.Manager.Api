@@ -67,8 +67,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromQuery] PayrollType type,
             [FromQuery] Guid branch_id,
             [FromQuery] string identification_number,
-            [FromQuery] string work_area_id,
-            [FromQuery] string job_position_id,
+            [FromQuery] int? work_area_id,
+            [FromQuery] int? job_position_id,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
         )
@@ -85,8 +85,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 PageNumber = page_number,    
                 PageSize = page_size,
                 IdentificationNumber = identification_number,
-                WorkAreaId = work_area_id,
-                WorkPositionId = job_position_id
+                // WorkAreaId = work_area_id,
+                // WorkPositionId = job_position_id
             });
 
             return result;
