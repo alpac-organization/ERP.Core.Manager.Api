@@ -39,9 +39,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Validators
 
             RuleFor(x => x.IncomeAmount)
                 .NotEmpty()
-                    .WithMessage("El tipo de ingreso es obligatorio")
-                .NotNull()
-                    .WithMessage("El tipo de ingreso es obligatorio");
+                    .WithMessage("El monto del ingreso es obligatorio")
+                .GreaterThanOrEqualTo(50)
+                    .WithMessage("El monto del ingreso debe ser al menos 50");
         }
     }
 }
