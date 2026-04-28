@@ -8,26 +8,26 @@
     ".NETCoreApp,Version=v10.0": {
       "Domain/1.0.0": {
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.57",
-          "ERP.Core.Domain": "1.0.57"
+          "ERP.Core.Database.Domain": "1.0.60",
+          "ERP.Core.Domain": "1.0.60"
         },
         "runtime": {
           "Domain.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.57": {
+      "ERP.Core.Database.Domain/1.0.60": {
         "runtime": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {
-            "assemblyVersion": "1.0.57.0",
-            "fileVersion": "1.0.57.0"
+            "assemblyVersion": "1.0.60.0",
+            "fileVersion": "1.0.60.0"
           }
         }
       },
-      "ERP.Core.Domain/1.0.57": {
+      "ERP.Core.Domain/1.0.60": {
         "runtime": {
           "lib/net9.0/ERP.Core.Domain.dll": {
-            "assemblyVersion": "1.0.57.0",
-            "fileVersion": "1.0.57.0"
+            "assemblyVersion": "1.0.60.0",
+            "fileVersion": "1.0.60.0"
           }
         }
       }
@@ -39,19 +39,19 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ERP.Core.Database.Domain/1.0.57": {
+    "ERP.Core.Database.Domain/1.0.60": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-TlAfadhkZTPeE95jluz+wJiPvtfYhkxSdoaJmaZda9gxCCgJdBkEkVfu1S/nVUfD6foRXWjOeMFo1aHDud8ZXg==",
-      "path": "erp.core.database.domain/1.0.57",
-      "hashPath": "erp.core.database.domain.1.0.57.nupkg.sha512"
+      "sha512": "sha512-PvvG58FBeYPq10aNtWs75HcztPqsHJHYzhakw/dGww+vam+i5pr4bjiT0trTuv2BoWza3/yNozpHtNyWG/VO2w==",
+      "path": "erp.core.database.domain/1.0.60",
+      "hashPath": "erp.core.database.domain.1.0.60.nupkg.sha512"
     },
-    "ERP.Core.Domain/1.0.57": {
+    "ERP.Core.Domain/1.0.60": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-I/qRzCCji/cBjD3IEIg080ATqa4j4BZo9ZbrmO6MVkKENv2VhsNdsgoLHahoE4rmaCg2KUGz70+B15H1Yzu9mQ==",
-      "path": "erp.core.domain/1.0.57",
-      "hashPath": "erp.core.domain.1.0.57.nupkg.sha512"
+      "sha512": "sha512-gdh5LOH7tEN97qpE58880XnI8jf2zD7Dmy/aH5vwaYY72142q4ERbRqS4HjOMUuEOjGAKbHQ7PadTJJa3kxzWg==",
+      "path": "erp.core.domain/1.0.60",
+      "hashPath": "erp.core.domain.1.0.60.nupkg.sha512"
     }
   }
 }

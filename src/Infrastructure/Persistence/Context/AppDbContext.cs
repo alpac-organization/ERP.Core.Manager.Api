@@ -27,9 +27,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<Salary> Salaries => Set<Salary>();
 
         public DbSet<Deduction> Deductions => Set<Deduction>();
+        public DbSet<Income> Incomes => Set<Income>();
+
         public DbSet<Payroll> Payrolls => Set<Payroll>();
         public DbSet<OrdinaryPayroll> OrdinaryPayrolls => Set<OrdinaryPayroll>();
         public DbSet<WorkPositionHistory> WorkPositionHistories => Set<WorkPositionHistory>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

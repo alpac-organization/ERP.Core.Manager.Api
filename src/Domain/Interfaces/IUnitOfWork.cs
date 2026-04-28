@@ -1,7 +1,6 @@
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Catalogs;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll;
-
+using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Catalogs;
 namespace ERP.Core.Manager.Api.Domain.Interfaces
 {
     public interface IUnitOfWork : IDisposable
@@ -27,6 +26,8 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         IWorkPositionsHistoryRepository WorkPositionHistories { get; }
         IValidityDeductionsRepository ValidityDeductions { get; }
         IBranchesRepository Branches { get; }
+        IIncomesRepository Incomes { get; }
+        ITypesIncomeRepository TypesIncome { get; }
 
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
