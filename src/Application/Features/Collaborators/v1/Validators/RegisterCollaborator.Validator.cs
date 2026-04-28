@@ -1,5 +1,6 @@
 using FluentValidation;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
 {
@@ -116,7 +117,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
         {
             RuleFor(x => x.Salary)
                 .GreaterThan(0)
-                .WithMessage("El salario es obligatorio.");
+                .WithMessage("El salario es obligatorio.")
+                .When(x => x.SalaryType != SalaryType.ProfessionalServices);
 
             RuleFor(x => x.Currency)
                 .IsInEnum()

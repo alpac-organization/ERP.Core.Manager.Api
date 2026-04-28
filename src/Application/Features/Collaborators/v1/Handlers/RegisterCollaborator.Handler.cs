@@ -61,33 +61,56 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 // Registrar Información Salarial
-                var amountSalary = request.SalaryInformation?.Salary ?? 0;
-                decimal amountInLocal = 0;
-                decimal amountInForeign = 0;
-                const decimal exchangeRate = 36.6243m;
+                var salary = new Salary();
 
-                if (request.SalaryInformation!.Currency == Currency.USD)
+                if (request.SalaryInformation!.SalaryType != SalaryType.ProfessionalServices)
                 {
-                    amountInLocal = amountSalary * exchangeRate;
-                    amountInForeign = amountSalary;
+                    var amountSalary = request.SalaryInformation?.Salary ?? 0;
+                    decimal amountInLocal = 0;
+                    decimal amountInForeign = 0;
+                    const decimal exchangeRate = 36.6243m;
+
+                    if (request.SalaryInformation!.Currency == Currency.USD)
+                    {
+                        amountInLocal = amountSalary * exchangeRate;
+                        amountInForeign = amountSalary;
+                    }
+                    else
+                    {
+                        amountInLocal = amountSalary;
+                        amountInForeign = amountSalary / exchangeRate;
+                    }
+
+                    salary = new Salary()
+                    {
+                        SalaryType = request.SalaryInformation.SalaryType,
+                        BankSubCatalogId = request.SalaryInformation.SubCatalogBankId,
+                        AmountSalary = amountSalary,
+                        AmountInLocal = amountInLocal, 
+                        AmountInForeign = amountInForeign,
+                        Currency = request.SalaryInformation.Currency,
+                        CollaboratorId = collaboratorEntity.Id,
+                        StartDate = DateTime.Now
+                    };
                 }
                 else
                 {
-                    amountInLocal = amountSalary;
-                    amountInForeign = amountSalary / exchangeRate;
-                }
+                    var amountSalary = request.SalaryInformation?.Salary ?? 0;
+                    decimal amountInLocal = 0;
+                    decimal amountInForeign = 0;
 
-                var salary = new Salary()
-                {
-                    SalaryType = request.SalaryInformation.SalaryType,
-                    BankSubCatalogId = request.SalaryInformation.SubCatalogBankId,
-                    AmountSalary = amountSalary,
-                    AmountInLocal = amountInLocal, 
-                    AmountInForeign = amountInForeign,
-                    Currency = request.SalaryInformation.Currency,
-                    CollaboratorId = collaboratorEntity.Id,
-                    StartDate = DateTime.Now
-                };
+                    salary = new Salary()
+                    {
+                        SalaryType = request.SalaryInformation!.SalaryType,
+                        BankSubCatalogId = request.SalaryInformation.SubCatalogBankId,
+                        AmountSalary = amountSalary,
+                        AmountInLocal = amountInLocal, 
+                        AmountInForeign = amountInForeign,
+                        Currency = request.SalaryInformation.Currency,
+                        CollaboratorId = collaboratorEntity.Id,
+                        StartDate = DateTime.Now
+                    };
+                }
 
                 await _unitOfWork.Salaries.RegisterSalary(salary, cancellationToken);
 
