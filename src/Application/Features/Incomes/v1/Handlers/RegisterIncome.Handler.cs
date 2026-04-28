@@ -92,8 +92,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 };
 
                 await _unitOfWork.Incomes.RegisterIncome(IncomePayload);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                // Iniciando proceso de ingreso y contabilidad de nomina.
                 switch (Income.IncomeCode)
                 {
                     case "ALW_MEAL" :
@@ -104,6 +104,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                         // logger.LogInformation("Proceso finalizado con exito!"); 
                         
@@ -118,6 +119,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                         // logger.LogInformation("Proceso finalizado con exito!");
 
@@ -132,6 +134,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                         // logger.LogInformation("Proceso finalizado con exito!");
 
@@ -145,7 +148,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 }
             }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return true; 
         }
     }
