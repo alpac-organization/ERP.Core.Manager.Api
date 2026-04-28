@@ -44,6 +44,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
         public decimal TravelExpenses { get; set; }
         public decimal FoodTravelAllowance { get ; set; }
         public decimal Lodging { get; set; }
+        public decimal TotalTravelExpenses { get; set; }
+
 
         public decimal Vacations { get; set; }
         public decimal TotalToPay { get; set; }
