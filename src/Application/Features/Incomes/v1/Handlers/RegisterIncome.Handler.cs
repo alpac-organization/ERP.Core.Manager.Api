@@ -6,6 +6,7 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 
 namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 {
@@ -78,18 +79,33 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de ingreso no se encuentra disponible!", "ERP:03");
                 }
 
+
+                //Iniciar Proceso de registro de ingreso.
+
+                var IncomePayload = new Income()
+                {
+                    CollaboratorId  = collaboratorInformation.Id,
+                    AmountInLocal   = request.IncomeAmount,
+                    Description     = request.Description,
+                    AmountInDollars = request.IncomeAmount / 36.6243m,
+                    Currency        = Currency.NIO,
+                    IncomeTypeId    = request.TypeIncomeId,
+                    PayrollId       = payroll.Id                    
+                };
+
+                await _unitOfWork.Incomes.RegisterIncome(IncomePayload);
+
                 // Iniciando proceso de ingreso y contabilidad de nomina.
                 switch (Income.IncomeCode)
                 {
                     case "ALW_MEAL" :
                     {
-                        logger.LogInformation("Agregando ingreso de alimentación");
+                        logger.LogInformation("Agregando ingreso de alimentación a nomina");
 
                         ordinaryPayrollInformation.FoodTravelAllowance = request.IncomeAmount;
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                         logger.LogInformation("Proceso finalizado con exito!"); 
                         
@@ -98,13 +114,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     case "ALW_HOUSING" :
                     {
 
-                        logger.LogInformation("Agregando ingreso de hospedaje");
+                        logger.LogInformation("Agregando ingreso de hospedaje a nomina");
 
                         ordinaryPayrollInformation.Lodging = request.IncomeAmount;
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                         logger.LogInformation("Proceso finalizado con exito!");
 
@@ -113,13 +128,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     case "ALW_TRANSPORT":
                     {
 
-                        logger.LogInformation("Agregando ingreso de transporte");
+                        logger.LogInformation("Agregando ingreso de transporte a nomina");
 
                         ordinaryPayrollInformation.Lodging = request.IncomeAmount;
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                         logger.LogInformation("Proceso finalizado con exito!");
 
@@ -133,6 +147,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 }
             }
 
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return true; 
         }
     }

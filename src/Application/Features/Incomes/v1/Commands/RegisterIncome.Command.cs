@@ -9,5 +9,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands
         public string? IdentificationNumber { get; set; }
         public Guid TypeIncomeId { get; set; }
         public int AmountHours { get; set; }
+        public string? Description { get; set; }
     }
 }
