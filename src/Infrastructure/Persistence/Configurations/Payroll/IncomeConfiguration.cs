@@ -43,7 +43,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.Property(e => e.Currency)
                 .HasColumnName("currency")
-                .HasDefaultValue(Currency.NIO)
                 .IsRequired();
 
             builder.Property(e => e.PayrollId)

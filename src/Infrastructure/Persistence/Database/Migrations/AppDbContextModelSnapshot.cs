@@ -887,6 +887,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     b.Property<int>("NumberOfFortnights")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("PayrollId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -913,6 +916,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     b.HasIndex("Id")
                         .IsUnique()
                         .HasDatabaseName("ix_deduction_id");
+
+                    b.HasIndex("PayrollId");
 
                     b.ToTable("deductions", "public");
                 });
@@ -961,6 +966,70 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasDatabaseName("ix_payment_id");
 
                     b.ToTable("deductions_payment_histories", "public");
+                });
+
+            modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Payrolls.Income", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("income_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<decimal>("AmountInDollars")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount_in_dollars");
+
+                    b.Property<decimal>("AmountInLocal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount_in_local");
+
+                    b.Property<Guid>("CollaboratorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collaborator_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Currency>("Currency")
+                        .HasColumnType("currency_enum")
+                        .HasColumnName("currency");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("IncomeTypeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("income_type_id");
+
+                    b.Property<Guid>("PayrollId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payroll_id ");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollaboratorId");
+
+                    b.HasIndex("Id")
+                        .IsUnique()
+                        .HasDatabaseName("ix_income_id");
+
+                    b.HasIndex("IncomeTypeId");
+
+                    b.HasIndex("PayrollId");
+
+                    b.ToTable("incomes", "public");
                 });
 
             modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Payrolls.OrdinaryPayroll", b =>
@@ -1052,6 +1121,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("total_to_pay");
+
+                    b.Property<decimal>("TotalTravelExpenses")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total_travel_expenses");
 
                     b.Property<decimal>("TravelExpenses")
                         .HasPrecision(18, 2)
@@ -1357,6 +1431,45 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                     b.ToTable("salaries", "public");
                 });
 
+            modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Payrolls.TypesIncome", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("validity_deduction_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("IncomeDescription")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("income_description");
+
+                    b.Property<string>("IncomeTitle")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("income_title");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("types_income", "public");
+                });
+
             modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Payrolls.Vacation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1637,7 +1750,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ERP.Core.Database.Domain.Entities.Payrolls.Payroll", "Payroll")
+                        .WithMany()
+                        .HasForeignKey("PayrollId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Collaborator");
+
+                    b.Navigation("Payroll");
                 });
 
             modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Payrolls.DeductionPaymentHistory", b =>
@@ -1649,6 +1770,33 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
                         .IsRequired();
 
                     b.Navigation("Deduction");
+                });
+
+            modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Payrolls.Income", b =>
+                {
+                    b.HasOne("ERP.Core.Database.Domain.Entities.Payrolls.Collaborator", "Collaborator")
+                        .WithMany("Incomes")
+                        .HasForeignKey("CollaboratorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ERP.Core.Database.Domain.Entities.Payrolls.TypesIncome", "TypesIncome")
+                        .WithMany()
+                        .HasForeignKey("IncomeTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ERP.Core.Database.Domain.Entities.Payrolls.Payroll", "Payroll")
+                        .WithMany()
+                        .HasForeignKey("PayrollId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Collaborator");
+
+                    b.Navigation("Payroll");
+
+                    b.Navigation("TypesIncome");
                 });
 
             modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Payrolls.OrdinaryPayroll", b =>
@@ -1838,6 +1986,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Database.Migrations
             modelBuilder.Entity("ERP.Core.Database.Domain.Entities.Payrolls.Collaborator", b =>
                 {
                     b.Navigation("Deductions");
+
+                    b.Navigation("Incomes");
 
                     b.Navigation("OrdinaryPayrolls");
 
