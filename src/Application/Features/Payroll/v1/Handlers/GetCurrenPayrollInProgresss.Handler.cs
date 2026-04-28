@@ -86,7 +86,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         FullName = $"{op.Collaborator.FirstName} {op.Collaborator.SecondName ?? ""} {op.Collaborator.FirstLastname} {op.Collaborator.SecondLastname ?? ""}",
                         CollaboratorCode = op.Collaborator.CollaboratorCode,
                         IdentificationNumber = op.Collaborator.IdentificationNumber,
-                        InssNumber = op.Collaborator.WorkingInformation.InssNumber
+                        InssNumber = op.Collaborator.WorkingInformation.InssNumber,
+                        JobPosition = op.Collaborator.WorkingInformation.WorkPosition.CatalogName,
+                        WorkArea = op.Collaborator.WorkingInformation.WorkArea.CatalogName
                     }
                 })
                 .ToListAsync(cancellationToken);

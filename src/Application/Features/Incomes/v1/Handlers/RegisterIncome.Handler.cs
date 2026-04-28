@@ -1,23 +1,23 @@
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using ERP.Core.Database.Domain.Entities.Payrolls;
 
 namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 {
-    public class RegisterDeductionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger logger): AlpacBaseHandler<RegisterIncomeCommand, bool>(_unitOfWork, _errorManager)
+    public class RegisterIncomeHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<RegisterIncomeCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterIncomeCommand request, CancellationToken cancellationToken)
         {
 
             #pragma warning disable CA1873 // Avoid potentially expensive logging
             
-            logger.LogInformation("data: {data}", JsonSerializer.Serialize(request));
+            // logger.LogInformation("data: {data}", JsonSerializer.Serialize(request));
             
             #pragma warning restore CA1873 // Avoid potentially expensive logging
 
@@ -33,7 +33,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para registrar una dedución", "ERP:01");
             }
 
-            logger.LogInformation("Iniciando proceso de registro de ingreso");
+            // logger.LogInformation("Iniciando proceso de registro de ingreso");
 
             var collaboratorInformation = await _unitOfWork.Collaborators.Entities
                 .Where(col => col.IdentificationNumber == request.IdentificationNumber && col.CompanyId == request.CompanyId)
@@ -53,7 +53,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 
             if (payroll is null)
             {
-                logger.LogInformation("No se encontro una nomina en progreso");
+                // logger.LogInformation("No se encontro una nomina en progreso");
                 return false;
             }
             else
@@ -78,8 +78,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 {
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de ingreso no se encuentra disponible!", "ERP:03");
                 }
-
-
                 //Iniciar Proceso de registro de ingreso.
 
                 var IncomePayload = new Income()
@@ -100,42 +98,42 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 {
                     case "ALW_MEAL" :
                     {
-                        logger.LogInformation("Agregando ingreso de alimentación a nomina");
+                        // logger.LogInformation("Agregando ingreso de alimentación a nomina");
 
                         ordinaryPayrollInformation.FoodTravelAllowance = request.IncomeAmount;
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
 
-                        logger.LogInformation("Proceso finalizado con exito!"); 
+                        // logger.LogInformation("Proceso finalizado con exito!"); 
                         
                         return true;
                     }
                     case "ALW_HOUSING" :
                     {
 
-                        logger.LogInformation("Agregando ingreso de hospedaje a nomina");
+                        // logger.LogInformation("Agregando ingreso de hospedaje a nomina");
 
                         ordinaryPayrollInformation.Lodging = request.IncomeAmount;
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
 
-                        logger.LogInformation("Proceso finalizado con exito!");
+                        // logger.LogInformation("Proceso finalizado con exito!");
 
                         return true;
                     }
                     case "ALW_TRANSPORT":
                     {
 
-                        logger.LogInformation("Agregando ingreso de transporte a nomina");
+                        // logger.LogInformation("Agregando ingreso de transporte a nomina");
 
                         ordinaryPayrollInformation.Lodging = request.IncomeAmount;
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
 
-                        logger.LogInformation("Proceso finalizado con exito!");
+                        // logger.LogInformation("Proceso finalizado con exito!");
 
                         return true;
                     }
