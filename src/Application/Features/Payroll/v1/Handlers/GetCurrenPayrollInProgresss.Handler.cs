@@ -49,7 +49,22 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
             var detailsQuery = _unitOfWork.OrdinaryPayrolls.Entities
                 .AsNoTracking()
+                .Include(op => op.Collaborator)
+                    .ThenInclude(col => col.WorkingInformation)
                 .Where(op => op.PayrollId == payroll.PayrollId);
+
+
+            if (!string.IsNullOrEmpty(request.IdentificationNumber))
+            {
+                detailsQuery = detailsQuery
+                    .Where(op => op.Collaborator.IdentificationNumber == request.IdentificationNumber);
+            }
+
+            // if (request.WorkAreaId.)
+            // {
+            //     detailsQuery = detailsQuery
+            //         .Where(op => op.Collaborator.WorkingInformation.)
+            // }
 
             int totalItems = await detailsQuery.CountAsync(cancellationToken);
 
@@ -77,6 +92,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     TravelExpenses = op.TravelExpenses,
                     FoodTravelAllowance = op.FoodTravelAllowance,
                     Lodging = op.Lodging,
+                    TotalTravelExpenses = op.TotalTravelExpenses,
+                    
 
                     TotalToPay = op.TotalToPay,
                     Vacations = op.Vacations,
