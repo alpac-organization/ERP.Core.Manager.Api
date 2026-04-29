@@ -111,7 +111,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                         StartDate = DateTime.Now
                     };
                 }
-                
+
                 await _unitOfWork.Salaries.RegisterSalary(salary, cancellationToken);
 
                 //Registramos su control de vacaciones. 
@@ -136,6 +136,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                     // Registramos los viáticos
                     foreach (var travel in request.TravelExpenses)
                     {
+                        if (travel.IncomeAmount == 0)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("La cantidad no puede ser 0", "EPR:03");
+                        }
+                        if (string.IsNullOrEmpty(travel.TypeIncomeId.ToString()))
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("El tipo de ingreso es obligatorio", "EPR:03");
+                        }
+
                         var history = new AssignedTravelExpenses
                         {
                             Id = Guid.NewGuid(),
