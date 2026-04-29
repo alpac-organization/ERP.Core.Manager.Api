@@ -85,6 +85,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                     foreach(var collaborator in collaborators)
                     {
+
+                        var IncomeTaxAccrualInformation = await _unitOfWork.IncomeTaxAccrual.Entities
+                            .Include(tax => tax.Collaborator)
+                                .ThenInclude(col => col.WorkingInformation)
+                                    .ThenInclude(work => work.BranchInfo)
+                            .Where(
+                                col => 
+                                col.CollaboratorId == collaborator.Id && 
+                                col.Collaborator.CompanyId == request.CompanyId && 
+                                col.Collaborator.WorkingInformation.BranchInfo.Id == request.BranchId
+                            )
+                            .FirstOrDefaultAsync(cancellationToken);
+
                         await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
                     }
 
