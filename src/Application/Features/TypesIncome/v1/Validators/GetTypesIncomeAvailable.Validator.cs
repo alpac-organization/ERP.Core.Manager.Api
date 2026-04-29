@@ -12,12 +12,6 @@ namespace ERP.Core.Manager.Api.Application.Features.TypesIncome.v1.Validators
                     .WithMessage("El id de la empresa no puedes vacio.")
                 .NotNull()
                     .WithMessage("El id de la empresa es requerido");
-                    
-            RuleFor(x => x.UserId)
-                .NotEmpty()
-                    .WithMessage("El usuario es requerido")
-                .NotNull()
-                    .WithMessage("El usuario es requerido");
         }
     }
 }
