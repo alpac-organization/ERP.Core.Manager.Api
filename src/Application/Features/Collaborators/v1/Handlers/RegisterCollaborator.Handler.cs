@@ -129,8 +129,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
                 await _unitOfWork.Vacations.RegisterVacationControl(vacation, cancellationToken);
 
-
-                //
                 if (request?.TravelExpenses?.Count > 0)
                 {
                     // Registramos los viáticos
@@ -159,10 +157,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
                         // 3. Agregamos al contexto
                         await _unitOfWork.AssignedTravelExpenses.RegisterAssignedTravelExpenses(history);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
                     }
 
                     // 4. Guardamos cambios
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
                 }
 
             }

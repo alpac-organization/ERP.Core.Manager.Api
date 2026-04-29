@@ -35,25 +35,61 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
 
         //Este ir se basa en la numero de quincena que se encuentra actualmente el colaborador
-        public async Task<IrCalculationResult> CalculateIrToNextProcess(int NFortnight, decimal AccumulatedAccrued, decimal GrossSalary, CancellationToken cancellationToken)
+        public async Task<IrCalculationResult> CalculateIrToNextProcess(int NFortnight, decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken)
         {
             var biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
 
             //Salario quincenal libre de inss.
-            var netSalary = GrossSalary - biweeklyInss;
-            var AnnualSalary = netSalary * NFortnight;
+            decimal netSalary = GrossSalary - biweeklyInss;
+            decimal AnnualSalary = netSalary * NFortnight;
 
-            // var totalAnnualSalary = 
+            decimal totalAnnualSalary = AnnualSalary + AccumulatedAccrued;
+            decimal AnnualIr;
 
-            //
+            //Agregar regla del ir
+            decimal BaseTax;
+            decimal AnnualExpectationIR = 0.0m;
+            decimal IrBiweekly = 0.0m;
 
 
+            if (totalAnnualSalary <= 100000)
+                AnnualIr = 0;
+            else if (AnnualSalary <= 200000)
+            {
+                BaseTax = 0;
+                AnnualIr = ((AnnualSalary - 100000) * 0.15m);
+                AnnualExpectationIR = AnnualIr + BaseTax;
 
+                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / NFortnight;
+            }
+            else if (AnnualSalary <= 350000)
+            {
+                BaseTax = 15000.00m;
+                AnnualIr = ((AnnualSalary - 200000) * 0.20m);
+                AnnualExpectationIR = AnnualIr + BaseTax;
 
+                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / NFortnight;
+            }
+            else if (AnnualSalary <= 500000)
+            {
+                BaseTax = 45000.00m;
+                AnnualIr = ((AnnualSalary - 350000) * 0.25m);
+                AnnualExpectationIR = AnnualIr + BaseTax;
+
+                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / NFortnight;
+            }
+            else
+            {
+                BaseTax = 82500.00m;
+                AnnualIr = ((AnnualSalary - 500000) * 0.30m);
+
+                AnnualExpectationIR = AnnualIr + BaseTax;
+                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / NFortnight;
+            }
 
             return new IrCalculationResult(
                 biweeklyInss,
-                0
+                IrBiweekly
             );
         }
 
@@ -154,6 +190,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             //Este inss es proporcional a los dias laborados
             decimal InssBiweekly = await CalculateInss(GrossSalary, cancellationToken);
             decimal IrBiweekly  = await CalculateIr(GrossSalary, daysWorked, cancellationToken);
+            
             decimal TotalToPay = GrossSalary - InssBiweekly - IrBiweekly;
 
             decimal TotalLegalDeductions = InssBiweekly + IrBiweekly;

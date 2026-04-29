@@ -12,7 +12,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
         //Realizar Operación de calculos de nomina ordinaria e insertar, o crear nuevo ciclo de nomina.
 
-        Task<IrCalculationResult>CalculateIrToNextProcess(int NFortnight, decimal AccumulatedAccrued, decimal GrossSalary, CancellationToken cancellationToken);
+        Task<IrCalculationResult>CalculateIrToNextProcess(int NFortnight, decimal AccumulatedAccrued,decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken);
 
         Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken);
 
