@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,7 +20,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
 
             builder.HasIndex(e => e.Id)
                 .IsUnique()
-                .HasDatabaseName("ix_income_id");
+                .HasDatabaseName("ix_income_tax_id");
 
             builder.Property(e => e.CollaboratorId)
                 .HasColumnName("collaborator_id")

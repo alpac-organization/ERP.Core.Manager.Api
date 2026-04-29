@@ -111,7 +111,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                         StartDate = DateTime.Now
                     };
                 }
-
+                
                 await _unitOfWork.Salaries.RegisterSalary(salary, cancellationToken);
 
                 //Registramos su control de vacaciones. 
@@ -129,9 +129,32 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
                 await _unitOfWork.Vacations.RegisterVacationControl(vacation, cancellationToken);
 
-                //Insertarlo en la nomina en progreso.
-                
 
+                //
+                if (request?.TravelExpenses?.Count > 0)
+                {
+                    // Registramos los viáticos
+                    foreach (var travel in request.TravelExpenses)
+                    {
+                        var history = new AssignedTravelExpenses
+                        {
+                            Id = Guid.NewGuid(),
+                            AmountInDollars = travel.IncomeAmount / 36.6273m,
+                            AmountInLocalCurrency = travel.IncomeAmount,
+                            CollaboratorId = collaboratorEntity.Id,
+                            Currency = Currency.NIO,
+                            TypeIncomeId = travel.TypeIncomeId,
+                            StartDate = DateTime.Now,
+                            EndDate = null
+                        };
+
+                        // 3. Agregamos al contexto
+                        await _unitOfWork.AssignedTravelExpenses.RegisterAssignedTravelExpenses(history);
+                    }
+
+                    // 4. Guardamos cambios
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                }
 
             }
             else

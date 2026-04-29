@@ -20,6 +20,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .ValueGeneratedOnAdd()
                 .IsRequired();
 
+            builder.Property(e => e.CollaboratorId)
+                .HasColumnName("collaborator_id")
+                .IsRequired();
+
             builder.Property(e => e.AmountInDollars)
                 .HasColumnName("amount_in_dollars")
                 .HasPrecision(18, 2)
@@ -43,7 +47,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnName("deleted_at");
 
             builder.HasOne(d => d.Collaborator)
-                .WithMany()
+                .WithMany(c => c.AssignedTravelExpenses)
                 .HasForeignKey(d => d.CollaboratorId)
                 .OnDelete(DeleteBehavior.Restrict);
 

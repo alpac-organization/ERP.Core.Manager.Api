@@ -25,12 +25,12 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         IOrdinaryPayrollsRepository OrdinaryPayrolls { get; }
         IWorkPositionsHistoryRepository WorkPositionHistories { get; }
         IValidityDeductionsRepository ValidityDeductions { get; }
-        IBranchesRepository Branches { get; }
         IIncomesRepository Incomes { get; }
+        IBranchesRepository Branches { get; }
         ITypesIncomeRepository TypesIncome { get; }
         IIncomeTaxAccrualRepository IncomeTaxAccrual { get;}
-        IAssignedTravelExpensesHistoryRepository AssignedTravelExpensesHistories  { get; }
-
+        IAssignedTravelExpensesRepository AssignedTravelExpenses  { get; }
+        IAssignedTravelExpensesHistoryRepository AssignedTravelExpensesHistories { get; }
 
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
