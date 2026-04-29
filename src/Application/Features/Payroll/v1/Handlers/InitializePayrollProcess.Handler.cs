@@ -59,7 +59,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 EndDate = endDate,
                 Status = PayrollStatus.Progress,
                 PayrollType = request.Type,
-                TotalToPay = 0.0m,
                 BranchId = request.BranchId
             };
 

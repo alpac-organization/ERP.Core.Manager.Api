@@ -31,10 +31,10 @@
           }
         }
       },
-      "ERP.Core.Application/1.0.61": {
+      "ERP.Core.Application/1.0.64": {
         "type": "package",
         "dependencies": {
-          "ERP.Core.Domain": "1.0.61",
+          "ERP.Core.Domain": "1.0.64",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0"
         },
@@ -439,13 +439,13 @@
         "readme.md"
       ]
     },
-    "ERP.Core.Application/1.0.61": {
-      "sha512": "8XxMCfjTTOT0pVHJ+NT83YF0gVW+hLesFVyQa8C/XAv1/DapZiyF87xLGbmX6ybBhqLtvw5ZV1pp9fwUbjd53g==",
+    "ERP.Core.Application/1.0.64": {
+      "sha512": "saRBrULSrA3AWzyOrRnRVb8g0SSht5eMSJXnMGoJK8FMYZ7nFTvOoWA5CNxzHdNiwomywVSmrRfbe+GcshirSA==",
       "type": "package",
-      "path": "erp.core.application/1.0.61",
+      "path": "erp.core.application/1.0.64",
       "files": [
         ".nupkg.metadata",
-        "erp.core.application.1.0.61.nupkg.sha512",
+        "erp.core.application.1.0.64.nupkg.sha512",
         "erp.core.application.nuspec",
         "lib/net9.0/ERP.Core.Application.dll"
       ]
@@ -990,7 +990,7 @@
       "AutoMapper >= 13.0.1",
       "BCrypt.Net-Next >= 4.1.0",
       "Domain >= 1.0.0",
-      "ERP.Core.Application >= 1.0.61",
+      "ERP.Core.Application >= 1.0.64",
       "FluentValidation.DependencyInjectionExtensions >= 12.1.1",
       "MediatR >= 14.1.0",
       "Microsoft.EntityFrameworkCore >= 10.0.5",
@@ -1004,17 +1004,17 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\desarrollo\\Desktop\\Desarrollo\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
+      "projectUniqueName": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
       "projectName": "Application",
-      "projectPath": "C:\\Users\\desarrollo\\Desktop\\Desarrollo\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
+      "projectPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\Application.csproj",
       "packagesPath": "C:\\Users\\desarrollo\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\desarrollo\\Desktop\\Desarrollo\\ERP.Core.Manager.Api\\src\\Application\\obj\\",
+      "outputPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\desarrollo\\Desktop\\Desarrollo\\ERP.Core.Manager.Api\\NuGet.Config",
+        "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\NuGet.Config",
         "C:\\Users\\desarrollo\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -1024,6 +1024,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {},
         "https://nuget.pkg.github.com/alpac-organization/index.json": {}
       },
@@ -1031,8 +1032,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\desarrollo\\Desktop\\Desarrollo\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj": {
-              "projectPath": "C:\\Users\\desarrollo\\Desktop\\Desarrollo\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj"
+            "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj": {
+              "projectPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj"
             }
           }
         }
@@ -1050,7 +1051,7 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.200"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net10.0": {
@@ -1066,7 +1067,7 @@
           },
           "ERP.Core.Application": {
             "target": "Package",
-            "version": "[1.0.61, )"
+            "version": "[1.0.64, )"
           },
           "FluentValidation.DependencyInjectionExtensions": {
             "target": "Package",
@@ -1101,7 +1102,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.203/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

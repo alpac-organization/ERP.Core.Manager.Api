@@ -30,7 +30,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         IValidityDeductionsRepository validityDeductionsRepository,
         IBranchesRepository branchesRepository,
         IIncomesRepository incomesRepository,
-        ITypesIncomeRepository typesIncomeRepository
+        ITypesIncomeRepository typesIncomeRepository,
+
+        IIncomeTaxAccrualRepository incomeTaxAccrualRepository,
+        IAssignedTravelExpensesHistoryRepository assignedTravelExpensesHistoryRepository,
+        IAssignedTravelExpensesRepository assignedTravelExpensesRepository
     ) : IUnitOfWork
     {
         public AppDbContext Context => _context;
@@ -58,6 +62,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence
         public IBranchesRepository Branches => branchesRepository;
         public IIncomesRepository Incomes => incomesRepository;
         public ITypesIncomeRepository TypesIncome => typesIncomeRepository;
+        public IIncomeTaxAccrualRepository IncomeTaxAccrual => incomeTaxAccrualRepository;
+        public IAssignedTravelExpensesHistoryRepository AssignedTravelExpensesHistories => assignedTravelExpensesHistoryRepository;
+        public IAssignedTravelExpensesRepository AssignedTravelExpenses => assignedTravelExpensesRepository;
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {

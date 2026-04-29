@@ -26,10 +26,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public CollaboratorStatus Status { get; set; }
         public IdentificationType IdentificationType { get; set; }
 
-
+        
         public WorkingInformation? WorkingInformation { get; set; }
         public PersonalInformation? PersonalInformation { get; set; }
         public SalaryInformation? SalaryInformation { get; set; }
+        public List<TravelExpenses> TravelExpenses { get; set; } = [];
+    }
+
+    public class TravelExpenses
+    {
+        public Guid TypeIncomeId { get; set; }
+        public decimal IncomeAmount { get; set; }
     }
 
     public class WorkingInformation
