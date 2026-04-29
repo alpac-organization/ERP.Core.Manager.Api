@@ -1,4 +1,5 @@
 using ERP.Core.Database.Domain.Entities.Payrolls;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 {
@@ -10,6 +11,10 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
         
 
         //Realizar Operación de calculos de nomina ordinaria e insertar, o crear nuevo ciclo de nomina.
+
+        Task<IrCalculationResult>CalculateIrToNextProcess(int NFortnight, decimal AccumulatedAccrued, decimal GrossSalary, CancellationToken cancellationToken);
+
         Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken);
+
     }
 }

@@ -6,11 +6,13 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using System.Text.Json.Nodes;
 using System.Text.Json;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class CalculatorDeductions(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : ICalculatorDeductions
     {
+
         public async Task<decimal> CalculateInss(decimal GrossSalary, CancellationToken cancellationToken)
         {
             //Realizar la consulta a la tabla constantes de deducciones de ley,
@@ -30,6 +32,29 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             var result = GrossSalary * valuesDeductions.Value;
 
             return Math.Round(result, 2, MidpointRounding.AwayFromZero);
+        }
+
+        //Este ir se basa en la numero de quincena que se encuentra actualmente el colaborador
+        public async Task<IrCalculationResult> CalculateIrToNextProcess(int NFortnight, decimal AccumulatedAccrued, decimal GrossSalary, CancellationToken cancellationToken)
+        {
+            var biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
+
+            //Salario quincenal libre de inss.
+            var netSalary = GrossSalary - biweeklyInss;
+            var AnnualSalary = netSalary * NFortnight;
+
+            // var totalAnnualSalary = 
+
+            //
+
+
+
+
+
+            return new IrCalculationResult(
+                biweeklyInss,
+                0
+            );
         }
 
         public async Task<decimal> CalculateIr(decimal GrossSalary, int daysWorked, CancellationToken cancellationToken)

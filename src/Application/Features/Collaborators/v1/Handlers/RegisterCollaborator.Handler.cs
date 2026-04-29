@@ -128,6 +128,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 };
 
                 await _unitOfWork.Vacations.RegisterVacationControl(vacation, cancellationToken);
+
+                //Insertarlo en la nomina en progreso.
+                
+
+
             }
             else
             {
