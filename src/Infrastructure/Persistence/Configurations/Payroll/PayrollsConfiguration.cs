@@ -21,11 +21,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .IsUnique()
                 .HasDatabaseName("ix_payroll_id");
 
-            builder.Property(e => e.TotalToPay)
-                .HasColumnName("total_to_pay")
-                .HasDefaultValue(0)
-                .IsRequired();  
-
             builder.Property(e => e.Status)
                 .HasColumnName("payroll_status")
                 .HasColumnType("payroll_status_enum")
@@ -61,6 +56,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .OnDelete(DeleteBehavior.Restrict);    
 
             builder.HasMany(c => c.OrdinaryPayrolls)
+                .WithOne(s => s.Payroll)
+                .HasForeignKey(s => s.PayrollId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(c => c.AssignedTravelExpensesHistories)
                 .WithOne(s => s.Payroll)
                 .HasForeignKey(s => s.PayrollId)
                 .OnDelete(DeleteBehavior.Cascade);        
