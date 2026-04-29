@@ -33,6 +33,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Context
         public DbSet<OrdinaryPayroll> OrdinaryPayrolls => Set<OrdinaryPayroll>();
         public DbSet<WorkPositionHistory> WorkPositionHistories => Set<WorkPositionHistory>();
 
+        public DbSet<TypesIncome> TypesIncomes => Set<TypesIncome>();
+
+        //tres tablas bases de datos de nomina en base al acumulado de la quincena.
+        public DbSet<IncomeTaxAccrual> IncomeTaxAccruals => Set<IncomeTaxAccrual>();
+        public DbSet<AssignedTravelExpenses> AssignedTravelExpenses => Set<AssignedTravelExpenses>();
+        public DbSet<AssignedTravelExpensesHistory> AssignedTravelExpensesHistories => Set<AssignedTravelExpensesHistory>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

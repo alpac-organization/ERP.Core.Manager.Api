@@ -91,6 +91,9 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IBranchesRepository, BranchesRepository>();
             services.AddScoped<IIncomesRepository, IncomesRepository>();
             services.AddScoped<ITypesIncomeRepository, TypesIncomeRepository>();
+            services.AddScoped<IIncomeTaxAccrualRepository, IncomeTaxAccrualRepository>();
+            services.AddScoped<IAssignedTravelExpensesRepository, AssignedTravelExpensesRepository>();
+            services.AddScoped<IAssignedTravelExpensesHistoryRepository, AssignedTravelExpensesHistoryRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

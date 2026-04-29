@@ -28,6 +28,9 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces
         IBranchesRepository Branches { get; }
         IIncomesRepository Incomes { get; }
         ITypesIncomeRepository TypesIncome { get; }
+        IIncomeTaxAccrualRepository IncomeTaxAccrual { get;}
+        IAssignedTravelExpensesHistoryRepository AssignedTravelExpensesHistories  { get; }
+
 
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
