@@ -35,16 +35,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
 
         //Este ir se basa en la numero de quincena que se encuentra actualmente el colaborador
-        public async Task<IrCalculationResult> CalculateIrToNextProcess(int NFortnight, decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken)
+        public async Task<IrCalculationResult> CalculateIrToNextProcess(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken)
         {
+            var nextFortnight = NFortnight;
+
             var biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
 
             //Salario quincenal libre de inss.
             decimal netSalary = GrossSalary - biweeklyInss;
-            decimal AnnualSalary = netSalary * NFortnight;
+            decimal AnnualSalary = netSalary * nextFortnight;
 
             decimal totalAnnualSalary = AnnualSalary + AccumulatedAccrued;
             decimal AnnualIr;
+
+            //Aqui vamos bien
 
             //Agregar regla del ir
             decimal BaseTax;
@@ -54,37 +58,37 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (totalAnnualSalary <= 100000)
                 AnnualIr = 0;
-            else if (AnnualSalary <= 200000)
+            else if (totalAnnualSalary > 100000 && totalAnnualSalary <= 200000)
             {
                 BaseTax = 0;
-                AnnualIr = ((AnnualSalary - 100000) * 0.15m);
+                AnnualIr = ((totalAnnualSalary - 100000) * 0.15m);
                 AnnualExpectationIR = AnnualIr + BaseTax;
 
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / NFortnight;
+                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
             }
-            else if (AnnualSalary <= 350000)
+            else if (totalAnnualSalary > 200000 && totalAnnualSalary <= 350000)
             {
                 BaseTax = 15000.00m;
-                AnnualIr = ((AnnualSalary - 200000) * 0.20m);
+                AnnualIr = ((totalAnnualSalary - 200000) * 0.20m);
                 AnnualExpectationIR = AnnualIr + BaseTax;
 
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / NFortnight;
+                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
             }
-            else if (AnnualSalary <= 500000)
+            else if (totalAnnualSalary > 350000 && totalAnnualSalary <= 500000)
             {
                 BaseTax = 45000.00m;
-                AnnualIr = ((AnnualSalary - 350000) * 0.25m);
+                AnnualIr = ((totalAnnualSalary - 350000) * 0.25m);
                 AnnualExpectationIR = AnnualIr + BaseTax;
 
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / NFortnight;
+                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
             }
             else
             {
                 BaseTax = 82500.00m;
-                AnnualIr = ((AnnualSalary - 500000) * 0.30m);
+                AnnualIr = ((totalAnnualSalary - 500000) * 0.30m);
 
                 AnnualExpectationIR = AnnualIr + BaseTax;
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / NFortnight;
+                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
             }
 
             return new IrCalculationResult(
@@ -138,7 +142,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 _logger.LogInformation("No pudistmos encontrar el registro de nomina para hacer el insert de calculos");
                 return;
             }
-
+            
             var salary = await _unitOfWork.Salaries.Entities 
                 .Include(salary => salary.Collaborator) 
                     .ThenInclude(salary => salary.WorkingInformation)
@@ -187,16 +191,35 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal  GrossSalary = Overtime + Bonus + ProportionalBiweeklySalary;
 
+            var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
+                .Where(income => income.CollaboratorId == collaborator.Id)
+                .OrderByDescending(income => income.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+
             //Este inss es proporcional a los dias laborados
-            decimal InssBiweekly = await CalculateInss(GrossSalary, cancellationToken);
-            decimal IrBiweekly  = await CalculateIr(GrossSalary, daysWorked, cancellationToken);
-            
-            decimal TotalToPay = GrossSalary - InssBiweekly - IrBiweekly;
+            // decimal InssBiweekly = await CalculateInss(GrossSalary, cancellationToken);
 
-            decimal TotalLegalDeductions = InssBiweekly + IrBiweekly;
+            var (BiweeklyInss, BiweeklyIr) = await CalculateIrToNextProcess(
+                TaxInformation?.NumberOfFortnights ?? 24,
+                TaxInformation?.SalaryEarned ?? 0.0m,
+                TaxInformation?.AccumulatedIR ?? 0.0m,
+                ProportionalBiweeklySalary,
+                cancellationToken
+            );
 
-            //Hacer un proceso de verificación de deducciones.
-            
+            var asssined = await _unitOfWork.AssignedTravelExpenses.Entities
+                .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
+                .ToListAsync(cancellationToken);
+
+            decimal totalAssigned = 0.0m;
+
+            //Aplicar viaticos colaborador
+
+            decimal TotalToPay = GrossSalary - BiweeklyInss - BiweeklyIr + totalAssigned;
+            decimal TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+
+
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
                 Absences = 0.0m,
@@ -228,8 +251,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Bonus                = Bonus,
                 GrossSalary          = GrossSalary,
 
-                Inss                 = InssBiweekly,
-                Ir                   = IrBiweekly,
+                Inss                 = BiweeklyInss,
+                Ir                   = BiweeklyIr,
                 TotalLegalDeductions = TotalLegalDeductions,
 
                 DeductionsAdditionalData = JsonSerializer.Serialize(AdditionalDeducctions),
