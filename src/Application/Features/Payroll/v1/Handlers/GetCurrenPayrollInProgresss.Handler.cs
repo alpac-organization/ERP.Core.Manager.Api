@@ -60,11 +60,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     .Where(op => op.Collaborator.IdentificationNumber == request.IdentificationNumber);
             }
 
-            // if (request.WorkAreaId.)
-            // {
-            //     detailsQuery = detailsQuery
-            //         .Where(op => op.Collaborator.WorkingInformation.)
-            // }
+            if (request.WorkAreaId.HasValue)
+            {
+                detailsQuery = detailsQuery
+                    .Where(op => op.Collaborator.WorkingInformation.WorkArea.CatalogId == request.WorkAreaId);
+            }
+
+            if (request.WorkPositionId.HasValue)
+            {
+                detailsQuery = detailsQuery
+                    .Where(op => op.Collaborator.WorkingInformation.WorkPosition.CatalogId == request.WorkAreaId);
+            }
 
             int totalItems = await detailsQuery.CountAsync(cancellationToken);
 
