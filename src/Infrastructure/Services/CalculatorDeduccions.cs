@@ -238,7 +238,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 {
                     case "ALW_TRANSPORT":
                     {
-                        Transport = current.AmountInLocalCurrency * 13;
+                        Transport = current.AmountInLocalCurrency;
                         totalAssigned += Transport;
                         break;  
                     }
@@ -250,7 +250,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     }
                     case "ALW_MEAL":
                     {
-                        FoodTravelAllowance  = current.AmountInLocalCurrency * 13;
+                        FoodTravelAllowance  = current.AmountInLocalCurrency;
                         totalAssigned += FoodTravelAllowance;
                         break;
                     }
@@ -263,6 +263,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
             decimal TotalDeducctions = TotalLegalDeductions;
+
+            FoodTravelAllowance *= 13; //220
+            Transport *= 13; // 55
+            Lodging *= 13;
+
+            totalAssigned *= 13;;
 
             decimal TotalToPay = GrossSalary - BiweeklyInss - BiweeklyIr + totalAssigned;
 

@@ -35,6 +35,23 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
             //Iniciando periodo de cierre de prueba
 
+            var payroll = await _unitOfWork.Payrolls.Entities 
+                .Where(pay => pay.BranchId == request.BranchId && pay.PayrollType == request.PayrollType)
+                .Where(pay => pay.Id == request.PayrollId)
+                .Include(pay => pay.OrdinaryPayrolls)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (payroll is null)
+            {
+                return  _errorManager.ThrowBadRequest<bool>("Esta nomina no se encuentra en curso o no existe", "ERP:02");
+            }
+
+            payroll.Status = PayrollStatus.Closed;
+
+            foreach (var collaborators in payroll.OrdinaryPayrolls)
+            {
+                //Todo los colaboradores actuales
+            }
 
             return true;
         }
