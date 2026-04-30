@@ -35,12 +35,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .IsRequired();
 
             builder.Property(e => e.SalaryEarned)
-                .HasPrecision(18,0)
+                .HasPrecision(18,2)
                 .HasColumnName("salary_earned")
                 .IsRequired();
 
             builder.Property(e => e.AccumulatedIR)
-                .HasPrecision(18,0)
+                .HasPrecision(18,2)
                 .HasColumnName("accumulated_ir")
                 .IsRequired();
 
