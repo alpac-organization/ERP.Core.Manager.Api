@@ -1,12 +1,11 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Domain.Entities.Payrolls;
-using System.Text.Json.Nodes;
-using System.Text.Json;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
@@ -196,10 +195,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .OrderByDescending(income => income.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
-
-            //Este inss es proporcional a los dias laborados
-            // decimal InssBiweekly = await CalculateInss(GrossSalary, cancellationToken);
-
             var (BiweeklyInss, BiweeklyIr) = await CalculateIrToNextProcess(
                 TaxInformation?.NumberOfFortnights ?? 24,
                 TaxInformation?.SalaryEarned ?? 0.0m,
@@ -208,17 +203,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 cancellationToken
             );
 
-            var asssined = await _unitOfWork.AssignedTravelExpenses.Entities
+            var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
+                .Include(asssined => asssined.TypeIncome)
                 .ToListAsync(cancellationToken);
 
+
+            decimal Lodging = 0.0m;
+            decimal Transport = 0.0m;
+            decimal FoodTravelAllowance = 0.0m;
+
             decimal totalAssigned = 0.0m;
-
-            //Aplicar viaticos colaborador
-
-            decimal TotalToPay = GrossSalary - BiweeklyInss - BiweeklyIr + totalAssigned;
-            decimal TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
-
 
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
@@ -237,12 +232,49 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 UniformDeduction = 0.0m
             };
 
+            foreach (var current in asssineds)
+            {
+                switch (current.TypeIncome.IncomeCode)
+                {
+                    case "ALW_TRANSPORT":
+                    {
+                        Transport = current.AmountInLocalCurrency * 13;
+                        totalAssigned += Transport;
+                        break;  
+                    }
+                    case "ALW_HOUSING" :
+                    {
+                        Lodging = current.AmountInLocalCurrency * 13;
+                        totalAssigned += Lodging;
+                        break;
+                    }
+                    case "ALW_MEAL":
+                    {
+                        FoodTravelAllowance  = current.AmountInLocalCurrency * 13;
+                        totalAssigned += FoodTravelAllowance;
+                        break;
+                    }
+                    default:
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            decimal TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
             decimal TotalDeducctions = TotalLegalDeductions;
+
+            decimal TotalToPay = GrossSalary - BiweeklyInss - BiweeklyIr + totalAssigned;
 
             var payload = new OrdinaryPayroll()
             {
                 CollaboratorId       = collaborator.Id,
                 PayrollId            = payrollId,
+
+                FoodTravelAllowance  = FoodTravelAllowance,
+                TotalTravelExpenses  = totalAssigned,
+                Lodging              = Lodging,
+                TravelExpenses       = Transport,
                 
                 BiweeklySalary       = BiweeklySalary,
                 
