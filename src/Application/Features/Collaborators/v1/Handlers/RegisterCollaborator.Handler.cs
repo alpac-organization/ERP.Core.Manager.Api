@@ -161,12 +161,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
                         // 3. Agregamos al contexto
                         await _unitOfWork.AssignedTravelExpenses.RegisterAssignedTravelExpenses(history);
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
                     }
 
                     // 4. Guardamos cambios
                 }
 
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
             else
             {
