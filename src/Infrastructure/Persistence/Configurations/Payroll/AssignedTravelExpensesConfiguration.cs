@@ -38,6 +38,26 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasColumnName("currency")
                 .IsRequired();
 
+            builder.Property(e => e.TypeIncomeId)
+                .HasColumnName("type_income_id")
+                .IsRequired();
+
+            builder.Property(e => e.StartDate)
+                .HasColumnName("start_date")
+                .IsRequired();
+
+            builder.Property(e => e.EndDate)
+                .HasColumnName("end_date")
+                .HasDefaultValue(null);
+
+            builder.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValue(null);
+
+            builder.Property(e => e.UpdatedBy)
+                .HasColumnName("updated_by")
+                .HasDefaultValue(null);
+
             builder.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
