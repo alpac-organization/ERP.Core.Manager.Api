@@ -274,6 +274,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             var payload = new OrdinaryPayroll()
             {
+                Id = Guid.NewGuid(),
                 CollaboratorId       = collaborator.Id,
                 PayrollId            = payrollId,
 
@@ -299,7 +300,54 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 TotalToPay           = TotalToPay,
             };
 
-            await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
+
+
+
+            if (collaborator.IdentificationNumber == "0010404780003G")
+            {
+                
+            }
+
+
+            var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+
+            // var lastIncomeTaxAccrual = await _unitOfWork.IncomeTaxAccrual.Entities
+            //     .Include(inc => inc.Collaborator)
+            //     .Include(inc => inc.Payroll)
+            //     .Where(inc => inc.CollaboratorId == collaborator.Id)
+            //     .OrderByDescending(inc => inc.CreatedAt)
+            //     .FirstOrDefaultAsync(cancellationToken);
+
+            
+            // int NumberOfFortnights;
+
+
+            // if (lastIncomeTaxAccrual is null)
+            // {
+            //     NumberOfFortnights = 24;
+            // }
+            // else
+            // {
+            //     NumberOfFortnights = lastIncomeTaxAccrual.NumberOfFortnights - 1;
+            // }
+
+            // var IncomeTaxAccrualPayload = new IncomeTaxAccrual()
+            // {
+            //     Id = Guid.NewGuid(),
+            //     AccumulatedIR = (lastIncomeTaxAccrual?.AccumulatedIR ?? 0.0m) + BiweeklyIr,
+            //     SalaryEarned = (lastIncomeTaxAccrual?.SalaryEarned ?? 0.0m) + (GrossSalary - BiweeklyInss),
+            //     CollaboratorId = collaborator.Id,
+            //     PayrollId = PayrollRegistered.Id,
+            //     NumberOfFortnights = NumberOfFortnights,
+            //     RegisterDate = DateTime.Now
+            // };
+
+
+            // await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(IncomeTaxAccrualPayload);
+
         }
     }
 }
