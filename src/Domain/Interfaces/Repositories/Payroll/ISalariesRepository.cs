@@ -5,6 +5,6 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll
 {
     public interface ISalariesRepository : IRepository<Salary>
     {
-        Task<Salary> RegisterSalary(Salary payload, CancellationToken cancellationToken);
+        Task<Salary> RegisterSalary(Salary payload);
     }
 }

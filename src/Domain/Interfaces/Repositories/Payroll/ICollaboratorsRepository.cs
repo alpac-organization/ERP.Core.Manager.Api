@@ -19,6 +19,6 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll
         /// El resultado de la tarea contiene el colaborador registrado con su ID generado (<see cref="Guid"/>).
         /// </returns>
         /// <exception cref="Exception">Se lanza si ocurre un error durante la persistencia en PostgreSQL.</exception>
-        Task<Collaborator> RegisterCollaborator(Collaborator collaborator, CancellationToken cancellationToken);
+        Task<Collaborator> RegisterCollaborator(Collaborator collaborator);
     }
 }

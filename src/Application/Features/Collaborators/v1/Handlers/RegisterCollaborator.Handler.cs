@@ -42,33 +42,36 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 request.RegisteredBy = user!.UserName;
 
                 var collaboratorEntity = CollaboratorMapper.ToCollaboratorEntity(request, code);
-                await _unitOfWork.Collaborators.RegisterCollaborator(collaboratorEntity,cancellationToken);
+                await _unitOfWork.Collaborators.RegisterCollaborator(collaboratorEntity);
 
                 if (request.PersonalInformation != null)
                 {
                     //Registramos su información personal
                     var personalInfo = CollaboratorMapper.ToPersonalInformationEntity(request.PersonalInformation, collaboratorEntity.Id);
-                    await _unitOfWork.PersonalInformations.RegisterPersonalInformation(personalInfo, cancellationToken);
+                    personalInfo.CollaboratorId = collaboratorEntity.Id;
+
+                    await _unitOfWork.PersonalInformations.RegisterPersonalInformation(personalInfo);
                 }
 
                 if (request.WorkingInformation != null)
                 {
                     // Registramos su información laboral
                     var workingInfo = CollaboratorMapper.ToWorkingInformationEntity(request.WorkingInformation, collaboratorEntity.Id);
-                    await _unitOfWork.WorkingInformations.RegisterWorkingInformation(workingInfo, cancellationToken);
-                }
+                    workingInfo.CollaboratorId = collaboratorEntity.Id;
 
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.WorkingInformations.RegisterWorkingInformation(workingInfo);
+                }
 
                 // Registrar Información Salarial
                 var salary = new Salary();
 
+                decimal amountInLocal = 0;
+                decimal amountInForeign = 0;
+                const decimal exchangeRate = 36.6243m;
+
                 if (request.SalaryInformation!.SalaryType != SalaryType.ProfessionalServices)
                 {
                     var amountSalary = request.SalaryInformation?.Salary ?? 0;
-                    decimal amountInLocal = 0;
-                    decimal amountInForeign = 0;
-                    const decimal exchangeRate = 36.6243m;
 
                     if (request.SalaryInformation!.Currency == Currency.USD)
                     {
@@ -96,8 +99,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 else
                 {
                     var amountSalary = request.SalaryInformation?.Salary ?? 0;
-                    decimal amountInLocal = 0;
-                    decimal amountInForeign = 0;
 
                     salary = new Salary()
                     {
@@ -112,22 +113,25 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                     };
                 }
 
-                await _unitOfWork.Salaries.RegisterSalary(salary, cancellationToken);
+                await _unitOfWork.Salaries.RegisterSalary(salary);
 
-                //Registramos su control de vacaciones. 
-                var daysElapsed = CalculatorUtils.CalculateDaysElapsedCommercial(request?.WorkingInformation?.EntryDate ?? DateTime.Now);
-                
-                decimal generated = Math.Round((decimal)(daysElapsed * 30.0 / 360.0), 4);
-                
-                Vacation vacation = new ()
+                if (salary.SalaryType != SalaryType.ProfessionalServices)
                 {
-                    CollaboratorId = collaboratorEntity.Id,
-                    EnjoyedVacation = 0,
-                    GeneredVacation = generated,
-                    AvailableVacations = generated,
-                };
+                    var daysElapsed = CalculatorUtils.CalculateDaysElapsedCommercial(request?.WorkingInformation?.EntryDate ?? DateTime.Now);            
+                    decimal generated = Math.Round((decimal)(daysElapsed * 30.0 / 360.0), 4);
 
-                await _unitOfWork.Vacations.RegisterVacationControl(vacation, cancellationToken);
+
+                    Vacation vacation = new ()
+                    {
+                        CollaboratorId = collaboratorEntity.Id,
+                        EnjoyedVacation = 0,
+                        GeneredVacation = generated,
+                        AvailableVacations = generated,
+                    };
+
+                    await _unitOfWork.Vacations.RegisterVacationControl(vacation);
+                }
+
 
                 if (request?.TravelExpenses?.Count > 0)
                 {

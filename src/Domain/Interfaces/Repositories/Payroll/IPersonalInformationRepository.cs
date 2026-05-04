@@ -17,6 +17,6 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll
         /// Una tarea que representa la operación asíncrona. 
         /// El resultado de la tarea contiene la entidad <see cref="PersonalInformation"/> procesada (incluyendo IDs generados).
         /// </returns>
-        Task<PersonalInformation> RegisterPersonalInformation(PersonalInformation personalInformation, CancellationToken cancellationToken);
+        Task<PersonalInformation> RegisterPersonalInformation(PersonalInformation personalInformation);
     }
 }
