@@ -7,15 +7,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Payroll
 {
     public class CollaboratorsRepository(AppDbContext _context): Repository<Collaborator>(_context), ICollaboratorsRepository
     {
-        public async Task<Collaborator> RegisterCollaborator(Collaborator collaborator, CancellationToken cancellationToken)
+        public async Task<Collaborator> RegisterCollaborator(Collaborator collaborator)
         {
             collaborator.Status = CollaboratorStatus.Active;
             collaborator.PictureUrl = null;
 
-            var collaboratorRegistered = await _context.Collaborators.AddAsync(collaborator, cancellationToken);
-            
-            await _context.SaveChangesAsync(cancellationToken);
-
+            var collaboratorRegistered = await _context.Collaborators.AddAsync(collaborator);
             return collaboratorRegistered.Entity;
         }
     }

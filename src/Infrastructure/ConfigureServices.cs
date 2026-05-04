@@ -19,6 +19,7 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Infrastructure.Services;
 using ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Catalogs;
 using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Catalogs;
+using ERP.Core.Manager.Api.Infrastructure.Schedules;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -96,6 +97,8 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IAssignedTravelExpensesHistoryRepository, AssignedTravelExpensesHistoryRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddJobScheduling();
 
             return services;
         }

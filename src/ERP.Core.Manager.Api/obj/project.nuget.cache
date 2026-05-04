@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "wZnbxzE9Z8A=",
+  "dgSpecHash": "5nwrUFR0sUE=",
   "success": true,
   "projectFilePath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\ERP.Core.Manager.Api\\ERP.Core.Manager.Api.csproj",
   "expectedPackageFiles": [
@@ -48,6 +48,9 @@
     "C:\\Users\\desarrollo\\.nuget\\packages\\npgsql\\10.0.2\\npgsql.10.0.2.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\10.0.1\\npgsql.entityframeworkcore.postgresql.10.0.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\puppeteersharp\\24.40.0\\puppeteersharp.24.40.0.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\quartz\\3.18.1\\quartz.3.18.1.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\quartz.extensions.dependencyinjection\\3.18.1\\quartz.extensions.dependencyinjection.3.18.1.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\quartz.extensions.hosting\\3.18.1\\quartz.extensions.hosting.3.18.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\swashbuckle.aspnetcore\\10.1.5\\swashbuckle.aspnetcore.10.1.5.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\10.1.5\\swashbuckle.aspnetcore.swagger.10.1.5.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\10.1.5\\swashbuckle.aspnetcore.swaggergen.10.1.5.nupkg.sha512",

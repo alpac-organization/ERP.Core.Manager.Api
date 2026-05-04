@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Fg96G+WW//A=",
+  "dgSpecHash": "j/SwIctxzg0=",
   "success": true,
   "projectFilePath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Infrastructure\\Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -31,6 +31,9 @@
     "C:\\Users\\desarrollo\\.nuget\\packages\\npgsql\\10.0.2\\npgsql.10.0.2.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\10.0.1\\npgsql.entityframeworkcore.postgresql.10.0.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\puppeteersharp\\24.40.0\\puppeteersharp.24.40.0.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\quartz\\3.18.1\\quartz.3.18.1.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\quartz.extensions.dependencyinjection\\3.18.1\\quartz.extensions.dependencyinjection.3.18.1.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\quartz.extensions.hosting\\3.18.1\\quartz.extensions.hosting.3.18.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.16.0\\system.identitymodel.tokens.jwt.8.16.0.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\webdriverbidi\\0.0.45\\webdriverbidi.0.0.45.nupkg.sha512"
   ],

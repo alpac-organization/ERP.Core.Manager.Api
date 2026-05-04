@@ -9,6 +9,6 @@ namespace ERP.Core.Manager.Api.Domain.Interfaces.Repositories.Payroll
     /// </summary>
     public interface IWorkingInformationRepository : IRepository<WorkingInformation>
     {
-        Task<WorkingInformation> RegisterWorkingInformation(WorkingInformation workingInformation, CancellationToken cancellationToken);
+        Task<WorkingInformation> RegisterWorkingInformation(WorkingInformation workingInformation);
     }
 }

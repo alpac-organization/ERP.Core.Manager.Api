@@ -33,9 +33,49 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("La sucursal seleccionada no estas asociado a este compañia", "ERP:BrachNotFound");
             }
 
-            //Iniciando periodo de cierre de prueba
+            #region Verificar estado de la nomina
+            var payroll = await _unitOfWork.Payrolls.Entities 
+                .Where(pay => 
+                    pay.BranchId == request.BranchId && pay.PayrollType == request.PayrollType
+                )
+                .Where(pay =>
+                    pay.Id == request.PayrollId && pay.Status == PayrollStatus.Progress
+                )
+                .Include(pay => pay.OrdinaryPayrolls)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (payroll is null)
+            {
+                return  _errorManager.ThrowBadRequest<bool>("Esta nomina no se encuentra en curso o no existe", "ERP:02");
+            }
+            #endregion
+
+            payroll.Status = PayrollStatus.Closed;
+
+            await _unitOfWork.Payrolls.UpdateAsync(payroll);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            //Guardamos procesos de historiales
+            var registers = payroll.OrdinaryPayrolls;
+
+            //Realizar todo aquel, registro de deducciones y pagos realizados del colaborador
+            foreach(var collaborator in registers)
+            {
+                //Si cuenta con deducciones registramos el pago de deducciones.
 
 
+
+                //Registramos los pagos realizados de viaticos del colaborador.
+                await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(new()
+                {
+                   Lodging = collaborator.Lodging,
+                   Feeding = collaborator.FoodTravelAllowance,
+                   Transport = collaborator.TravelExpenses,                  
+                   TotalAmountPaid = collaborator.TotalTravelExpenses,
+                   NumberDaysPaid = 13,
+                });
+            }
+            
             return true;
         }
     }
