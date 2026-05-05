@@ -70,7 +70,11 @@
             },
             "ERP.Core.Application": {
               "target": "Package",
-              "version": "[1.0.64, )"
+              "version": "[1.0.73, )"
+            },
+            "ERP.Core.Database.Application": {
+              "target": "Package",
+              "version": "[1.0.73, )"
             },
             "FluentValidation.DependencyInjectionExtensions": {
               "target": "Package",
@@ -86,7 +90,7 @@
             },
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
-              "version": "[10.0.5, )"
+              "version": "[10.0.7, )"
             }
           },
           "imports": [
@@ -434,11 +438,11 @@
           "dependencies": {
             "ERP.Core.Database.Domain": {
               "target": "Package",
-              "version": "[1.0.64, )"
+              "version": "[1.0.73, )"
             },
             "ERP.Core.Domain": {
               "target": "Package",
-              "version": "[1.0.64, )"
+              "version": "[1.0.73, )"
             }
           },
           "imports": [

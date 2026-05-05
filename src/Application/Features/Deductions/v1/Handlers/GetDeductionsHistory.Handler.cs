@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 using ERP.Core.Application.Commons.Interfaces;
 
-using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Queries;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 {
     public class GetDeductionsHistoryHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GetDeductionsHistoryQuery, PagedResponseDeduction<DeductionDto>>(_unitOfWork, _errorManager)

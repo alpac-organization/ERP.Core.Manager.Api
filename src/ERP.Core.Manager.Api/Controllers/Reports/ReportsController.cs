@@ -19,7 +19,7 @@ namespace ERP.Core.Manager.Api.Controllers.Reports
         [ProducesResponseType(typeof(ReportsDto), StatusCodes.Status200OK)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<ReportsDto> GetReportsByTypeAsync([FromRoute] Guid companie_id, [FromQuery] ReportsType report_type)
+        public async Task<ReportsDto> GetReportsByTypeAsync([FromRoute] Guid companie_id, [FromQuery] ReportsType report_type, [FromQuery] Guid payroll_id)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
@@ -27,7 +27,8 @@ namespace ERP.Core.Manager.Api.Controllers.Reports
             {
                 CompanyId = companie_id,
                 UserId =  Guid.Parse(userIdStr ?? ""),
-                Type = report_type
+                Type = report_type,
+                PayrollId = payroll_id
             });
 
             return result;

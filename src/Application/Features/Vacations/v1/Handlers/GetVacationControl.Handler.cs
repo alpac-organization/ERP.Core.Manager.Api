@@ -1,12 +1,12 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
 {

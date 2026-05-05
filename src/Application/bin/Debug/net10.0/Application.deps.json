@@ -11,11 +11,12 @@
           "AutoMapper": "13.0.1",
           "BCrypt.Net-Next": "4.1.0",
           "Domain": "1.0.0",
-          "ERP.Core.Application": "1.0.64",
+          "ERP.Core.Application": "1.0.73",
+          "ERP.Core.Database.Application": "1.0.73",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0",
           "Microsoft.EntityFrameworkCore": "10.0.5",
-          "Microsoft.Extensions.DependencyInjection": "10.0.5"
+          "Microsoft.Extensions.DependencyInjection": "10.0.7"
         },
         "runtime": {
           "Application.dll": {}
@@ -40,32 +41,44 @@
           }
         }
       },
-      "ERP.Core.Application/1.0.64": {
+      "ERP.Core.Application/1.0.73": {
         "dependencies": {
-          "ERP.Core.Domain": "1.0.64",
+          "ERP.Core.Domain": "1.0.73",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0"
         },
         "runtime": {
           "lib/net9.0/ERP.Core.Application.dll": {
-            "assemblyVersion": "1.0.64.0",
-            "fileVersion": "1.0.64.0"
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
           }
         }
       },
-      "ERP.Core.Database.Domain/1.0.64": {
+      "ERP.Core.Database.Application/1.0.73": {
+        "dependencies": {
+          "ERP.Core.Database.Domain": "1.0.73",
+          "Microsoft.Extensions.DependencyInjection": "10.0.7"
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Database.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ERP.Core.Database.Domain/1.0.73": {
         "runtime": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {
-            "assemblyVersion": "1.0.64.0",
-            "fileVersion": "1.0.64.0"
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
           }
         }
       },
-      "ERP.Core.Domain/1.0.64": {
+      "ERP.Core.Domain/1.0.73": {
         "runtime": {
           "lib/net9.0/ERP.Core.Domain.dll": {
-            "assemblyVersion": "1.0.64.0",
-            "fileVersion": "1.0.64.0"
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
           }
         }
       },
@@ -80,7 +93,7 @@
       "FluentValidation.DependencyInjectionExtensions/12.1.1": {
         "dependencies": {
           "FluentValidation": "12.1.1",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.5"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.7"
         },
         "runtime": {
           "lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll": {
@@ -92,7 +105,7 @@
       "MediatR/14.1.0": {
         "dependencies": {
           "MediatR.Contracts": "2.0.1",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.5",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.7",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.5",
           "Microsoft.IdentityModel.JsonWebTokens": "8.14.0"
         },
@@ -146,7 +159,7 @@
       "Microsoft.Extensions.Caching.Memory/10.0.5": {
         "dependencies": {
           "Microsoft.Extensions.Caching.Abstractions": "10.0.5",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.5",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.7",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.5",
           "Microsoft.Extensions.Options": "10.0.5",
           "Microsoft.Extensions.Primitives": "10.0.5"
@@ -158,28 +171,28 @@
           }
         }
       },
-      "Microsoft.Extensions.DependencyInjection/10.0.5": {
+      "Microsoft.Extensions.DependencyInjection/10.0.7": {
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.5"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.7"
         },
         "runtime": {
           "lib/net10.0/Microsoft.Extensions.DependencyInjection.dll": {
             "assemblyVersion": "10.0.0.0",
-            "fileVersion": "10.0.526.15411"
+            "fileVersion": "10.0.726.21808"
           }
         }
       },
-      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.5": {
+      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.7": {
         "runtime": {
           "lib/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
             "assemblyVersion": "10.0.0.0",
-            "fileVersion": "10.0.526.15411"
+            "fileVersion": "10.0.726.21808"
           }
         }
       },
       "Microsoft.Extensions.Logging/10.0.5": {
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection": "10.0.5",
+          "Microsoft.Extensions.DependencyInjection": "10.0.7",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.5",
           "Microsoft.Extensions.Options": "10.0.5"
         },
@@ -192,7 +205,7 @@
       },
       "Microsoft.Extensions.Logging.Abstractions/10.0.5": {
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.5"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.7"
         },
         "runtime": {
           "lib/net10.0/Microsoft.Extensions.Logging.Abstractions.dll": {
@@ -203,7 +216,7 @@
       },
       "Microsoft.Extensions.Options/10.0.5": {
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.5",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.7",
           "Microsoft.Extensions.Primitives": "10.0.5"
         },
         "runtime": {
@@ -265,8 +278,8 @@
       },
       "Domain/1.0.0": {
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.64",
-          "ERP.Core.Domain": "1.0.64"
+          "ERP.Core.Database.Domain": "1.0.73",
+          "ERP.Core.Domain": "1.0.73"
         },
         "runtime": {
           "Domain.dll": {
@@ -297,26 +310,33 @@
       "path": "bcrypt.net-next/4.1.0",
       "hashPath": "bcrypt.net-next.4.1.0.nupkg.sha512"
     },
-    "ERP.Core.Application/1.0.64": {
+    "ERP.Core.Application/1.0.73": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-saRBrULSrA3AWzyOrRnRVb8g0SSht5eMSJXnMGoJK8FMYZ7nFTvOoWA5CNxzHdNiwomywVSmrRfbe+GcshirSA==",
-      "path": "erp.core.application/1.0.64",
-      "hashPath": "erp.core.application.1.0.64.nupkg.sha512"
+      "sha512": "sha512-FzbiEc+y9zIwyNAIu29xaoeqW3kxPfc6fkwfx+p4Ymp7uiq16YJhLEsJZ17k3/otNfpVT8eUisHYQde8TQuxCA==",
+      "path": "erp.core.application/1.0.73",
+      "hashPath": "erp.core.application.1.0.73.nupkg.sha512"
     },
-    "ERP.Core.Database.Domain/1.0.64": {
+    "ERP.Core.Database.Application/1.0.73": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-f+eSne7kp+F9Yochugd3fS7HIyEGHGG8DMATVHVCeRWKsy7gKA9Wfz3yDwUYUl0ll6ozG8SQ/ktchg1mFTJK4A==",
-      "path": "erp.core.database.domain/1.0.64",
-      "hashPath": "erp.core.database.domain.1.0.64.nupkg.sha512"
+      "sha512": "sha512-/LnnVsFmCTQVaAfh03f4lUxLP58MTrMPtVSmnSAbX4v/lSPBIRIVV2BHKETNwCCmo4lvjPqmcEniyAlAMfdVtw==",
+      "path": "erp.core.database.application/1.0.73",
+      "hashPath": "erp.core.database.application.1.0.73.nupkg.sha512"
     },
-    "ERP.Core.Domain/1.0.64": {
+    "ERP.Core.Database.Domain/1.0.73": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-cYnzNKpJWPbO3RVAk0zd8Ttq2unBvzWRhZVxNfi3vBE7VvQo7DnylTs1ngz/lD42W7XM6CnFhUSM4/sa2IO+4w==",
-      "path": "erp.core.domain/1.0.64",
-      "hashPath": "erp.core.domain.1.0.64.nupkg.sha512"
+      "sha512": "sha512-YuB6klPJm1QkpBsKPYRgRZgnCfFSdQUDyLIcCMtOzKst/nW1QyKesRe8a3iZDgt60nUffzFs+e3sEN++Oq4gbw==",
+      "path": "erp.core.database.domain/1.0.73",
+      "hashPath": "erp.core.database.domain.1.0.73.nupkg.sha512"
+    },
+    "ERP.Core.Domain/1.0.73": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GQc0nFiYHA/tm2EOKOKxWtmsupQqIkFAbaYx2Ocz/f1ywsYtF7pj0jOyAyayyoixErL2If6qCVoFBi0SFWT9Aw==",
+      "path": "erp.core.domain/1.0.73",
+      "hashPath": "erp.core.domain.1.0.73.nupkg.sha512"
     },
     "FluentValidation/12.1.1": {
       "type": "package",
@@ -374,19 +394,19 @@
       "path": "microsoft.extensions.caching.memory/10.0.5",
       "hashPath": "microsoft.extensions.caching.memory.10.0.5.nupkg.sha512"
     },
-    "Microsoft.Extensions.DependencyInjection/10.0.5": {
+    "Microsoft.Extensions.DependencyInjection/10.0.7": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-v1SVsowG6YE1YnHVGmLWz57YTRCQRx9pH5ebIESXfm5isI9gA3QaMyg/oMTzPpXYZwSAVDzYItGJKfmV+pqXkQ==",
-      "path": "microsoft.extensions.dependencyinjection/10.0.5",
-      "hashPath": "microsoft.extensions.dependencyinjection.10.0.5.nupkg.sha512"
+      "sha512": "sha512-91F/o3emPV/+xY/ip3s2LqDNF14kjttlVtq0BXgg6p4MnCzeSZxnUJm+t6WRrtD3JdGo88/oX+z7OwK4y8PZuw==",
+      "path": "microsoft.extensions.dependencyinjection/10.0.7",
+      "hashPath": "microsoft.extensions.dependencyinjection.10.0.7.nupkg.sha512"
     },
-    "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.5": {
+    "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.7": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-iVMtq9eRvzyhx8949EGT0OCYJfXi737SbRVzWXE5GrOgGj5AaZ9eUuxA/BSUfmOMALKn/g8KfFaNQw0eiB3lyA==",
-      "path": "microsoft.extensions.dependencyinjection.abstractions/10.0.5",
-      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.10.0.5.nupkg.sha512"
+      "sha512": "sha512-Z6mfFEaFcwCfSboxJwOLfu7/31npCY9q70WUamHW/vRQhDvBKOT4Vf9YkZj5J6hLvJpb0oDEYfHunQZj0xxvKw==",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/10.0.7",
+      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.10.0.7.nupkg.sha512"
     },
     "Microsoft.Extensions.Logging/10.0.5": {
       "type": "package",
