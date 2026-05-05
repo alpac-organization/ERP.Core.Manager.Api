@@ -60,6 +60,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Payroll
                 .HasForeignKey(s => s.PayrollId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.HasMany(c => c.IncomeTaxAccruals)
+                .WithOne(s => s.Payroll)
+                .HasForeignKey(s => s.PayrollId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.HasMany(c => c.AssignedTravelExpensesHistories)
                 .WithOne(s => s.Payroll)
                 .HasForeignKey(s => s.PayrollId)
