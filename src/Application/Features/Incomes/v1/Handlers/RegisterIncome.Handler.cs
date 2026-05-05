@@ -1,12 +1,10 @@
-using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 {

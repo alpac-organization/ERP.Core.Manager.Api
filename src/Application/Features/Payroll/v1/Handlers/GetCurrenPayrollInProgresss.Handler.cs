@@ -2,10 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
     public class GetCurrenPayrollInProgresssHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<GetCurrenPayrollInProgresssQuery, PayrollDto>(_unitOfWork, _errorManager)

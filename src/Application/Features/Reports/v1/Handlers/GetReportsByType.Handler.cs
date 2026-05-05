@@ -1,11 +1,11 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Enums;
-using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Queries;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
 {

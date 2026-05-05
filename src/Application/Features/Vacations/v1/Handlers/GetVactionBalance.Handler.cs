@@ -1,10 +1,10 @@
-using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
 {

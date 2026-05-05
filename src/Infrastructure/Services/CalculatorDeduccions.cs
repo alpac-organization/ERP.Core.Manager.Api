@@ -2,10 +2,10 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Domain.Interfaces;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {

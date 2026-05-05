@@ -325,3 +325,5 @@ C:\Users\desarrollo\Desktop\Desarrollo\ERP.Core.Manager.Api\src\ERP.Core.Manager
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Quartz.dll
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Quartz.Extensions.DependencyInjection.dll
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Quartz.Extensions.Hosting.dll
+c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Database.Application.dll
+c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Database.Infrastructure.dll
