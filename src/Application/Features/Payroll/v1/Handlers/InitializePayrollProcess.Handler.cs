@@ -39,20 +39,43 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Include(payroll => payroll.Branch)
                     .ThenInclude(branch => branch.Company)
                 .Where(payroll => payroll.Branch.Company.Id == request.CompanyId)
-                .Where(payroll => payroll.Status == PayrollStatus.Progress)
+                .Where(payroll => payroll.Status == PayrollStatus.Closed)
                 .Where(payroll => payroll.PayrollType == request.Type)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (lastPayroll is not null)
+            DateTime startDate;
+            DateTime endDate;
+
+            if (lastPayroll == null || !lastPayroll.EndDate.HasValue)
             {
-                return _errorManager.ThrowBadRequest<bool>("No puede crear un proceso de nomina mientras existe una en proceso", "ERP:InvalidPayroll");
+                DateTime hoy = DateTime.Now.Date;
+                if (hoy.Day <= 15)
+                {
+                    startDate = new DateTime(hoy.Year, hoy.Month, 1);
+                    endDate = new DateTime(hoy.Year, hoy.Month, 15);
+                }
+                else
+                {
+                    startDate = new DateTime(hoy.Year, hoy.Month, 16);
+                    endDate = new DateTime(hoy.Year, hoy.Month, 1).AddMonths(1).AddDays(-1);
+                }
+            }
+            else
+            {
+                DateTime lastEnd = lastPayroll.EndDate.Value.Date;
+
+                if (lastEnd.Day == 15)
+                {
+                    startDate = new DateTime(lastEnd.Year, lastEnd.Month, 16);
+                    endDate = new DateTime(lastEnd.Year, lastEnd.Month, 1).AddMonths(1).AddDays(-1);
+                }
+                else
+                {
+                    startDate = new DateTime(lastEnd.Year, lastEnd.Month, 1).AddMonths(1);
+                    endDate = new DateTime(startDate.Year, startDate.Month, 15);
+                }
             }
 
-            DateTime hoy = DateTime.Now;
-            DateTime startDate = new(hoy.Year, hoy.Month, 16);
-            DateTime endDate = new DateTime(hoy.Year, hoy.Month, 1).AddMonths(1).AddDays(-1);
-
-            //Aperturamos la nomina
             var newPayroll = new Database.Domain.Entities.Payrolls.Payroll()
             {   Id = Guid.NewGuid(),
                 StartDate = startDate,
@@ -62,7 +85,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 BranchId = request.BranchId
             };
 
-            //Inicializamos el proceso con exito
             await _unitOfWork.Payrolls.InitializePayroll(newPayroll);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
