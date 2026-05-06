@@ -47,6 +47,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                             baseQuery = baseQuery.Where(vac => vac.Collaborator.WorkingInformation.WorkArea.CatalogId == request.WorkAreaId);
                         }
 
+                        baseQuery = baseQuery
+                            .OrderBy(vac => vac.Collaborator.WorkingInformation.WorkArea.CatalogName)
+                            .ThenBy(vac => vac.Collaborator.FirstName);
+
                         var totalRecords = await baseQuery.CountAsync(cancellationToken);
 
                         var vacations = await baseQuery
