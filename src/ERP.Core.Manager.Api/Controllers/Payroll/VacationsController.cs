@@ -33,7 +33,6 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             });
         }
 
-
         [Tags("Vacaciones")] 
         [HttpPut("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/vacations")]      
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
@@ -55,7 +54,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 VacationBalance = Payload.VacationBalance,
                 VacationId = Payload.VacationId
             });
-            
+
             return Ok();
         }
 

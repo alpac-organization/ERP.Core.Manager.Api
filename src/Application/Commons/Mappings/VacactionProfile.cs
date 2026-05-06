@@ -19,6 +19,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                         src.Item2.SecondLastname != null ? src.Item2.SecondLastname.ToCapitalize() : null 
                     }.Where(s => !string.IsNullOrWhiteSpace(s)))))
                 .ForMember(dest => dest.AvailableVacations, opt => opt.MapFrom(src => src.Item1.AvailableVacations))
+                .ForMember(dest => dest.VacationId, opt => opt.MapFrom(src => src.Item1.Id))
                 .ForMember(dest => dest.GeneredVacation, opt => opt.MapFrom(src => src.Item1.GeneredVacation))
                 .ForMember(dest => dest.EnjoyedVacation, opt => opt.MapFrom(src => src.Item1.EnjoyedVacation));
 
