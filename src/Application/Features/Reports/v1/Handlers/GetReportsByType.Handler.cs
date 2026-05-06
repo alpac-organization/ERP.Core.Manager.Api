@@ -22,7 +22,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                 {
                     //Obtener el reporte de viaticos totalde viaticos pagados en la quincena
 
-
                     break;   
                 }
                 case ReportsType.Accumulated:
@@ -42,7 +41,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                 case ReportsType.Incomes:
                 {
                     
-
                     break;
                 }
                 default:

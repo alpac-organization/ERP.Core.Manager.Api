@@ -50,11 +50,9 @@ namespace ERP.Core.Manager.Api.Application.Features.JobSchedules.v1.Handlers
                 await _unitOfWork.Vacations.UpdateAsync(vacationControl);
 
                 _logger.LogInformation("Vacaciones actualizadas correctamente para colaborador con cedula: {cedula}", collaborator.IdentificationNumber);
-
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
 
             #pragma warning restore CA1873
             return;
