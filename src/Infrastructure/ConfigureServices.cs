@@ -26,7 +26,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IPdfGeneratorServices, PdfGeneratorServices>();
             services.AddScoped<IAuthServices, AuthServices>();
 
-            services.AddJobScheduling();
+            // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
 
             return services;
