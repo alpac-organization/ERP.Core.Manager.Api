@@ -6,6 +6,7 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 
 namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
 {
@@ -37,6 +38,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                     reportDto.AccumulatedHistory = reportMapped;                    
 
                     break;   
+                }
+                case ReportsType.Incomes:
+                {
+                    
+
+                    break;
                 }
                 default:
                 {
