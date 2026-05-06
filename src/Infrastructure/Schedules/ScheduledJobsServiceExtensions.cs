@@ -11,11 +11,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Schedules
         {
             services.AddQuartz(quartz =>
             {
-                string tzId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
-                    ? "Central Standard Time (Mexico)" 
-                    : "America/Managua";
-
-                var managuaTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tzId);
+                TimeZoneInfo managuaTimeZone;
+                try 
+                {
+                    managuaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Managua");
+                }
+                catch 
+                {
+                    managuaTimeZone = TimeZoneInfo.Utc;
+                }
 
                 #region Acumulador de vacaciones
 
@@ -25,11 +29,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Schedules
                 quartz.AddTrigger(opts => opts
                     .ForJob(jobKey)
                     .WithIdentity("VacationJob-trigger")
-                    .WithCronSchedule("0 30 22 * * ?", x => x.InTimeZone(managuaTimeZone))
+                    .WithCronSchedule("0 40 13 * * ?", x => x.InTimeZone(managuaTimeZone))
                 );
 
                 #endregion
-
 
             });
 

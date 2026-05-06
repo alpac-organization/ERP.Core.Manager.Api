@@ -199,18 +199,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 cancellationToken
             );
 
-            var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
-                .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
-                .Include(asssined => asssined.TypeIncome)
-                .ToListAsync(cancellationToken);
-
-
-            decimal Lodging = 0.0m;
-            decimal Transport = 0.0m;
-            decimal FoodTravelAllowance = 0.0m;
-
-            decimal totalAssigned = 0.0m;
-
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
                 Absences = 0.0m,
@@ -227,6 +215,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Sanction = 0.0m,
                 UniformDeduction = 0.0m
             };
+
+            var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
+                .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
+                .Include(asssined => asssined.TypeIncome)
+                .ToListAsync(cancellationToken);
+
+            decimal Lodging = 0.0m;
+            decimal Transport = 0.0m;
+            decimal FoodTravelAllowance = 0.0m;
+
+            decimal totalAssigned = 0.0m;
 
             foreach (var current in asssineds)
             {
@@ -328,6 +327,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #endregion
 
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(IncomeTaxAccrualPayload);
+
+            #region Registrar pagos de viaticos
+
+            var assignedHistory = new AssignedTravelExpensesHistory()
+            {
+                CollaboratorId  = collaborator.Id,
+                PayrollId       = payrollCreated.Id,
+                Lodging         = Lodging,
+                Transport       = Transport,
+                NumberDaysPaid  = 13,
+                TotalAmountPaid = totalAssigned,
+                Feeding         = FoodTravelAllowance
+            };
+
+            await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(assignedHistory);
+
+            #endregion
 
             #pragma warning restore CA1873
         }
