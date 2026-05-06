@@ -36,6 +36,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                                     .ThenInclude(col => col.WorkArea)
                             .AsNoTracking();
 
+                        if (!string.IsNullOrEmpty(request.BranchId.ToString()))
+                        {
+                            baseQuery = baseQuery
+                                .Where(vac => vac.Collaborator.WorkingInformation.CompanyBranchId == request.BranchId);
+                        }
+
                         if (request.WorkAreaId.HasValue)
                         {
                             baseQuery = baseQuery.Where(vac => vac.Collaborator.WorkingInformation.WorkArea.CatalogId == request.WorkAreaId);

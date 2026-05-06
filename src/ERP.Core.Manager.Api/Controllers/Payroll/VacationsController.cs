@@ -66,12 +66,14 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         public async Task<PagedResponse<VacationAccruals>> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code,
             [FromQuery] VacationReportType type,
             [FromQuery] int? work_area_id,
+            [FromQuery] Guid? branch_id,
             [FromQuery] string? identification_number,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
+
             return await _mediator.Send(new GetVacationControlQuery()
             {
                 CompanyId = companie_id,
@@ -81,6 +83,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 PageSize = page_size,
                 Type = type,
                 WorkAreaId = work_area_id,
+                BranchId  = branch_id,
                 IdentificationNumber = identification_number
             });
         }
