@@ -15,7 +15,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos
         public Guid CollaboratorId { get; set; }
         public string? CollaboratorFullname { get; set; }
         public string? IdentificationNumber { get; set; }
-
+        public string? WorkAreaName { get; set; }
         public DateTime EntryDate { get; set; }
     }
 }
