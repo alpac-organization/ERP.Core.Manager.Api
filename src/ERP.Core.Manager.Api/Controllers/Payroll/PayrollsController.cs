@@ -118,7 +118,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<List<PayrollPeriodDto>> ObtainPayrollPeriodsAsync(
-            [FromRoute] Guid companie_id,  
+            [FromRoute] Guid companie_id,
             [FromRoute] Guid branch_id,
             [FromRoute] string module_code, 
             [FromQuery] PayrollType type,

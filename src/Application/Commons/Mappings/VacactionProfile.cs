@@ -23,32 +23,32 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.GeneredVacation, opt => opt.MapFrom(src => src.Item1.GeneredVacation))
                 .ForMember(dest => dest.EnjoyedVacation, opt => opt.MapFrom(src => src.Item1.EnjoyedVacation));
 
-            CreateMap<PermitApplication, VacationControlDto>()
-                .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
-                .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.Collaborator.WorkingInformation.WorkPosition.CatalogName))
-                .ForMember(dest => dest.PermitApplicationType, opt => opt.MapFrom(src => src.Type))
-                .ForMember(dest => dest.AmountDays, opt => opt.MapFrom(src => src.AmountDays))
-                .ForMember(dest => dest.PermitApplicationId, opt => opt.MapFrom(src => src.Id))
-
-
-                .ForMember(dest => dest.IdentificationCollaboratorToReceive, opt => opt.MapFrom(src => src.IdentificationCollaboratorToReceive))
-                .ForMember(dest => dest.ApprovedBy, opt => opt.MapFrom(src => src.AdministratorFullName))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
-
-                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
-                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate))
-                
-                .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
-                .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
-
-                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => 
-                    string.Join(" ", new[] { 
-                        src.Collaborator.FirstName, src.Collaborator.SecondName, src.Collaborator.FirstLastname, src.Collaborator.SecondLastname 
-                    }
-                    .Where(s => !string.IsNullOrWhiteSpace(s))
-                    .Select(s => s.ToCapitalize())))
-                );
-
+            CreateMap<Vacation, VacationAccruals>()
+                .ForMember(dest => dest.VacationId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.VacationBalance, opt => opt.MapFrom(src => src.AvailableVacations))
+                .ForMember(dest => dest.EnjoyedVacations, opt => opt.MapFrom(src => src.EnjoyedVacation))
+                .ForMember(dest => dest.CollaboratorInformation, opt => opt.MapFrom(src => new CollaboratorInformation
+                {
+                    CollaboratorId = src.CollaboratorId,
+                    IdentificationNumber = src.Collaborator.IdentificationNumber,
+                    Code = src.Collaborator.CollaboratorCode,
+                    EntryDate = src.Collaborator.WorkingInformation != null 
+                                ? src.Collaborator.WorkingInformation.EntryDate 
+                                : DateTime.MinValue,
+                    CollaboratorFullname = FormatFullName(
+                        src.Collaborator.FirstName, 
+                        src.Collaborator.SecondName, 
+                        src.Collaborator.FirstLastname, 
+                        src.Collaborator.SecondLastname)
+            }));
         }
+
+        private static string FormatFullName(params string?[] names)
+        {
+            return string.Join(" ", names
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s!.Trim().ToCapitalize()));
+        }
+
     }
 }   

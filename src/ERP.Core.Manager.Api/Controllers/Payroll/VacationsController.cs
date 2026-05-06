@@ -7,6 +7,7 @@ using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
+using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -59,12 +60,13 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         [Tags("Vacaciones")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/vacations")]      
-        [ProducesResponseType(typeof(PagedResponse<VacationControlDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PagedResponse<VacationAccruals>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<PagedResponse<VacationControlDto>> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code,
-            [FromQuery] DateTime start_date,
-            [FromQuery] DateTime end_date,
+        public async Task<PagedResponse<VacationAccruals>> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code,
+            [FromQuery] VacationReportType type,
+            [FromQuery] int? work_area_id,
+            [FromQuery] string? identification_number,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
         )
@@ -74,11 +76,12 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             {
                 CompanyId = companie_id,
                 ModuleCode = module_code,
-                EndDate = end_date,
-                StartDate = start_date,
                 UserId = Guid.Parse(userIdStr ?? ""),
                 PageNumber = page_number,
-                PageSize = page_size
+                PageSize = page_size,
+                Type = type,
+                WorkAreaId = work_area_id,
+                IdentificationNumber = identification_number
             });
         }
     }
