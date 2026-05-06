@@ -7,7 +7,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands
     {
         public Guid VacationId { get; set; }
         public string? IdentificationNumber { get; set; }
-        public decimal VacationBalance { get; set; } 
-        public decimal EnjoyedVacation { get; set; }
+        public decimal VacationBalance { get; set; }
     }
 }

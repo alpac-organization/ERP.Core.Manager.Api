@@ -40,10 +40,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Validators
             RuleFor(x => x.VacationBalance)
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("El saldo de vacaciones no puede ser negativo.");
-
-            RuleFor(x => x.VacationBalance)
-                .GreaterThanOrEqualTo(0)
-                .WithMessage("El saldo no puede tener más de 2 decimales.");
         }
     }
 }

@@ -34,8 +34,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                 }
 
                 vacationControl.AvailableVacations = request.VacationBalance;
-                vacationControl.EnjoyedVacation = request.EnjoyedVacation;
-                vacationControl.GeneredVacation = request.VacationBalance + request.EnjoyedVacation;
+                vacationControl.EnjoyedVacation = 0;
+                vacationControl.GeneredVacation = request.VacationBalance;
 
                 await _unitOfWork.Vacations.UpdateAsync(vacationControl);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);  
