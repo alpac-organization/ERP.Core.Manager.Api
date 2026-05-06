@@ -29,7 +29,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Schedules
                 quartz.AddTrigger(opts => opts
                     .ForJob(jobKey)
                     .WithIdentity("VacationJob-trigger")
-                    .WithCronSchedule("0 40 13 * * ?", x => x.InTimeZone(managuaTimeZone))
+                    .WithCronSchedule("0 * * ? * *", x => x.InTimeZone(managuaTimeZone))
                 );
 
                 #endregion
