@@ -1,7 +1,6 @@
 using Quartz;
 using Microsoft.Extensions.DependencyInjection;
 using ERP.Core.Manager.Api.Infrastructure.Schedules.Jobs;
-using System.Runtime.InteropServices;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Schedules
 {
@@ -29,7 +28,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Schedules
                 quartz.AddTrigger(opts => opts
                     .ForJob(jobKey)
                     .WithIdentity("VacationJob-trigger")
-                    .WithCronSchedule("0 * * ? * *", x => x.InTimeZone(managuaTimeZone))
+                    .WithCronSchedule("0 0 23 * * ?", x => x.InTimeZone(managuaTimeZone))
                 );
 
                 #endregion
