@@ -8,7 +8,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries
     public class GetVacationControlQuery : BaseRequest, IRequest<PagedResponse<VacationAccruals>>
     {
         public VacationReportType Type { get; set; }
-        public Guid BranchId { get; set; }
+        public Guid? BranchId { get; set; }
 
         public int? WorkAreaId { get; set; }
         public string? IdentificationNumber { get; set; }
