@@ -50,7 +50,6 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 IdentificationNumber = identification_number,
                 ModuleCode = module_code,
                 UserId = Guid.Parse(userIdStr ?? ""),
-                EnjoyedVacation = Payload.EnjoyedVacation,
                 VacationBalance = Payload.VacationBalance,
                 VacationId = Payload.VacationId
             });
