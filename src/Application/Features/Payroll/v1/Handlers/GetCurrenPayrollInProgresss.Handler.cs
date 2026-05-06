@@ -111,7 +111,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         IdentificationNumber = op.Collaborator.IdentificationNumber,
                         InssNumber = op.Collaborator.WorkingInformation.InssNumber,
                         JobPosition = op.Collaborator.WorkingInformation.WorkPosition.CatalogName,
-                        WorkArea = op.Collaborator.WorkingInformation.WorkArea.CatalogName
+                        WorkArea = op.Collaborator.WorkingInformation.WorkArea.CatalogName,
+                        EntryDate = op.Collaborator.WorkingInformation.EntryDate
                     }
                 })
                 .ToListAsync(cancellationToken);

@@ -131,7 +131,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
         public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
         {
-            //Id de la nomina a la que vamos hacer el registro de insert.
+            #pragma warning disable CA1873
+
             var payrollCreated = await _unitOfWork.Payrolls.Entities
                 .Where(payroll => payroll.Id == payrollId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -152,12 +153,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (salary is null)
             {
-                #pragma warning disable CA1873
-
-                _logger.LogInformation("No pudistmos encontrar la información salarial del colaborador con cedula => {identificacion}", collaborator.IdentificationNumber);
-                
-                #pragma warning restore CA1873
-                
+                _logger.LogInformation("No pudistmos encontrar la información salarial del colaborador con cedula => {identificacion}", collaborator.IdentificationNumber);                   
                 return;
             }
 
@@ -264,40 +260,33 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
             decimal TotalDeducctions = TotalLegalDeductions;
 
-            FoodTravelAllowance *= 13; //220
-            Transport *= 13; // 55
-            Lodging *= 13;
-
-            totalAssigned *= 13;;
+            Lodging             *= 13;
+            Transport           *= 13;
+            FoodTravelAllowance *= 13;
+            totalAssigned       *= 13;
 
             decimal TotalToPay = GrossSalary - BiweeklyInss - BiweeklyIr + totalAssigned;
 
             var payload = new OrdinaryPayroll()
             {
                 Id = Guid.NewGuid(),
-                CollaboratorId       = collaborator.Id,
-                PayrollId            = payrollId,
-
-                FoodTravelAllowance  = FoodTravelAllowance,
-                TotalTravelExpenses  = totalAssigned,
-                Lodging              = Lodging,
-                TravelExpenses       = Transport,
-                
-                BiweeklySalary       = BiweeklySalary,
-                
-                Overtime             = Overtime,
-                NumberOfOvertime     = NumberOfOvertime,
-                Bonus                = Bonus,
-                GrossSalary          = GrossSalary,
-
-                Inss                 = BiweeklyInss,
-                Ir                   = BiweeklyIr,
-                TotalLegalDeductions = TotalLegalDeductions,
-
+                CollaboratorId           = collaborator.Id,
+                PayrollId                = payrollId,
+                FoodTravelAllowance      = FoodTravelAllowance,
+                TotalTravelExpenses      = totalAssigned,
+                Lodging                  = Lodging,
+                TravelExpenses           = Transport,
+                BiweeklySalary           = BiweeklySalary,
+                Overtime                 = Overtime,
+                NumberOfOvertime         = NumberOfOvertime,
+                Bonus                    = Bonus,
+                GrossSalary              = GrossSalary,
+                Inss                     = BiweeklyInss,
+                Ir                       = BiweeklyIr,
+                TotalLegalDeductions     = TotalLegalDeductions,
                 DeductionsAdditionalData = JsonSerializer.Serialize(AdditionalDeducctions),
-
-                TotalDeducctions     = TotalDeducctions,
-                TotalToPay           = TotalToPay,
+                TotalDeducctions         = TotalDeducctions,
+                TotalToPay               = TotalToPay,
             };
 
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
@@ -338,9 +327,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #endregion
 
-
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(IncomeTaxAccrualPayload);
 
+            #pragma warning restore CA1873
         }
     }
 }

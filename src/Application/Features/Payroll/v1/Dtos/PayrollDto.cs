@@ -62,5 +62,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
         public string? JobPosition { get; set; }
         public string? WorkArea { get; set; }
         public string? IdentificationNumber { get; set; }
+        public DateTime EntryDate { get; set; }
     }
 }

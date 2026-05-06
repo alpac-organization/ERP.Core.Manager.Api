@@ -93,12 +93,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 case PayrollType.Ordinary:
                 {
                     var collaborators = await _unitOfWork.Collaborators.Entities
-                        .Include(c => c.Salaries
-                            .Where(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed)
-                        )
                         .Include(c => c.WorkingInformation)
                         .Where(c => c.CompanyId == request.CompanyId)
                         .Where(c => c.Status != CollaboratorStatus.Inactive)
+                        .Include(c => c.Salaries
+                            .Where(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed)
+                        )
                         .Where(c => c.Salaries
                             .Any(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed)
                         )
@@ -107,7 +107,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                     foreach(var collaborator in collaborators)
                     {
-
                         var IncomeTaxAccrualInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                             .Include(tax => tax.Collaborator)
                                 .ThenInclude(col => col.WorkingInformation)
@@ -124,6 +123,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     }
 
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    break;
+                }
+
+                case PayrollType.ProfessionalServices:
+                {   
+                    var collaborators = await _unitOfWork.Collaborators.Entities
+                        .Include(c => c.WorkingInformation)
+                        .Where(c => c.CompanyId == request.CompanyId)
+                        .Where(c => c.Status != CollaboratorStatus.Inactive)
+                        .Include(c => c.Salaries
+                            .Where(s => s.EndDate == null && s.SalaryType == SalaryType.ProfessionalServices)
+                        )
+                        .Where(c => c.Salaries
+                            .Any(s => s.EndDate == null && s.SalaryType == SalaryType.ProfessionalServices)
+                        )
+                        .Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId)
+                        .ToListAsync(cancellationToken);
+
                     break;
                 }
                 default:
