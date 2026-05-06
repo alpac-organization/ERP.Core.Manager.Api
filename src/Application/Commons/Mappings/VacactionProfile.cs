@@ -32,6 +32,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                     CollaboratorId = src.CollaboratorId,
                     IdentificationNumber = src.Collaborator.IdentificationNumber,
                     Code = src.Collaborator.CollaboratorCode,
+                    WorkAreaName = src.Collaborator.WorkingInformation.WorkArea.CatalogName,
                     EntryDate = src.Collaborator.WorkingInformation != null 
                                 ? src.Collaborator.WorkingInformation.EntryDate 
                                 : DateTime.MinValue,
