@@ -16,6 +16,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     [Route("api/v1/")]
     public class CollaboratorsController(IMediator _mediator) : ApiControllerBase
     {
+        #region Registrar Colaborador
+
         [Tags("Colaboradores")] 
         [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators")]      
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status201Created)]
@@ -34,8 +36,10 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             return Created(string.Empty, null);
         }
 
+        #endregion 
+
         [Tags("Colaboradores")] 
-        [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details", Name = "UpdateCollaboratorInformation")]      
+        [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details", Name = "UpdateCollaboratorInformation")]
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
@@ -45,16 +49,13 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            await _mediator.Send(new UpdateCollaboratorInformationCommand()
-            {
-                CompanyId = companie_id,
-                IdentificationNumber = identification_number,
-                ModuleCode = module_code,
-                UserId = Guid.Parse(userIdStr ?? ""),
-                PersonalInformation = Payload.PersonalInformation,
-                WorkingInformation = Payload.WorkingInformation
-            });
-            
+            Payload.CompanyId = companie_id;
+            Payload.ModuleCode = module_code;
+            Payload.UserId = Guid.Parse(userIdStr ?? "");
+            Payload.IdentificationNumber = identification_number;
+
+            await _mediator.Send(Payload);
+
             return Ok();
         }
 

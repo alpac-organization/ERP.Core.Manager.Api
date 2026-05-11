@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
-using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
@@ -35,11 +35,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
             if (access.Role!.RoleType == RoleType.Administrator || access.Role.RoleType == RoleType.Manager)
             {
+                collaborator.FirstName = request.FirstName ?? collaborator.FirstName;
+                collaborator.SecondName = request.SecondName ?? collaborator.SecondName;
+                collaborator.ThirdName = request.ThirdName ?? collaborator.ThirdName;
+                collaborator.FirstLastname = request.FirstSurname ?? collaborator.FirstLastname;
+                collaborator.SecondLastname = request.SecondSurname ?? collaborator.SecondLastname;
+
                 if (request.WorkingInformation != null)
                 {
-                    // Forzamos el valor actual si el del request es nulo
-                    // WorkingInformation?.BranchId = request.WorkingInformation?.BranchId ?? WorkingInformation?.BranchId;
-                    // WorkingInformation?.WorkAreaId = request.WorkingInformation?.WorkAreaId ?? WorkingInformation?.WorkAreaId;
+                    if (request.WorkingInformation.WorkAreaId.HasValue)
+                    {
+                        WorkingInformation?.WorkAreaId = request.WorkingInformation.WorkAreaId.Value;                    
+                    }
+
+                    if (request.WorkingInformation.WorkPositionId.HasValue)
+                    {
+                        WorkingInformation?.WorkPositionId = request.WorkingInformation.WorkPositionId.Value;                    
+                    }
+                    
                     WorkingInformation?.InssNumber = request?.WorkingInformation?.InssNumber ?? WorkingInformation?.InssNumber;
                     WorkingInformation?.BankAccountNumber = request?.WorkingInformation?.BankAccountNumber ?? WorkingInformation?.BankAccountNumber;
                 }
@@ -48,10 +61,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             {
                 if (request?.PersonalInformation is not null)
                 {
+                    PersonalInformation?.Address = request.PersonalInformation?.Address ?? PersonalInformation.Address;
                     PersonalInformation?.PersonalEmail = request.PersonalInformation?.PersonalEmail ?? PersonalInformation?.PersonalEmail;
                     PersonalInformation?.MaritalStatus = request.PersonalInformation?.MaritalStatus ?? PersonalInformation.MaritalStatus;
                     PersonalInformation?.PersonalPhoneNumber = request.PersonalInformation?.PersonalPhoneNumber ?? PersonalInformation.PersonalPhoneNumber;
-                    PersonalInformation?.Address = request.PersonalInformation?.Address ?? PersonalInformation.Address;
                 }
 
                 if(request?.WorkingInformation is not null)
@@ -62,7 +75,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             }
 
             await _unitOfWork.Collaborators.UpdateAsync(collaborator);
-
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return true;
