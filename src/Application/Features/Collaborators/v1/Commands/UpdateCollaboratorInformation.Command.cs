@@ -7,6 +7,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
     public class UpdateCollaboratorInformationCommand: BaseRequest, IRequest<bool>
     {
         public string? IdentificationNumber { get; set; }
+
+        public string? FirstName { get; set; }
+        public string? SecondName { get; set; }
+        public string? ThirdName { get; set; }
+        public string? FirstSurname { get; set; }
+        public string? SecondSurname { get; set; }
+
         public PInformation? PersonalInformation { get; set; } = new ();
         public WInformation? WorkingInformation { get; set; } = new();
     }

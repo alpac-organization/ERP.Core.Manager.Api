@@ -78,3 +78,7 @@ C:\Users\desarrollo\Desktop\Desarrollo\ERP.Core.Manager.Api\src\Infrastructure\o
 C:\Users\desarrollo\Desktop\Desarrollo\ERP.Core.Manager.Api\src\Infrastructure\obj\Debug\net10.0\refint\Infrastructure.dll
 C:\Users\desarrollo\Desktop\Desarrollo\ERP.Core.Manager.Api\src\Infrastructure\obj\Debug\net10.0\Infrastructure.pdb
 C:\Users\desarrollo\Desktop\Desarrollo\ERP.Core.Manager.Api\src\Infrastructure\obj\Debug\net10.0\ref\Infrastructure.dll
+C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\Infrastructure\bin\Debug\net10.0\Templates\LetterCollaboratorActive.html
+C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\Infrastructure\bin\Debug\net10.0\Templates\PermitApplication.html
+C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\Infrastructure\bin\Debug\net10.0\Templates\SalaryLetter.html
+C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\Infrastructure\bin\Debug\net10.0\Templates\WorkingLetter.html
