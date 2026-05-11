@@ -227,6 +227,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal totalAssigned = 0.0m;
 
+            if (collaborator.IdentificationNumber == "0012210790054K")
+            {
+                
+            }
+
             foreach (var current in asssineds)
             {
                 switch (current.TypeIncome.IncomeCode)
@@ -262,7 +267,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             Lodging             *= 13;
             Transport           *= 13;
             FoodTravelAllowance *= 13;
-            totalAssigned       *= 13;
+            totalAssigned       = Lodging + Transport + FoodTravelAllowance;
 
             decimal TotalToPay = GrossSalary - BiweeklyInss - BiweeklyIr + totalAssigned;
 
@@ -308,9 +313,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                 NumberOfFortnights = 24;
             }
+            else if (payrollCreated.StartDate.Month == 1 && payrollCreated.StartDate.Day == 1)
+            {
+                NumberOfFortnights = 24; 
+            }
             else
             {
-                NumberOfFortnights = lastIncomeTaxAccrual.NumberOfFortnights - 1;
+                NumberOfFortnights = lastIncomeTaxAccrual!.NumberOfFortnights - 1;
             }
 
             var IncomeTaxAccrualPayload = new IncomeTaxAccrual()
@@ -324,9 +333,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 RegisterDate = DateTime.Now
             };
 
-            #endregion
-
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(IncomeTaxAccrualPayload);
+            #endregion
 
             #region Registrar pagos de viaticos
 
