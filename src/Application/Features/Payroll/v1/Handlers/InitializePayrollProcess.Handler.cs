@@ -34,6 +34,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("La sucursal seleccionada no estas asociado a este compañia", "ERP:BrachNotFound");
             }
 
+            var payrollInProgress = await _unitOfWork.Payrolls.Entities 
+                .Where(payroll => payroll.BranchId == request.BranchId)
+                .Include(payroll => payroll.Branch)
+                    .ThenInclude(branch => branch.Company)
+                .Where(payroll => payroll.Branch.Company.Id == request.CompanyId)
+                .Where(payroll => payroll.Status == PayrollStatus.Progress)
+                .Where(payroll => payroll.PayrollType == request.Type)
+                .AnyAsync(cancellationToken);
+
+            if (payrollInProgress)
+            {
+                return _errorManager.ThrowBadRequest<bool>("No se puede aperturar mientras exista un nomina en progreso", "ERP:01");
+            }
+
             var lastPayroll = await _unitOfWork.Payrolls.Entities 
                 .Where(payroll => payroll.BranchId == request.BranchId)
                 .Include(payroll => payroll.Branch)
