@@ -3,10 +3,10 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
-using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Features.SalaryAdvance.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
@@ -37,10 +37,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("Este colaborador no existe!", "ERP:01");
             }
 
-            var payrolActive = await _unitOfWork.Payrolls.Entities
+            var payrollActive = await _unitOfWork.Payrolls.Entities
                 .Where(payroll => payroll.Status == PayrollStatus.Progress && payroll.PayrollType == PayrollType.Ordinary)
                 .Where(payroll => payroll.BranchId == collaborator.WorkingInformation.CompanyBranchId)
                 .FirstOrDefaultAsync(cancellationToken);
+
+            if (payrollActive is null)
+            {
+                return _errorManager.ThrowBadRequest<bool>("Inicialize un proceso de nomina ordinaria", "ERP:02");
+            }
 
             switch(request.DeductionType)
             {
@@ -70,60 +75,132 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 
                     if (salaryInformation is null)
                     {
-                        return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:01");
+                        return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
                     }
 
-                    if (payrolActive is not null)
+                    decimal DailySalary = salaryInformation.AmountInLocal / 30;
+                    decimal HourlyWage = DailySalary / 8;
+                    decimal PerMinuteWage = HourlyWage / 60;
+
+                    decimal TotalDeductionToLateArrivals = (request.LateArrivalsPayload?.TotalMinutes ?? 0) * PerMinuteWage;
+
+                    var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                        .Where(col => col.CollaboratorId == collaborator.Id)
+                        .Where(col => col.PayrollId == payrollActive.Id)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (ordinaryPayroll is null)
                     {
-                        decimal DailySalary = salaryInformation.AmountInLocal / 30;
-                        decimal HourlyWage = DailySalary / 8;
-                        decimal PerMinuteWage = HourlyWage / 60;
-
-                        decimal TotalDeductionToLateArrivals = (request.LateArrivalsPayload?.TotalMinutes ?? 0) * PerMinuteWage;
-
-                        var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
-                            .Where(col => col.CollaboratorId == collaborator.Id)
-                            .Where(col => col.PayrollId == payrolActive!.Id)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (ordinaryPayroll is null)
-                        {
-                            return false;
-                        }
-
-                        var deductions =
-                            JsonSerializer.Deserialize<DeductionsAdditionalData>(
-                                ordinaryPayroll.DeductionsAdditionalData
-                            ) ?? new DeductionsAdditionalData();
-
-
-                        deductions.LateArrivals = TotalDeductionToLateArrivals;
-
-                        decimal totalDeductions =
-                            deductions.Loans
-                            + deductions.Purisima
-                            + deductions.ChildSupportGarnishment
-                            + deductions.SalaryAdvance
-                            + deductions.ChristmasBonusAdvance
-                            + deductions.JudicialSeizures
-                            + deductions.UniformDeduction
-                            + deductions.CashShortage
-                            + deductions.OtherDeductions
-                            + deductions.DeductionForLossesBulk
-                            + deductions.Absences
-                            + deductions.Sanction
-                            + deductions.LateArrivals;
-
-                        decimal total = ordinaryPayroll.GrossSalary - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
-
-                        ordinaryPayroll.TotalToPay = total;
-                        ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-
-                        await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        return false;
                     }
+
+                    var deductions =
+                        JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                            ordinaryPayroll.DeductionsAdditionalData
+                        ) ?? new DeductionsAdditionalData();
+
+
+                    deductions.LateArrivals = TotalDeductionToLateArrivals;
+
+                    decimal totalDeductions =
+                        deductions.Loans
+                        + deductions.Purisima
+                        + deductions.ChildSupportGarnishment
+                        + deductions.SalaryAdvance
+                        + deductions.ChristmasBonusAdvance
+                        + deductions.JudicialSeizures
+                        + deductions.UniformDeduction
+                        + deductions.CashShortage
+                        + deductions.OtherDeductions
+                        + deductions.DeductionForLossesBulk
+                        + deductions.Absences
+                        + deductions.Sanction
+                        + deductions.LateArrivals;
+
+                    decimal total = ordinaryPayroll.GrossSalary - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+
+                    ordinaryPayroll.TotalToPay = total;
+                    ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+
+                    await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+                    await _unitOfWork.Deductions.RegisterDeduction(new()
+                    {
+                        Type           = DeductionType.Purisima,
+                        Currency       = Currency.NIO,
+                        Status         = DeductionStatus.Completed,
+                        PayrollId      = payrollActive.Id,
+                        CollaboratorId = request.CollaboratorId,
+                        TotalAmount    = TotalDeductionToLateArrivals,
+                        TotalAmountInDollars = TotalDeductionToLateArrivals / 36.6243m,
+                    });
+
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                     return true;    
+                }
+                case DeductionType.Purisima:
+                {
+
+                    var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                        .Where(ord => ord.CollaboratorId == collaborator.Id)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (ordinaryPayroll is null)
+                    {
+                        return false;
+                    }
+
+                     var deductions =
+                        JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                            ordinaryPayroll.DeductionsAdditionalData
+                        ) ?? new DeductionsAdditionalData();
+
+
+                    deductions.Purisima = request.PurisimaPayload?.Amount ?? 0.0m;
+
+                    decimal totalDeductions =
+                        deductions.Loans
+                        + deductions.Purisima
+                        + deductions.ChildSupportGarnishment
+                        + deductions.SalaryAdvance
+                        + deductions.ChristmasBonusAdvance
+                        + deductions.JudicialSeizures
+                        + deductions.UniformDeduction
+                        + deductions.CashShortage
+                        + deductions.OtherDeductions
+                        + deductions.DeductionForLossesBulk
+                        + deductions.Absences
+                        + deductions.Sanction
+                        + deductions.LateArrivals;
+
+                    decimal total = ordinaryPayroll.GrossSalary - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+
+                    ordinaryPayroll.TotalToPay = total;
+                    ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+
+                    await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+
+                    await _unitOfWork.Deductions.RegisterDeduction(new()
+                    {
+                        Type = DeductionType.Purisima,
+                        CollaboratorId = request.CollaboratorId,
+                        Currency = Currency.NIO,
+                        Status = DeductionStatus.Progress,
+                        PayrollId = payrollActive.Id,
+                        TotalAmount = request.PurisimaPayload?.Amount ?? 0.0m,
+                        TotalAmountInDollars = (request.PurisimaPayload?.Amount ?? 0.0m) / 36.6243m,
+                    });
+
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    return true;                
+                }
+                case DeductionType.Loans:
+                {
+                    
+
+
+                    return true;
                 }
                 default:
                 {
