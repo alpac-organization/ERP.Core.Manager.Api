@@ -63,13 +63,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             if (request.WorkAreaId.HasValue)
             {
                 detailsQuery = detailsQuery
-                    .Where(op => op.Collaborator.WorkingInformation.WorkArea.CatalogId == request.WorkAreaId);
+                    .Where(op => op.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);
             }
 
             if (request.WorkPositionId.HasValue)
             {
                 detailsQuery = detailsQuery
-                    .Where(op => op.Collaborator.WorkingInformation.WorkPosition.CatalogId == request.WorkAreaId);
+                    .Where(op => op.Collaborator.WorkingInformation.WorkPositionId == request.WorkPositionId);
             }
 
             int totalItems = await detailsQuery.CountAsync(cancellationToken);

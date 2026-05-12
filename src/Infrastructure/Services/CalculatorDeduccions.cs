@@ -227,11 +227,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal totalAssigned = 0.0m;
 
-            if (collaborator.IdentificationNumber == "0012210790054K")
-            {
-                
-            }
-
             foreach (var current in asssineds)
             {
                 switch (current.TypeIncome.IncomeCode)

@@ -9,11 +9,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
         public Guid CollaboratorId { get; set; }
         public string? Description { get; set; }
         public DeductionType DeductionType { get; set; }
+        
 
-        //Payloads de deducciones
-        // public LoansPayload? LoansPayload { get; set; }
+        public LoansPayload? LoansPayload { get; set; }
+        public PurisimaPayload? PurisimaPayload { get; set; }
         public AdvanceSalaryPayload? AdvanceSalaryPayload { get; set; }
         public LateArrivalsPayload? LateArrivalsPayload { get; set; }
+    }
+    public class PurisimaPayload
+    {
+        public decimal Amount { get; set; } // Cantidad a deducir hasta detener proceso de colaboración
     }
 
     public class LateArrivalsPayload
