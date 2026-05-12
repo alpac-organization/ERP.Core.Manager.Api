@@ -125,7 +125,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                     await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
                     await _unitOfWork.Deductions.RegisterDeduction(new()
                     {
-                        Type           = DeductionType.Purisima,
+                        Type           = DeductionType.LateArrivals,
                         Currency       = Currency.NIO,
                         Status         = DeductionStatus.Completed,
                         PayrollId      = payrollActive.Id,
