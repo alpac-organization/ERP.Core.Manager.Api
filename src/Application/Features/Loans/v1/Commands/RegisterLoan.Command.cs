@@ -6,6 +6,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Loans.v1.Commands
 {
     public class RegisterLoanCommand: BaseRequest, IRequest<bool>
     {
+
+        public Guid PayrollId { get; set; }
         public Guid CollaboratorId { get; set; }
         public string? Description { get; set; }
 
@@ -15,8 +17,4 @@ namespace ERP.Core.Manager.Api.Application.Features.Loans.v1.Commands
         public int NumberFortnights { get; set; }
     }
 
-    public class LoansPayload
-    {
-        
-    }
 }
