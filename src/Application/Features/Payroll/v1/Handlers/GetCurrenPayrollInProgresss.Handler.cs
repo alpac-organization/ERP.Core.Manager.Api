@@ -95,8 +95,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     DeductionsAdditionalData = op.DeductionsAdditionalData,
                     TotalDeducctions = op.TotalDeducctions,
                     
-                    TravelExpenses = op.TravelExpenses,
-                    FoodTravelAllowance = op.FoodTravelAllowance,
+                    Transport = op.Transport,
+                    Feeding = op.Feeding,
                     Lodging = op.Lodging,
                     TotalTravelExpenses = op.TotalTravelExpenses,
                     
