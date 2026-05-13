@@ -8,6 +8,7 @@
     ".NETCoreApp,Version=v10.0": {
       "ERP.Core.Manager.Api/1.0.0": {
         "dependencies": {
+          "DotNetEnv": "3.2.0",
           "Infrastructure": "1.0.0",
           "Microsoft.AspNetCore.Mvc.Versioning": "5.1.0",
           "Microsoft.AspNetCore.OpenApi": "10.0.5",
@@ -40,6 +41,17 @@
           "lib/netstandard1.6/DinkToPdf.dll": {
             "assemblyVersion": "1.0.8.0",
             "fileVersion": "1.0.8.0"
+          }
+        }
+      },
+      "DotNetEnv/3.2.0": {
+        "dependencies": {
+          "Superpower": "3.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/DotNetEnv.dll": {
+            "assemblyVersion": "3.2.0.0",
+            "fileVersion": "3.2.0.0"
           }
         }
       },
@@ -674,6 +686,14 @@
           }
         }
       },
+      "Superpower/3.0.0": {
+        "runtime": {
+          "lib/net5.0/Superpower.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      },
       "Swashbuckle.AspNetCore/10.1.5": {
         "dependencies": {
           "Swashbuckle.AspNetCore.Swagger": "10.1.5",
@@ -878,6 +898,13 @@
       "sha512": "sha512-wJDlcNXjQ+OnBFwh3LBeAXgrXqlKl0RsgN60XpxEFbyqzdaG9ASb5HTXQjXQPaBguSCOrGZZESPnpcng34TEkw==",
       "path": "dinktopdf/1.0.8",
       "hashPath": "dinktopdf.1.0.8.nupkg.sha512"
+    },
+    "DotNetEnv/3.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-2q+PD+aJcRW9QuRcIv4F8WbvEDxI6cwxzZJec2i45cBY4cAKCAoW4ZPkApJ7H82wr6Yfmxx/0kb1nLnRmZrGZA==",
+      "path": "dotnetenv/3.2.0",
+      "hashPath": "dotnetenv.3.2.0.nupkg.sha512"
     },
     "ERP.Core.Application/1.0.88": {
       "type": "package",
@@ -1165,6 +1192,13 @@
       "sha512": "sha512-kZ7ufndI5vygLpI0kCeukVKlzpRFtGjfoU3BoWZ6u6QKoRF2Z3KV1dSpv+VpMqRekz3SrObfN0iLZKWldoZLZw==",
       "path": "quartz.extensions.hosting/3.18.1",
       "hashPath": "quartz.extensions.hosting.3.18.1.nupkg.sha512"
+    },
+    "Superpower/3.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bjKbAYWePooCAvPxQq+3KnmcLfRggMyRoXmtBMlmCG71bdwBHrO6rmRJ2DRIodg5aztNcxeZXBUVWT+H+MZUhw==",
+      "path": "superpower/3.0.0",
+      "hashPath": "superpower.3.0.0.nupkg.sha512"
     },
     "Swashbuckle.AspNetCore/10.1.5": {
       "type": "package",

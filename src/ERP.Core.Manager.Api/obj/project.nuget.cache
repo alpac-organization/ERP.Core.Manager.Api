@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "U1RqqYl2tBo=",
+  "dgSpecHash": "qENbF5kXzhE=",
   "success": true,
   "projectFilePath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\ERP.Core.Manager.Api\\ERP.Core.Manager.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\desarrollo\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\dinktopdf\\1.0.8\\dinktopdf.1.0.8.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\dotnetenv\\3.2.0\\dotnetenv.3.2.0.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.application\\1.0.88\\erp.core.application.1.0.88.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.database.application\\1.0.88\\erp.core.database.application.1.0.88.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\erp.core.database.domain\\1.0.88\\erp.core.database.domain.1.0.88.nupkg.sha512",
@@ -53,6 +54,7 @@
     "C:\\Users\\desarrollo\\.nuget\\packages\\quartz\\3.18.1\\quartz.3.18.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\quartz.extensions.dependencyinjection\\3.18.1\\quartz.extensions.dependencyinjection.3.18.1.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\quartz.extensions.hosting\\3.18.1\\quartz.extensions.hosting.3.18.1.nupkg.sha512",
+    "C:\\Users\\desarrollo\\.nuget\\packages\\superpower\\3.0.0\\superpower.3.0.0.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\swashbuckle.aspnetcore\\10.1.5\\swashbuckle.aspnetcore.10.1.5.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\10.1.5\\swashbuckle.aspnetcore.swagger.10.1.5.nupkg.sha512",
     "C:\\Users\\desarrollo\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\10.1.5\\swashbuckle.aspnetcore.swaggergen.10.1.5.nupkg.sha512",
