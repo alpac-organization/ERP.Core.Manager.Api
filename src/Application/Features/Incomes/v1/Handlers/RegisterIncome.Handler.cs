@@ -179,9 +179,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         + deductions.LateArrivals;
 
                     decimal total = GrossSalary - ordinaryPayrollInfo.TotalLegalDeductions - totalDeductions;
-
+                    
+                    ordinaryPayrollInfo.TotalDeducctions = totalDeductions + BiweeklyIr + BiweeklyInss;
                     ordinaryPayrollInfo.TotalToPay = total;
                     ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+                    ordinaryPayrollInfo.GrossSalary = salaryInformation.AmountInLocal / 2;
 
                     //Actualizamos su acumulado
                     await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);

@@ -26,10 +26,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                 }
                 case ReportsType.Accumulated:
                 {
-                    var incomes = await _unitOfWork.IncomeTaxAccrual.Entities
+                    var incomes = _unitOfWork.IncomeTaxAccrual.Entities
                         .Include(income => income.Payroll)
                         .Include(income => income.Collaborator)
                         .Where(income => income.PayrollId == request.PayrollId)
+
+
+
+                        
                         .ToListAsync(cancellationToken);
                         
                     var reportMapped = _mapper.Map<List<AccumulatedHistory>>(incomes);
