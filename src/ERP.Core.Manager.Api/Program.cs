@@ -1,4 +1,3 @@
-using DotNetEnv;
 using System.Text.Json;
 using Microsoft.OpenApi;
 using ERP.Core.Manager.Api.Application;
