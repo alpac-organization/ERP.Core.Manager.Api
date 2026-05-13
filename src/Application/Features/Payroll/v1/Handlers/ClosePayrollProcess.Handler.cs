@@ -69,8 +69,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(new()
                 {
                    Lodging = collaborator.Lodging,
-                   Feeding = collaborator.FoodTravelAllowance,
-                   Transport = collaborator.TravelExpenses,                  
+                   Feeding = collaborator.Feeding,
+                   Transport = collaborator.Transport,                  
                    TotalAmountPaid = collaborator.TotalTravelExpenses,
                    NumberDaysPaid = 13,
                 });

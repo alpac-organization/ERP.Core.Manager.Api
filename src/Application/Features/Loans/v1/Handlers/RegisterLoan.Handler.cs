@@ -70,7 +70,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Loans.v1.Handlers
                 AmountPaid = amountPaidCordobas,
                 AmountPaidInDollars = amountPaidDollars,
 
-                NumberOfFortnights = remainingFortnights,
+                NumberFortnights = remainingFortnights,
 
                 TotalAmount = totalAmountCordobas,
                 TotalAmountInDollars = totalAmountDollars,

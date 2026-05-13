@@ -5,10 +5,11 @@ using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 {
-    public class RegisterIncomeHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<RegisterIncomeCommand, bool>(_unitOfWork, _errorManager)
+    public class RegisterIncomeHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterIncomeHandler> logger): AlpacBaseHandler<RegisterIncomeCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterIncomeCommand request, CancellationToken cancellationToken)
         {
@@ -86,22 +87,22 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 {
                     case "ALW_MEAL" :
                     {
-                        // logger.LogInformation("Agregando ingreso de alimentación a nomina");
+                        logger.LogInformation("Agregando ingreso de alimentación a nomina");
 
-                        ordinaryPayrollInformation.FoodTravelAllowance = request.IncomeAmount;
+                        ordinaryPayrollInformation.Feeding = request.IncomeAmount;
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                        // logger.LogInformation("Proceso finalizado con exito!"); 
+                        logger.LogInformation("Proceso finalizado con exito!"); 
                         
                         return true;
                     }
                     case "ALW_HOUSING" :
                     {
 
-                        // logger.LogInformation("Agregando ingreso de hospedaje a nomina");
+                        logger.LogInformation("Agregando ingreso de hospedaje a nomina");
 
                         ordinaryPayrollInformation.Lodging = request.IncomeAmount;
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
@@ -109,22 +110,22 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                        // logger.LogInformation("Proceso finalizado con exito!");
+                        logger.LogInformation("Proceso finalizado con exito!");
 
                         return true;
                     }
                     case "ALW_TRANSPORT":
                     {
 
-                        // logger.LogInformation("Agregando ingreso de transporte a nomina");
+                        logger.LogInformation("Agregando ingreso de transporte a nomina");
 
-                        ordinaryPayrollInformation.Lodging = request.IncomeAmount;
+                        ordinaryPayrollInformation.Transport = request.IncomeAmount;
                         ordinaryPayrollInformation.TotalToPay += request.IncomeAmount;
                         
                         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInformation);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                        // logger.LogInformation("Proceso finalizado con exito!");
+                        logger.LogInformation("Proceso finalizado con exito!");
 
                         return true;
                     }

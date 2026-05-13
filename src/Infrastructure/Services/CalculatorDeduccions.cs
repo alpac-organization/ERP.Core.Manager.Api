@@ -199,6 +199,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 cancellationToken
             );
 
+            var loans = await _unitOfWork.Deductions.Entities
+                .Where(deduction => deduction.Type == DeductionType.Loans)
+                .Where(deduction => deduction.Status == DeductionStatus.Progress)
+                .Where(deduction => deduction.CollaboratorId == collaborator.Id)
+                .ToListAsync(cancellationToken);
+
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
                 Absences = 0.0m,
@@ -215,6 +221,29 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Sanction = 0.0m,
                 UniformDeduction = 0.0m
             };
+
+            foreach (var loan in loans)
+            {
+                AdditionalDeducctions.Loans += loan.FortnightlyAmount ?? 0.0m;
+
+                loan.AmountPaid += loan.FortnightlyAmount;
+                loan.AmountPaidInDollars += loan.FortnightlyAmountInDollars;
+
+                loan.NumberFortnightsPaid += 1;
+                loan.TotalBalance -= loan.FortnightlyAmount;
+                loan.TotalBalanceInDollars -= loan.FortnightlyAmountInDollars;
+
+                await _unitOfWork.Deductions.UpdateAsync(loan);
+
+                await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+                {
+                    AmountPaid = loan.FortnightlyAmount ?? 0.0m,
+                    DeductionId = loan.Id,
+                    Origin = SourceDeductionPayment.Payroll,
+                    PayrollId = payrollCreated.Id,
+                    PaymentDate = payrollCreated.StartDate,
+                });
+            }
 
             var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
@@ -271,10 +300,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Id = Guid.NewGuid(),
                 CollaboratorId           = collaborator.Id,
                 PayrollId                = payrollId,
-                FoodTravelAllowance      = FoodTravelAllowance,
+                Feeding                  = FoodTravelAllowance,
                 TotalTravelExpenses      = totalAssigned,
                 Lodging                  = Lodging,
-                TravelExpenses           = Transport,
+                Transport                = Transport,
                 BiweeklySalary           = BiweeklySalary,
                 Overtime                 = Overtime,
                 NumberOfOvertime         = NumberOfOvertime,

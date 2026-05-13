@@ -110,13 +110,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         .Include(c => c.WorkingInformation)
                         .Where(c => c.CompanyId == request.CompanyId)
                         .Where(c => c.Status != CollaboratorStatus.Inactive)
+                        .Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId)
                         .Include(c => c.Salaries
                             .Where(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed)
                         )
                         .Where(c => c.Salaries
                             .Any(s => s.EndDate == null && s.SalaryType == SalaryType.Fixed)
                         )
-                        .Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId)
                         .ToListAsync(cancellationToken);
 
                     foreach(var collaborator in collaborators)
@@ -144,6 +144,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 {   
                     var collaborators = await _unitOfWork.Collaborators.Entities
                         .Include(c => c.WorkingInformation)
+                        .Include(c => c.WorkingInformation.BranchInfo)
+                        .Include(c => c.WorkingInformation.BranchInfo.Company)
                         .Where(c => c.CompanyId == request.CompanyId)
                         .Where(c => c.Status != CollaboratorStatus.Inactive)
                         .Include(c => c.Salaries

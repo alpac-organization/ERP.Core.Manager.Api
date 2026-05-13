@@ -8,13 +8,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
         Task<decimal> CalculateInss(decimal GrossSalary, CancellationToken cancellationToken);
         Task<decimal> CalculateIr(decimal monthlySalary, int daysWorked, CancellationToken cancellationToken);
 
-        
-
-        //Realizar Operación de calculos de nomina ordinaria e insertar, o crear nuevo ciclo de nomina.
-
         Task<IrCalculationResult>CalculateIrToNextProcess(int NFortnight, decimal AccumulatedAccrued,decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken);
 
         Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken);
-
     }
 }
