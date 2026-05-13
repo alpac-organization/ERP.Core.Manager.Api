@@ -180,16 +180,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
 
             decimal Overtime = 0.0m;
-            int NumberOfOvertime = 0;
+            decimal NumberOfOvertime = 0.0m;
 
             decimal Bonus = 0.0m;
 
             decimal  GrossSalary = Overtime + Bonus + ProportionalBiweeklySalary;
-
-            if (collaborator.IdentificationNumber == "4012912880000M")
-            {
-                
-            }
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
@@ -311,7 +306,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Transport                = Transport,
                 BiweeklySalary           = BiweeklySalary,
                 Overtime                 = Overtime,
-                NumberOfOvertime         = NumberOfOvertime,
+                NumberOvertime           = NumberOfOvertime,
                 Bonus                    = Bonus,
                 GrossSalary              = GrossSalary,
                 Inss                     = BiweeklyInss,
