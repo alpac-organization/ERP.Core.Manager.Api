@@ -186,6 +186,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal  GrossSalary = Overtime + Bonus + ProportionalBiweeklySalary;
 
+            if (collaborator.IdentificationNumber == "4012912880000M")
+            {
+                
+            }
+
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
                 .OrderByDescending(income => income.CreatedAt)

@@ -3,8 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ERP.Core.Manager.Api.Infrastructure.Services;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Infrastructure.Services;
-using ERP.Core.Manager.Api.Infrastructure.Schedules;
+using ERP.Core.Infrastructure.Services; 
 using ERP.Core.Database.Infrastructure;
 
 namespace ERP.Core.Manager.Api.Infrastructure
