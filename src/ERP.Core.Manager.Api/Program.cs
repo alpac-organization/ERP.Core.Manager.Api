@@ -1,3 +1,4 @@
+using DotNetEnv;
 using System.Text.Json;
 using Microsoft.OpenApi;
 using ERP.Core.Manager.Api.Application;
@@ -6,9 +7,13 @@ using System.Text.Json.Serialization;
 using ERP.Core.Manager.Api.Infrastructure.Middlewares;
 using ERP.Core.Infrastructure.Middlewares;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 var root = builder.Environment.ContentRootPath;
+
+Env.Load();
+builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
@@ -20,7 +25,6 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5174", "http://localhost:5173", "https://web-alpac.onrender.com")
             .AllowAnyMethod()
             .AllowAnyHeader();
-            //   .AllowCredentials()
     });
 });
 

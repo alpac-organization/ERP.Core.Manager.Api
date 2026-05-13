@@ -2,7 +2,6 @@ C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.A
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Templates\PermitApplication.html
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Templates\SalaryLetter.html
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Templates\WorkingLetter.html
-C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\appsettings.Development.json
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\appsettings.json
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Manager.Api.staticwebassets.runtime.json
 C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Manager.Api.staticwebassets.endpoints.json
@@ -494,3 +493,5 @@ C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\De
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ERP.Core.Manager.Api.pdb
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ERP.Core.Manager.Api.genruntimeconfig.cache
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ref\ERP.Core.Manager.Api.dll
+c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\DotNetEnv.dll
+c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Superpower.dll
