@@ -83,7 +83,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     OrdinaryPayrollId = op.Id,
                     BiweeklySalary = op.BiweeklySalary,
 
-                    NumberOfOvertime = op.NumberOfOvertime,
+                    NumberOvertime = op.NumberOvertime,
                     Overtime = op.Overtime,
                     Bonus = op.Bonus,
                     GrossSalary = op.GrossSalary,

@@ -4,8 +4,6 @@ using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands;
-using PuppeteerSharp;
-
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
     [HasToken]
@@ -24,14 +22,14 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             await _mediator.Send(new RegisterIncomeCommand()    
             {
-                AmountHours = payload.AmountHours,
                 CompanyId = companie_id,
                 IdentificationNumber = payload.IdentificationNumber,
-                IncomeAmount = payload.IncomeAmount,
                 ModuleCode = module_code,
                 TypeIncomeId = payload.TypeIncomeId,
                 Description = payload.Description ?? "Sin descripción",
-                UserId = Guid.Parse(userIdStr ?? "")
+                UserId = Guid.Parse(userIdStr ?? ""),
+                OvertimeIncomePayload = payload.OvertimeIncomePayload,
+                PayrollId = payload.PayrollId
             });
 
             return Ok();
