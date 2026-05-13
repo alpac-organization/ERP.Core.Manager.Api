@@ -178,12 +178,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         + deductions.Sanction
                         + deductions.LateArrivals;
 
-                    decimal total = GrossSalary - ordinaryPayrollInfo.TotalLegalDeductions - totalDeductions;
+                    decimal total = GrossSalary - BiweeklyInss - BiweeklyIr - totalDeductions;
                     
-                    ordinaryPayrollInfo.TotalDeducctions = totalDeductions + BiweeklyIr + BiweeklyInss;
-                    ordinaryPayrollInfo.TotalToPay = total;
+                    ordinaryPayrollInfo.TotalToPay = total + ordinaryPayrollInfo.Transport + ordinaryPayrollInfo.Lodging + ordinaryPayrollInfo.Feeding;
                     ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
                     ordinaryPayrollInfo.GrossSalary = salaryInformation.AmountInLocal / 2;
+                    ordinaryPayrollInfo.NumberOvertime = request.OvertimeIncomePayload?.AmountHours ?? 0;
+                    ordinaryPayrollInfo.TotalDeducctions = totalDeductions + BiweeklyIr + BiweeklyInss;
 
                     //Actualizamos su acumulado
                     await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
