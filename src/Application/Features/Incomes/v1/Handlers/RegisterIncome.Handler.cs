@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 {
-    public class RegisterIncomeHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterIncomeCommand> logger): AlpacBaseHandler<RegisterIncomeCommand, bool>(_unitOfWork, _errorManager)
+    public class RegisterIncomeHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterIncomeHandler> logger): AlpacBaseHandler<RegisterIncomeCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterIncomeCommand request, CancellationToken cancellationToken)
         {
