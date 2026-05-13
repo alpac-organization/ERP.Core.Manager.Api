@@ -12,19 +12,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 var root = builder.Environment.ContentRootPath;
 
-var currentPath = Directory.GetCurrentDirectory();
-
-var envPath = Path.GetFullPath(
-    Path.Combine(currentPath, "../../.env")
-);
-
-if (File.Exists(envPath))
-{
-    Env.Load(envPath);
-}
-
-
-builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
