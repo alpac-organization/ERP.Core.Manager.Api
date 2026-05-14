@@ -185,6 +185,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal Commissions = 0.0m;
             decimal NumberOfOvertime = 0.0m;
 
+            if(collaborator.IdentificationNumber == "4012912880000M")
+            {
+                
+            }
+
             #region Aplicamos antigüedad si la empresa acumula antigüedad
 
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
@@ -363,7 +368,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             FoodTravelAllowance *= 13;
             totalAssigned       = Lodging + Transport + FoodTravelAllowance;
 
-            decimal TotalToPay = TotalIncome - TotalDeducctions + totalAssigned + Antique;
+            decimal TotalToPay = TotalIncome - TotalDeducctions + totalAssigned;
 
             var payload = new OrdinaryPayroll()
             {
