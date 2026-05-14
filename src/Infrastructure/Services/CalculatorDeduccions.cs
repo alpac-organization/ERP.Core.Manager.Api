@@ -181,10 +181,48 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal Overtime = 0.0m;
             decimal NumberOfOvertime = 0.0m;
-
             decimal Bonus = 0.0m;
 
-            decimal  GrossSalary = Overtime + Bonus + ProportionalBiweeklySalary;
+            decimal Antique = 0.0m;
+
+            if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
+            {
+                DateTime EntryDate = collaborator.WorkingInformation.EntryDate;
+                
+                // 1. Calcular años de antigüedad
+                int yearsOfService = DateTime.Today.Year - EntryDate.Year;
+                if (EntryDate.Date > DateTime.Today.AddYears(-yearsOfService)) yearsOfService--;
+
+                decimal seniorityPercentage = yearsOfService switch
+                {
+                    <= 0 => 0.00m,
+                    1    => 0.03m,
+                    2    => 0.05m,
+                    3    => 0.07m,
+                    4    => 0.09m,
+                    5    => 0.10m,
+                    6    => 0.11m,
+                    7    => 0.12m,
+                    8    => 0.13m,
+                    9    => 0.14m,
+                    10   => 0.15m,
+                    11   => 0.155m,
+                    12   => 0.16m,
+                    13   => 0.165m,
+                    14   => 0.17m,
+                    15   => 0.175m,
+                    16   => 0.18m,
+                    17   => 0.185m,
+                    18   => 0.19m,
+                    19   => 0.195m,
+                    _    => 0.20m  // 20 años o más
+                };
+
+                // El incentivo se calcula sobre el salario devengado en el periodo
+                Antique = ProportionalBiweeklySalary * seniorityPercentage;
+            }
+
+            decimal GrossSalary = Overtime + Bonus + ProportionalBiweeklySalary + Antique;
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
@@ -300,6 +338,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Id = Guid.NewGuid(),
                 CollaboratorId           = collaborator.Id,
                 PayrollId                = payrollId,
+                Antique                  = Antique,
                 Feeding                  = FoodTravelAllowance,
                 TotalTravelExpenses      = totalAssigned,
                 Lodging                  = Lodging,
