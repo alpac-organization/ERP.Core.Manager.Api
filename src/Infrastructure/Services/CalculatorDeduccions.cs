@@ -133,6 +133,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         {
             #pragma warning disable CA1873
 
+            #region Primera Validación de apertura
+
             var payrollCreated = await _unitOfWork.Payrolls.Entities
                 .Where(payroll => payroll.Id == payrollId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -157,19 +159,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 return;
             }
 
-            //Fecha de ingreso a la empresa a laborar
+            #endregion 
+
             DateTime entryDate = salary.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart = payrollCreated.StartDate;
-
             DateTime payrollEnd = payrollCreated.EndDate ?? payrollStart.AddDays(14);
 
             int daysWorked = 15;
 
-            //Calculamos los dias que laboro.
             if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
             else  daysWorked = 15; 
 
-            // Validaciones de seguridad para evitar días negativos o excesivos
             if (daysWorked < 0) daysWorked = 0;
             if (daysWorked > 15) daysWorked = 15;
 
@@ -179,11 +179,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
 
-            decimal Overtime = 0.0m;
-            decimal NumberOfOvertime = 0.0m;
             decimal Bonus = 0.0m;
-
             decimal Antique = 0.0m;
+            decimal Overtime = 0.0m;
+            decimal Commissions = 0.0m;
+            decimal NumberOfOvertime = 0.0m;
+
+            #region Aplicamos antigüedad si la empresa acumula antigüedad
 
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
             {
@@ -222,7 +224,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Antique = ProportionalBiweeklySalary * seniorityPercentage;
             }
 
-            decimal GrossSalary = Overtime + Bonus + ProportionalBiweeklySalary + Antique;
+            #endregion
+            
+            decimal GrossSalary = ProportionalBiweeklySalary;
+            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions + Antique;
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
@@ -231,17 +236,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             var (BiweeklyInss, BiweeklyIr) = await CalculateIrToNextProcess(
                 TaxInformation?.NumberOfFortnights ?? 24,
-                TaxInformation?.SalaryEarned ?? 0.0m,
-                TaxInformation?.AccumulatedIR ?? 0.0m,
-                ProportionalBiweeklySalary,
+                TaxInformation?.SalaryEarned       ?? 0.0m,
+                TaxInformation?.AccumulatedIR      ?? 0.0m,
+                TotalIncome,
                 cancellationToken
             );
-
-            var loans = await _unitOfWork.Deductions.Entities
-                .Where(deduction => deduction.Type == DeductionType.Loans)
-                .Where(deduction => deduction.Status == DeductionStatus.Progress)
-                .Where(deduction => deduction.CollaboratorId == collaborator.Id)
-                .ToListAsync(cancellationToken);
 
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
@@ -259,6 +258,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Sanction = 0.0m,
                 UniformDeduction = 0.0m
             };
+
+            #region Deducciones Activas aqui
+
+            #region Prestamos Activos
+            
+            var loans = await _unitOfWork.Deductions.Entities
+                .Where(deduction => deduction.Type == DeductionType.Loans)
+                .Where(deduction => deduction.Status == DeductionStatus.Progress)
+                .Where(deduction => deduction.CollaboratorId == collaborator.Id)
+                .ToListAsync(cancellationToken);
 
             foreach (var loan in loans)
             {
@@ -282,6 +291,27 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     PaymentDate = payrollCreated.StartDate,
                 });
             }
+            
+            #endregion
+
+            decimal totalDeductionsAdditionals =
+                AdditionalDeducctions.Loans
+                + AdditionalDeducctions.Purisima
+                + AdditionalDeducctions.ChildSupportGarnishment
+                + AdditionalDeducctions.SalaryAdvance
+                + AdditionalDeducctions.ChristmasBonusAdvance
+                + AdditionalDeducctions.JudicialSeizures
+                + AdditionalDeducctions.UniformDeduction
+                + AdditionalDeducctions.CashShortage
+                + AdditionalDeducctions.OtherDeductions
+                + AdditionalDeducctions.DeductionForLossesBulk
+                + AdditionalDeducctions.Absences
+                + AdditionalDeducctions.Sanction
+                + AdditionalDeducctions.LateArrivals;
+
+            #endregion
+
+            #region Asignación de viaticos
 
             var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
@@ -323,41 +353,49 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 }
             }
 
+            #endregion
+
             decimal TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
-            decimal TotalDeducctions = TotalLegalDeductions;
+            decimal TotalDeducctions = TotalLegalDeductions + totalDeductionsAdditionals;
 
             Lodging             *= 13;
             Transport           *= 13;
             FoodTravelAllowance *= 13;
             totalAssigned       = Lodging + Transport + FoodTravelAllowance;
 
-            decimal TotalToPay = GrossSalary - BiweeklyInss - BiweeklyIr + totalAssigned;
+            decimal TotalToPay = TotalIncome - TotalDeducctions + totalAssigned + Antique;
 
             var payload = new OrdinaryPayroll()
             {
                 Id = Guid.NewGuid(),
                 CollaboratorId           = collaborator.Id,
                 PayrollId                = payrollId,
-                Antique                  = Antique,
-                Feeding                  = FoodTravelAllowance,
-                TotalTravelExpenses      = totalAssigned,
-                Lodging                  = Lodging,
-                Transport                = Transport,
-                BiweeklySalary           = BiweeklySalary,
+                BiweeklySalary           = BiweeklySalary,                
+
                 Overtime                 = Overtime,
                 NumberOvertime           = NumberOfOvertime,
                 Bonus                    = Bonus,
+                Commissions              = Commissions,
+                Antique                  = Antique,
+
                 GrossSalary              = GrossSalary,
+                TotalIncome              = TotalIncome,
+                
                 Inss                     = BiweeklyInss,
                 Ir                       = BiweeklyIr,
+    
                 TotalLegalDeductions     = TotalLegalDeductions,
                 DeductionsAdditionalData = JsonSerializer.Serialize(AdditionalDeducctions),
                 TotalDeducctions         = TotalDeducctions,
+
+                TotalTravelExpenses      = totalAssigned,
+                Feeding                  = FoodTravelAllowance,
+                Lodging                  = Lodging,
+                Transport                = Transport,
                 TotalToPay               = TotalToPay,
             };
 
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
-
 
             #region Iniciar proceso de acumulados
             
@@ -371,7 +409,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             int NumberOfFortnights;
 
-
+            #region Condición para apertura de ciclos en año nuevo
             if (lastIncomeTaxAccrual is null)
             {
                 NumberOfFortnights = 24;
@@ -384,16 +422,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                 NumberOfFortnights = lastIncomeTaxAccrual!.NumberOfFortnights - 1;
             }
+            #endregion
 
             var IncomeTaxAccrualPayload = new IncomeTaxAccrual()
             {
                 Id = Guid.NewGuid(),
-                AccumulatedIR = (lastIncomeTaxAccrual?.AccumulatedIR ?? 0.0m) + BiweeklyIr,
-                SalaryEarned = (lastIncomeTaxAccrual?.SalaryEarned ?? 0.0m) + (GrossSalary - BiweeklyInss),
-                CollaboratorId = collaborator.Id,
-                PayrollId = payrollCreated.Id,
-                NumberOfFortnights = NumberOfFortnights,
-                RegisterDate = DateTime.Now
+                AccumulatedIR             = (lastIncomeTaxAccrual?.AccumulatedIR ?? 0.0m) + BiweeklyIr,
+                SalaryEarned              = (lastIncomeTaxAccrual?.SalaryEarned ?? 0.0m)  + (GrossSalary - BiweeklyInss),
+                AccumulatedSeniority      = (lastIncomeTaxAccrual?.AccumulatedSeniority ?? 0.0m) + Antique,
+                AccumulatedChristmasBonus = 0.0m,
+                CollaboratorId            = collaborator.Id,
+                PayrollId                 = payrollCreated.Id,
+                NumberOfFortnights        = NumberOfFortnights,
+                RegisterDate              = DateTime.Now
             };
 
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(IncomeTaxAccrualPayload);

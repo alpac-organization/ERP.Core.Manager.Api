@@ -30,8 +30,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
 
         public decimal Bonus { get; set; }
         public decimal Overtime { get; set; }
+        public decimal Commissions { get; set; }
+        public decimal Antique { get; set; }
         public decimal NumberOvertime { get; set; }
         public decimal GrossSalary { get; set; }
+        public decimal TotalIncome { get; set; }
 
         public decimal Ir { get; set; }
         public decimal Inss { get; set; }
