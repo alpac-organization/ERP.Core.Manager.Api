@@ -127,6 +127,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 
                     ordinaryPayroll.TotalToPay = total;
                     ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+                    ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
 
                     await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
 

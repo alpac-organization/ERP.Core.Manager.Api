@@ -73,6 +73,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("Este tipo de ingreso no se encuentra disponible!", "ERP:03");
             }
 
+
+            var salaryInformation = await _unitOfWork.Salaries.Entities
+                .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
+                .Include(sal => sal.Collaborator)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (salaryInformation is null)
+            {
+                return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
+            }
+
             logger.LogInformation("🚩Iniciando proceso de ingreso\n");
 
             var IncomePayload = new Income();
@@ -82,16 +93,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 case "OVERTIME":
                 {
                     logger.LogInformation("Agregando ingreso de horas extras a colaborador con cedula {identification}", collaboratorInformation.IdentificationNumber);
-
-                    var salaryInformation = await _unitOfWork.Salaries.Entities
-                        .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
-                        .Include(sal => sal.Collaborator)
-                        .FirstOrDefaultAsync(cancellationToken);
-
-                    if (salaryInformation is null)
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
-                    }
 
                     decimal DailySalary = salaryInformation.AmountInLocal / 30;
                     decimal HourlyWage = DailySalary / 8;
@@ -152,7 +153,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 
                     //Actualiza acumulado
                     lastIncomeTax?.AccumulatedIR = BiweeklyIr;
-                    lastIncomeTax?.SalaryEarned  = GrossSalary -BiweeklyInss;
+                    lastIncomeTax?.SalaryEarned  = GrossSalary - BiweeklyInss;
 
                     //Actualizar datos de deducciones.
                     ordinaryPayrollInfo.Ir      = BiweeklyIr;
@@ -211,6 +212,50 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                     logger.LogInformation("✅Se agrego con exito el registro de horas extras.");
+                    return true;
+                }
+                case "COMMISSION":
+                {
+                    logger.LogInformation("Agregando Ingreso de comisiones");
+
+                    var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
+                        .Where(income => income.CollaboratorId == salaryInformation.Collaborator.Id && income.PayrollId == request.PayrollId)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (lastIncomeTax is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No se puedo encontrar el ultimo registro acumulados del colaborador", "ERP:IncomeTaxNotFound");
+                    }
+
+                    var lastFortnight = lastIncomeTax?.NumberOfFortnights + 1;
+                    if (lastFortnight is 25) lastFortnight = 24;
+
+                    var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
+                        .Where(income => income.CollaboratorId == salaryInformation.Collaborator.Id && income.NumberOfFortnights == lastFortnight)
+                        .OrderByDescending(income => income.CreatedAt)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (TaxInformation is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No se encontro el control de acumulados para este colaborador", "ERP:TaxInformationNotFound");
+                    }
+                    
+                    int daysWorked = 15;
+                    DateTime entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+                    DateTime payrollStart = salaryInformation.StartDate;
+
+                    DateTime payrollEnd = payroll.EndDate ?? payrollStart.AddDays(14);
+
+                    if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
+                    else  daysWorked = 15;
+
+                    if (daysWorked < 0) daysWorked = 0;
+                    if (daysWorked > 15) daysWorked = 15;
+
+                    
+
+
+                    logger.LogInformation("Se agrego con exito el registro de comisiones");   
                     return true;
                 }
                 default:
