@@ -113,7 +113,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 
                     ordinaryPayrollInfo.Overtime        = AmountTotalWithHours;                    
                     ordinaryPayrollInfo.NumberOvertime  = request.OvertimeIncomePayload?.AmountHours ?? 0;
-                    ordinaryPayrollInfo.TotalIncome     = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary;
+                    ordinaryPayrollInfo.TotalIncome     = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary + ordinaryPayrollInfo.Antique;
 
                     decimal GrossSalary = ordinaryPayrollInfo.TotalIncome;
 
