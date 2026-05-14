@@ -185,11 +185,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal Commissions = 0.0m;
             decimal NumberOfOvertime = 0.0m;
 
-            if(collaborator.IdentificationNumber == "4012912880000M")
-            {
-                
-            }
-
             #region Aplicamos antigüedad si la empresa acumula antigüedad
 
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
@@ -225,7 +220,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     _    => 0.20m  // 20 años o más
                 };
 
-                // El incentivo se calcula sobre el salario devengado en el periodo
                 Antique = ProportionalBiweeklySalary * seniorityPercentage;
             }
 
