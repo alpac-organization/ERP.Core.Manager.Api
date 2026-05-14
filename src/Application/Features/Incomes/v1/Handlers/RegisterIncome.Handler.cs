@@ -110,11 +110,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 
                     decimal ProportionalBiweeklySalary = DailySalary * daysWorked;
                     decimal AmountTotalWithHours = (HourlyWage * request.OvertimeIncomePayload?.AmountHours ?? 0) * 2;
-                    
-                    ordinaryPayrollInfo.NumberOvertime = request.OvertimeIncomePayload?.AmountHours ?? 0;
-                    ordinaryPayrollInfo.Overtime = AmountTotalWithHours;
 
-                    decimal GrossSalary = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary;
+                    ordinaryPayrollInfo.Overtime        = AmountTotalWithHours;                    
+                    ordinaryPayrollInfo.NumberOvertime  = request.OvertimeIncomePayload?.AmountHours ?? 0;
+                    ordinaryPayrollInfo.TotalIncome     = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary + ordinaryPayrollInfo.Antique;
+
+                    decimal GrossSalary = ordinaryPayrollInfo.TotalIncome;
 
                     var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
                         .Where(income => income.CollaboratorId == salaryInformation.Collaborator.Id && income.PayrollId == request.PayrollId)
@@ -154,8 +155,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     lastIncomeTax?.SalaryEarned  = GrossSalary -BiweeklyInss;
 
                     //Actualizar datos de deducciones.
-                    ordinaryPayrollInfo.Ir = BiweeklyIr;
-                    ordinaryPayrollInfo.Inss = BiweeklyInss;
+                    ordinaryPayrollInfo.Ir      = BiweeklyIr;
+                    ordinaryPayrollInfo.Inss    = BiweeklyInss;
                     ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
 
                      var deductions =
@@ -178,12 +179,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         + deductions.Sanction
                         + deductions.LateArrivals;
 
-                    decimal total = GrossSalary - BiweeklyInss - BiweeklyIr - totalDeductions;
+                    decimal total = ordinaryPayrollInfo.TotalIncome - BiweeklyInss - BiweeklyIr - totalDeductions;
                     
                     ordinaryPayrollInfo.TotalToPay = total + ordinaryPayrollInfo.Transport + ordinaryPayrollInfo.Lodging + ordinaryPayrollInfo.Feeding;
                     ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-                    ordinaryPayrollInfo.GrossSalary = salaryInformation.AmountInLocal / 2;
-                    ordinaryPayrollInfo.NumberOvertime = request.OvertimeIncomePayload?.AmountHours ?? 0;
+                    
+                    ordinaryPayrollInfo.GrossSalary      = salaryInformation.AmountInLocal / 2;
+                    ordinaryPayrollInfo.NumberOvertime   = request.OvertimeIncomePayload?.AmountHours ?? 0;
                     ordinaryPayrollInfo.TotalDeducctions = totalDeductions + BiweeklyIr + BiweeklyInss;
 
                     //Actualizamos su acumulado

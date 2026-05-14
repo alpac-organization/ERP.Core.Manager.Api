@@ -185,7 +185,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal Commissions = 0.0m;
             decimal NumberOfOvertime = 0.0m;
 
-            if(collaborator.IdentificationNumber == "4012912880000M")
+            if(collaborator.IdentificationNumber == "0822505760000A")
             {
                 
             }
@@ -225,14 +225,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     _    => 0.20m  // 20 años o más
                 };
 
-                // El incentivo se calcula sobre el salario devengado en el periodo
                 Antique = ProportionalBiweeklySalary * seniorityPercentage;
             }
 
             #endregion
             
             decimal GrossSalary = ProportionalBiweeklySalary;
-            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions + Antique;
+            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions;
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)

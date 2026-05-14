@@ -8,13 +8,17 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.SalaryAdvance.v1.Commands;
+using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 {
-    public class RegisterDeductionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMediator _mediator): AlpacBaseHandler<RegisterDeductionCommand, bool>(_unitOfWork, _errorManager)
+    public class RegisterDeductionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMediator _mediator, ILogger<RegisterDeductionHandler> _logger): AlpacBaseHandler<RegisterDeductionCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterDeductionCommand request, CancellationToken cancellationToken)
         {
+            
+            #pragma warning disable CA1873
+
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
@@ -68,6 +72,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                 case DeductionType.LateArrivals:
                 {
 
+                    _logger.LogInformation("🚩Iniciando registro de llegadas tardes, collaborador: {identificacion}", collaborator.IdentificationNumber);
+                    
                     var salaryInformation = await _unitOfWork.Salaries.Entities
                         .Where(col => col.CollaboratorId == collaborator.Id)
                         .Where(col => col.EndDate == null)
@@ -91,6 +97,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 
                     if (ordinaryPayroll is null)
                     {
+                        _logger.LogInformation("No se encontro registro de nomina de este colaborador => {identificacion}", collaborator.IdentificationNumber);
                         return false;
                     }
 
@@ -98,7 +105,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                         JsonSerializer.Deserialize<DeductionsAdditionalData>(
                             ordinaryPayroll.DeductionsAdditionalData
                         ) ?? new DeductionsAdditionalData();
-
 
                     deductions.LateArrivals = TotalDeductionToLateArrivals;
 
@@ -117,12 +123,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                         + deductions.Sanction
                         + deductions.LateArrivals;
 
-                    decimal total = ordinaryPayroll.GrossSalary - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+                    decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
 
                     ordinaryPayroll.TotalToPay = total;
                     ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
 
                     await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+
                     await _unitOfWork.Deductions.RegisterDeduction(new()
                     {
                         Type           = DeductionType.LateArrivals,
@@ -207,6 +214,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de deduccion no se encuentra disponible", "ERP:01");  
                 }
             }
+
+            #pragma warning restore CA1873
         }
     }
 }
