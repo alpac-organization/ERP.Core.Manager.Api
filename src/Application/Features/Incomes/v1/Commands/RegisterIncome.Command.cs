@@ -13,10 +13,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands
 
         //Ingreso de horas extras
         public OvertimeIncomePayload? OvertimeIncomePayload { get; set; }
+        public CommissionsPayload? CommissionsPayload { get; set; }
     }
 
     public class OvertimeIncomePayload
     {
         public decimal AmountHours { get; set; }
+    }
+
+    public class CommissionsPayload
+    {
+        public int? CommissionPercentage { get; set; }
+        public decimal CommissionAmount { get; set; }
+        public bool ItFree { get; set; } = false;
     }
 }

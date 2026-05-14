@@ -64,7 +64,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 //Si cuenta con deducciones registramos el pago de deducciones.
 
 
-
                 //Registramos los pagos realizados de viaticos del colaborador.
                 await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(new()
                 {

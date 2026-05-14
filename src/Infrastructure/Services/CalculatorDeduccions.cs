@@ -312,7 +312,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + AdditionalDeducctions.Absences
                 + AdditionalDeducctions.Sanction
                 + AdditionalDeducctions.LateArrivals;
-
+                
             #endregion
 
             #region Asignación de viaticos
