@@ -185,20 +185,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal Commissions = 0.0m;
             decimal NumberOfOvertime = 0.0m;
 
-            if(collaborator.IdentificationNumber == "0822505760000A")
-            {
-                
-            }
-
-            #region Aplicamos antigüedad si la empresa acumula antigüedad
+            #region Aplicamos antigüedad si la empresa acumula antigüeda.
 
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
             {
                 DateTime EntryDate = collaborator.WorkingInformation.EntryDate;
-                
-                // 1. Calcular años de antigüedad
-                int yearsOfService = DateTime.Today.Year - EntryDate.Year;
-                if (EntryDate.Date > DateTime.Today.AddYears(-yearsOfService)) yearsOfService--;
+
+                int yearsOfService = payrollStart.Year - entryDate.Year;    
+                if (entryDate.Date > payrollStart.AddYears(-yearsOfService)) yearsOfService--;
 
                 decimal seniorityPercentage = yearsOfService switch
                 {
@@ -222,7 +216,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     17   => 0.185m,
                     18   => 0.19m,
                     19   => 0.195m,
-                    _    => 0.20m  // 20 años o más
+                    _    => 0.20m
                 };
 
                 Antique = ProportionalBiweeklySalary * seniorityPercentage;
@@ -231,12 +225,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #endregion
             
             decimal GrossSalary = ProportionalBiweeklySalary;
-            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions;
+            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions + Antique;
 
-            var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
-                .Where(income => income.CollaboratorId == collaborator.Id)
-                .OrderByDescending(income => income.CreatedAt)
-                .FirstOrDefaultAsync(cancellationToken);
+                var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
+                    .Where(income => income.CollaboratorId == collaborator.Id)
+                    .OrderByDescending(income => income.CreatedAt)
+                    .FirstOrDefaultAsync(cancellationToken);
 
             var (BiweeklyInss, BiweeklyIr) = await CalculateIrToNextProcess(
                 TaxInformation?.NumberOfFortnights ?? 24,
@@ -284,6 +278,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 loan.TotalBalance -= loan.FortnightlyAmount;
                 loan.TotalBalanceInDollars -= loan.FortnightlyAmountInDollars;
 
+                if (loan.TotalBalance <= 0 && loan.TotalAmountInDollars <= 0)
+                {
+                    loan.Status =  DeductionStatus.Completed;
+                }
+
                 await _unitOfWork.Deductions.UpdateAsync(loan);
 
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
@@ -318,6 +317,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #region Asignación de viaticos
 
             var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
+                .Include(asssined => asssined.Collaborator)
                 .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
                 .Include(asssined => asssined.TypeIncome)
                 .ToListAsync(cancellationToken);
@@ -325,8 +325,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal Lodging = 0.0m;
             decimal Transport = 0.0m;
             decimal FoodTravelAllowance = 0.0m;
-
             decimal totalAssigned = 0.0m;
+
+            var DEFAULT_TOTAL_WORK_DAYS = 11;
 
             foreach (var current in asssineds)
             {
@@ -340,7 +341,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     }
                     case "ALW_HOUSING" :
                     {
-                        Lodging = current.AmountInLocalCurrency * 13;
+                        Lodging = current.AmountInLocalCurrency * DEFAULT_TOTAL_WORK_DAYS;
                         totalAssigned += Lodging;
                         break;
                     }
@@ -362,12 +363,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
             decimal TotalDeducctions = TotalLegalDeductions + totalDeductionsAdditionals;
 
-            Lodging             *= 13;
-            Transport           *= 13;
-            FoodTravelAllowance *= 13;
+            Lodging             *= DEFAULT_TOTAL_WORK_DAYS;
+            Transport           *= DEFAULT_TOTAL_WORK_DAYS;
+            FoodTravelAllowance *= DEFAULT_TOTAL_WORK_DAYS;
             totalAssigned       = Lodging + Transport + FoodTravelAllowance;
 
             decimal TotalToPay = TotalIncome - TotalDeducctions + totalAssigned;
+
+            //Calcular Aguinaldo y vacaciones 🚩
 
             var payload = new OrdinaryPayroll()
             {
@@ -434,7 +437,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 AccumulatedIR             = (lastIncomeTaxAccrual?.AccumulatedIR ?? 0.0m) + BiweeklyIr,
                 SalaryEarned              = (lastIncomeTaxAccrual?.SalaryEarned ?? 0.0m)  + (GrossSalary - BiweeklyInss),
                 AccumulatedSeniority      = (lastIncomeTaxAccrual?.AccumulatedSeniority ?? 0.0m) + Antique,
-                AccumulatedChristmasBonus = 0.0m,
+                AccumulatedChristmasBonus = (lastIncomeTaxAccrual?.AccumulatedChristmasBonus ?? 0.0m) + 0,
                 CollaboratorId            = collaborator.Id,
                 PayrollId                 = payrollCreated.Id,
                 NumberOfFortnights        = NumberOfFortnights,

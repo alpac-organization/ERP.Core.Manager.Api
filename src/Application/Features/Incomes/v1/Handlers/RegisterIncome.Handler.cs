@@ -196,7 +196,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     //Actualizamos la nomina
                     await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
 
-
                     await _unitOfWork.Incomes.RegisterIncome(new()
                     {
                         Currency = Currency.NIO,
@@ -207,7 +206,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         PayrollId = payroll.Id,
                         Description = request.Description,                        
                     });
-
 
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -251,8 +249,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 
                     if (daysWorked < 0) daysWorked = 0;
                     if (daysWorked > 15) daysWorked = 15;
-
-                    
 
 
                     logger.LogInformation("Se agrego con exito el registro de comisiones");   

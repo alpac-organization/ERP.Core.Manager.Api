@@ -6,30 +6,37 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
 {
     public class RegisterDeductionCommand: BaseRequest, IRequest<bool>
     {
-        public Guid CollaboratorId { get; set; }
-        public string? Description { get; set; }
+        //Registrar el periodo las deducciones
+        public Guid PayrollId { get; set; } 
         public DeductionType DeductionType { get; set; }
-        
+
 
         public LoansPayload? LoansPayload { get; set; }
-        public PurisimaPayload? PurisimaPayload { get; set; }
         public AdvanceSalaryPayload? AdvanceSalaryPayload { get; set; }
-        public LateArrivalsPayload? LateArrivalsPayload { get; set; }
-    }
-    public class PurisimaPayload
-    {
-        public decimal Amount { get; set; } // Cantidad a deducir hasta detener proceso de colaboración
+
+        
+        //Importación de documentos aqui.
+        public List<PurisimaData> PurisimaData { get; set; } = [];
+        public List<LateArrivalsData> LateArrivalsData { get; set; } = [];
     }
 
-    public class LateArrivalsPayload
+    public class PurisimaData
+    {
+        public decimal Amount { get; set; }
+        public string? IdentificationNumber { get; set; }
+    }
+
+    public class LateArrivalsData
     {
         public decimal TotalMinutes { get; set; }
+        public string? IdentificationNumber { get; set; }
     }
 
     public class AdvanceSalaryPayload
     {
         public decimal Amount { get; set; }
         public Currency Currency { get; set; }
+        public Guid CollaboratorId { get; set; }
     }
 
     public class LoansPayload

@@ -1,5 +1,6 @@
 using MediatR;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
@@ -8,7 +9,6 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.SalaryAdvance.v1.Commands;
-using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 {
@@ -31,25 +31,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para registrar una dedución", "ERP:01");
             }
 
-            var collaborator = await _unitOfWork.Collaborators.Entities
-                .Where(col => col.Id == request.CollaboratorId && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
-                .Include(col => col.WorkingInformation)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (collaborator is null)
-            {
-                return _errorManager.ThrowBadRequest<bool>("Este colaborador no existe!", "ERP:01");
-            }
-
             var payrollActive = await _unitOfWork.Payrolls.Entities
                 .Where(payroll => payroll.Status == PayrollStatus.Progress && payroll.PayrollType == PayrollType.Ordinary)
-                .Where(payroll => payroll.BranchId == collaborator.WorkingInformation.CompanyBranchId)
+                .Where(payroll => payroll.Id == request.PayrollId)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (payrollActive is null)
+            if(payrollActive is null)
             {
-                return _errorManager.ThrowBadRequest<bool>("Inicialize un proceso de nomina ordinaria", "ERP:02");
-            }
+                return _errorManager.ThrowBadRequest<bool>("El periodo seleccionado de nomina, no existe", "ERP:PeriodNotExist");
+            }    
 
             switch(request.DeductionType)
             {
@@ -59,7 +49,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                     {
                         UserId = request.UserId,
                         Amount = request.AdvanceSalaryPayload?.Amount ?? 0.0m,
-                        CollaboratorId = request.CollaboratorId,
+                        CollaboratorId = request.AdvanceSalaryPayload?.CollaboratorId ?? Guid.Parse(string.Empty),
                         Currency = request.AdvanceSalaryPayload?.Currency ?? Currency.NIO,
                         ModuleCode = request.ModuleCode,
                         CompanyId = request.CompanyId
@@ -71,142 +61,164 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                 }
                 case DeductionType.LateArrivals:
                 {
+                    foreach (var collaborator in request.LateArrivalsData)
+                    {
+                        var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                            .Where(col => col.IdentificationNumber == collaborator.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
+                            .Include(col => col.WorkingInformation)
+                            .FirstOrDefaultAsync(cancellationToken);
 
-                    _logger.LogInformation("🚩Iniciando registro de llegadas tardes, collaborador: {identificacion}", collaborator.IdentificationNumber);
+                        if (collaboratorInformation is null)
+                        {
+                            _logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
+                            continue;   
+                        }
+
+                        //Iniciamos el proceso de deducciones de llegadas tardes.
+                        _logger.LogInformation("🚩Iniciando registro de llegadas tardes, collaborador: {identificacion}", collaborator.IdentificationNumber);
+                        
+                        var salaryInformation = await _unitOfWork.Salaries.Entities
+                            .Where(col => col.CollaboratorId == collaboratorInformation.Id)
+                            .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (salaryInformation is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
+                        }
+
+                        //Calculo de valor por horas extras.
+                        decimal DailySalary   = salaryInformation.AmountInLocal / 30;
+                        decimal HourlyWage    = DailySalary / 8;
+                        decimal PerMinuteWage = HourlyWage / 60;
                     
-                    var salaryInformation = await _unitOfWork.Salaries.Entities
-                        .Where(col => col.CollaboratorId == collaborator.Id)
-                        .Where(col => col.EndDate == null)
-                        .FirstOrDefaultAsync(cancellationToken);
+                        decimal TotalDeductionToLateArrivals = collaborator.TotalMinutes * PerMinuteWage;
 
-                    if (salaryInformation is null)
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
+                        _logger.LogInformation("Actualizando nomina para colaborador con cedula: {}", collaborator.IdentificationNumber);
+
+                        var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                            .Where(col => col.CollaboratorId == collaboratorInformation.Id)
+                            .Where(col => col.PayrollId == payrollActive.Id)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (ordinaryPayroll is null)
+                        {
+                            _logger.LogInformation("No se encontro registro de nomina de este colaborador => {identificacion}", collaborator.IdentificationNumber);
+                            continue;
+                        }
+
+                        var deductions =
+                            JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                                ordinaryPayroll.DeductionsAdditionalData
+                            ) ?? new DeductionsAdditionalData();
+
+                        deductions.LateArrivals = TotalDeductionToLateArrivals;
+
+                        decimal totalDeductions =
+                            deductions.Loans
+                            + deductions.Purisima
+                            + deductions.ChildSupportGarnishment
+                            + deductions.SalaryAdvance
+                            + deductions.ChristmasBonusAdvance
+                            + deductions.JudicialSeizures
+                            + deductions.UniformDeduction
+                            + deductions.CashShortage
+                            + deductions.OtherDeductions
+                            + deductions.DeductionForLossesBulk
+                            + deductions.Absences
+                            + deductions.Sanction
+                            + deductions.LateArrivals;
+
+                        decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+
+                        ordinaryPayroll.TotalToPay = total;
+                        ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
+
+                        ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+
+                        await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+                        _logger.LogInformation("Se finaliza el proceso de actualización de datos de nomina");
+
+                        await _unitOfWork.Deductions.RegisterDeduction(new()
+                        {
+                            Currency             = Currency.NIO,
+                            Status               = DeductionStatus.Completed,
+                            Type                 = DeductionType.LateArrivals,
+                            PayrollId            = payrollActive.Id,
+                            CollaboratorId       = collaboratorInformation.Id,
+                            Description          = "Llegadas tardes",
+                            TotalAmount          = TotalDeductionToLateArrivals,
+                            TotalAmountInDollars = TotalDeductionToLateArrivals / 36.6242m,
+                        });
+
+                        _logger.LogInformation("Se registro el proceso de deducción de llagadas tardes");
                     }
-
-                    decimal DailySalary = salaryInformation.AmountInLocal / 30;
-                    decimal HourlyWage = DailySalary / 8;
-                    decimal PerMinuteWage = HourlyWage / 60;
-
-                    decimal TotalDeductionToLateArrivals = (request.LateArrivalsPayload?.TotalMinutes ?? 0) * PerMinuteWage;
-
-                    var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
-                        .Where(col => col.CollaboratorId == collaborator.Id)
-                        .Where(col => col.PayrollId == payrollActive.Id)
-                        .FirstOrDefaultAsync(cancellationToken);
-
-                    if (ordinaryPayroll is null)
-                    {
-                        _logger.LogInformation("No se encontro registro de nomina de este colaborador => {identificacion}", collaborator.IdentificationNumber);
-                        return false;
-                    }
-
-                    var deductions =
-                        JsonSerializer.Deserialize<DeductionsAdditionalData>(
-                            ordinaryPayroll.DeductionsAdditionalData
-                        ) ?? new DeductionsAdditionalData();
-
-                    deductions.LateArrivals = TotalDeductionToLateArrivals;
-
-                    decimal totalDeductions =
-                        deductions.Loans
-                        + deductions.Purisima
-                        + deductions.ChildSupportGarnishment
-                        + deductions.SalaryAdvance
-                        + deductions.ChristmasBonusAdvance
-                        + deductions.JudicialSeizures
-                        + deductions.UniformDeduction
-                        + deductions.CashShortage
-                        + deductions.OtherDeductions
-                        + deductions.DeductionForLossesBulk
-                        + deductions.Absences
-                        + deductions.Sanction
-                        + deductions.LateArrivals;
-
-                    decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
-
-                    ordinaryPayroll.TotalToPay = total;
-                    ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-                    ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
-
-                    await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
-
-                    await _unitOfWork.Deductions.RegisterDeduction(new()
-                    {
-                        Type           = DeductionType.LateArrivals,
-                        Currency       = Currency.NIO,
-                        Status         = DeductionStatus.Completed,
-                        PayrollId      = payrollActive.Id,
-                        CollaboratorId = request.CollaboratorId,
-                        TotalAmount    = TotalDeductionToLateArrivals,
-                        TotalAmountInDollars = TotalDeductionToLateArrivals / 36.6243m,
-                    });
 
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    _logger.LogInformation("✅ registro actualizado con exito!");
 
                     return true;    
                 }
                 case DeductionType.Purisima:
                 {
 
-                    var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
-                        .Where(ord => ord.CollaboratorId == collaborator.Id)
-                        .FirstOrDefaultAsync(cancellationToken);
+                    // var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                    //     .Where(ord => ord.CollaboratorId == collaborator.Id)
+                    //     .FirstOrDefaultAsync(cancellationToken);
 
-                    if (ordinaryPayroll is null)
-                    {
-                        return false;
-                    }
+                    // if (ordinaryPayroll is null)
+                    // {
+                    //     return false;
+                    // }
 
-                     var deductions =
-                        JsonSerializer.Deserialize<DeductionsAdditionalData>(
-                            ordinaryPayroll.DeductionsAdditionalData
-                        ) ?? new DeductionsAdditionalData();
+                    //  var deductions =
+                    //     JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                    //         ordinaryPayroll.DeductionsAdditionalData
+                    //     ) ?? new DeductionsAdditionalData();
 
 
-                    deductions.Purisima = request.PurisimaPayload?.Amount ?? 0.0m;
+                    // deductions.Purisima = request.PurisimaPayload?.Amount ?? 0.0m;
 
-                    decimal totalDeductions =
-                        deductions.Loans
-                        + deductions.Purisima
-                        + deductions.ChildSupportGarnishment
-                        + deductions.SalaryAdvance
-                        + deductions.ChristmasBonusAdvance
-                        + deductions.JudicialSeizures
-                        + deductions.UniformDeduction
-                        + deductions.CashShortage
-                        + deductions.OtherDeductions
-                        + deductions.DeductionForLossesBulk
-                        + deductions.Absences
-                        + deductions.Sanction
-                        + deductions.LateArrivals;
+                    // decimal totalDeductions =
+                    //     deductions.Loans
+                    //     + deductions.Purisima
+                    //     + deductions.ChildSupportGarnishment
+                    //     + deductions.SalaryAdvance
+                    //     + deductions.ChristmasBonusAdvance
+                    //     + deductions.JudicialSeizures
+                    //     + deductions.UniformDeduction
+                    //     + deductions.CashShortage
+                    //     + deductions.OtherDeductions
+                    //     + deductions.DeductionForLossesBulk
+                    //     + deductions.Absences
+                    //     + deductions.Sanction
+                    //     + deductions.LateArrivals;
 
-                    decimal total = ordinaryPayroll.GrossSalary - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+                    // decimal total = ordinaryPayroll.GrossSalary - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
 
-                    ordinaryPayroll.TotalToPay = total;
-                    ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+                    // ordinaryPayroll.TotalToPay = total;
+                    // ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
 
-                    await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+                    // await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
 
-                    await _unitOfWork.Deductions.RegisterDeduction(new()
-                    {
-                        Type = DeductionType.Purisima,
-                        CollaboratorId = request.CollaboratorId,
-                        Currency = Currency.NIO,
-                        Status = DeductionStatus.Progress,
-                        PayrollId = payrollActive.Id,
-                        TotalAmount = request.PurisimaPayload?.Amount ?? 0.0m,
-                        TotalAmountInDollars = (request.PurisimaPayload?.Amount ?? 0.0m) / 36.6243m,
-                    });
+                    // await _unitOfWork.Deductions.RegisterDeduction(new()
+                    // {
+                    //     Type = DeductionType.Purisima,
+                    //     CollaboratorId = request.CollaboratorId,
+                    //     Currency = Currency.NIO,
+                    //     Status = DeductionStatus.Progress,
+                    //     PayrollId = payrollActive.Id,
+                    //     TotalAmount = request.PurisimaPayload?.Amount ?? 0.0m,
+                    //     TotalAmountInDollars = (request.PurisimaPayload?.Amount ?? 0.0m) / 36.6243m,
+                    // });
 
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    // await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                     return true;                
                 }
                 case DeductionType.Loans:
                 {
-                    
-
+                    //Prestamos si o si es uno a uno
 
                     return true;
                 }
