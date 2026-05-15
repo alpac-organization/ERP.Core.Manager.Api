@@ -239,8 +239,8 @@ obj/Debug/net10.0/
  System.Xml.XPath.XDocument.dll
  WindowsBase.dll
 <NUGET>/
- erp.core.database.domain/1.0.98/lib/net9.0/ERP.Core.Database.Domain.dll
- erp.core.domain/1.0.98/lib/net9.0/ERP.Core.Domain.dll
+ erp.core.database.domain/1.0.100/lib/net9.0/ERP.Core.Database.Domain.dll
+ erp.core.domain/1.0.100/lib/net9.0/ERP.Core.Domain.dll
 
 [analyzerReferences]
 <DOTNET>/packs/Microsoft.NETCore.App.Ref/10.0.3/analyzers/dotnet/cs/

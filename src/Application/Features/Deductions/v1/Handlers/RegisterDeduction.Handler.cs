@@ -11,7 +11,7 @@ using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 {
-    public class RegisterDeductionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMediator _mediator, ILogger<RegisterDeductionHandler> _logger): AlpacBaseHandler<RegisterDeductionCommand, bool>(_unitOfWork, _errorManager)
+    public class RegisterDeductionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterDeductionHandler> _logger): AlpacBaseHandler<RegisterDeductionCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterDeductionCommand request, CancellationToken cancellationToken)
         {
@@ -219,7 +219,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                 {
                     return _errorManager.ThrowBadRequest<bool>("El servidor se encuentra en proceso de mejorar para traerte mas funcionalidades", "ERP:01");
                     //Prestamos si o si es uno a uno
-                    return true;
                 }
                 default:
                 {

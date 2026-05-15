@@ -23,13 +23,12 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             await _mediator.Send(new RegisterIncomeCommand()    
             {
                 CompanyId = companie_id,
-                IdentificationNumber = payload.IdentificationNumber,
                 ModuleCode = module_code,
                 TypeIncomeId = payload.TypeIncomeId,
-                Description = payload.Description ?? "Sin descripción",
                 UserId = Guid.Parse(userIdStr ?? ""),
-                OvertimeIncomePayload = payload.OvertimeIncomePayload,
-                PayrollId = payload.PayrollId
+                PayrollId = payload.PayrollId,
+                CommissionsPayload = payload.CommissionsPayload,
+                OvertimeIncomeData = payload.OvertimeIncomeData
             });
 
             return Ok();

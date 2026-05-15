@@ -15,8 +15,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
     {
         public override async Task<bool> Handle(RegisterIncomeCommand request, CancellationToken cancellationToken)
         {
-            #pragma warning disable CA1873
-
+            #pragma warning disable CA1873 
+            
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
@@ -29,7 +29,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para registrar una dedución", "ERP:01");
             }
 
-            //Verificarel si ese ingreso esta disponible
             var Income = await _unitOfWork.TypesIncome.Entities
                 .Where(type => type.Id == request.TypeIncomeId && type.IsActive)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -47,124 +46,170 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
             {
                 case "OVERTIME":
                 {
-                    // logger.LogInformation("Agregando ingreso de horas extras a colaborador con cedula {identification}", collaboratorInformation.IdentificationNumber);
+                    foreach (var collaborator in request.OvertimeIncomeData)
+                    {
+                        var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                            .Where(col => col.IdentificationNumber == collaborator.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
+                            .Include(col => col.WorkingInformation)
+                            .FirstOrDefaultAsync(cancellationToken);
 
-                    // decimal DailySalary = salaryInformation.AmountInLocal / 30;
-                    // decimal HourlyWage = DailySalary / 8;
-                    
-                    // int daysWorked = 15;
-                    // DateTime entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
-                    // DateTime payrollStart = salaryInformation.StartDate;
+                        if (collaboratorInformation is null)
+                        {
+                            logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
+                            continue;   
+                        }
+                        
+                        logger.LogInformation("Agregando ingreso de horas extras a colaborador con cedula {identification}", collaboratorInformation.IdentificationNumber);
+                        
 
-                    // DateTime payrollEnd = payroll.EndDate ?? payrollStart.AddDays(14);
+                        var salaryInformation = await _unitOfWork.Salaries.Entities
+                            .Where(col => col.CollaboratorId == collaboratorInformation.Id)
+                            .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
+                            .FirstOrDefaultAsync(cancellationToken);
 
-                    // if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
-                    // else  daysWorked = 15;
+                        if (salaryInformation is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
+                        }
 
-                    // if (daysWorked < 0) daysWorked = 0;
-                    // if (daysWorked > 15) daysWorked = 15;
+                        var payroll = await _unitOfWork.Payrolls.Entities 
+                            .Where(
+                                pay => pay.Status == PayrollStatus.Progress && 
+                                pay.Id == request.PayrollId
+                            )
+                            .FirstOrDefaultAsync(cancellationToken);
 
-                    // decimal ProportionalBiweeklySalary = DailySalary * daysWorked;
-                    // decimal AmountTotalWithHours = (HourlyWage * request.OvertimeIncomePayload?.AmountHours ?? 0) * 2;
+                        if (payroll is null)
+                        {
+                            logger.LogInformation("No se encontro una nomina en progreso");
+                            return _errorManager.ThrowBadRequest<bool>("No existe un periodo de nomina activo, apertura el periodo de nomina", "");
+                        }
+                        
+                        var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
+                            .Where(ord => ord.CollaboratorId == collaboratorInformation.Id && ord.PayrollId == payroll.Id)
+                            .FirstOrDefaultAsync(cancellationToken);
+                            
+                        if (ordinaryPayrollInfo is null)
+                        {
+                            return _errorManager.ThrowNotFound<bool>("No se encontro registro del colaborador en la nomina", "ERP:02");
+                        }
 
-                    // ordinaryPayrollInfo.Overtime        = AmountTotalWithHours;                    
-                    // ordinaryPayrollInfo.NumberOvertime  = request.OvertimeIncomePayload?.AmountHours ?? 0;
-                    // ordinaryPayrollInfo.TotalIncome     = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary + ordinaryPayrollInfo.Antique;
+                        decimal DailySalary = salaryInformation.AmountInLocal / 30;
+                        decimal HourlyWage = DailySalary / 8;
+                        
+                        int daysWorked = 15;
+                        DateTime entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+                        DateTime payrollStart = salaryInformation.StartDate;
 
-                    // decimal GrossSalary = ordinaryPayrollInfo.TotalIncome;
+                        DateTime payrollEnd = payroll.EndDate ?? payrollStart.AddDays(14);
 
-                    // var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
-                    //     .Where(income => income.CollaboratorId == salaryInformation.Collaborator.Id && income.PayrollId == request.PayrollId)
-                    //     .FirstOrDefaultAsync(cancellationToken);
+                        if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
+                        else  daysWorked = 15;
 
-                    // if (lastIncomeTax is null)
-                    // {
-                    //     return _errorManager.ThrowBadRequest<bool>("No se puedo encontrar el ultimo registro acumulados del colaborador", "ERP:IncomeTaxNotFound");
-                    // }
+                        if (daysWorked < 0) daysWorked = 0;
+                        if (daysWorked > 15) daysWorked = 15;
 
-                    // var lastFortnight = lastIncomeTax?.NumberOfFortnights + 1;
-                    // if (lastFortnight is 25) lastFortnight = 24;
+                        decimal ProportionalBiweeklySalary = DailySalary * daysWorked;
+                        decimal AmountTotalWithHours = HourlyWage * collaborator.AmountHours * 2;
 
+                        ordinaryPayrollInfo.Overtime        = AmountTotalWithHours;                    
+                        ordinaryPayrollInfo.NumberOvertime  = collaborator.AmountHours;
+                        ordinaryPayrollInfo.TotalIncome     = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary + ordinaryPayrollInfo.Antique;
 
-                    // var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
-                    //     .Where(income => income.CollaboratorId == salaryInformation.Collaborator.Id && income.NumberOfFortnights == lastFortnight)
-                    //     .OrderByDescending(income => income.CreatedAt)
-                    //     .FirstOrDefaultAsync(cancellationToken);
+                        decimal GrossSalary = ordinaryPayrollInfo.TotalIncome;
 
-                    // if (TaxInformation is null)
-                    // {
-                    //     return _errorManager.ThrowBadRequest<bool>("No se encontro el control de acumulados para este colaborador", "ERP:TaxInformationNotFound");
-                    // }
-                    
-                    // logger.LogInformation("Calculando inss e ir");
+                        var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
+                            .Where(income => income.CollaboratorId == salaryInformation.Collaborator.Id && income.PayrollId == request.PayrollId)
+                            .FirstOrDefaultAsync(cancellationToken);
 
-                    // var (BiweeklyInss, BiweeklyIr) = await _calculatorDeduction.CalculateIrToNextProcess(
-                    //     lastFortnight ?? 24,
-                    //     TaxInformation?.SalaryEarned       ?? 0.0m,
-                    //     TaxInformation?.AccumulatedIR      ?? 0.0m,
-                    //     GrossSalary,
-                    //     cancellationToken
-                    // );
+                        if (lastIncomeTax is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No se puedo encontrar el ultimo registro acumulados del colaborador", "ERP:IncomeTaxNotFound");
+                        }
 
-                    // //Actualiza acumulado
-                    // lastIncomeTax?.AccumulatedIR = BiweeklyIr;
-                    // lastIncomeTax?.SalaryEarned  = GrossSalary - BiweeklyInss;
+                        var lastFortnight = lastIncomeTax?.NumberOfFortnights + 1;
+                        if (lastFortnight is 25) lastFortnight = 24;
 
-                    // //Actualizar datos de deducciones.
-                    // ordinaryPayrollInfo.Ir      = BiweeklyIr;
-                    // ordinaryPayrollInfo.Inss    = BiweeklyInss;
-                    // ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+                        var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
+                            .Where(income => income.CollaboratorId == salaryInformation.Collaborator.Id && income.NumberOfFortnights == lastFortnight)
+                            .OrderByDescending(income => income.CreatedAt)
+                            .FirstOrDefaultAsync(cancellationToken);
 
-                    //  var deductions =
-                    //     JsonSerializer.Deserialize<DeductionsAdditionalData>(
-                    //         ordinaryPayrollInfo.DeductionsAdditionalData
-                    //     ) ?? new DeductionsAdditionalData();
+                        if (TaxInformation is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No se encontro el control de acumulados para este colaborador", "ERP:TaxInformationNotFound");
+                        }
+                        
+                        logger.LogInformation("Calculando inss e ir");
 
-                    // decimal totalDeductions =
-                    //     deductions.Loans
-                    //     + deductions.Purisima
-                    //     + deductions.ChildSupportGarnishment
-                    //     + deductions.SalaryAdvance
-                    //     + deductions.ChristmasBonusAdvance
-                    //     + deductions.JudicialSeizures
-                    //     + deductions.UniformDeduction
-                    //     + deductions.CashShortage
-                    //     + deductions.OtherDeductions
-                    //     + deductions.DeductionForLossesBulk
-                    //     + deductions.Absences
-                    //     + deductions.Sanction
-                    //     + deductions.LateArrivals;
+                        var (BiweeklyInss, BiweeklyIr) = await _calculatorDeduction.CalculateIrToNextProcess(
+                            lastFortnight ?? 24,
+                            TaxInformation?.SalaryEarned       ?? 0.0m,
+                            TaxInformation?.AccumulatedIR      ?? 0.0m,
+                            GrossSalary,
+                            cancellationToken
+                        );
 
-                    // decimal total = ordinaryPayrollInfo.TotalIncome - BiweeklyInss - BiweeklyIr - totalDeductions;
-                    
-                    // ordinaryPayrollInfo.TotalToPay = total + ordinaryPayrollInfo.Transport + ordinaryPayrollInfo.Lodging + ordinaryPayrollInfo.Feeding;
-                    // ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-                    
-                    // ordinaryPayrollInfo.GrossSalary      = salaryInformation.AmountInLocal / 2;
-                    // ordinaryPayrollInfo.NumberOvertime   = request.OvertimeIncomePayload?.AmountHours ?? 0;
-                    // ordinaryPayrollInfo.TotalDeducctions = totalDeductions + BiweeklyIr + BiweeklyInss;
+                        //Actualiza acumulado
+                        lastIncomeTax?.AccumulatedIR = BiweeklyIr;
+                        lastIncomeTax?.SalaryEarned  = GrossSalary - BiweeklyInss;
 
-                    // //Actualizamos su acumulado
-                    // await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
+                        //Actualizar datos de deducciones.
+                        ordinaryPayrollInfo.Ir      = BiweeklyIr;
+                        ordinaryPayrollInfo.Inss    = BiweeklyInss;
+                        ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
 
+                        var deductions =
+                            JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                                ordinaryPayrollInfo.DeductionsAdditionalData
+                            ) ?? new DeductionsAdditionalData();
 
-                    // //Actualizamos la nomina
-                    // await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+                        decimal totalDeductions =
+                            deductions.Loans
+                            + deductions.Purisima
+                            + deductions.ChildSupportGarnishment
+                            + deductions.SalaryAdvance
+                            + deductions.ChristmasBonusAdvance
+                            + deductions.JudicialSeizures
+                            + deductions.UniformDeduction
+                            + deductions.CashShortage
+                            + deductions.OtherDeductions
+                            + deductions.DeductionForLossesBulk
+                            + deductions.Absences
+                            + deductions.Sanction
+                            + deductions.LateArrivals;
 
-                    // await _unitOfWork.Incomes.RegisterIncome(new()
-                    // {
-                    //     Currency = Currency.NIO,
-                    //     AmountInLocal = AmountTotalWithHours,
-                    //     AmountInDollars = AmountTotalWithHours / 36.6243m,
-                    //     CollaboratorId = salaryInformation.Collaborator.Id,
-                    //     IncomeTypeId = request.TypeIncomeId,
-                    //     PayrollId = payroll.Id,
-                    //     Description = request.Description,                        
-                    // });
+                        decimal total = ordinaryPayrollInfo.TotalIncome - BiweeklyInss - BiweeklyIr - totalDeductions;
+                        
+                        ordinaryPayrollInfo.TotalToPay = total + ordinaryPayrollInfo.Transport + ordinaryPayrollInfo.Lodging + ordinaryPayrollInfo.Feeding;
+                        ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+                        
+                        ordinaryPayrollInfo.GrossSalary      = salaryInformation.AmountInLocal / 2;
+                        ordinaryPayrollInfo.NumberOvertime   = collaborator.AmountHours;
+                        ordinaryPayrollInfo.TotalDeducctions = totalDeductions + BiweeklyIr + BiweeklyInss;
 
-                    // await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        //Actualizamos su acumulado
+                        await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
 
-                    // logger.LogInformation("✅Se agrego con exito el registro de horas extras.");
+                        //Actualizamos la nomina
+                        await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+
+                        await _unitOfWork.Incomes.RegisterIncome(new()
+                        {
+                            Currency = Currency.NIO,
+                            AmountInLocal = AmountTotalWithHours,
+                            AmountInDollars = AmountTotalWithHours / 36.6243m,
+                            CollaboratorId = salaryInformation.Collaborator.Id,
+                            IncomeTypeId = request.TypeIncomeId,
+                            PayrollId = payroll.Id,
+                            Description = "Horas extras",                        
+                        });
+
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                        logger.LogInformation("✅Se agrego con exito el registro de horas extras.");
+                    }
+
                     return true;
                 }
                 case "COMMISSION":
@@ -259,39 +304,53 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 
                     decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.BiweeklySalary;
 
-                    if(request.CommissionsPayload.ItFree)
-                    {
-                        decimal amountCommissionInLocal = request.CommissionsPayload.CommissionAmount;
+                    TotalIncome += request.CommissionsPayload.CommissionAmount;         
+                    ordinaryPayrollInfo.TotalIncome = TotalIncome;
 
-                        if (request.CommissionsPayload.Currency == Currency.USD)
-                        {
-                            amountCommissionInLocal = request.CommissionsPayload.CommissionAmount / 36.6242m;
-                        }
-                        
-                        ordinaryPayrollInfo.Commissions = amountCommissionInLocal;
-                        TotalIncome += ordinaryPayrollInfo.Commissions;
-                        
-                        //Afectamos el inss e ir del colaborador para esta quincena
-                        var (BiweeklyInss, BiweeklyIr) = await _calculatorDeduction.CalculateIrToNextProcess(
-                            lastFortnight ?? 24,
-                            TaxInformation?.SalaryEarned       ?? 0.0m,
-                            TaxInformation?.AccumulatedIR      ?? 0.0m,
-                            TotalIncome,
-                            cancellationToken
-                        );
+                    var (BiweeklyInss, BiweeklyIr) = await _calculatorDeduction.CalculateIrToNextProcess(
+                        lastFortnight ?? 24,
+                        TaxInformation?.SalaryEarned       ?? 0.0m,
+                        TaxInformation?.AccumulatedIR      ?? 0.0m,
+                        TotalIncome,
+                        cancellationToken
+                    );
 
-                    }
-                    else
-                    {
-                        //Porcentual en base al monto base.   
-                    }
+                    lastIncomeTax?.AccumulatedIR = BiweeklyIr;
+                    lastIncomeTax?.SalaryEarned  = TotalIncome - BiweeklyInss;
 
-                    TotalIncome += ordinaryPayrollInfo.Commissions;
-                    
-                    ordinaryPayrollInfo.TotalIncome += TotalIncome;
+                    //Actualizar datos de deducciones.
+                    ordinaryPayrollInfo.Ir                   = BiweeklyIr;
+                    ordinaryPayrollInfo.Inss                 = BiweeklyInss;
+                    ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
 
+                     var deductions =
+                        JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                            ordinaryPayrollInfo.DeductionsAdditionalData
+                        ) ?? new DeductionsAdditionalData();
 
-                    logger.LogInformation("Se agrego con exito el registro de comisiones");   
+                    decimal totalDeductions =
+                        deductions.Loans
+                        + deductions.Purisima
+                        + deductions.ChildSupportGarnishment
+                        + deductions.SalaryAdvance
+                        + deductions.ChristmasBonusAdvance
+                        + deductions.JudicialSeizures
+                        + deductions.UniformDeduction
+                        + deductions.CashShortage
+                        + deductions.OtherDeductions
+                        + deductions.DeductionForLossesBulk
+                        + deductions.Absences
+                        + deductions.Sanction
+                        + deductions.LateArrivals;
+
+                    decimal total = ordinaryPayrollInfo.TotalIncome - BiweeklyInss - BiweeklyIr - totalDeductions + ordinaryPayrollInfo.TotalTravelExpenses;
+
+                    ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+
+                    await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    logger.LogInformation("Se agrego con exito el registro de comisiones"); 
                     return true;
                 }
                 default:
@@ -299,6 +358,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de ingreso no esta disponible", "ERP:04");
                 }
             }
+
             #pragma warning restore CA1873
         }
     }

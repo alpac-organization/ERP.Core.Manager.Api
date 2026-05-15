@@ -56,10 +56,10 @@
           "lib/netstandard2.0/DotNetEnv.dll": {}
         }
       },
-      "ERP.Core.Application/1.0.98": {
+      "ERP.Core.Application/1.0.100": {
         "type": "package",
         "dependencies": {
-          "ERP.Core.Domain": "1.0.98",
+          "ERP.Core.Domain": "1.0.100",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0"
         },
@@ -70,10 +70,10 @@
           "lib/net9.0/ERP.Core.Application.dll": {}
         }
       },
-      "ERP.Core.Database.Application/1.0.98": {
+      "ERP.Core.Database.Application/1.0.100": {
         "type": "package",
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.98"
+          "ERP.Core.Database.Domain": "1.0.100"
         },
         "compile": {
           "lib/net9.0/ERP.Core.Database.Application.dll": {}
@@ -82,7 +82,7 @@
           "lib/net9.0/ERP.Core.Database.Application.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.98": {
+      "ERP.Core.Database.Domain/1.0.100": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
@@ -91,10 +91,10 @@
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
         }
       },
-      "ERP.Core.Database.Infrastructure/1.0.95": {
+      "ERP.Core.Database.Infrastructure/1.0.100": {
         "type": "package",
         "dependencies": {
-          "ERP.Core.Database.Application": "1.0.95",
+          "ERP.Core.Database.Application": "1.0.100",
           "Microsoft.EntityFrameworkCore": "9.0.0",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.0"
         },
@@ -109,7 +109,7 @@
           }
         }
       },
-      "ERP.Core.Domain/1.0.98": {
+      "ERP.Core.Domain/1.0.100": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Domain.dll": {}
@@ -118,10 +118,10 @@
           "lib/net9.0/ERP.Core.Domain.dll": {}
         }
       },
-      "ERP.Core.Infrastructure/1.0.95": {
+      "ERP.Core.Infrastructure/1.0.100": {
         "type": "package",
         "dependencies": {
-          "ERP.Core.Application": "1.0.95",
+          "ERP.Core.Application": "1.0.100",
           "Nanoid": "3.1.0"
         },
         "compile": {
@@ -1180,10 +1180,8 @@
           "AutoMapper": "13.0.1",
           "BCrypt.Net-Next": "4.1.0",
           "Domain": "1.0.0",
-          "ERP.Core.Application": "1.0.98",
-          "ERP.Core.Database.Application": "1.0.98",
-          "ERP.Core.Database.Infrastructure": "1.0.98",
-          "ERP.Core.Infrastructure": "1.0.98",
+          "ERP.Core.Application": "1.0.100",
+          "ERP.Core.Database.Application": "1.0.100",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0",
           "Microsoft.EntityFrameworkCore": "10.0.5"
@@ -1199,8 +1197,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.98",
-          "ERP.Core.Domain": "1.0.98"
+          "ERP.Core.Database.Domain": "1.0.100",
+          "ERP.Core.Domain": "1.0.100"
         },
         "compile": {
           "bin/placeholder/Domain.dll": {}
@@ -1215,8 +1213,8 @@
         "dependencies": {
           "Application": "1.0.0",
           "DinkToPdf": "1.0.8",
-          "ERP.Core.Database.Infrastructure": "1.0.95",
-          "ERP.Core.Infrastructure": "1.0.95",
+          "ERP.Core.Database.Infrastructure": "1.0.100",
+          "ERP.Core.Infrastructure": "1.0.100",
           "Handlebars.Net": "2.1.6",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1",
           "PuppeteerSharp": "24.40.0",
@@ -1310,69 +1308,69 @@
         "lib/netstandard2.0/DotNetEnv.dll"
       ]
     },
-    "ERP.Core.Application/1.0.98": {
-      "sha512": "0KPFHEWxpIH3ZVsRWhxIfAw18x7Cr7bzrrFTerkKD7zvUULB1p1xQNBhPO1romXPUBOVoAr5eG472Nt/vfc1fg==",
+    "ERP.Core.Application/1.0.100": {
+      "sha512": "PLVEZFQ+ntgA+Uwjfvx2fCIZ352qwrwcG7BbjiONITQiUzjpXQqU6IHyY0UZPeKimRRAlIuMyVJ7GdAyRJEb7Q==",
       "type": "package",
-      "path": "erp.core.application/1.0.98",
+      "path": "erp.core.application/1.0.100",
       "files": [
         ".nupkg.metadata",
-        "erp.core.application.1.0.98.nupkg.sha512",
+        "erp.core.application.1.0.100.nupkg.sha512",
         "erp.core.application.nuspec",
         "lib/net9.0/ERP.Core.Application.dll"
       ]
     },
-    "ERP.Core.Database.Application/1.0.98": {
-      "sha512": "rr+M/x/DPsKUJ9a7uGUlsIunm6E7Ju+zmIOaDIZabiYXfjtFpveQPAX7yiwW5DuRI5VHR+T/2Fo4S5TtSyPqZw==",
+    "ERP.Core.Database.Application/1.0.100": {
+      "sha512": "7Hevb2m9riZ9UfrS0VycXdQmrUNGn8eI1Gww0t9HkAy59k8hfHZgEmuUHs7xgWmXZtBBCDShojLJn6kp6E0MEA==",
       "type": "package",
-      "path": "erp.core.database.application/1.0.98",
+      "path": "erp.core.database.application/1.0.100",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.application.1.0.98.nupkg.sha512",
+        "erp.core.database.application.1.0.100.nupkg.sha512",
         "erp.core.database.application.nuspec",
         "lib/net9.0/ERP.Core.Database.Application.dll"
       ]
     },
-    "ERP.Core.Database.Domain/1.0.98": {
-      "sha512": "gtigcp6ZhgHI//x1z9TT7wYFyqznDBeFaMIruFacwJ402B566ke2+Tw8I0ZiCHnr0otAiUF5LfGy5QaY7XNcKQ==",
+    "ERP.Core.Database.Domain/1.0.100": {
+      "sha512": "5y3ZrdI52dNIXZAdsq3qYwjjWqYyrf1lbqoE6uloXuJ7AKJV6N0KGeMN8/l0Qp6ANd/Ki5EKFAAWy5orQKnoUQ==",
       "type": "package",
-      "path": "erp.core.database.domain/1.0.98",
+      "path": "erp.core.database.domain/1.0.100",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.domain.1.0.98.nupkg.sha512",
+        "erp.core.database.domain.1.0.100.nupkg.sha512",
         "erp.core.database.domain.nuspec",
         "lib/net9.0/ERP.Core.Database.Domain.dll"
       ]
     },
-    "ERP.Core.Database.Infrastructure/1.0.95": {
-      "sha512": "4vRsBJL5lykCf+o/w2/q14STqQWA4tb2s4pKyNaF8RC1a1zdbQPKeBwgxfiDpmkP5Ewu/RZQs458C0MDBz0YIQ==",
+    "ERP.Core.Database.Infrastructure/1.0.100": {
+      "sha512": "QNEzZ/dUZRDeNCn4A9JLto6DJiuEodX0EkB1HfNtLziyxmCNlayoDUyQxI/a9z/fiYcrNTj9cxrM9XutnFpntw==",
       "type": "package",
-      "path": "erp.core.database.infrastructure/1.0.95",
+      "path": "erp.core.database.infrastructure/1.0.100",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.infrastructure.1.0.95.nupkg.sha512",
+        "erp.core.database.infrastructure.1.0.100.nupkg.sha512",
         "erp.core.database.infrastructure.nuspec",
         "lib/net9.0/ERP.Core.Database.Infrastructure.dll",
         "lib/net9.0/ERP.Core.Database.Infrastructure.runtimeconfig.json"
       ]
     },
-    "ERP.Core.Domain/1.0.98": {
-      "sha512": "NEoKSyXPu+9jwf3vUhWQpb7ZM9vR8zFnuT6ibjHgs08ABTtdunopP1AjdTZ4AHcgiCJ/EK9WZOFPE2YQ7tjCGA==",
+    "ERP.Core.Domain/1.0.100": {
+      "sha512": "gNDaL2oA/h67Y29/3x2kgMJADQz2dsik99IYQlcwY4XdhbUO8a35Oi8yGW5PxJaAwKgYacDhuN9hvxf9bdwu7w==",
       "type": "package",
-      "path": "erp.core.domain/1.0.98",
+      "path": "erp.core.domain/1.0.100",
       "files": [
         ".nupkg.metadata",
-        "erp.core.domain.1.0.98.nupkg.sha512",
+        "erp.core.domain.1.0.100.nupkg.sha512",
         "erp.core.domain.nuspec",
         "lib/net9.0/ERP.Core.Domain.dll"
       ]
     },
-    "ERP.Core.Infrastructure/1.0.95": {
-      "sha512": "cYVNlF9luogekvjYR3HEnyVF6Gff1+a2te44puFf4w1v7FbwVJoc0T7IM0zUB9L2bbv+ux1xwDD/17lLyfukYA==",
+    "ERP.Core.Infrastructure/1.0.100": {
+      "sha512": "GRhBnsUI1stNN6TME6cICzuyU4FZ51XlfUciBKO4eIy7FSMGSSc5RR5ABV+ckaB8eMByGThgGbic+Q9+BOgGGg==",
       "type": "package",
-      "path": "erp.core.infrastructure/1.0.95",
+      "path": "erp.core.infrastructure/1.0.100",
       "files": [
         ".nupkg.metadata",
-        "erp.core.infrastructure.1.0.95.nupkg.sha512",
+        "erp.core.infrastructure.1.0.100.nupkg.sha512",
         "erp.core.infrastructure.nuspec",
         "lib/net9.0/ERP.Core.Infrastructure.dll"
       ]
@@ -3698,17 +3696,17 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\ERP.Core.Manager.Api\\ERP.Core.Manager.Api.csproj",
+      "projectUniqueName": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\ERP.Core.Manager.Api\\ERP.Core.Manager.Api.csproj",
       "projectName": "ERP.Core.Manager.Api",
-      "projectPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\ERP.Core.Manager.Api\\ERP.Core.Manager.Api.csproj",
+      "projectPath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\ERP.Core.Manager.Api\\ERP.Core.Manager.Api.csproj",
       "packagesPath": "C:\\Users\\desarrollo\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\ERP.Core.Manager.Api\\obj\\",
+      "outputPath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\ERP.Core.Manager.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\NuGet.Config",
+        "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\NuGet.Config",
         "C:\\Users\\desarrollo\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -3726,8 +3724,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Infrastructure\\Infrastructure.csproj": {
-              "projectPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Infrastructure\\Infrastructure.csproj"
+            "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Infrastructure\\Infrastructure.csproj": {
+              "projectPath": "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Infrastructure\\Infrastructure.csproj"
             }
           }
         }
@@ -4211,25 +4209,5 @@
         }
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1605",
-      "level": "Error",
-      "message": "Warning As Error: Detected package downgrade: ERP.Core.Database.Infrastructure from 1.0.98 to 1.0.95. Reference the package directly from the project to select a different version. \r\n ERP.Core.Manager.Api -> Infrastructure -> Application -> ERP.Core.Database.Infrastructure (>= 1.0.98) \r\n ERP.Core.Manager.Api -> Infrastructure -> ERP.Core.Database.Infrastructure (>= 1.0.95)",
-      "libraryId": "ERP.Core.Database.Infrastructure",
-      "targetGraphs": [
-        "net10.0"
-      ]
-    },
-    {
-      "code": "NU1605",
-      "level": "Error",
-      "message": "Warning As Error: Detected package downgrade: ERP.Core.Infrastructure from 1.0.98 to 1.0.95. Reference the package directly from the project to select a different version. \r\n ERP.Core.Manager.Api -> Infrastructure -> Application -> ERP.Core.Infrastructure (>= 1.0.98) \r\n ERP.Core.Manager.Api -> Infrastructure -> ERP.Core.Infrastructure (>= 1.0.95)",
-      "libraryId": "ERP.Core.Infrastructure",
-      "targetGraphs": [
-        "net10.0"
-      ]
-    }
-  ]
+  }
 }
