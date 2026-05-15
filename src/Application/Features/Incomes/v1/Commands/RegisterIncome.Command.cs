@@ -1,5 +1,6 @@
 using MediatR;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands
 {
@@ -8,11 +9,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands
         public Guid PayrollId { get; set; }
         public Guid TypeIncomeId  { get; set; }
 
-        public string? Description { get; set; }
-        public string? IdentificationNumber { get; set; }
-
         //Ingreso de horas extras
-        public OvertimeIncomePayload? OvertimeIncomePayload { get; set; }
+        // public OvertimeIncomePayload? OvertimeIncomePayload { get; set; }
         public CommissionsPayload? CommissionsPayload { get; set; }
     }
 
@@ -23,8 +21,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands
 
     public class CommissionsPayload
     {
-        public int? CommissionPercentage { get; set; }
-        public decimal CommissionAmount { get; set; }
+        public Currency Currency { get; set; }
         public bool ItFree { get; set; } = false;
+        public int?  CommissionPercentage { get; set; }
+        public decimal CommissionAmount { get; set; }
+        public string? IdentificationNumber { get; set; }
     }
 }

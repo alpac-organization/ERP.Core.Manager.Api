@@ -8,7 +8,6 @@ using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
-using ERP.Core.Manager.Api.Application.Features.SalaryAdvance.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 {
@@ -45,19 +44,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
             {
                 case DeductionType.SalaryAdvance:
                 {                    
-                    var payload = new RegisterSalaryAdvanceCommand
-                    {
-                        UserId = request.UserId,
-                        Amount = request.AdvanceSalaryPayload?.Amount ?? 0.0m,
-                        CollaboratorId = request.AdvanceSalaryPayload?.CollaboratorId ?? Guid.Parse(string.Empty),
-                        Currency = request.AdvanceSalaryPayload?.Currency ?? Currency.NIO,
-                        ModuleCode = request.ModuleCode,
-                        CompanyId = request.CompanyId
-                    };
+                    return _errorManager.ThrowBadRequest<bool>("El servidor se encuentra en proceso de mejorar para traerte mas funcionalidades", "ERP:01");
+                    // var payload = new RegisterSalaryAdvanceCommand
+                    // {
+                    //     UserId = request.UserId,
+                    //     Amount = request.AdvanceSalaryPayload?.Amount ?? 0.0m,
+                    //     CollaboratorId = request.AdvanceSalaryPayload?.CollaboratorId ?? Guid.Parse(string.Empty),
+                    //     Currency = request.AdvanceSalaryPayload?.Currency ?? Currency.NIO,
+                    //     ModuleCode = request.ModuleCode,
+                    //     CompanyId = request.CompanyId
+                    // };
 
-                    await _mediator.Send(payload, cancellationToken);
+                    // await _mediator.Send(payload, cancellationToken);
 
-                    return true;
+                    // return true;
                 }
                 case DeductionType.LateArrivals:
                 {
@@ -161,7 +161,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                 }
                 case DeductionType.Purisima:
                 {
-
+                    return _errorManager.ThrowBadRequest<bool>("El servidor se encuentra en proceso de mejorar para traerte mas funcionalidades", "ERP:01");
+                    
                     // var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
                     //     .Where(ord => ord.CollaboratorId == collaborator.Id)
                     //     .FirstOrDefaultAsync(cancellationToken);
@@ -213,13 +214,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                     // });
 
                     // await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                    return true;                
                 }
                 case DeductionType.Loans:
                 {
+                    return _errorManager.ThrowBadRequest<bool>("El servidor se encuentra en proceso de mejorar para traerte mas funcionalidades", "ERP:01");
                     //Prestamos si o si es uno a uno
-
                     return true;
                 }
                 default:

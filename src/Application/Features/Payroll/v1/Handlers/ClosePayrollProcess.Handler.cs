@@ -61,8 +61,42 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             //Realizar todo aquel, registro de deducciones y pagos realizados del colaborador
             foreach(var collaborator in registers)
             {
-                //Si cuenta con deducciones registramos el pago de deducciones.
+                //Prestamos
+                var loans = await _unitOfWork.Deductions.Entities
+                    .Where(loan => loan.Status == DeductionStatus.Progress)
+                    .Where(loan => loan.CollaboratorId == collaborator.Id)
+                    .ToListAsync(cancellationToken);
 
+                foreach(var loan in loans)
+                {
+                    // Dejamos el registros de pagos en el historial de pagos✅
+
+                    // Empezamos hacer el registro de pago de prestamo que hemos deducido de la nomina
+                    var payment = await _unitOfWork.DeductionPaymentHistories.Entities
+                        .Where(paid => paid.Status == DeductionPaymentStatus.Pending)
+                        .Where(paid => paid.DeductionId == loan.Id)
+                        .Include(paid => paid.Deduction)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    decimal amountInLocal = loan.FortnightlyAmount ?? 0;
+                    decimal amountInDollars = loan.FortnightlyAmountInDollars ?? 0;
+                
+                    if(payment is not null)
+                    {
+                        loan.AmountPaid += amountInLocal;
+                        loan.AmountPaidInDollars += amountInDollars;
+
+                        loan.TotalBalance -= amountInLocal;
+                        loan.TotalBalanceInDollars -= amountInDollars;
+
+                        loan.NumberFortnightsPaid += 1;
+
+                        await _unitOfWork.Deductions.UpdateAsync(loan);
+
+                        payment.Status = DeductionPaymentStatus.Paid;
+                        await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
+                    }
+                }
 
                 //Registramos los pagos realizados de viaticos del colaborador.
                 await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(new()

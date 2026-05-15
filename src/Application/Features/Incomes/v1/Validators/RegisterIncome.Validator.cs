@@ -36,8 +36,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Validators
                     .WithMessage("El tipo de ingreso es obligatorio")
                 .NotNull()
                     .WithMessage("El tipo de ingreso es obligatorio");
-
-            
         }
     }
 }

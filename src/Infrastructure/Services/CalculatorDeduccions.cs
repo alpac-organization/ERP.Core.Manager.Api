@@ -161,6 +161,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #endregion 
 
+            if (collaborator.IdentificationNumber == "4012912880000M")
+            {
+                
+            }
+
             DateTime entryDate = salary.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart = payrollCreated.StartDate;
             DateTime payrollEnd = payrollCreated.EndDate ?? payrollStart.AddDays(14);
@@ -270,25 +275,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             foreach (var loan in loans)
             {
                 AdditionalDeducctions.Loans += loan.FortnightlyAmount ?? 0.0m;
-
-                loan.AmountPaid += loan.FortnightlyAmount;
-                loan.AmountPaidInDollars += loan.FortnightlyAmountInDollars;
-
-                loan.NumberFortnightsPaid += 1;
-                loan.TotalBalance -= loan.FortnightlyAmount;
-                loan.TotalBalanceInDollars -= loan.FortnightlyAmountInDollars;
-
-                if (loan.TotalBalance <= 0 && loan.TotalAmountInDollars <= 0)
-                {
-                    loan.Status =  DeductionStatus.Completed;
-                }
-
-                await _unitOfWork.Deductions.UpdateAsync(loan);
-
+                
+                //Guardamos el registro de pago a realizar.
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                 {
                     AmountPaid = loan.FortnightlyAmount ?? 0.0m,
                     DeductionId = loan.Id,
+                    Status = DeductionPaymentStatus.Pending,
                     Origin = SourceDeductionPayment.Payroll,
                     PayrollId = payrollCreated.Id,
                     PaymentDate = payrollCreated.StartDate,
@@ -327,7 +320,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal FoodTravelAllowance = 0.0m;
             decimal totalAssigned = 0.0m;
 
-            var DEFAULT_TOTAL_WORK_DAYS = 11;
+            var DEFAULT_TOTAL_WORK_DAYS = collaborator.DoesWorkSaturdays ? 13 : 11;
 
             foreach (var current in asssineds)
             {
@@ -368,10 +361,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             FoodTravelAllowance *= DEFAULT_TOTAL_WORK_DAYS;
             totalAssigned       = Lodging + Transport + FoodTravelAllowance;
 
+        
             decimal TotalToPay = TotalIncome - TotalDeducctions + totalAssigned;
 
             //Calcular Aguinaldo y vacaciones 🚩
-
             var payload = new OrdinaryPayroll()
             {
                 Id = Guid.NewGuid(),
