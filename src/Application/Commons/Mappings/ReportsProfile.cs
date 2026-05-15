@@ -2,31 +2,35 @@ using AutoMapper;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
-using ERP.Core.Manager.Api.Application.Features.TypesIncome.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 {
-    public class ReporstProfile : Profile
+    // Corregido de ReporstProfile a ReportsProfile
+    public class ReportsProfile : Profile
     {
-        public ReporstProfile()
+        public ReportsProfile()
         {
             CreateMap<IncomeTaxAccrual, AccumulatedHistory>()
-                .ForMember(dest => dest.AccumulatedIR, src => src.MapFrom(or => or.AccumulatedIR))
-                .ForMember(dest => dest.SalaryEarned, src => src.MapFrom(or => or.SalaryEarned))
-                .ForMember(dest => dest.CollaboratorCode, src => src.MapFrom(or => or.Collaborator.CollaboratorCode))
-                .ForMember(dest => dest.StartDate, src => src.MapFrom(or => or.Payroll.StartDate))
-                .ForMember(dest => dest.EndDate, src => src.MapFrom(or => or.Payroll.EndDate))
-                .ForMember(dest => dest.CollaboratorCode, src => src.MapFrom(or => or.Collaborator.CollaboratorCode))
-
-                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => 
-                    string.Join(" ", new[] 
-                    { 
-                        src.Collaborator.FirstName, src.Collaborator.SecondName, src.Collaborator.FirstLastname, src.Collaborator.SecondLastname 
-                    }.Where(s => !string.IsNullOrWhiteSpace(s))
-                    .Select(s => s.ToCapitalize()))))
-
-
-            ;
+                // NOTA: 'AccumulatedIR' y 'SalaryEarned' se mapean automáticamente si se llaman igual en Origen y Destino.
+                // Si tienen nombres idénticos, puedes borrar estas dos líneas siguientes:
+                .ForMember(dest => dest.AccumulatedIR, opt => opt.MapFrom(src => src.AccumulatedIR))
+                .ForMember(dest => dest.SalaryEarned, opt => opt.MapFrom(src => src.SalaryEarned))
+                
+                // Mapeos de navegación anidados
+                .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.Payroll.StartDate))
+                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.Payroll.EndDate));
+                
+                // Concatenación del nombre completo
+                // .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => 
+                //     string.Join(" ", new[] 
+                //     { 
+                //         src.Collaborator.FirstName, 
+                //         src.Collaborator.SecondName, 
+                //         src.Collaborator.FirstLastname, 
+                //         src.Collaborator.SecondLastname 
+                //     }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                //     .ToCapitalize())); // Aplicamos el ToCapitalize a la cadena final unida
         }
     }
 }

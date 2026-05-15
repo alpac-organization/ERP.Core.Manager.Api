@@ -6,6 +6,7 @@ using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Controllers.Reports
 {
@@ -19,7 +20,7 @@ namespace ERP.Core.Manager.Api.Controllers.Reports
         [ProducesResponseType(typeof(ReportsDto), StatusCodes.Status200OK)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<ReportsDto> GetReportsByTypeAsync([FromRoute] Guid companie_id, [FromQuery] ReportsType report_type, [FromQuery] Guid payroll_id)
+        public async Task<ReportsDto> GetReportsByTypeAsync([FromRoute] Guid companie_id, [FromQuery] ReportsType report_type, [FromQuery] Guid payroll_id, [FromQuery] PayrollType payroll_type)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
@@ -27,6 +28,7 @@ namespace ERP.Core.Manager.Api.Controllers.Reports
             {
                 CompanyId = companie_id,
                 UserId =  Guid.Parse(userIdStr ?? ""),
+                PayrollType = payroll_type,
                 Type = report_type,
                 PayrollId = payroll_id
             });

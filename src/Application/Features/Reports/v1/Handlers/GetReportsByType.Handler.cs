@@ -30,10 +30,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                         .Include(income => income.Payroll)
                         .Include(income => income.Collaborator)
                         .Where(income => income.PayrollId == request.PayrollId)
-
-
-
-                        
                         .ToListAsync(cancellationToken);
                         
                     var reportMapped = _mapper.Map<List<AccumulatedHistory>>(incomes);
