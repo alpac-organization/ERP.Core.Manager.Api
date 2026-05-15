@@ -8,14 +8,14 @@
     ".NETCoreApp,Version=v10.0": {
       "Domain/1.0.0": {
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.95",
-          "ERP.Core.Domain": "1.0.95"
+          "ERP.Core.Database.Domain": "1.0.100",
+          "ERP.Core.Domain": "1.0.100"
         },
         "runtime": {
           "Domain.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.95": {
+      "ERP.Core.Database.Domain/1.0.100": {
         "runtime": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -23,7 +23,7 @@
           }
         }
       },
-      "ERP.Core.Domain/1.0.95": {
+      "ERP.Core.Domain/1.0.100": {
         "runtime": {
           "lib/net9.0/ERP.Core.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -39,19 +39,19 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ERP.Core.Database.Domain/1.0.95": {
+    "ERP.Core.Database.Domain/1.0.100": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-A5vPDjcu+uRoVSjLHN4Kf5nvxw6KEYR4iBDwgggOH7SeXwLEjrOvK4JENz3TJmpcjyb1/dlcmecbbYvKFcMNmg==",
-      "path": "erp.core.database.domain/1.0.95",
-      "hashPath": "erp.core.database.domain.1.0.95.nupkg.sha512"
+      "sha512": "sha512-5y3ZrdI52dNIXZAdsq3qYwjjWqYyrf1lbqoE6uloXuJ7AKJV6N0KGeMN8/l0Qp6ANd/Ki5EKFAAWy5orQKnoUQ==",
+      "path": "erp.core.database.domain/1.0.100",
+      "hashPath": "erp.core.database.domain.1.0.100.nupkg.sha512"
     },
-    "ERP.Core.Domain/1.0.95": {
+    "ERP.Core.Domain/1.0.100": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-oNr14IYq0dz1GRbdQC7dYwLEaW52RW5hL6Txd50qgQWNAOkzjkwVcnUbR0J+kvmqZ7oCfKLL6HXunmNnCLcveA==",
-      "path": "erp.core.domain/1.0.95",
-      "hashPath": "erp.core.domain.1.0.95.nupkg.sha512"
+      "sha512": "sha512-gNDaL2oA/h67Y29/3x2kgMJADQz2dsik99IYQlcwY4XdhbUO8a35Oi8yGW5PxJaAwKgYacDhuN9hvxf9bdwu7w==",
+      "path": "erp.core.domain/1.0.100",
+      "hashPath": "erp.core.domain.1.0.100.nupkg.sha512"
     }
   }
 }

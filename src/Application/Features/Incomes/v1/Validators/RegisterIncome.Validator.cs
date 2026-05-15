@@ -25,19 +25,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Validators
                 .NotNull()
                     .WithMessage("El id de usuario es requerido");
 
-            RuleFor(x => x.IdentificationNumber)
-                .NotEmpty()
-                    .WithMessage("La cedula del colaborador es obligatoria")
-                .NotNull()
-                    .WithMessage("El cedula del colaborador es obligatoria");
-
             RuleFor(x => x.TypeIncomeId)
                 .NotEmpty()
                     .WithMessage("El tipo de ingreso es obligatorio")
                 .NotNull()
                     .WithMessage("El tipo de ingreso es obligatorio");
-
-            
         }
     }
 }
