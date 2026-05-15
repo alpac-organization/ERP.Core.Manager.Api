@@ -10,7 +10,12 @@ using ERP.Core.Infrastructure.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 var root = builder.Environment.ContentRootPath;
+var envPath = Path.Combine(root, "..", "..", ".env");
 
+if (File.Exists(envPath)) DotNetEnv.Env.Load(envPath);
+else DotNetEnv.Env.Load(); 
+
+builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
