@@ -9,8 +9,15 @@
       "Infrastructure/1.0.0": {
         "dependencies": {
           "Application": "1.0.0",
-          "Nanoid": "3.1.0",
+          "DinkToPdf": "1.0.8",
+          "ERP.Core.Database.Infrastructure": "1.0.100",
+          "ERP.Core.Infrastructure": "1.0.100",
+          "Handlebars.Net": "2.1.6",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1",
+          "PuppeteerSharp": "24.40.0",
+          "Quartz": "3.18.1",
+          "Quartz.Extensions.DependencyInjection": "3.18.1",
+          "Quartz.Extensions.Hosting": "3.18.1",
           "System.IdentityModel.Tokens.Jwt": "8.16.0"
         },
         "runtime": {
@@ -33,6 +40,79 @@
           }
         }
       },
+      "DinkToPdf/1.0.8": {
+        "runtime": {
+          "lib/netstandard1.6/DinkToPdf.dll": {
+            "assemblyVersion": "1.0.8.0",
+            "fileVersion": "1.0.8.0"
+          }
+        }
+      },
+      "ERP.Core.Application/1.0.100": {
+        "dependencies": {
+          "ERP.Core.Domain": "1.0.100",
+          "FluentValidation.DependencyInjectionExtensions": "12.1.1",
+          "MediatR": "14.1.0"
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ERP.Core.Database.Application/1.0.100": {
+        "dependencies": {
+          "ERP.Core.Database.Domain": "1.0.100"
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Database.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ERP.Core.Database.Domain/1.0.100": {
+        "runtime": {
+          "lib/net9.0/ERP.Core.Database.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ERP.Core.Database.Infrastructure/1.0.100": {
+        "dependencies": {
+          "ERP.Core.Database.Application": "1.0.100",
+          "Microsoft.EntityFrameworkCore": "10.0.5",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1"
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Database.Infrastructure.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ERP.Core.Domain/1.0.100": {
+        "runtime": {
+          "lib/net9.0/ERP.Core.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ERP.Core.Infrastructure/1.0.100": {
+        "dependencies": {
+          "ERP.Core.Application": "1.0.100",
+          "Nanoid": "3.1.0"
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Infrastructure.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "FluentValidation/12.1.1": {
         "runtime": {
           "lib/net8.0/FluentValidation.dll": {
@@ -49,6 +129,14 @@
           "lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll": {
             "assemblyVersion": "12.0.0.0",
             "fileVersion": "12.1.1.0"
+          }
+        }
+      },
+      "Handlebars.Net/2.1.6": {
+        "runtime": {
+          "lib/net6.0/Handlebars.dll": {
+            "assemblyVersion": "2.1.6.0",
+            "fileVersion": "2.1.6.0"
           }
         }
       },
@@ -143,6 +231,14 @@
           }
         }
       },
+      "Microsoft.IO.RecyclableMemoryStream/3.0.1": {
+        "runtime": {
+          "lib/net6.0/Microsoft.IO.RecyclableMemoryStream.dll": {
+            "assemblyVersion": "3.0.1.0",
+            "fileVersion": "3.0.1.0"
+          }
+        }
+      },
       "Nanoid/3.1.0": {
         "runtime": {
           "lib/net8.0/Nanoid.dll": {
@@ -172,6 +268,48 @@
           }
         }
       },
+      "PuppeteerSharp/24.40.0": {
+        "dependencies": {
+          "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
+          "WebDriverBiDi": "0.0.45"
+        },
+        "runtime": {
+          "lib/net10.0/PuppeteerSharp.dll": {
+            "assemblyVersion": "24.40.0.0",
+            "fileVersion": "24.40.0.0"
+          }
+        }
+      },
+      "Quartz/3.18.1": {
+        "runtime": {
+          "lib/net10.0/Quartz.dll": {
+            "assemblyVersion": "3.18.1.0",
+            "fileVersion": "3.18.1.0"
+          }
+        }
+      },
+      "Quartz.Extensions.DependencyInjection/3.18.1": {
+        "dependencies": {
+          "Quartz": "3.18.1"
+        },
+        "runtime": {
+          "lib/net10.0/Quartz.Extensions.DependencyInjection.dll": {
+            "assemblyVersion": "3.18.1.0",
+            "fileVersion": "3.18.1.0"
+          }
+        }
+      },
+      "Quartz.Extensions.Hosting/3.18.1": {
+        "dependencies": {
+          "Quartz.Extensions.DependencyInjection": "3.18.1"
+        },
+        "runtime": {
+          "lib/net10.0/Quartz.Extensions.Hosting.dll": {
+            "assemblyVersion": "3.18.1.0",
+            "fileVersion": "3.18.1.0"
+          }
+        }
+      },
       "System.IdentityModel.Tokens.Jwt/8.16.0": {
         "dependencies": {
           "Microsoft.IdentityModel.JsonWebTokens": "8.16.0",
@@ -184,11 +322,21 @@
           }
         }
       },
+      "WebDriverBiDi/0.0.45": {
+        "runtime": {
+          "lib/net10.0/WebDriverBiDi.dll": {
+            "assemblyVersion": "0.0.45.0",
+            "fileVersion": "0.0.45.0"
+          }
+        }
+      },
       "Application/1.0.0": {
         "dependencies": {
           "AutoMapper": "13.0.1",
           "BCrypt.Net-Next": "4.1.0",
           "Domain": "1.0.0",
+          "ERP.Core.Application": "1.0.100",
+          "ERP.Core.Database.Application": "1.0.100",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0",
           "Microsoft.EntityFrameworkCore": "10.0.5"
@@ -201,6 +349,10 @@
         }
       },
       "Domain/1.0.0": {
+        "dependencies": {
+          "ERP.Core.Database.Domain": "1.0.100",
+          "ERP.Core.Domain": "1.0.100"
+        },
         "runtime": {
           "Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -230,6 +382,55 @@
       "path": "bcrypt.net-next/4.1.0",
       "hashPath": "bcrypt.net-next.4.1.0.nupkg.sha512"
     },
+    "DinkToPdf/1.0.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-wJDlcNXjQ+OnBFwh3LBeAXgrXqlKl0RsgN60XpxEFbyqzdaG9ASb5HTXQjXQPaBguSCOrGZZESPnpcng34TEkw==",
+      "path": "dinktopdf/1.0.8",
+      "hashPath": "dinktopdf.1.0.8.nupkg.sha512"
+    },
+    "ERP.Core.Application/1.0.100": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-PLVEZFQ+ntgA+Uwjfvx2fCIZ352qwrwcG7BbjiONITQiUzjpXQqU6IHyY0UZPeKimRRAlIuMyVJ7GdAyRJEb7Q==",
+      "path": "erp.core.application/1.0.100",
+      "hashPath": "erp.core.application.1.0.100.nupkg.sha512"
+    },
+    "ERP.Core.Database.Application/1.0.100": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7Hevb2m9riZ9UfrS0VycXdQmrUNGn8eI1Gww0t9HkAy59k8hfHZgEmuUHs7xgWmXZtBBCDShojLJn6kp6E0MEA==",
+      "path": "erp.core.database.application/1.0.100",
+      "hashPath": "erp.core.database.application.1.0.100.nupkg.sha512"
+    },
+    "ERP.Core.Database.Domain/1.0.100": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-5y3ZrdI52dNIXZAdsq3qYwjjWqYyrf1lbqoE6uloXuJ7AKJV6N0KGeMN8/l0Qp6ANd/Ki5EKFAAWy5orQKnoUQ==",
+      "path": "erp.core.database.domain/1.0.100",
+      "hashPath": "erp.core.database.domain.1.0.100.nupkg.sha512"
+    },
+    "ERP.Core.Database.Infrastructure/1.0.100": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-QNEzZ/dUZRDeNCn4A9JLto6DJiuEodX0EkB1HfNtLziyxmCNlayoDUyQxI/a9z/fiYcrNTj9cxrM9XutnFpntw==",
+      "path": "erp.core.database.infrastructure/1.0.100",
+      "hashPath": "erp.core.database.infrastructure.1.0.100.nupkg.sha512"
+    },
+    "ERP.Core.Domain/1.0.100": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-gNDaL2oA/h67Y29/3x2kgMJADQz2dsik99IYQlcwY4XdhbUO8a35Oi8yGW5PxJaAwKgYacDhuN9hvxf9bdwu7w==",
+      "path": "erp.core.domain/1.0.100",
+      "hashPath": "erp.core.domain.1.0.100.nupkg.sha512"
+    },
+    "ERP.Core.Infrastructure/1.0.100": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GRhBnsUI1stNN6TME6cICzuyU4FZ51XlfUciBKO4eIy7FSMGSSc5RR5ABV+ckaB8eMByGThgGbic+Q9+BOgGGg==",
+      "path": "erp.core.infrastructure/1.0.100",
+      "hashPath": "erp.core.infrastructure.1.0.100.nupkg.sha512"
+    },
     "FluentValidation/12.1.1": {
       "type": "package",
       "serviceable": true,
@@ -243,6 +444,13 @@
       "sha512": "sha512-D0VXh4dtjjX2aQizuaa0g6R8X3U1JaVqJPfGCvLwZX9t/O2h7tkpbitbadQMfwcgSPdDbI2vDxuwRMv/Uf9dHA==",
       "path": "fluentvalidation.dependencyinjectionextensions/12.1.1",
       "hashPath": "fluentvalidation.dependencyinjectionextensions.12.1.1.nupkg.sha512"
+    },
+    "Handlebars.Net/2.1.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-WsYWCEXsIM6hEOSOSRHtIYLjC8BnbT5MVmqhNKRqUI7qiv0t8x3nJiBTEv0ZZfvUAMAFnadGIzSsS/U2anVG1Q==",
+      "path": "handlebars.net/2.1.6",
+      "hashPath": "handlebars.net.2.1.6.nupkg.sha512"
     },
     "MediatR/14.1.0": {
       "type": "package",
@@ -307,6 +515,13 @@
       "path": "microsoft.identitymodel.tokens/8.16.0",
       "hashPath": "microsoft.identitymodel.tokens.8.16.0.nupkg.sha512"
     },
+    "Microsoft.IO.RecyclableMemoryStream/3.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-s/s20YTVY9r9TPfTrN5g8zPF1YhwxyqO6PxUkrYTGI2B+OGPe9AdajWZrLhFqXIvqIW23fnUE4+ztrUWNU1+9g==",
+      "path": "microsoft.io.recyclablememorystream/3.0.1",
+      "hashPath": "microsoft.io.recyclablememorystream.3.0.1.nupkg.sha512"
+    },
     "Nanoid/3.1.0": {
       "type": "package",
       "serviceable": true,
@@ -328,12 +543,47 @@
       "path": "npgsql.entityframeworkcore.postgresql/10.0.1",
       "hashPath": "npgsql.entityframeworkcore.postgresql.10.0.1.nupkg.sha512"
     },
+    "PuppeteerSharp/24.40.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vVvHFHCRW6772ptQmwzIxmc2CdkEv+F9kTlCncv4VFSGev1ev5mtlL9aVOPdHc6ss5ck6sArP4b2JtNy/7GzGA==",
+      "path": "puppeteersharp/24.40.0",
+      "hashPath": "puppeteersharp.24.40.0.nupkg.sha512"
+    },
+    "Quartz/3.18.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-q/n/gKLcApDlTk90BRNvj6P8HKR+vbtZEQxo5BAbeEoN5e/8/aqRuG6yH7tVg02CeAXAD40boS74s9hVnh4XDw==",
+      "path": "quartz/3.18.1",
+      "hashPath": "quartz.3.18.1.nupkg.sha512"
+    },
+    "Quartz.Extensions.DependencyInjection/3.18.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ct+sIqr7n961jvo695GnqHjB+dhK6b/Y9LSXxK6n9EJ6JzMXpwcusd5u2lCqVqqNHaiGBLXp37E75hpPXHQkzA==",
+      "path": "quartz.extensions.dependencyinjection/3.18.1",
+      "hashPath": "quartz.extensions.dependencyinjection.3.18.1.nupkg.sha512"
+    },
+    "Quartz.Extensions.Hosting/3.18.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-kZ7ufndI5vygLpI0kCeukVKlzpRFtGjfoU3BoWZ6u6QKoRF2Z3KV1dSpv+VpMqRekz3SrObfN0iLZKWldoZLZw==",
+      "path": "quartz.extensions.hosting/3.18.1",
+      "hashPath": "quartz.extensions.hosting.3.18.1.nupkg.sha512"
+    },
     "System.IdentityModel.Tokens.Jwt/8.16.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-rrs2u7DRMXQG2yh0oVyF/vLwosfRv20Ld2iEpYcKwQWXHjfV+gFXNQsQ9p008kR9Ou4pxBs68Q6/9zC8Gi1wjg==",
       "path": "system.identitymodel.tokens.jwt/8.16.0",
       "hashPath": "system.identitymodel.tokens.jwt.8.16.0.nupkg.sha512"
+    },
+    "WebDriverBiDi/0.0.45": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lMQhMh32mqZCIBOkEP5DX+vtuoImuyKEAotqw33OuTZUgFFUFl+tEVPZ8fTIhsTCAXp5Nbhy2d3FeVxHYLehFw==",
+      "path": "webdriverbidi/0.0.45",
+      "hashPath": "webdriverbidi.0.0.45.nupkg.sha512"
     },
     "Application/1.0.0": {
       "type": "project",

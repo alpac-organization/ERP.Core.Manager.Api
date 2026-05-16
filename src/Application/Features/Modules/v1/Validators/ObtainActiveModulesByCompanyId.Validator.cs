@@ -12,9 +12,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Validators
         {
             RuleFor(x => x.CompanyId)
                 .NotEmpty()
-                    .WithMessage("El ID de la empresa es obligatorio.")
-                .GreaterThan(0)
-                    .WithMessage("El ID de la empresa debe ser un valor mayor a 0.");
+                    .WithMessage("El ID de la empresa es obligatorio.");
         }
     }
 }

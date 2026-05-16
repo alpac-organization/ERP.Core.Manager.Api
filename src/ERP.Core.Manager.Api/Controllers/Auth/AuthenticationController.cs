@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
-using ERP.Core.Manager.Api.Domain.Entities.Errors;
+using ERP.Core.Domain.Entities.Errors;
 
 namespace ERP.Core.Manager.Api.Controllers.Auth
 {
@@ -16,9 +16,19 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(LoginDto),      StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        public async Task<LoginDto> LoginWithUsernameOrEmailWithPasswordAsync([FromRoute] int companie_id, [FromBody] LoginWithUsernameAndPasswordCommand payload)
+        public async Task<LoginDto> LoginWithUsernameOrEmailWithPasswordAsync([FromRoute] Guid companie_id, [FromBody] LoginWithUsernameAndPasswordCommand payload)
         {
-            var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            // 1. Intentar obtener la IP desde el header de Render (X-Forwarded-For)
+            var xForwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            
+            // 2. Lógica de selección de IP
+            string clientIp = !string.IsNullOrWhiteSpace(xForwardedFor) 
+                ? xForwardedFor.Split(',')[0].Trim() 
+                : HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            // 3. Normalizar localhost
+            if (clientIp == "::1") clientIp = "127.0.0.1";
+
             var deviceName = Request.Headers["x-device-name"].ToString();
 
             return await _mediator.Send(
@@ -31,7 +41,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
                     SessionDetails = new()
                     {
                         DeviceName = deviceName,
-                        IpAddress = remoteIp
+                        IpAddress = clientIp
                     }
                 }
             );
@@ -42,7 +52,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(LoginDto),      StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        public async Task<LoginDto> RefreshTokenAsync([FromRoute] int companie_id, [FromBody] RefreshTokenCommand body)
+        public async Task<LoginDto> RefreshTokenAsync([FromRoute] Guid companie_id, [FromBody] RefreshTokenCommand body)
         {
             return await _mediator.Send(new RefreshTokenCommand()
             {
@@ -56,7 +66,7 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> LogoutAsync([FromRoute] int companie_id, [FromBody] LogoutUserCommand body)
+        public async Task<IActionResult> LogoutAsync([FromRoute] Guid companie_id, [FromBody] LogoutUserCommand body)
         {
             await _mediator.Send(new LogoutUserCommand()
             {

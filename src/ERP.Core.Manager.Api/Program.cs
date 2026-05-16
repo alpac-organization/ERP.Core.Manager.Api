@@ -4,9 +4,18 @@ using ERP.Core.Manager.Api.Application;
 using ERP.Core.Manager.Api.Infrastructure;
 using System.Text.Json.Serialization;
 using ERP.Core.Manager.Api.Infrastructure.Middlewares;
+using ERP.Core.Infrastructure.Middlewares;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
+var root = builder.Environment.ContentRootPath;
+var envPath = Path.Combine(root, "..", "..", ".env");
+
+if (File.Exists(envPath)) DotNetEnv.Env.Load(envPath);
+else DotNetEnv.Env.Load(); 
+
+builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
@@ -15,10 +24,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ViteLocalPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://web-alpac.onrender.com")
+        policy.WithOrigins("http://localhost:5174", "http://localhost:5173", "https://web-alpac.onrender.com")
             .AllowAnyMethod()
             .AllowAnyHeader();
-            //   .AllowCredentials()
     });
 });
 
@@ -51,15 +59,24 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-app.UseMiddleware<ExceptionMiddleware>();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, OPTIONS");
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type");
+    }
+});
 
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseRouting();
 
 app.UseCors("ViteLocalPolicy");
 
 app.UseMiddleware<ApiKeyMiddleware>();
 
-app.UseMiddleware<AuthMiddleware>();
+app.UseMiddleware<AuthMiddleware>();    
 
 
 if (app.Environment.IsDevelopment())
@@ -75,5 +92,6 @@ app.UseHsts();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
+
 
 app.Run();

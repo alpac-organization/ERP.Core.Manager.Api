@@ -1,6 +1,6 @@
 using AutoMapper;
+using ERP.Core.Database.Domain.Entities.Catalogs;
 using ERP.Core.Manager.Api.Application.Features.Companies.v1.Dtos;
-using ERP.Core.Manager.Api.Domain.Entities.Catalogs;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 {
@@ -12,7 +12,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.CompanieName))
                 .ForMember(dest => dest.Alias, opt => opt.MapFrom(src => src.Alias))
-                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl));
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl))
+                .ForMember(dest => dest.Ruc, opt => opt.MapFrom(src => src.Ruc))
+                .ForMember(dest => dest.NeutralImageUrl, opt => opt.MapFrom(src => src.NeutralImageUrl));
         }
     }
 }

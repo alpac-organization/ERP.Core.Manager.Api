@@ -1,17 +1,10 @@
-using ERP.Core.Manager.Api.Domain.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Infrastructure.Services;
-using ERP.Core.Manager.Api.Infrastructure.Persistence;
-using ERP.Core.Manager.Api.Infrastructure.Persistence.Context;
-using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories;
-using ERP.Core.Manager.Api.Infrastructure.Persistence.Configurations.Database;
-
-using ERP.Core.Manager.Api.Domain.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Infrastructure.Persistence.Repositories.Authentication;
-
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ERP.Core.Manager.Api.Infrastructure.Services;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Infrastructure.Services; 
+using ERP.Core.Database.Infrastructure;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -20,33 +13,20 @@ namespace ERP.Core.Manager.Api.Infrastructure
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             //Configuracion de la cadena de conexión de base de datos.
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-
-            var dataSource = NpgsqlConfiguration.BuildDataSource(connectionString!);
-            
-            services.AddSingleton(dataSource);
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(dataSource,
-                    m => m.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
-
-            //Other Services.
+            //Other Services del paquete de la empresa.
             services.AddSingleton<ICodeGenerator, CodeGenerator>();
-            services.AddSingleton<IAuthServices, AuthServices>();
             services.AddTransient<IErrorManager, ErrorManager>();
-            services.AddScoped<IPasswordHasher, PasswordHasher>();
 
-            //Services
+            services.AddTransient<ITemplateServices, TemplateServices>();
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<ICalculatorDeductions, CalculatorDeductions>();
+            
+            services.AddScoped<ITemplateServices, TemplateServices>();
+            services.AddScoped<IPdfGeneratorServices, PdfGeneratorServices>();
             services.AddScoped<IAuthServices, AuthServices>();
 
-            //Repositories
-            services.AddScoped<IUsersRepository, UsersRepository>();
-            services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
-            services.AddScoped<ISessionsRepository, SessionsRepository>();
-            services.AddScoped<ICompaniesRepository, CompaniesRepository>();
-            services.AddScoped<IModulesRepository, ModulesRepository>();
-            services.AddScoped<IUserModulesRoleRepository, UserModulesRoleRepository>();
-            services.AddScoped<IRolesRepository, RolesRepository>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            // services.AddJobScheduling();
+            services.AddErpDatabaseServices(configuration);
 
             return services;
         }

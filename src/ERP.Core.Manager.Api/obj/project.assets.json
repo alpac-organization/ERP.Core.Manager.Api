@@ -28,6 +28,112 @@
           }
         }
       },
+      "DinkToPdf/1.0.8": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0"
+        },
+        "compile": {
+          "lib/netstandard1.6/DinkToPdf.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard1.6/DinkToPdf.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
+      "DotNetEnv/3.2.0": {
+        "type": "package",
+        "dependencies": {
+          "Superpower": "3.0.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/DotNetEnv.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/DotNetEnv.dll": {}
+        }
+      },
+      "ERP.Core.Application/1.0.100": {
+        "type": "package",
+        "dependencies": {
+          "ERP.Core.Domain": "1.0.100",
+          "FluentValidation.DependencyInjectionExtensions": "12.1.1",
+          "MediatR": "14.1.0"
+        },
+        "compile": {
+          "lib/net9.0/ERP.Core.Application.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Application.dll": {}
+        }
+      },
+      "ERP.Core.Database.Application/1.0.100": {
+        "type": "package",
+        "dependencies": {
+          "ERP.Core.Database.Domain": "1.0.100"
+        },
+        "compile": {
+          "lib/net9.0/ERP.Core.Database.Application.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Database.Application.dll": {}
+        }
+      },
+      "ERP.Core.Database.Domain/1.0.100": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/ERP.Core.Database.Domain.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Database.Domain.dll": {}
+        }
+      },
+      "ERP.Core.Database.Infrastructure/1.0.100": {
+        "type": "package",
+        "dependencies": {
+          "ERP.Core.Database.Application": "1.0.100",
+          "Microsoft.EntityFrameworkCore": "9.0.0",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.0"
+        },
+        "compile": {
+          "lib/net9.0/ERP.Core.Database.Infrastructure.dll": {
+            "related": ".runtimeconfig.json"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Database.Infrastructure.dll": {
+            "related": ".runtimeconfig.json"
+          }
+        }
+      },
+      "ERP.Core.Domain/1.0.100": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/ERP.Core.Domain.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Domain.dll": {}
+        }
+      },
+      "ERP.Core.Infrastructure/1.0.100": {
+        "type": "package",
+        "dependencies": {
+          "ERP.Core.Application": "1.0.100",
+          "Nanoid": "3.1.0"
+        },
+        "compile": {
+          "lib/net9.0/ERP.Core.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/ERP.Core.Infrastructure.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
       "FluentValidation/12.1.1": {
         "type": "package",
         "compile": {
@@ -53,6 +159,19 @@
         },
         "runtime": {
           "lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Handlebars.Net/2.1.6": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/Handlebars.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Handlebars.dll": {
             "related": ".xml"
           }
         }
@@ -631,6 +750,28 @@
           }
         }
       },
+      "Microsoft.IO.RecyclableMemoryStream/3.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/Microsoft.IO.RecyclableMemoryStream.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Microsoft.IO.RecyclableMemoryStream.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.NETCore.Platforms/1.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard1.0/_._": {}
+        },
+        "runtime": {
+          "lib/netstandard1.0/_._": {}
+        }
+      },
       "Microsoft.OpenApi/2.4.1": {
         "type": "package",
         "compile": {
@@ -685,6 +826,12 @@
           }
         }
       },
+      "NETStandard.Library/1.6.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.0.1"
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "type": "package",
         "compile": {
@@ -725,6 +872,81 @@
         },
         "runtime": {
           "lib/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "PuppeteerSharp/24.40.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
+          "WebDriverBiDi": "0.0.45"
+        },
+        "compile": {
+          "lib/net10.0/PuppeteerSharp.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/PuppeteerSharp.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Quartz/3.18.1": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/Quartz.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Quartz.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Quartz.Extensions.DependencyInjection/3.18.1": {
+        "type": "package",
+        "dependencies": {
+          "Quartz": "3.18.1"
+        },
+        "compile": {
+          "lib/net10.0/Quartz.Extensions.DependencyInjection.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Quartz.Extensions.DependencyInjection.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Quartz.Extensions.Hosting/3.18.1": {
+        "type": "package",
+        "dependencies": {
+          "Quartz.Extensions.DependencyInjection": "3.18.1"
+        },
+        "compile": {
+          "lib/net10.0/Quartz.Extensions.Hosting.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Quartz.Extensions.Hosting.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Superpower/3.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/Superpower.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/Superpower.dll": {
             "related": ".xml"
           }
         }
@@ -938,6 +1160,19 @@
           }
         }
       },
+      "WebDriverBiDi/0.0.45": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/WebDriverBiDi.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/WebDriverBiDi.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Application/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -945,6 +1180,8 @@
           "AutoMapper": "13.0.1",
           "BCrypt.Net-Next": "4.1.0",
           "Domain": "1.0.0",
+          "ERP.Core.Application": "1.0.100",
+          "ERP.Core.Database.Application": "1.0.100",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0",
           "Microsoft.EntityFrameworkCore": "10.0.5"
@@ -959,6 +1196,10 @@
       "Domain/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "ERP.Core.Database.Domain": "1.0.100",
+          "ERP.Core.Domain": "1.0.100"
+        },
         "compile": {
           "bin/placeholder/Domain.dll": {}
         },
@@ -971,8 +1212,15 @@
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
           "Application": "1.0.0",
-          "Nanoid": "3.1.0",
+          "DinkToPdf": "1.0.8",
+          "ERP.Core.Database.Infrastructure": "1.0.100",
+          "ERP.Core.Infrastructure": "1.0.100",
+          "Handlebars.Net": "2.1.6",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1",
+          "PuppeteerSharp": "24.40.0",
+          "Quartz": "3.18.1",
+          "Quartz.Extensions.DependencyInjection": "3.18.1",
+          "Quartz.Extensions.Hosting": "3.18.1",
           "System.IdentityModel.Tokens.Jwt": "8.16.0"
         },
         "compile": {
@@ -1032,6 +1280,101 @@
         "readme.md"
       ]
     },
+    "DinkToPdf/1.0.8": {
+      "sha512": "wJDlcNXjQ+OnBFwh3LBeAXgrXqlKl0RsgN60XpxEFbyqzdaG9ASb5HTXQjXQPaBguSCOrGZZESPnpcng34TEkw==",
+      "type": "package",
+      "path": "dinktopdf/1.0.8",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "dinktopdf.1.0.8.nupkg.sha512",
+        "dinktopdf.nuspec",
+        "lib/netstandard1.6/DinkToPdf.dll",
+        "lib/netstandard1.6/DinkToPdf.pdb",
+        "lib/netstandard1.6/DinkToPdf.xml"
+      ]
+    },
+    "DotNetEnv/3.2.0": {
+      "sha512": "2q+PD+aJcRW9QuRcIv4F8WbvEDxI6cwxzZJec2i45cBY4cAKCAoW4ZPkApJ7H82wr6Yfmxx/0kb1nLnRmZrGZA==",
+      "type": "package",
+      "path": "dotnetenv/3.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "dotnetenv.3.2.0.nupkg.sha512",
+        "dotnetenv.nuspec",
+        "lib/netstandard2.0/DotNetEnv.dll"
+      ]
+    },
+    "ERP.Core.Application/1.0.100": {
+      "sha512": "PLVEZFQ+ntgA+Uwjfvx2fCIZ352qwrwcG7BbjiONITQiUzjpXQqU6IHyY0UZPeKimRRAlIuMyVJ7GdAyRJEb7Q==",
+      "type": "package",
+      "path": "erp.core.application/1.0.100",
+      "files": [
+        ".nupkg.metadata",
+        "erp.core.application.1.0.100.nupkg.sha512",
+        "erp.core.application.nuspec",
+        "lib/net9.0/ERP.Core.Application.dll"
+      ]
+    },
+    "ERP.Core.Database.Application/1.0.100": {
+      "sha512": "7Hevb2m9riZ9UfrS0VycXdQmrUNGn8eI1Gww0t9HkAy59k8hfHZgEmuUHs7xgWmXZtBBCDShojLJn6kp6E0MEA==",
+      "type": "package",
+      "path": "erp.core.database.application/1.0.100",
+      "files": [
+        ".nupkg.metadata",
+        "erp.core.database.application.1.0.100.nupkg.sha512",
+        "erp.core.database.application.nuspec",
+        "lib/net9.0/ERP.Core.Database.Application.dll"
+      ]
+    },
+    "ERP.Core.Database.Domain/1.0.100": {
+      "sha512": "5y3ZrdI52dNIXZAdsq3qYwjjWqYyrf1lbqoE6uloXuJ7AKJV6N0KGeMN8/l0Qp6ANd/Ki5EKFAAWy5orQKnoUQ==",
+      "type": "package",
+      "path": "erp.core.database.domain/1.0.100",
+      "files": [
+        ".nupkg.metadata",
+        "erp.core.database.domain.1.0.100.nupkg.sha512",
+        "erp.core.database.domain.nuspec",
+        "lib/net9.0/ERP.Core.Database.Domain.dll"
+      ]
+    },
+    "ERP.Core.Database.Infrastructure/1.0.100": {
+      "sha512": "QNEzZ/dUZRDeNCn4A9JLto6DJiuEodX0EkB1HfNtLziyxmCNlayoDUyQxI/a9z/fiYcrNTj9cxrM9XutnFpntw==",
+      "type": "package",
+      "path": "erp.core.database.infrastructure/1.0.100",
+      "files": [
+        ".nupkg.metadata",
+        "erp.core.database.infrastructure.1.0.100.nupkg.sha512",
+        "erp.core.database.infrastructure.nuspec",
+        "lib/net9.0/ERP.Core.Database.Infrastructure.dll",
+        "lib/net9.0/ERP.Core.Database.Infrastructure.runtimeconfig.json"
+      ]
+    },
+    "ERP.Core.Domain/1.0.100": {
+      "sha512": "gNDaL2oA/h67Y29/3x2kgMJADQz2dsik99IYQlcwY4XdhbUO8a35Oi8yGW5PxJaAwKgYacDhuN9hvxf9bdwu7w==",
+      "type": "package",
+      "path": "erp.core.domain/1.0.100",
+      "files": [
+        ".nupkg.metadata",
+        "erp.core.domain.1.0.100.nupkg.sha512",
+        "erp.core.domain.nuspec",
+        "lib/net9.0/ERP.Core.Domain.dll"
+      ]
+    },
+    "ERP.Core.Infrastructure/1.0.100": {
+      "sha512": "GRhBnsUI1stNN6TME6cICzuyU4FZ51XlfUciBKO4eIy7FSMGSSc5RR5ABV+ckaB8eMByGThgGbic+Q9+BOgGGg==",
+      "type": "package",
+      "path": "erp.core.infrastructure/1.0.100",
+      "files": [
+        ".nupkg.metadata",
+        "erp.core.infrastructure.1.0.100.nupkg.sha512",
+        "erp.core.infrastructure.nuspec",
+        "lib/net9.0/ERP.Core.Infrastructure.dll"
+      ]
+    },
     "FluentValidation/12.1.1": {
       "sha512": "EPpkIe1yh1a0OXyC100oOA8WMbZvqUu5plwhvYcb7oSELfyUZzfxV48BLhvs3kKo4NwG7MGLNgy1RJiYtT8Dpw==",
       "type": "package",
@@ -1060,6 +1403,29 @@
         "fluentvalidation.dependencyinjectionextensions.nuspec",
         "lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll",
         "lib/net8.0/FluentValidation.DependencyInjectionExtensions.xml"
+      ]
+    },
+    "Handlebars.Net/2.1.6": {
+      "sha512": "WsYWCEXsIM6hEOSOSRHtIYLjC8BnbT5MVmqhNKRqUI7qiv0t8x3nJiBTEv0ZZfvUAMAFnadGIzSsS/U2anVG1Q==",
+      "type": "package",
+      "path": "handlebars.net/2.1.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "handlebars.net.2.1.6.nupkg.sha512",
+        "handlebars.net.nuspec",
+        "hbnet-icon.png",
+        "lib/net451/Handlebars.dll",
+        "lib/net451/Handlebars.xml",
+        "lib/net6.0/Handlebars.dll",
+        "lib/net6.0/Handlebars.xml",
+        "lib/netstandard1.3/Handlebars.dll",
+        "lib/netstandard1.3/Handlebars.xml",
+        "lib/netstandard2.0/Handlebars.dll",
+        "lib/netstandard2.0/Handlebars.xml",
+        "lib/netstandard2.1/Handlebars.dll",
+        "lib/netstandard2.1/Handlebars.xml"
       ]
     },
     "Humanizer.Core/2.14.1": {
@@ -2709,6 +3075,38 @@
         "microsoft.identitymodel.tokens.nuspec"
       ]
     },
+    "Microsoft.IO.RecyclableMemoryStream/3.0.1": {
+      "sha512": "s/s20YTVY9r9TPfTrN5g8zPF1YhwxyqO6PxUkrYTGI2B+OGPe9AdajWZrLhFqXIvqIW23fnUE4+ztrUWNU1+9g==",
+      "type": "package",
+      "path": "microsoft.io.recyclablememorystream/3.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net6.0/Microsoft.IO.RecyclableMemoryStream.dll",
+        "lib/net6.0/Microsoft.IO.RecyclableMemoryStream.xml",
+        "lib/netstandard2.0/Microsoft.IO.RecyclableMemoryStream.dll",
+        "lib/netstandard2.0/Microsoft.IO.RecyclableMemoryStream.xml",
+        "lib/netstandard2.1/Microsoft.IO.RecyclableMemoryStream.dll",
+        "lib/netstandard2.1/Microsoft.IO.RecyclableMemoryStream.xml",
+        "microsoft.io.recyclablememorystream.3.0.1.nupkg.sha512",
+        "microsoft.io.recyclablememorystream.nuspec"
+      ]
+    },
+    "Microsoft.NETCore.Platforms/1.0.1": {
+      "sha512": "2G6OjjJzwBfNOO8myRV/nFrbTw5iA+DEm0N+qUqhrOmaVtn4pC77h38I1jsXGw5VH55+dPfQsqHD0We9sCl9FQ==",
+      "type": "package",
+      "path": "microsoft.netcore.platforms/1.0.1",
+      "files": [
+        ".nupkg.metadata",
+        "ThirdPartyNotices.txt",
+        "dotnet_library_license.txt",
+        "lib/netstandard1.0/_._",
+        "microsoft.netcore.platforms.1.0.1.nupkg.sha512",
+        "microsoft.netcore.platforms.nuspec",
+        "runtime.json"
+      ]
+    },
     "Microsoft.OpenApi/2.4.1": {
       "sha512": "u7QhXCISMQuab3flasb1hoaiERmUqyWsW7tmQODyILoQ7mJV5IRGM+2KKZYo0QUfC13evEOcHAb6TPWgqEQtrw==",
       "type": "package",
@@ -2780,6 +3178,18 @@
         "nanoid.nuspec"
       ]
     },
+    "NETStandard.Library/1.6.0": {
+      "sha512": "ypsCvIdCZ4IoYASJHt6tF2fMo7N30NLgV1EbmC+snO490OMl9FvVxmumw14rhReWU3j3g7BYudG6YCrchwHJlA==",
+      "type": "package",
+      "path": "netstandard.library/1.6.0",
+      "files": [
+        ".nupkg.metadata",
+        "ThirdPartyNotices.txt",
+        "dotnet_library_license.txt",
+        "netstandard.library.1.6.0.nupkg.sha512",
+        "netstandard.library.nuspec"
+      ]
+    },
     "Newtonsoft.Json/13.0.3": {
       "sha512": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
       "type": "package",
@@ -2842,6 +3252,105 @@
         "npgsql.entityframeworkcore.postgresql.10.0.1.nupkg.sha512",
         "npgsql.entityframeworkcore.postgresql.nuspec",
         "postgresql.png"
+      ]
+    },
+    "PuppeteerSharp/24.40.0": {
+      "sha512": "vVvHFHCRW6772ptQmwzIxmc2CdkEv+F9kTlCncv4VFSGev1ev5mtlL9aVOPdHc6ss5ck6sArP4b2JtNy/7GzGA==",
+      "type": "package",
+      "path": "puppeteersharp/24.40.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net10.0/PuppeteerSharp.dll",
+        "lib/net10.0/PuppeteerSharp.xml",
+        "lib/netstandard2.0/PuppeteerSharp.dll",
+        "lib/netstandard2.0/PuppeteerSharp.xml",
+        "puppeteersharp.24.40.0.nupkg.sha512",
+        "puppeteersharp.nuspec"
+      ]
+    },
+    "Quartz/3.18.1": {
+      "sha512": "q/n/gKLcApDlTk90BRNvj6P8HKR+vbtZEQxo5BAbeEoN5e/8/aqRuG6yH7tVg02CeAXAD40boS74s9hVnh4XDw==",
+      "type": "package",
+      "path": "quartz/3.18.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net10.0/Quartz.dll",
+        "lib/net10.0/Quartz.xml",
+        "lib/net462/Quartz.dll",
+        "lib/net462/Quartz.xml",
+        "lib/net472/Quartz.dll",
+        "lib/net472/Quartz.xml",
+        "lib/net8.0/Quartz.dll",
+        "lib/net8.0/Quartz.xml",
+        "lib/net9.0/Quartz.dll",
+        "lib/net9.0/Quartz.xml",
+        "lib/netstandard2.0/Quartz.dll",
+        "lib/netstandard2.0/Quartz.xml",
+        "quartz-logo-small.png",
+        "quartz.3.18.1.nupkg.sha512",
+        "quartz.nuspec",
+        "quick-start.md"
+      ]
+    },
+    "Quartz.Extensions.DependencyInjection/3.18.1": {
+      "sha512": "ct+sIqr7n961jvo695GnqHjB+dhK6b/Y9LSXxK6n9EJ6JzMXpwcusd5u2lCqVqqNHaiGBLXp37E75hpPXHQkzA==",
+      "type": "package",
+      "path": "quartz.extensions.dependencyinjection/3.18.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net10.0/Quartz.Extensions.DependencyInjection.dll",
+        "lib/net10.0/Quartz.Extensions.DependencyInjection.xml",
+        "lib/net8.0/Quartz.Extensions.DependencyInjection.dll",
+        "lib/net8.0/Quartz.Extensions.DependencyInjection.xml",
+        "lib/net9.0/Quartz.Extensions.DependencyInjection.dll",
+        "lib/net9.0/Quartz.Extensions.DependencyInjection.xml",
+        "lib/netstandard2.0/Quartz.Extensions.DependencyInjection.dll",
+        "lib/netstandard2.0/Quartz.Extensions.DependencyInjection.xml",
+        "microsoft-di-integration.md",
+        "quartz-logo-small.png",
+        "quartz.extensions.dependencyinjection.3.18.1.nupkg.sha512",
+        "quartz.extensions.dependencyinjection.nuspec"
+      ]
+    },
+    "Quartz.Extensions.Hosting/3.18.1": {
+      "sha512": "kZ7ufndI5vygLpI0kCeukVKlzpRFtGjfoU3BoWZ6u6QKoRF2Z3KV1dSpv+VpMqRekz3SrObfN0iLZKWldoZLZw==",
+      "type": "package",
+      "path": "quartz.extensions.hosting/3.18.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "hosted-services-integration.md",
+        "lib/net10.0/Quartz.Extensions.Hosting.dll",
+        "lib/net10.0/Quartz.Extensions.Hosting.xml",
+        "lib/net8.0/Quartz.Extensions.Hosting.dll",
+        "lib/net8.0/Quartz.Extensions.Hosting.xml",
+        "lib/net9.0/Quartz.Extensions.Hosting.dll",
+        "lib/net9.0/Quartz.Extensions.Hosting.xml",
+        "lib/netstandard2.0/Quartz.Extensions.Hosting.dll",
+        "lib/netstandard2.0/Quartz.Extensions.Hosting.xml",
+        "quartz-logo-small.png",
+        "quartz.extensions.hosting.3.18.1.nupkg.sha512",
+        "quartz.extensions.hosting.nuspec"
+      ]
+    },
+    "Superpower/3.0.0": {
+      "sha512": "bjKbAYWePooCAvPxQq+3KnmcLfRggMyRoXmtBMlmCG71bdwBHrO6rmRJ2DRIodg5aztNcxeZXBUVWT+H+MZUhw==",
+      "type": "package",
+      "path": "superpower/3.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Superpower-White-400px.png",
+        "lib/net5.0/Superpower.dll",
+        "lib/net5.0/Superpower.xml",
+        "lib/netstandard2.0/Superpower.dll",
+        "lib/netstandard2.0/Superpower.xml",
+        "superpower.3.0.0.nupkg.sha512",
+        "superpower.nuspec"
       ]
     },
     "Swashbuckle.AspNetCore/10.1.5": {
@@ -3133,6 +3642,26 @@
         "system.identitymodel.tokens.jwt.nuspec"
       ]
     },
+    "WebDriverBiDi/0.0.45": {
+      "sha512": "lMQhMh32mqZCIBOkEP5DX+vtuoImuyKEAotqw33OuTZUgFFUFl+tEVPZ8fTIhsTCAXp5Nbhy2d3FeVxHYLehFw==",
+      "type": "package",
+      "path": "webdriverbidi/0.0.45",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net10.0/WebDriverBiDi.dll",
+        "lib/net10.0/WebDriverBiDi.xml",
+        "lib/net8.0/WebDriverBiDi.dll",
+        "lib/net8.0/WebDriverBiDi.xml",
+        "lib/net9.0/WebDriverBiDi.dll",
+        "lib/net9.0/WebDriverBiDi.xml",
+        "lib/netstandard2.0/WebDriverBiDi.dll",
+        "lib/netstandard2.0/WebDriverBiDi.xml",
+        "webdriverbidi.0.0.45.nupkg.sha512",
+        "webdriverbidi.nuspec"
+      ]
+    },
     "Application/1.0.0": {
       "type": "project",
       "path": "../Application/Application.csproj",
@@ -3151,6 +3680,7 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
+      "DotNetEnv >= 3.2.0",
       "Infrastructure >= 1.0.0",
       "Microsoft.AspNetCore.Mvc.Versioning >= 5.1.0",
       "Microsoft.AspNetCore.OpenApi >= 10.0.5",
@@ -3176,6 +3706,7 @@
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
+        "c:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\NuGet.Config",
         "C:\\Users\\desarrollo\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -3186,7 +3717,8 @@
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "C:\\Program Files\\dotnet\\library-packs": {},
-        "https://api.nuget.org/v3/index.json": {}
+        "https://api.nuget.org/v3/index.json": {},
+        "https://nuget.pkg.github.com/alpac-organization/index.json": {}
       },
       "frameworks": {
         "net10.0": {
@@ -3214,6 +3746,10 @@
       "net10.0": {
         "targetAlias": "net10.0",
         "dependencies": {
+          "DotNetEnv": {
+            "target": "Package",
+            "version": "[3.2.0, )"
+          },
           "Microsoft.AspNetCore.Mvc.Versioning": {
             "target": "Package",
             "version": "[5.1.0, )"

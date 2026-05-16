@@ -1,7 +1,7 @@
 using MediatR;
-using ERP.Core.Manager.Api.Domain.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 {

@@ -16,7 +16,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         [Tags("Modulos")] 
         [HttpGet("companies/{companie_id}/modules")]      
         [ProducesResponseType(typeof(List<ModuleDto>), StatusCodes.Status200OK)]  
-        public async Task<List<ModuleDto>> ObtainActiveModulesByCompanyIdAsync([FromRoute] int companie_id)
+        public async Task<List<ModuleDto>> ObtainActiveModulesByCompanyIdAsync([FromRoute] Guid companie_id)
         {
             return await _mediator.Send(
                 new ObtainActiveModulesByCompanyIdQuery()
@@ -29,14 +29,15 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         [HttpPost("companies/{companie_id}/modules")]      
         [Tags("Modulos")] 
         public async Task<IActionResult> CreateModuleAssociatedWithCompanyAsync(
-            [FromRoute] int companie_id, 
+            [FromRoute] Guid companie_id, 
             [FromBody] CreateModuleAssociatedWithCompanyCommand body
         ) {
             await _mediator.Send(
                 new CreateModuleAssociatedWithCompanyCommand()
                 {
                     CompanyId = companie_id,
-                    ModuleName = body.ModuleName
+                    ModuleName = body.ModuleName,
+                    Description = body.Description
                 }
             );
 

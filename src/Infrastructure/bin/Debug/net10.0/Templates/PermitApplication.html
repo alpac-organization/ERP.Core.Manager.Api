@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Configuración de página horizontal (Letter Landscape) */
+        @page { size: letter landscape; margin: 0; }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            color: #222;
+        }
+
+        /* Contenedor principal que fuerza las dos columnas */
+        .page-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            /* padding: 10mm; Margen de impresión */
+            box-sizing: border-box;
+            position: relative;
+            justify-content: space-between; /* Espacio entre los dos tickets */
+        }
+
+        /* Línea de corte central decorativa */
+        .cut-line {
+            position: absolute;
+            left: 50%;
+            top: 5mm;
+            bottom: 5mm;
+            border-left: 1px dashed #ccc;
+        }
+
+        /* Estilo para cada ticket individual */
+        .ticket {
+            width: 47%; /* Ancho de cada columna */
+            padding: 15px;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 180mm; /* Altura mínima para asegurar espacio */
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 8px;
+        }
+
+        .logo-img {
+            max-height: 45px;
+            max-width: 140px;
+            margin: 0 auto 5px auto;
+            display: block;
+        }
+
+        .company-name {
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #444;
+        }
+
+        .title-badge {
+            display: inline-block;
+            background-color: #f9f9f9;
+            padding: 3px 12px;
+            border-radius: 3px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            text-transform: uppercase;
+        }
+
+        /* Secciones de formulario */
+        .form-section {
+            margin-bottom: 10px;
+        }
+
+        .form-row {
+            margin: 8px 0;
+            font-size: 11px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .label {
+            font-weight: 700;
+            color: #555;
+            white-space: nowrap;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .line {
+            border-bottom: 1px solid #000;
+            flex-grow: 1;
+            margin-left: 6px;
+            min-height: 18px;
+            padding-left: 5px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        /* NUEVA SECCIÓN: BLOQUE DE VIGENCIA (FECHAS) */
+        .vigencia-container {
+            border: 1px solid #000;
+            margin: 12px 0;
+            background-color: #f9f9f9;
+            display: flex;
+        }
+
+        .vigencia-box {
+            flex: 1;
+            padding: 6px;
+            text-align: center;
+            border-right: 1px solid #000;
+        }
+
+        .vigencia-box:last-child {
+            border-right: none;
+        }
+
+        .vigencia-label {
+            display: block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .vigencia-value {
+            font-size: 12px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        /* Contenido principal (Tablas) */
+        .main-content {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            gap: 15px;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        .permisos-table {
+            width: 60%;
+        }
+
+        .permisos-table td {
+            border: 1px solid #333;
+            padding: 5px 8px;
+            font-size: 10px;
+            color: #222;
+        }
+
+        .check-cell {
+            width: 30px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 14px;
+            background-color: #eee; /* Fondo gris para resaltar el check */
+            border: 1px solid #333;
+        }
+
+        .days-table {
+            width: 35%;
+            text-align: center;
+        }
+
+        .days-table th {
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 9px;
+            padding: 4px;
+            border: 1px solid #333;
+            text-transform: uppercase;
+        }
+
+        .days-table td {
+            border: 1px solid #333;
+            font-size: 13px;
+            font-weight: 700;
+            height: 35px;
+            color: #000;
+        }
+
+        /* Sección de Motivo y Firmas */
+        .objetivo-section {
+            margin-top: 15px;
+            flex-grow: 1; /* Empuja las firmas hacia abajo */
+        }
+
+        .signatures {
+            margin-top: 35px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .sig-box {
+            width: 31%;
+            border-top: 1.5px solid #000;
+            padding-top: 6px;
+            text-align: center;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #444;
+        }
+
+        /* Texto vertical decorativo */
+        .vertical-text {
+            position: absolute;
+            right: -8px;
+            top: 45%;
+            transform: rotate(90deg);
+            font-size: 8px;
+            color: #aaa;
+            letter-spacing: 2px;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        /* Pie de página */
+        .footer-note {
+            margin-top: 20px;
+            font-size: 8px;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="cut-line"></div>
+
+        <div class="ticket">
+            <div class="header">
+                {{#if logo_url}}
+                <img src="{{logo_url}}" class="logo-img" alt="Logo">
+                {{/if}}
+                <div class="company-name">{{company_name}}</div>
+                <div class="title-badge">SOLICITUD DE PERMISO</div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-row">
+                    <!-- <span class="label">COLABORADOR:</span> <div class="line">{{collaborator_fullname}}</div> -->
+                </div>
+                <div class="form-row">
+                    <!-- <span class="label">ÁREA:</span> <div class="line">{{area_name}}</div>  -->
+                    <!-- <span class="label" style="margin-left:10px">FECHA SOLICITUD:</span> <div class="line" style="flex-grow:0; width:80px;">{{current_date}}</div> -->
+                </div>
+            </div>
+
+            <div class="vigencia-container">
+                <div class="vigencia-box">
+                    <span class="vigencia-label">Desde (Fecha / Hora)</span>
+                    <!-- <span class="vigencia-value">{{start_date_formatted}}</span> -->
+                </div>
+                <div class="vigencia-box">
+                    <span class="vigencia-label">Hasta (Fecha / Hora)</span>
+                    <!-- <span class="vigencia-value">{{end_date_formatted}}</span> -->
+                </div>
+            </div>
+
+            <div class="main-content">
+                <table class="permisos-table">
+                    <!-- <tr><td>Vacación</td><td class="check-cell">{{check_vacation}}</td></tr>
+                    <tr><td>Consulta Médica / Incapacidad</td><td class="check-cell">{{check_medical}}</td></tr>
+                    <tr><td>Día Compensatorio</td><td class="check-cell">{{check_comp}}</td></tr>
+                    <tr><td>Permiso con Goce de Sueldo</td><td class="check-cell">{{check_paid}}</td></tr>
+                    <tr><td>Permiso sin Goce de Sueldo</td><td class="check-cell">{{check_unpaid}}</td></tr>
+                    <tr><td>Licencia Especial</td><td class="check-cell">{{check_special}}</td></tr> -->
+                </table>
+
+                <table class="days-table">
+                    <thead>
+                        <tr><th>DÍAS</th><th>HORAS</th></tr>
+                    </thead>
+                    <tbody>
+                        <!-- <tr><td>{{amount_days}}</td><td>{{amount_hours}}</td></tr> -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="objetivo-section">
+                <div class="form-row" style="align-items: flex-start;">
+                    <span class="label">MOTIVO:</span> 
+                    <!-- <div class="line" style="min-height: 35px;">{{description}}</div> -->
+                </div>
+            </div>
+
+            <div class="signatures">
+                <div class="sig-box">Firma Interesado</div>
+                <div class="sig-box">Jefe Inmediato</div>
+                <div class="sig-box">Talento Humano</div>
+            </div>
+
+            <div class="vertical-text">EXPEDIENTE RRHH</div>
+            
+            <div class="footer-note">
+                <span>Alpac ERP v2.0 - 2026</span>
+                <span>ORIGINAL</span>
+            </div>
+        </div>
+
+        <div class="ticket">
+            <div class="header">
+                {{#if logo_url}}
+                <img src="{{logo_url}}" class="logo-img">
+                {{/if}}
+                <div class="company-name">{{company_name}}</div>
+                <div class="title-badge">SOLICITUD DE PERMISO</div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-row">
+                    <span class="label">COLABORADOR:</span> <div class="line">{{collaborator_fullname}}</div>
+                </div>
+                <div class="form-row">
+                    <!-- <span class="label">ÁREA:</span> <div class="line">{{area_name}}</div>  -->
+                    <!-- <span class="label" style="margin-left:10px">FECHA SOLICITUD:</span> <div class="line" style="flex-grow:0; width:80px;">{{current_date}}</div> -->
+                </div>
+            </div>
+
+            <div class="vigencia-container">
+                <div class="vigencia-box">
+                    <span class="vigencia-label">Desde (Fecha / Hora)</span>
+                    <!-- <span class="vigencia-value">{{start_date_formatted}}</span> -->
+                </div>
+                <div class="vigencia-box">
+                    <span class="vigencia-label">Hasta (Fecha / Hora)</span>
+                    <!-- <span class="vigencia-value">{{end_date_formatted}}</span> -->
+                </div>
+            </div>
+
+            <div class="main-content">
+                <table class="permisos-table">
+                    <!-- <tr><td>Vacación</td><td class="check-cell">{{check_vacation}}</td></tr>
+                    <tr><td>Consulta Médica / Incapacidad</td><td class="check-cell">{{check_medical}}</td></tr>
+                    <tr><td>Día Compensatorio</td><td class="check-cell">{{check_comp}}</td></tr>
+                    <tr><td>Permiso con Goce de Sueldo</td><td class="check-cell">{{check_paid}}</td></tr>
+                    <tr><td>Permiso sin Goce de Sueldo</td><td class="check-cell">{{check_unpaid}}</td></tr>
+                    <tr><td>Licencia Especial</td><td class="check-cell">{{check_special}}</td></tr> -->
+                </table>
+
+                <table class="days-table">
+                    <thead>
+                        <tr><th>DÍAS</th><th>HORAS</th></tr>
+                    </thead>
+                    <tbody>
+                        <!-- <tr><td>{{amount_days}}</td><td>{{amount_hours}}</td></tr> -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="objetivo-section">
+                <div class="form-row" style="align-items: flex-start;">
+                    <span class="label">MOTIVO:</span> 
+                    <div class="line" style="min-height: 35px;">{{description}}</div>
+                </div>
+            </div>
+
+            <div class="signatures">
+                <div class="sig-box">Firma Interesado</div>
+                <div class="sig-box">Jefe Inmediato</div>
+                <div class="sig-box">Talento Humano</div>
+            </div>
+
+            <div class="vertical-text">COPIA INTERESADO</div>
+
+            <div class="footer-note">
+                <span>Alpac ERP v2.0 - 2026</span>
+                <span>COPIA CLIENTE</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

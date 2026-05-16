@@ -1,0 +1,41 @@
+using FluentValidation;
+using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
+
+namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Validators
+{
+    public class ObtainPayrollPeriodsValidator: AbstractValidator<ObtainPayrollPeriodsQuery>
+    {
+        public ObtainPayrollPeriodsValidator()
+        {
+            RuleFor(x => x.CompanyId)
+                .NotEmpty()
+                    .WithMessage("El id de la empresa no puedes vacio.")
+                .NotNull()
+                    .WithMessage("El id de la empresa es requerido");
+
+            RuleFor(x => x.ModuleCode)
+                .NotEmpty()
+                    .WithMessage("El codigo de modulo es requerido")
+                .NotNull()
+                    .WithMessage("El codigo de modulo es requerido");
+
+            RuleFor(x => x.UserId)
+                .NotEmpty()
+                    .WithMessage("El id de usuario es requerido")
+                .NotNull()
+                    .WithMessage("El id de usuario es requerido");
+
+            RuleFor(x => x.Type)
+                .NotEmpty()
+                    .WithMessage("El tipo de nomina es requerido")
+                .NotNull()
+                    .WithMessage("El tipo de nomina es requerido");
+
+            RuleFor(x => x.BrachId)
+                .NotEmpty()
+                    .WithMessage("Seleccione una sucursal")
+                .NotNull()
+                    .WithMessage("Seleccione una sucursal");
+        }
+    }
+}

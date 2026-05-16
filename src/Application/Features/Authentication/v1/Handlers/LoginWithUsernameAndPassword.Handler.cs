@@ -1,9 +1,10 @@
 using MediatR;
-using ERP.Core.Manager.Api.Domain.Interfaces;
-using ERP.Core.Manager.Api.Domain.Entities.Authentication;
+using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
+using ERP.Core.Database.Domain.Entities.Auth;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 {
@@ -30,7 +31,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             }
             else
             {
-                return _errorManager.ThrowBadRequest<LoginDto>("Debe proporcionar un correo o un nombre de usuario.", "IdentityError");
+                return _errorManager.ThrowBadRequest<LoginDto>("Debe proporcionar un correo o un nomre de usuario.", "IdentityError");
             }
 
             if (user is null)
@@ -82,7 +83,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             // 5. Preparar la nueva sesión
             var newSessionId = Guid.NewGuid();
             var refreshToken = _authServices.GenerateRefreshToken();
-            var accessToken = _authServices.GenerateAccessToken(user, company!.Code, newSessionId, modulesWithAccess);
+            var accessToken = _authServices.GenerateAccessToken(user, company!.Code!, newSessionId, modulesWithAccess);
 
             var newSession = new Session()
             {
@@ -105,10 +106,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 UserId = user.Id,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
+                Email = user.Email,
+                FullName = user.Fullname,
+                IdentificationNumber = user.IdentificationNumber,
+                UserType = user.UserType.ToString(),
                 CompanyInformation = new()
                 {
                     CompanyId = profile.CompanyId,
-                    CompanyName = company?.CompanieName
+                    CompanyName = company?.CompanieName,
+                    ImageUrl = company?.ImageUrl,
+                    NeutralImageUrl = company?.NeutralImageUrl,
+                    Alias = company?.Alias
                 },
                 UserName = user.UserName
             };

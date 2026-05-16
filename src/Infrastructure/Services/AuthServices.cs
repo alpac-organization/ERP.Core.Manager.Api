@@ -1,5 +1,4 @@
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Domain.Entities.Authentication;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -9,6 +8,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using JwtRegisteredClaimNames = System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames;
 using System.Security.Cryptography;
+using ERP.Core.Database.Domain.Entities.Auth;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
