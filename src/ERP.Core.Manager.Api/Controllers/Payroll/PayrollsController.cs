@@ -59,7 +59,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         //Cerrar proceso de nomina
         [Tags("Nomina")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/payrolls/{payroll_id}/close")]      
+        [HttpPost("companies/{companie_id}/modules/{module_code}/payrolls/{payroll_id}/close")]      
         [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
@@ -71,7 +71,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             payload.ModuleCode = module_code;
             payload.UserId = Guid.Parse(userIdStr ?? "");
             payload.PayrollId = payroll_id;
-
+            
             await _mediator.Send(payload);
 
             return Created(string.Empty, null);

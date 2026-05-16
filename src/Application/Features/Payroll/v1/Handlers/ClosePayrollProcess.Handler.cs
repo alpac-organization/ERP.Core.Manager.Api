@@ -34,6 +34,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             }
 
             #region Verificar estado de la nomina
+
             var payroll = await _unitOfWork.Payrolls.Entities 
                 .Where(pay => 
                     pay.BranchId == request.BranchId && pay.PayrollType == request.PayrollType
@@ -48,12 +49,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             {
                 return  _errorManager.ThrowBadRequest<bool>("Esta nomina no se encuentra en curso o no existe", "ERP:02");
             }
+
             #endregion
 
             payroll.Status = PayrollStatus.Closed;
 
             await _unitOfWork.Payrolls.UpdateAsync(payroll);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             //Guardamos procesos de historiales
             var registers = payroll.OrdinaryPayrolls;
@@ -108,7 +109,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                    NumberDaysPaid = 13,
                 });
             }
+
             
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
             return true;
         }
     }

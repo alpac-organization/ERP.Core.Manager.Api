@@ -61,6 +61,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                 }
                 case DeductionType.LateArrivals:
                 {
+                    //Datos importados desde el archivo.
                     foreach (var collaborator in request.LateArrivalsData)
                     {
                         var collaboratorInformation = await _unitOfWork.Collaborators.Entities
@@ -144,7 +145,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                             Currency             = Currency.NIO,
                             Status               = DeductionStatus.Completed,
                             Type                 = DeductionType.LateArrivals,
-                            PayrollId            = payrollActive.Id,
                             CollaboratorId       = collaboratorInformation.Id,
                             Description          = "Llegadas tardes",
                             TotalAmount          = TotalDeductionToLateArrivals,

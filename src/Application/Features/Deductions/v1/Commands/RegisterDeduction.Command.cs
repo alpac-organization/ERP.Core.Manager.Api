@@ -8,16 +8,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
     {
         //Registrar el periodo las deducciones
         public Guid PayrollId { get; set; } 
+        public Guid BranchId { get; set; }
         public DeductionType DeductionType { get; set; }
 
 
-        public LoansPayload? LoansPayload { get; set; }
-        public AdvanceSalaryPayload? AdvanceSalaryPayload { get; set; }
+        // public LoansPayload? LoansPayload { get; set; }
+        // public AdvanceSalaryPayload? AdvanceSalaryPayload { get; set; }
 
         
         //Importación de documentos aqui.
         public List<PurisimaData> PurisimaData { get; set; } = [];
         public List<LateArrivalsData> LateArrivalsData { get; set; } = [];
+    }
+
+    public class OtherDeductionsData
+    {
+        public decimal Amount { get; set; }
+        public Currency Currency { get; set; }
+        public int NumberFortnights { get; set; }
     }
 
     public class PurisimaData
