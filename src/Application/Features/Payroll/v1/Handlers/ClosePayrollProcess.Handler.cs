@@ -5,10 +5,11 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class ClosePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<ClosePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
+    public class ClosePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<ClosePayrollProcessHandler> _logger): AlpacBaseHandler<ClosePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(ClosePayrollProcessCommand request, CancellationToken cancellationToken)
         {
@@ -53,7 +54,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             #endregion
 
             payroll.Status = PayrollStatus.Closed;
-
             await _unitOfWork.Payrolls.UpdateAsync(payroll);
 
             //Guardamos procesos de historiales
@@ -62,52 +62,80 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             //Realizar todo aquel, registro de deducciones y pagos realizados del colaborador
             foreach(var collaborator in registers)
             {
-                //Prestamos
-                var loans = await _unitOfWork.Deductions.Entities
-                    .Where(loan => loan.Status == DeductionStatus.Progress)
-                    .Where(loan => loan.CollaboratorId == collaborator.Id)
+                var deductionsActive = await _unitOfWork.Deductions.Entities
+                    .Where(deduction => deduction.CollaboratorId == collaborator.Id)
+                    .Where(deduction => deduction.Status == DeductionStatus.Progress)
                     .ToListAsync(cancellationToken);
 
-                foreach(var loan in loans)
+                foreach(var deduction in deductionsActive)
                 {
-                    // Dejamos el registros de pagos en el historial de pagos✅
-
-                    // Empezamos hacer el registro de pago de prestamo que hemos deducido de la nomina
                     var payment = await _unitOfWork.DeductionPaymentHistories.Entities
+                        .Where(paid => paid.DeductionId == deduction.Id)
                         .Where(paid => paid.Status == DeductionPaymentStatus.Pending)
-                        .Where(paid => paid.DeductionId == loan.Id)
                         .Include(paid => paid.Deduction)
                         .FirstOrDefaultAsync(cancellationToken);
 
-                    decimal amountInLocal = loan.FortnightlyAmount ?? 0;
-                    decimal amountInDollars = loan.FortnightlyAmountInDollars ?? 0;
-                
-                    if(payment is not null)
+                    if(payment is null)
                     {
-                        loan.AmountPaid += amountInLocal;
-                        loan.AmountPaidInDollars += amountInDollars;
+                        _logger.LogInformation("");
+                        continue;
+                    }
+                    
+                    decimal amountInLocal   = deduction.FortnightlyAmount ?? 0;
+                    decimal amountInDollars = deduction.FortnightlyAmountInDollars ?? 0;
 
-                        loan.TotalBalance -= amountInLocal;
-                        loan.TotalBalanceInDollars -= amountInDollars;
+                    deduction.AmountPaid += amountInLocal;
+                    deduction.AmountPaidInDollars += amountInDollars;
+                    deduction.NumberFortnightsPaid += 1;
 
-                        loan.NumberFortnightsPaid += 1;
+                    if (deduction.Type == DeductionType.Loans)
+                    {
+                        deduction.TotalBalance -= amountInLocal;
+                        deduction.TotalBalanceInDollars -= amountInDollars;
 
-                        await _unitOfWork.Deductions.UpdateAsync(loan);
+                        if (deduction.TotalBalance <= 0 && deduction.TotalBalanceInDollars <= 0)
+                        {
+                            deduction.Status = DeductionStatus.Completed;
+                            await _unitOfWork.Deductions.UpdateAsync(deduction);
+                        }
 
                         payment.Status = DeductionPaymentStatus.Paid;
                         await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
                     }
+
+                    if (deduction.Type == DeductionType.Purisima)
+                    {
+                        payment.Status = DeductionPaymentStatus.Paid;
+                        await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
+                    }
+
+                    if (deduction.Type == DeductionType.OtherDeductions)
+                    {
+                        deduction.TotalBalance -= amountInLocal;
+                        deduction.TotalBalanceInDollars -= amountInDollars;
+
+                        if (deduction.TotalBalance <= 0 && deduction.TotalBalanceInDollars <= 0)
+                        {
+                            deduction.Status = DeductionStatus.Completed;
+                            await _unitOfWork.Deductions.UpdateAsync(deduction);
+                        }
+
+                        payment.Status = DeductionPaymentStatus.Paid;
+                        await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
+                    }
+
+                    await _unitOfWork.Deductions.UpdateAsync(deduction);
                 }
 
-                //Registramos los pagos realizados de viaticos del colaborador.
-                await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(new()
-                {
-                   Lodging = collaborator.Lodging,
-                   Feeding = collaborator.Feeding,
-                   Transport = collaborator.Transport,                  
-                   TotalAmountPaid = collaborator.TotalTravelExpenses,
-                   NumberDaysPaid = 13,
-                });
+                // //Registramos los pagos realizados de viaticos del colaborador.
+                // await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(new()
+                // {
+                //    Lodging = collaborator.Lodging,
+                //    Feeding = collaborator.Feeding,
+                //    Transport = collaborator.Transport,                  
+                //    TotalAmountPaid = collaborator.TotalTravelExpenses,
+                //    NumberDaysPaid = 13,
+                // });
             }
 
             
