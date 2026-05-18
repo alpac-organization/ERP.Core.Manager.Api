@@ -2,7 +2,7 @@ using ERP.Core.Database.Domain.Entities.Payrolls;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 {
-    public interface IDeductionsService
+    public interface IDeductionsServices
     {
         Task ApplyDeductionLateArrivals(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalMinutes, Guid payrollId);
         Task ApplyDeductionPurisima(Collaborator collaboratorInformation, decimal fortnightlyAmount, Guid payrollId);

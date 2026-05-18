@@ -12,7 +12,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     #pragma warning disable CA1873
 
-    public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsService
+    public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
     {
         public async Task ApplyDeductionLateArrivals(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalMinutes, Guid payrollId)
         {
@@ -180,5 +180,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             });
         }
     }
+    
     #pragma warning restore CA1873
 }
