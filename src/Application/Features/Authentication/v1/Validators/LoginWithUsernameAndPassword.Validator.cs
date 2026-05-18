@@ -17,12 +17,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Validators
 
             RuleFor(x => x.Username)
                 .NotEmpty().WithMessage("El nombre de usuario es requerido.")
-                .MaximumLength(100).WithMessage("El usuario no puede exceder los 100 caracteres.");
+                .MaximumLength(100).WithMessage("El usuario no puede exceder los 100 caracteres.")
+                .When(x => !string.IsNullOrWhiteSpace(x.Username));
 
             RuleFor(x => x.Email)
                 .EmailAddress().WithMessage("El formato del correo electrónico no es válido.")
                 .MaximumLength(100).WithMessage("El correo no puede exceder los 100 caracteres.")
-                .When(x => !string.IsNullOrEmpty(x.Email)); 
+                .When(x => !string.IsNullOrWhiteSpace(x.Email));
 
             RuleFor(x => x.SessionDetails)
                 .NotNull().WithMessage("Los detalles de la sesión son obligatorios.");
