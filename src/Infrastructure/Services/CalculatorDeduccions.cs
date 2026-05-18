@@ -228,10 +228,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal GrossSalary = ProportionalBiweeklySalary;
             decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions + Antique;
 
-                var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
-                    .Where(income => income.CollaboratorId == collaborator.Id)
-                    .OrderByDescending(income => income.CreatedAt)
-                    .FirstOrDefaultAsync(cancellationToken);
+            var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
+                .Where(income => income.CollaboratorId == collaborator.Id)
+                .OrderByDescending(income => income.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
 
             var (BiweeklyInss, BiweeklyIr) = await CalculateIrToNextProcess(
                 TaxInformation?.NumberOfFortnights ?? 24,
@@ -259,29 +259,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             };
 
             #region Deducciones Activas aqui
-
-            #region Prestamos Activos
-            
-            var loans = await _unitOfWork.Deductions.Entities
-                .Where(deduction => deduction.Type == DeductionType.Loans)
-                .Where(deduction => deduction.Status == DeductionStatus.Progress)
-                .Where(deduction => deduction.CollaboratorId == collaborator.Id)
-                .ToListAsync(cancellationToken);
-
-            foreach (var loan in loans)
-            {
-                AdditionalDeducctions.Loans += loan.FortnightlyAmount ?? 0.0m;
-                
-                await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
-                {
-                    AmountPaid = loan.FortnightlyAmount ?? 0.0m,
-                    DeductionId = loan.Id,
-                    Status = DeductionPaymentStatus.Pending,
-                    Origin = SourceDeductionPayment.Payroll,
-                    PayrollId = payrollCreated.Id,
-                    PaymentDate = payrollCreated.StartDate,
-                });
-            }
             
             var deductionsActive = await _unitOfWork.Deductions.Entities
                 .Where(deduction => deduction.CollaboratorId == collaborator.Id)
@@ -314,7 +291,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     
                     Status              = DeductionPaymentStatus.Pending,
                     Origin              = SourceDeductionPayment.Payroll,
-
+                    Currency            = deduction.Currency,
                     PayrollId           = payrollCreated.Id,
                     PaymentDate         = payrollCreated.EndDate ?? DateTime.Now,
                 });
@@ -336,7 +313,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + AdditionalDeducctions.Sanction
                 + AdditionalDeducctions.LateArrivals;
 
-            #endregion
 
             #region Asignación de viaticos
 
