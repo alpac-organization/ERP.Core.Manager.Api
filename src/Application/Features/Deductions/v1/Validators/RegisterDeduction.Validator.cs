@@ -1,6 +1,6 @@
 using FluentValidation;
-using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Validators
 {
@@ -42,8 +42,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Validators
             When(x => x.DeductionType == DeductionType.Purisima, () =>
             {
                 RuleFor(x => x.PurisimaData)
-                    .NotNull().WithMessage("Los datos de la Purísima son obligatorios.")
-                    .NotEmpty().WithMessage("La lista de cuotas de la Purísima no puede estar vacía.");
+                    .NotNull().WithMessage("La lista de purisima no puede ser nula")
+                    .NotEmpty().WithMessage("La lista de purisima no puede estar vacía");
             });
         }
     }
