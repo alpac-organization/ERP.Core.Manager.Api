@@ -87,7 +87,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Type                 = DeductionType.LateArrivals,
                 CollaboratorId       = collaboratorInformation.Id,
                 Description          = "Llegadas tardes",
-                Amount               = TotalDeductionToLateArrivals,              
+                Amount               = totalMinutes,              
                 TotalAmount          = TotalDeductionToLateArrivals,
                 TotalAmountInDollars = TotalDeductionToLateArrivals / 36.6242m
             });
@@ -97,7 +97,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Currency            = Currency.NIO,
                 Status              = DeductionPaymentStatus.Paid,
                 Origin              = SourceDeductionPayment.Payroll,
-                DeductionId         = deduction.Id,    
+                DeductionId         = deduction.Id,
                 PayrollId           = ordinaryPayroll.PayrollId,           
                 AmountPaid          = TotalDeductionToLateArrivals,
                 AmountPaidInDollars = TotalDeductionToLateArrivals,
@@ -178,8 +178,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 AmountPaidInDollars = fortnightlyAmount / 36.6243m,
                 PaymentDate         = ordinaryPayroll.Payroll.EndDate ?? DateTime.Now
             });
-
-            // await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
     #pragma warning restore CA1873
