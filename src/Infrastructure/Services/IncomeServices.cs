@@ -171,7 +171,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .OrderByDescending(income => income.CreatedAt)
                 .FirstOrDefaultAsync(default);
         
-
             int daysWorked = 15;
             DateTime entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart = salaryInformation.StartDate;
@@ -188,6 +187,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             TotalIncome += amountComission;         
             ordinaryPayrollInfo.TotalIncome = TotalIncome;
+            ordinaryPayrollInfo.Commissions = amountComission;
 
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIrToNextProcess(
                 lastFortnight ?? 24,
@@ -205,7 +205,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.Inss                 = BiweeklyInss;
             ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
 
-                var deductions =
+            var deductions =
                 JsonSerializer.Deserialize<DeductionsAdditionalData>(
                     ordinaryPayrollInfo.DeductionsAdditionalData
                 ) ?? new DeductionsAdditionalData();
@@ -228,6 +228,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal total = ordinaryPayrollInfo.TotalIncome - BiweeklyInss - BiweeklyIr - totalDeductions + ordinaryPayrollInfo.TotalTravelExpenses;
 
             ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+            ordinaryPayrollInfo.TotalToPay = total;
 
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
         }

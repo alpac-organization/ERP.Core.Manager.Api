@@ -65,6 +65,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + deductions.Sanction
                 + deductions.LateArrivals;
 
+
+            deductions.LateArrivalsInMinutes = totalMinutes;
             decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
 
             ordinaryPayroll.TotalToPay = total;

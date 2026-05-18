@@ -92,14 +92,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 }
                 case "COMMISSION":
                 {
-                    if (request.CommissionsPayload is null)                   return _errorManager.ThrowBadRequest<bool>("Los datos para registro de comisiones es requerido", "ERP:02");
-                    if (request.CommissionsPayload.CommissionAmount <= 0)     return _errorManager.ThrowBadRequest<bool>("El monto de las comisiones no puede ser menor o igual a 0", "ERP:02");
-                    if (!Enum.IsDefined(request.CommissionsPayload.Currency)) return _errorManager.ThrowBadRequest<bool>("La moneda es requerida", "ERP:02");
+                    if (request.CommissionsPayload is null)                   
+                        return _errorManager.ThrowBadRequest<bool>("Los datos para registro de comisiones es requerido", "ERP:02");
+                    
+                    if (request.CommissionsPayload.CommissionAmount <= 0)     
+                        return _errorManager.ThrowBadRequest<bool>("El monto de las comisiones no puede ser menor o igual a 0", "ERP:02");
+
+                    if (string.IsNullOrEmpty(request.CommissionsPayload.IdentificationNumber))     
+                        return _errorManager.ThrowBadRequest<bool>("El número de identificación es requerido", "ERP:02");
+
+                    if (!Enum.IsDefined(request.CommissionsPayload.Currency)) 
+                        return _errorManager.ThrowBadRequest<bool>("La moneda es requerida", "ERP:02");
 
                     var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                        .Where(col => col.IdentificationNumber == request.CommissionsPayload.IdentificationNumber && col.CompanyId == request.CompanyId && (col.Status != CollaboratorStatus.Inactive || col.Status !=  CollaboratorStatus.Subsidy))
                         .Include(col => col.WorkingInformation)
-                            .ThenInclude(work => work.BranchInfo)
+                        .Where(col => col.IdentificationNumber == request.CommissionsPayload.IdentificationNumber 
+                            && col.CompanyId == request.CompanyId 
+                            && col.Status != CollaboratorStatus.Inactive 
+                            && col.Status != CollaboratorStatus.Subsidy)
                         .FirstOrDefaultAsync(cancellationToken);
 
                     if (collaboratorInformation is null)
@@ -108,8 +118,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     }
 
                     var salaryInformation = await _unitOfWork.Salaries.Entities
+                        
                         .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
                         .Include(sal => sal.Collaborator)
+                            .ThenInclude(sal => sal.WorkingInformation)
                         .FirstOrDefaultAsync(cancellationToken);
 
                     if (salaryInformation is null)

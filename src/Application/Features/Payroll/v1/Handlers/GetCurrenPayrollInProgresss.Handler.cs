@@ -12,15 +12,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
     {
         public override async Task<PayrollDto> Handle(GetCurrenPayrollInProgresssQuery request, CancellationToken cancellationToken)
         {
-
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
             {
                 return access.ErrorResponse!; 
             }
-
-            //Solo Administradores puede realizar la apertura de la nomina.
 
             var payroll = await _unitOfWork.Payrolls.Entities
                 .AsNoTracking()
