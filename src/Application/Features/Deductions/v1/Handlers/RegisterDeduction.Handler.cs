@@ -9,13 +9,11 @@ using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 {
-    public class RegisterDeductionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsService _deductionServices, ILogger<RegisterDeductionHandler> _logger): AlpacBaseHandler<RegisterDeductionCommand, bool>(_unitOfWork, _errorManager)
+    public class RegisterDeductionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices, ILogger<RegisterDeductionHandler> _logger): AlpacBaseHandler<RegisterDeductionCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterDeductionCommand request, CancellationToken cancellationToken)
         {
-            
             #pragma warning disable CA1873
-
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
