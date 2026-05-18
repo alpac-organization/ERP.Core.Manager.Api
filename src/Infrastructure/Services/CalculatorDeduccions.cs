@@ -161,10 +161,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #endregion 
 
-            if (collaborator.IdentificationNumber == "4012912880000M")
-            {
-                
-            }
 
             DateTime entryDate = salary.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart = payrollCreated.StartDate;
@@ -276,7 +272,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                 AdditionalDeducctions.Loans += loan.FortnightlyAmount ?? 0.0m;
                 
-                //Guardamos el registro de pago a realizar.
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                 {
                     AmountPaid = loan.FortnightlyAmount ?? 0.0m,
@@ -288,6 +283,42 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 });
             }
             
+            var deductionsActive = await _unitOfWork.Deductions.Entities
+                .Where(deduction => deduction.CollaboratorId == collaborator.Id)
+                .Where(deduction => deduction.Status == DeductionStatus.Progress)
+                .ToListAsync(cancellationToken);
+
+            foreach(var deduction in deductionsActive)
+            {
+                if (deduction.Type == DeductionType.Loans)
+                {
+                    AdditionalDeducctions.Loans += deduction.FortnightlyAmount ?? 0.0m;                
+                }
+
+                if (deduction.Type == DeductionType.Purisima)
+                {
+                    AdditionalDeducctions.Purisima += deduction.FortnightlyAmount ?? 0.0m;                
+                }
+
+                if (deduction.Type == DeductionType.OtherDeductions)
+                {
+                    AdditionalDeducctions.OtherDeductions += deduction.FortnightlyAmount ?? 0.0m;                
+                }
+
+                await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+                {
+                    DeductionId         = deduction.Id,
+
+                    AmountPaid          = deduction.FortnightlyAmount ?? 0.0m,
+                    AmountPaidInDollars = (deduction.FortnightlyAmount ?? 0.0m) / 36.6243m,
+                    
+                    Status              = DeductionPaymentStatus.Pending,
+                    Origin              = SourceDeductionPayment.Payroll,
+
+                    PayrollId           = payrollCreated.Id,
+                    PaymentDate         = payrollCreated.EndDate ?? DateTime.Now,
+                });
+            }
             #endregion
 
             decimal totalDeductionsAdditionals =
@@ -304,7 +335,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + AdditionalDeducctions.Absences
                 + AdditionalDeducctions.Sanction
                 + AdditionalDeducctions.LateArrivals;
-                
+
             #endregion
 
             #region Asignación de viaticos
@@ -315,10 +346,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Include(asssined => asssined.TypeIncome)
                 .ToListAsync(cancellationToken);
 
-            decimal Lodging = 0.0m;
-            decimal Transport = 0.0m;
+            decimal Lodging             = 0.0m;
+            decimal Transport           = 0.0m;
             decimal FoodTravelAllowance = 0.0m;
-            decimal totalAssigned = 0.0m;
+            decimal totalAssigned       = 0.0m;
 
             var DEFAULT_TOTAL_WORK_DAYS = collaborator.DoesWorkSaturdays ? 13 : 11;
 
