@@ -10,11 +10,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
         public Guid PayrollId { get; set; } 
         public Guid BranchId { get; set; }
         public DeductionType DeductionType { get; set; }
-
-
-        // public LoansPayload? LoansPayload { get; set; }
-        // public AdvanceSalaryPayload? AdvanceSalaryPayload { get; set; }
-
         
         //Importación de documentos aqui.
         public List<PurisimaData> PurisimaData { get; set; } = [];

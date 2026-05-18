@@ -21,6 +21,8 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<ICalculatorDeductions, CalculatorDeductions>();
             
+            services.AddScoped<IDeductionsService, DeductionsServices>();
+            
             services.AddScoped<ITemplateServices, TemplateServices>();
             services.AddScoped<IPdfGeneratorServices, PdfGeneratorServices>();
             services.AddScoped<IAuthServices, AuthServices>();

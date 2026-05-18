@@ -1,5 +1,5 @@
-using ERP.Core.Manager.Api.Application.Features.Modules.v1.Dtos;
 using MediatR;
+using ERP.Core.Manager.Api.Application.Features.Modules.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Queries
 {
