@@ -31,10 +31,10 @@
           }
         }
       },
-      "ERP.Core.Application/1.0.100": {
+      "ERP.Core.Application/1.0.102": {
         "type": "package",
         "dependencies": {
-          "ERP.Core.Domain": "1.0.100",
+          "ERP.Core.Domain": "1.0.102",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "14.1.0"
         },
@@ -58,7 +58,7 @@
           "lib/net9.0/ERP.Core.Database.Application.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.100": {
+      "ERP.Core.Database.Domain/1.0.102": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
@@ -67,7 +67,7 @@
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
         }
       },
-      "ERP.Core.Domain/1.0.100": {
+      "ERP.Core.Domain/1.0.102": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Domain.dll": {}
@@ -395,8 +395,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.100",
-          "ERP.Core.Domain": "1.0.100"
+          "ERP.Core.Database.Domain": "1.0.102",
+          "ERP.Core.Domain": "1.0.102"
         },
         "compile": {
           "bin/placeholder/Domain.dll": {}
@@ -452,13 +452,13 @@
         "readme.md"
       ]
     },
-    "ERP.Core.Application/1.0.100": {
-      "sha512": "PLVEZFQ+ntgA+Uwjfvx2fCIZ352qwrwcG7BbjiONITQiUzjpXQqU6IHyY0UZPeKimRRAlIuMyVJ7GdAyRJEb7Q==",
+    "ERP.Core.Application/1.0.102": {
+      "sha512": "ekjM3N5gdRVZVl4Jkje2Yz2KcaYZpvjzbTTjbD8w1IFcYrP6yIzuFPtOFZPylAuQffbMlFGePwu/O+m35nxpcQ==",
       "type": "package",
-      "path": "erp.core.application/1.0.100",
+      "path": "erp.core.application/1.0.102",
       "files": [
         ".nupkg.metadata",
-        "erp.core.application.1.0.100.nupkg.sha512",
+        "erp.core.application.1.0.102.nupkg.sha512",
         "erp.core.application.nuspec",
         "lib/net9.0/ERP.Core.Application.dll"
       ]
@@ -474,24 +474,24 @@
         "lib/net9.0/ERP.Core.Database.Application.dll"
       ]
     },
-    "ERP.Core.Database.Domain/1.0.100": {
-      "sha512": "5y3ZrdI52dNIXZAdsq3qYwjjWqYyrf1lbqoE6uloXuJ7AKJV6N0KGeMN8/l0Qp6ANd/Ki5EKFAAWy5orQKnoUQ==",
+    "ERP.Core.Database.Domain/1.0.102": {
+      "sha512": "CfV8n9l1H/s7RK1xhMTC2O7ffLJnAex7AP27SL0fb46DAfyIEQvalzRbI6fiUCc4vyAYV9T2pPQZz6uDVl+UxA==",
       "type": "package",
-      "path": "erp.core.database.domain/1.0.100",
+      "path": "erp.core.database.domain/1.0.102",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.domain.1.0.100.nupkg.sha512",
+        "erp.core.database.domain.1.0.102.nupkg.sha512",
         "erp.core.database.domain.nuspec",
         "lib/net9.0/ERP.Core.Database.Domain.dll"
       ]
     },
-    "ERP.Core.Domain/1.0.100": {
-      "sha512": "gNDaL2oA/h67Y29/3x2kgMJADQz2dsik99IYQlcwY4XdhbUO8a35Oi8yGW5PxJaAwKgYacDhuN9hvxf9bdwu7w==",
+    "ERP.Core.Domain/1.0.102": {
+      "sha512": "qiq0eQBtWieLvCFqAi/Ipd6B/8qasJttvAieAQSFGPYurOgtGAqePOnwrHax1+MRaHPlfGyHmpQ8Cjp4i2UTfg==",
       "type": "package",
-      "path": "erp.core.domain/1.0.100",
+      "path": "erp.core.domain/1.0.102",
       "files": [
         ".nupkg.metadata",
-        "erp.core.domain.1.0.100.nupkg.sha512",
+        "erp.core.domain.1.0.102.nupkg.sha512",
         "erp.core.domain.nuspec",
         "lib/net9.0/ERP.Core.Domain.dll"
       ]
@@ -1014,7 +1014,7 @@
       "AutoMapper >= 13.0.1",
       "BCrypt.Net-Next >= 4.1.0",
       "Domain >= 1.0.0",
-      "ERP.Core.Application >= 1.0.100",
+      "ERP.Core.Application >= 1.0.102",
       "ERP.Core.Database.Application >= 1.0.100",
       "FluentValidation.DependencyInjectionExtensions >= 12.1.1",
       "MediatR >= 14.1.0",
@@ -1092,7 +1092,7 @@
           },
           "ERP.Core.Application": {
             "target": "Package",
-            "version": "[1.0.100, )"
+            "version": "[1.0.102, )"
           },
           "ERP.Core.Database.Application": {
             "target": "Package",

@@ -1,9 +1,9 @@
 using MediatR;
+using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
-using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
@@ -103,22 +103,22 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 
             return new LoginDto
             {
-                UserId = user.Id,
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                Email = user.Email,
-                FullName = user.Fullname,
+                UserId               = user.Id,
+                Email                = user.Email,
+                UserName             = user.UserName,
+                AccessToken          = accessToken,
+                RefreshToken         = refreshToken,
+                FullName             = user.Fullname,
                 IdentificationNumber = user.IdentificationNumber,
-                UserType = user.UserType.ToString(),
+                UserType             = user.UserType.ToString(),
                 CompanyInformation = new()
                 {
-                    CompanyId = profile.CompanyId,
-                    CompanyName = company?.CompanieName,
-                    ImageUrl = company?.ImageUrl,
+                    CompanyId       = profile.CompanyId,
+                    CompanyName     = company?.CompanieName,
+                    ImageUrl        = company?.ImageUrl,
                     NeutralImageUrl = company?.NeutralImageUrl,
-                    Alias = company?.Alias
+                    Alias           = company?.Alias
                 },
-                UserName = user.UserName
             };
         }
     }

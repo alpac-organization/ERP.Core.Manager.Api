@@ -114,7 +114,6 @@ namespace ERP.Core.Manager.Api.Application.Features.SalaryAdvance.v1.Handlers
                         TotalAmount = RequestedQuantity,
                         TotalAmountInDollars = RequestedQuantity / 36.6243m,
                         CollaboratorId = collaborator.Id,
-                        PayrollId = payrolActive.Id,
                         Currency = request?.Currency ?? Currency.NIO,
                         Status = DeductionStatus.Progress,
                         Description = request?.Description ?? "Sin descripción",
