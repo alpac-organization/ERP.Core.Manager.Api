@@ -1,6 +1,6 @@
 using FluentValidation;
-using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Validators
 {
@@ -32,13 +32,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Validators
                 .NotNull()
                     .WithMessage("El id del periodo de nomina para registrar deducción es obligatorio");
 
-            When(x => x.DeductionType == DeductionType.SalaryAdvance, () =>
-            {
-                RuleFor(x => x.AdvanceSalaryPayload)
-                    .NotNull().WithMessage("Los datos para adelato de salario son obligatorios")
-                    .SetValidator(new AdvanceSalaryPayloadValidator());
-            });
-
             When(x => x.DeductionType == DeductionType.LateArrivals, () =>
             {
                 RuleFor(x => x.LateArrivalsData)
@@ -48,9 +41,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Validators
 
             When(x => x.DeductionType == DeductionType.Purisima, () =>
             {
-                RuleFor(x => x.PurisimaData) // Cambia esto por el nombre real de tu propiedad
-                    .NotNull().WithMessage("Los datos de la Purísima son obligatorios.")
-                    .NotEmpty().WithMessage("La lista de cuotas de la Purísima no puede estar vacía.");
+                RuleFor(x => x.PurisimaData)
+                    .NotNull().WithMessage("La lista de purisima no puede ser nula")
+                    .NotEmpty().WithMessage("La lista de purisima no puede estar vacía");
             });
         }
     }
