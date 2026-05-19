@@ -138,7 +138,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             });        
         }
 
-        public async Task ApplyIncomeCommissions(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountComission, Guid payrollId, Guid incomeTypeId)
+        public async Task ApplyIncomeCommissions(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountComission, Currency currency, Guid payrollId, Guid incomeTypeId)
         {
             var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
                 .Include(ord => ord.Payroll)
@@ -184,10 +184,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (daysWorked > 15) daysWorked = 15;
 
             decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.BiweeklySalary;
+            
+            var comission = amountComission;
 
-            TotalIncome += amountComission;         
+            if (currency == Currency.USD)
+            {
+                comission = amountComission * 36.6243m;
+            }
+
+            //Sumamos la comisión del colaborador.
+
+            TotalIncome += comission;         
             ordinaryPayrollInfo.TotalIncome = TotalIncome;
-            ordinaryPayrollInfo.Commissions = amountComission;
+            ordinaryPayrollInfo.Commissions = comission;
 
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIrToNextProcess(
                 lastFortnight ?? 24,
@@ -231,6 +240,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.TotalToPay = total;
 
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+
+            await _unitOfWork.Incomes.RegisterIncome(new()
+            {
+                CollaboratorId  =  collaboratorInformation.Id,
+                AmountInDollars = amountComission / 3.6246m,
+                AmountInLocal   = amountComission,
+                Currency        = currency,
+                IncomeTypeId    = incomeTypeId,
+                Description     = "Ingreso comisiones",
+                PayrollId       = payrollId,
+            });
         }
     }
     

@@ -129,7 +129,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
                     }
                     
-                    await _incomeServices.ApplyIncomeCommissions(collaboratorInformation, salaryInformation, request.CommissionsPayload.CommissionAmount, payroll.Id, request.TypeIncomeId);
+                    await _incomeServices.ApplyIncomeCommissions(collaboratorInformation, salaryInformation, request.CommissionsPayload.CommissionAmount, request.CommissionsPayload.Currency, payroll.Id, request.TypeIncomeId);
                    
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
 

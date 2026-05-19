@@ -20,18 +20,11 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            await _mediator.Send(new RegisterIncomeCommand()    
-            {
-                CompanyId           = companie_id,
-                ModuleCode          = module_code,
-                TypeIncomeId        = payload.TypeIncomeId,
-                UserId              = Guid.Parse(userIdStr ?? ""),
-                PayrollId           = payload.PayrollId,
-                BranchId            = payload.BranchId,
-                BonusPayload        = payload.BonusPayload,
-                CommissionsPayload  = payload.CommissionsPayload,
-                OvertimeIncomeData  = payload.OvertimeIncomeData
-            });
+            payload.CompanyId = companie_id;
+            payload.ModuleCode = module_code;
+            payload.UserId = Guid.Parse(userIdStr ?? "");
+
+            await _mediator.Send(payload);
 
             return Ok();
         }

@@ -20,16 +20,19 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ViteLocalPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5174", "http://localhost:5173", "https://web-alpac.onrender.com", "https://erp-vassalli-group-web.onrender.com")
+        policy.WithOrigins(allowedOrigins ?? [])
             .AllowAnyMethod()
             .AllowAnyHeader();
     });
 });
-
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
