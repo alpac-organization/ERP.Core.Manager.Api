@@ -14,6 +14,32 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     public class IncomeServices(IUnitOfWork _unitOfWork,ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IIncomeServices
     {
+        public async Task ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId)
+        {
+            var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Where(ord => ord.PayrollId == payrollId)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (ordinaryPayrollInfo is null)
+            {
+                _logger.LogInformation("No se encontro registro del colaborador con identificación {identification} en la nomina", collaboratorInformation.IdentificationNumber);
+                return;
+            }
+            
+            var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
+                .Where(income => income.CollaboratorId == collaboratorInformation.Id && income.PayrollId == payrollId)
+                .FirstOrDefaultAsync(default);
+
+            if (lastIncomeTax is null)
+            {
+                _logger.LogInformation("No se puedo encontrar el ultimo registro acumulados del colaborador");
+                return;
+            }
+            
+
+        }
+
         public async Task ApplyIncomeOvertime(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalHours, Guid payrollId, Guid typeIncomeId)
         {
             var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities

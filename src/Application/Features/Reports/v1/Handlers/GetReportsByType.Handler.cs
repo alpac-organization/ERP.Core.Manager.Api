@@ -20,32 +20,39 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
             {
                 case ReportsType.VacationAccrual:
                 {
-                    //Logica de acumulado de vacaciones
-                    var vacationAccrual = await  _unitOfWork.VacationAccruals.Entities
-                        .Where(vacation => vacation.PayrollId == request.PayrollId)
-                        .Include(vacation => vacation.Payroll)
-                        .Include(vacation => vacation.Collaborator)
-                            .ThenInclude(vacation => vacation.WorkingInformation)
-                            .Where(vacation => vacation.Collaborator.WorkingInformation.CompanyBranchId == request.BranchId)
-                        .ToListAsync(cancellationToken);
-
+                    //Logica de acumulado de vacacione
                     
 
                     break;   
                 }
                 case ReportsType.Accumulated:
                 {
-                    var incomes = _unitOfWork.IncomeTaxAccrual.Entities
-                        .Include(income => income.Payroll)
+                    var queryReport = _unitOfWork.IncomeTaxAccrual.Entities
+                        .Include(tax => tax.Payroll)
                         .Include(income => income.Collaborator)
-                        .Where(income => income.PayrollId == request.PayrollId)
+                            .ThenInclude(income => income.WorkingInformation)
+                        .Where(income => income.PayrollId == request.PayrollId);
+
+                    if (!string.IsNullOrEmpty(request.IdentificationNumber))
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                    }
+
+                    if (request.WorkAreaId.HasValue)
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);   
+                    }
+
+                    var TaxIncomes = await queryReport
                         .ToListAsync(cancellationToken);
-                        
-                    var reportMapped = _mapper.Map<List<AccumulatedHistory>>(incomes);
+                    
+                    var mapped = _mapper.Map<List<AccumulatedHistory>>(TaxIncomes);
 
-                    reportDto.AccumulatedHistory = reportMapped;                    
+                    reportDto.AccumulatedHistory = mapped;
 
-                    break;   
+                    return reportDto;
                 }
                 case ReportsType.ChristmasBonusAccrual:
                 {
