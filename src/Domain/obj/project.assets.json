@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net10.0": {
-      "ERP.Core.Database.Domain/1.0.104": {
+      "ERP.Core.Database.Domain/1.0.106": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
@@ -11,7 +11,7 @@
           "lib/net9.0/ERP.Core.Database.Domain.dll": {}
         }
       },
-      "ERP.Core.Domain/1.0.104": {
+      "ERP.Core.Domain/1.0.106": {
         "type": "package",
         "compile": {
           "lib/net9.0/ERP.Core.Domain.dll": {}
@@ -23,24 +23,24 @@
     }
   },
   "libraries": {
-    "ERP.Core.Database.Domain/1.0.104": {
-      "sha512": "xlShhqW5E2ej74MSQ7JGxTElFEH9v1o13JNfLslbzx63LZVxepfG/F0Vu5iIHhRLt+oP0x8cF9pmZVuG/KY97Q==",
+    "ERP.Core.Database.Domain/1.0.106": {
+      "sha512": "jNIv7lvH6IgbDj6QJBgvMMv+/ByrDXsBG47oNToiTWLCABP5U76oqm8h7CvjLZK6jG8tFDNeOluxYlbFlM7SNQ==",
       "type": "package",
-      "path": "erp.core.database.domain/1.0.104",
+      "path": "erp.core.database.domain/1.0.106",
       "files": [
         ".nupkg.metadata",
-        "erp.core.database.domain.1.0.104.nupkg.sha512",
+        "erp.core.database.domain.1.0.106.nupkg.sha512",
         "erp.core.database.domain.nuspec",
         "lib/net9.0/ERP.Core.Database.Domain.dll"
       ]
     },
-    "ERP.Core.Domain/1.0.104": {
-      "sha512": "eAismva7La//ybvIrvHdIZ4VdkxDhk7g73qer//A4+8XYkgDMk8Dt1GZRTKtvXyqmuUJJYka8MUzyQ3FUDoTrQ==",
+    "ERP.Core.Domain/1.0.106": {
+      "sha512": "BB23W5eqtndBPz/dvXoWTzLmWLpT43phhP7ESPZUkndac3XRzmVbHO7G9O6ANOsBYmBh6L8kwM8kkqK5pwyUFw==",
       "type": "package",
-      "path": "erp.core.domain/1.0.104",
+      "path": "erp.core.domain/1.0.106",
       "files": [
         ".nupkg.metadata",
-        "erp.core.domain.1.0.104.nupkg.sha512",
+        "erp.core.domain.1.0.106.nupkg.sha512",
         "erp.core.domain.nuspec",
         "lib/net9.0/ERP.Core.Domain.dll"
       ]
@@ -48,29 +48,29 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "ERP.Core.Database.Domain >= 1.0.104",
-      "ERP.Core.Domain >= 1.0.104"
+      "ERP.Core.Database.Domain >= 1.0.106",
+      "ERP.Core.Domain >= 1.0.106"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\desarrollo\\.nuget\\packages\\": {},
+    "C:\\Users\\DELL\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj",
+      "projectUniqueName": "C:\\Users\\DELL\\Desktop\\ALPAC\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj",
       "projectName": "Domain",
-      "projectPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj",
-      "packagesPath": "C:\\Users\\desarrollo\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\src\\Domain\\obj\\",
+      "projectPath": "C:\\Users\\DELL\\Desktop\\ALPAC\\ERP.Core.Manager.Api\\src\\Domain\\Domain.csproj",
+      "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\DELL\\Desktop\\ALPAC\\ERP.Core.Manager.Api\\src\\Domain\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\desarrollo\\Desktop\\Back-End\\ERP.Core.Manager.Api\\NuGet.Config",
-        "C:\\Users\\desarrollo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\DELL\\Desktop\\ALPAC\\ERP.Core.Manager.Api\\NuGet.Config",
+        "C:\\Users\\DELL\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -79,7 +79,6 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {},
         "https://nuget.pkg.github.com/alpac-organization/index.json": {}
       },
@@ -107,11 +106,11 @@
         "dependencies": {
           "ERP.Core.Database.Domain": {
             "target": "Package",
-            "version": "[1.0.104, )"
+            "version": "[1.0.106, )"
           },
           "ERP.Core.Domain": {
             "target": "Package",
-            "version": "[1.0.104, )"
+            "version": "[1.0.106, )"
           }
         },
         "imports": [
