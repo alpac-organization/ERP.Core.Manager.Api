@@ -16,25 +16,35 @@ namespace ERP.Core.Manager.Api.Controllers.Reports
     public class ReportsController(IMediator _mediator) : ApiControllerBase
     {
         [Tags("Reportes")] 
-        [HttpGet("companies/{companie_id}/reports")]    
+        [HttpGet("companies/{companie_id}/modules/{module_code}/reports")]    
         [ProducesResponseType(typeof(ReportsDto), StatusCodes.Status200OK)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<ReportsDto> GetReportsByTypeAsync([FromRoute] Guid companie_id, [FromQuery] ReportsType report_type, [FromQuery] Guid payroll_id, [FromQuery] PayrollType payroll_type)
+        public async Task<ReportsDto> GetReportsByTypeAsync(
+            [FromRoute] Guid companie_id, 
+            [FromRoute] string module_code,
+            [FromQuery] ReportsType report_type, 
+            [FromQuery] Guid payroll_id, 
+            [FromQuery] PayrollType payroll_type, 
+            [FromQuery] string? identification_number, 
+            [FromQuery] int? work_area_id 
+        )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
             var result = await _mediator.Send(new GetReportsByTypeQuery()
             {
-                CompanyId = companie_id,
-                UserId =  Guid.Parse(userIdStr ?? ""),
-                PayrollType = payroll_type,
-                Type = report_type,
-                PayrollId = payroll_id
+                PayrollId            = payroll_id,
+                CompanyId            = companie_id,
+                PayrollType          = payroll_type,
+                Type                 = report_type,
+                UserId               = Guid.Parse(userIdStr ?? ""),
+                IdentificationNumber = identification_number,
+                WorkAreaId           = work_area_id,
+                ModuleCode           = module_code
             });
 
             return result;
         }
-
     }
 }

@@ -6,8 +6,8 @@ using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
@@ -161,8 +161,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                         // 3. Agregamos al contexto
                         await _unitOfWork.AssignedTravelExpenses.RegisterAssignedTravelExpenses(history);
                     }
-
-                    // 4. Guardamos cambios
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -326,7 +326,6 @@ c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.A
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Quartz.Extensions.Hosting.dll
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Database.Application.dll
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\ERP.Core.Database.Infrastructure.dll
-C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\appsettings.Development.json
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\appsettings.json
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Templates\LetterCollaboratorActive.html
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Templates\PermitApplication.html
@@ -495,3 +494,5 @@ C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\De
 C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\obj\Debug\net10.0\ref\ERP.Core.Manager.Api.dll
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\DotNetEnv.dll
 c:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Superpower.dll
+C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\DotNetEnv.dll
+C:\Users\DELL\Desktop\ALPAC\ERP.Core.Manager.Api\src\ERP.Core.Manager.Api\bin\Debug\net10.0\Superpower.dll

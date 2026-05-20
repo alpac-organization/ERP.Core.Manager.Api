@@ -9,11 +9,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Queries
     public class GetReportsByTypeQuery : BaseRequest, IRequest<ReportsDto>
     {
         public ReportsType Type { get; set; }
+
+        public int? WorkAreaId { get; set; }
+        public string? IdentificationNumber { get; set; }
+
         
         //Periodo Seleccionado.
         public Guid PayrollId { get; set; }
-
-        public Guid? BranchId { get; set; }
         public PayrollType? PayrollType { get; set; }
     }
 }

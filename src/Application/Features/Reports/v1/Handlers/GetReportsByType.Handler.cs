@@ -16,30 +16,79 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
         {
             var reportDto = new ReportsDto();
 
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess) 
+            {
+                return access.ErrorResponse!; 
+            }
+            
             switch(request.Type)
             {
-                case ReportsType.TravelExpenses:
+                case ReportsType.VacationAccrual:
                 {
-                    //Obtener el reporte de viaticos totalde viaticos pagados en la quincena
+                    //Logica de acumulado de vacacione
+                    var queryReport = _unitOfWork.VacationAccruals.Entities
+                        .Include(tax => tax.Payroll)
+                        .Include(income => income.Collaborator)
+                            .ThenInclude(income => income.WorkingInformation)
+                        .Where(income => income.PayrollId == request.PayrollId);
 
-                    break;   
+                    
+                    if (!string.IsNullOrEmpty(request.IdentificationNumber))
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                    }
+
+                    if (request.WorkAreaId.HasValue)
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);   
+                    }       
+
+
+                    var vacationAccruals = await queryReport
+                        .ToListAsync(cancellationToken);
+                    
+                    var mapped = _mapper.Map<List<VacationAccrualsHistory>>(vacationAccruals);
+
+                    reportDto.VacationAccrualsHistory = mapped;
+
+                    return reportDto;              
                 }
                 case ReportsType.Accumulated:
                 {
-                    var incomes = _unitOfWork.IncomeTaxAccrual.Entities
-                        .Include(income => income.Payroll)
+                    var queryReport = _unitOfWork.IncomeTaxAccrual.Entities
+                        .Include(tax => tax.Payroll)
                         .Include(income => income.Collaborator)
-                        .Where(income => income.PayrollId == request.PayrollId)
+                            .ThenInclude(income => income.WorkingInformation)
+                        .Where(income => income.PayrollId == request.PayrollId);
+
+                    if (!string.IsNullOrEmpty(request.IdentificationNumber))
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                    }
+
+                    if (request.WorkAreaId.HasValue)
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);   
+                    }
+
+                    var TaxIncomes = await queryReport
                         .ToListAsync(cancellationToken);
-                        
-                    var reportMapped = _mapper.Map<List<AccumulatedHistory>>(incomes);
+                    
+                    var mapped = _mapper.Map<List<AccumulatedHistory>>(TaxIncomes);
 
-                    reportDto.AccumulatedHistory = reportMapped;                    
+                    reportDto.AccumulatedHistory = mapped;
 
-                    break;   
+                    return reportDto;
                 }
-                case ReportsType.Incomes:
+                case ReportsType.ChristmasBonusAccrual:
                 {
+                    //Logica de acumulado de aguinaldo
                     
                     break;
                 }

@@ -9,8 +9,46 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
+    #pragma warning disable CA1873
+
     public class CalculatorDeductions(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : ICalculatorDeductions
     {
+        public decimal CalculateAntique(decimal monthlySalary, DateTime payrollStartDate, DateTime collaboratorEntryDate)
+        {
+            _logger.LogInformation("Iniciando Proceso para calcular antiguedad✅");
+
+            DateTime EntryDate = collaboratorEntryDate;
+
+            int yearsOfService = payrollStartDate.Year - EntryDate.Year;    
+            if (EntryDate.Date > payrollStartDate.AddYears(-yearsOfService)) yearsOfService--;
+
+            decimal seniorityPercentage = yearsOfService switch
+            {
+                <= 0 => 0.00m,
+                1    => 0.03m,
+                2    => 0.05m,
+                3    => 0.07m,
+                4    => 0.09m,
+                5    => 0.10m,
+                6    => 0.11m,
+                7    => 0.12m,
+                8    => 0.13m,
+                9    => 0.14m,
+                10   => 0.15m,
+                11   => 0.155m,
+                12   => 0.16m,
+                13   => 0.165m,
+                14   => 0.17m,
+                15   => 0.175m,
+                16   => 0.18m,
+                17   => 0.185m,
+                18   => 0.19m,
+                19   => 0.195m,
+                _    => 0.20m
+            };
+
+            return seniorityPercentage * monthlySalary;
+        }
 
         public async Task<decimal> CalculateInss(decimal GrossSalary, CancellationToken cancellationToken)
         {
@@ -34,7 +72,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
 
         //Este ir se basa en la numero de quincena que se encuentra actualmente el colaborador
-        public async Task<IrCalculationResult> CalculateIrToNextProcess(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken)
+        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken)
         {
             var nextFortnight = NFortnight;
 
@@ -46,8 +84,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal totalAnnualSalary = AnnualSalary + AccumulatedAccrued;
             decimal AnnualIr;
-
-            //Aqui vamos bien
 
             //Agregar regla del ir
             decimal BaseTax;
@@ -96,43 +132,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             );
         }
 
-        public async Task<decimal> CalculateIr(decimal GrossSalary, int daysWorked, CancellationToken cancellationToken)
-        {
-            //Para sacar el ir proporcional y debemos aprender a tomar en cuenta las horas extras y bonos
-            if (daysWorked <= 0 || GrossSalary <= 0) return 0;
-
-            //Iniciando proceso de calculo de ir
-            var InssBiweekly = await CalculateInss(GrossSalary, cancellationToken);
-            var BiweeklyTaxableBase = GrossSalary - InssBiweekly;
-
-            decimal StandardizedBiweeklyBase = (BiweeklyTaxableBase / daysWorked) * 15;
-
-            //Sacar la anualidad salarial para aplicar regla del ir.
-            decimal AnnualSalary = StandardizedBiweeklyBase * 24;
-            decimal AnnualIr;
-
-            // Tabla del ir.
-            if (AnnualSalary <= 100000)
-                AnnualIr = 0;
-            else if (AnnualSalary <= 200000)
-                AnnualIr = (AnnualSalary - 100000) * 0.15m;
-            else if (AnnualSalary <= 350000)
-                AnnualIr = ((AnnualSalary - 200000) * 0.20m) + 15000;
-            else if (AnnualSalary <= 500000)
-                AnnualIr = ((AnnualSalary - 350000) * 0.25m) + 45000;
-            else
-                AnnualIr = ((AnnualSalary - 500000) * 0.30m) + 82500;
-
-            decimal StandardBiweeklyIr = AnnualIr / 24;
-            decimal irProporcionalFinal = StandardBiweeklyIr / 15 * daysWorked;
-
-            return irProporcionalFinal;
-        }
-
         public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
         {
-            #pragma warning disable CA1873
-
             #region Primera Validación de apertura
 
             var payrollCreated = await _unitOfWork.Payrolls.Entities
@@ -161,17 +162,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #endregion 
 
-
-            DateTime entryDate = salary.Collaborator.WorkingInformation.EntryDate;
-            DateTime payrollStart = payrollCreated.StartDate;
-            DateTime payrollEnd = payrollCreated.EndDate ?? payrollStart.AddDays(14);
+            DateTime entryDate      = salary.Collaborator.WorkingInformation.EntryDate;
+            DateTime payrollStart   = payrollCreated.StartDate;
+            DateTime payrollEnd     = payrollCreated.EndDate ?? payrollStart.AddDays(14);
 
             int daysWorked = 15;
 
             if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
             else  daysWorked = 15; 
 
-            if (daysWorked < 0) daysWorked = 0;
+            if (daysWorked < 0)  daysWorked = 0;
             if (daysWorked > 15) daysWorked = 15;
 
             decimal monthlySalary   = salary.AmountInLocal;
@@ -187,40 +187,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal NumberOfOvertime = 0.0m;
 
             #region Aplicamos antigüedad si la empresa acumula antigüeda.
-
+            
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
             {
-                DateTime EntryDate = collaborator.WorkingInformation.EntryDate;
-
-                int yearsOfService = payrollStart.Year - entryDate.Year;    
-                if (entryDate.Date > payrollStart.AddYears(-yearsOfService)) yearsOfService--;
-
-                decimal seniorityPercentage = yearsOfService switch
-                {
-                    <= 0 => 0.00m,
-                    1    => 0.03m,
-                    2    => 0.05m,
-                    3    => 0.07m,
-                    4    => 0.09m,
-                    5    => 0.10m,
-                    6    => 0.11m,
-                    7    => 0.12m,
-                    8    => 0.13m,
-                    9    => 0.14m,
-                    10   => 0.15m,
-                    11   => 0.155m,
-                    12   => 0.16m,
-                    13   => 0.165m,
-                    14   => 0.17m,
-                    15   => 0.175m,
-                    16   => 0.18m,
-                    17   => 0.185m,
-                    18   => 0.19m,
-                    19   => 0.195m,
-                    _    => 0.20m
-                };
-
-                Antique = ProportionalBiweeklySalary * seniorityPercentage;
+                Antique = CalculateAntique(monthlySalary, payrollStart, entryDate);
             }
 
             #endregion
@@ -233,10 +203,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .OrderByDescending(income => income.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            var (BiweeklyInss, BiweeklyIr) = await CalculateIrToNextProcess(
-                TaxInformation?.NumberOfFortnights ?? 24,
-                TaxInformation?.SalaryEarned       ?? 0.0m,
-                TaxInformation?.AccumulatedIR      ?? 0.0m,
+            if (TaxInformation is null)
+            {
+                _logger.LogInformation("No se encontro la información de acumlado del colaborador con identificaión: {identificaion}", collaborator.IdentificationNumber);
+                return;
+            }
+
+            var numberFortnights = TaxInformation.FlagNumberOfFortnights;
+
+            var (BiweeklyInss, BiweeklyIr) = await CalculateIr(
+                TaxInformation.FlagNumberOfFortnights ?? 24,
+                TaxInformation.FlagSalaryEarned       ?? 0.0m,
+                TaxInformation.FlagAccumulatedIR      ?? 0.0m,
                 TotalIncome,
                 cancellationToken
             );
@@ -313,7 +291,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + AdditionalDeducctions.Sanction
                 + AdditionalDeducctions.LateArrivals;
 
-
             #region Asignación de viaticos
 
             var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
@@ -368,7 +345,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             FoodTravelAllowance *= DEFAULT_TOTAL_WORK_DAYS;
             totalAssigned       = Lodging + Transport + FoodTravelAllowance;
 
-        
             decimal TotalToPay = TotalIncome - TotalDeducctions + totalAssigned;
 
             //Calcular Aguinaldo y vacaciones 🚩
@@ -405,66 +381,27 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
 
             #region Iniciar proceso de acumulados
+
+            //Registrar el acumulado para la siguiente apertura de quincena
+
+            await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
+            {
+                AccumulatedIR       = TaxInformation.FlagAccumulatedIR      ?? 0.0m,
+                SalaryEarned        = TaxInformation.FlagSalaryEarned       ?? 0.0m,
+                NumberOfFortnights  = TaxInformation.FlagNumberOfFortnights ?? 24,
+
+                FlagAccumulatedIR      = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m : (TaxInformation.FlagAccumulatedIR ?? 0.0m) + BiweeklyIr,
+                FlagSalaryEarned       = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m : (TaxInformation.FlagSalaryEarned ?? 0.0m)  + (TotalIncome - BiweeklyInss),
+                FlagNumberOfFortnights = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 24 : (TaxInformation.FlagNumberOfFortnights - 1),
+
+                CollaboratorId      = collaborator.Id,
+                PayrollId           = payrollCreated.Id,
+                AccumulatedSeniority = 0.0m,
+            });
             
-            var lastIncomeTaxAccrual = await _unitOfWork.IncomeTaxAccrual.Entities
-                .Include(inc => inc.Collaborator)
-                .Include(inc => inc.Payroll)
-                .Where(inc => inc.CollaboratorId == collaborator.Id)
-                .OrderByDescending(inc => inc.CreatedAt)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            
-            int NumberOfFortnights;
-
-            #region Condición para apertura de ciclos en año nuevo
-            if (lastIncomeTaxAccrual is null)
-            {
-                NumberOfFortnights = 24;
-            }
-            else if (payrollCreated.StartDate.Month == 1 && payrollCreated.StartDate.Day == 1)
-            {
-                NumberOfFortnights = 24; 
-            }
-            else
-            {
-                NumberOfFortnights = lastIncomeTaxAccrual!.NumberOfFortnights - 1;
-            }
             #endregion
-
-            var IncomeTaxAccrualPayload = new IncomeTaxAccrual()
-            {
-                Id = Guid.NewGuid(),
-                AccumulatedIR             = (lastIncomeTaxAccrual?.AccumulatedIR ?? 0.0m) + BiweeklyIr,
-                SalaryEarned              = (lastIncomeTaxAccrual?.SalaryEarned ?? 0.0m)  + (GrossSalary - BiweeklyInss),
-                AccumulatedSeniority      = (lastIncomeTaxAccrual?.AccumulatedSeniority ?? 0.0m) + Antique,
-                AccumulatedChristmasBonus = (lastIncomeTaxAccrual?.AccumulatedChristmasBonus ?? 0.0m) + 0,
-                CollaboratorId            = collaborator.Id,
-                PayrollId                 = payrollCreated.Id,
-                NumberOfFortnights        = NumberOfFortnights,
-                RegisterDate              = DateTime.Now
-            };
-
-            await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(IncomeTaxAccrualPayload);
-            #endregion
-
-            #region Registrar pagos de viaticos
-
-            var assignedHistory = new AssignedTravelExpensesHistory()
-            {
-                CollaboratorId  = collaborator.Id,
-                PayrollId       = payrollCreated.Id,
-                Lodging         = Lodging,
-                Transport       = Transport,
-                NumberDaysPaid  = 13,
-                TotalAmountPaid = totalAssigned,
-                Feeding         = FoodTravelAllowance
-            };
-
-            await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(assignedHistory);
-
-            #endregion
-
-            #pragma warning restore CA1873
         }
     }
+
+    #pragma warning restore CA1873
 }
