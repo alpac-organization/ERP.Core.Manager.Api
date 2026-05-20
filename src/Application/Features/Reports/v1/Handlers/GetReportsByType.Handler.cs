@@ -28,9 +28,34 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                 case ReportsType.VacationAccrual:
                 {
                     //Logica de acumulado de vacacione
-                    
+                    var queryReport = _unitOfWork.VacationAccruals.Entities
+                        .Include(tax => tax.Payroll)
+                        .Include(income => income.Collaborator)
+                            .ThenInclude(income => income.WorkingInformation)
+                        .Where(income => income.PayrollId == request.PayrollId);
 
-                    break;   
+                    
+                    if (!string.IsNullOrEmpty(request.IdentificationNumber))
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                    }
+
+                    if (request.WorkAreaId.HasValue)
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);   
+                    }       
+
+
+                    var vacationAccruals = await queryReport
+                        .ToListAsync(cancellationToken);
+                    
+                    var mapped = _mapper.Map<List<VacationAccrualsHistory>>(vacationAccruals);
+
+                    reportDto.VacationAccrualsHistory = mapped;
+
+                    return reportDto;              
                 }
                 case ReportsType.Accumulated:
                 {
