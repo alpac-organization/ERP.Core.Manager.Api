@@ -126,18 +126,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                     await _unitOfWork.Deductions.UpdateAsync(deduction);
                 }
-
-                // //Registramos los pagos realizados de viaticos del colaborador.
-                // await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(new()
-                // {
-                //    Lodging = collaborator.Lodging,
-                //    Feeding = collaborator.Feeding,
-                //    Transport = collaborator.Transport,                  
-                //    TotalAmountPaid = collaborator.TotalTravelExpenses,
-                //    NumberDaysPaid = 13,
-                // });
             }
-
             
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

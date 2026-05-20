@@ -19,7 +19,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
                 .Include(ord => ord.Payroll)
                 .Where(ord => ord.PayrollId == payrollId)
-                .Where(ord => ord.CollaboratorId ==collaboratorInformation.Id)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
                 .FirstOrDefaultAsync(default);
                 
             if (ordinaryPayrollInfo is null)
@@ -32,7 +32,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal HourlyWage = DailySalary / 8;
                         
             int daysWorked = 15;
-            DateTime entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateTime entryDate  = salaryInformation.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart = salaryInformation.StartDate;
 
             DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate ?? payrollStart.AddDays(14);
@@ -42,7 +42,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (daysWorked < 0) daysWorked = 0;
             if (daysWorked > 15) daysWorked = 15;
-
 
             decimal ProportionalBiweeklySalary = DailySalary * daysWorked;
             decimal AmountTotalWithHours = HourlyWage * totalHours * 2;
@@ -62,28 +61,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 _logger.LogInformation("No se puedo encontrar el ultimo registro acumulados del colaborador {identification}", collaboratorInformation.IdentificationNumber);
                 return;
             }
-
-            var lastFortnight = lastIncomeTax?.NumberOfFortnights + 1;
-
-            var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
-                .Where(income => income.CollaboratorId == salaryInformation.Collaborator.Id && income.NumberOfFortnights == lastFortnight)
-                .OrderByDescending(income => income.CreatedAt)
-                .FirstOrDefaultAsync(default);
-
-                        
+                                    
             _logger.LogInformation("Calculando inss e ir");
 
-            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIrToNextProcess(
-                TaxInformation?.NumberOfFortnights ?? 24,
-                TaxInformation?.SalaryEarned       ?? 0.0m,
-                TaxInformation?.AccumulatedIR      ?? 0.0m,
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
+                lastIncomeTax?.NumberOfFortnights ?? 24,
+                lastIncomeTax?.SalaryEarned       ?? 0.0m,
+                lastIncomeTax?.AccumulatedIR      ?? 0.0m,
                 GrossSalary,
                 default
             );
-
-            //Actualiza acumulado
-            lastIncomeTax?.AccumulatedIR = BiweeklyIr;
-            lastIncomeTax?.SalaryEarned  = GrossSalary - BiweeklyInss;
 
             //Actualizar datos de deducciones.
             ordinaryPayrollInfo.Ir      = BiweeklyIr;
@@ -198,7 +185,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.TotalIncome = TotalIncome;
             ordinaryPayrollInfo.Commissions = comission;
 
-            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIrToNextProcess(
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
                 lastFortnight ?? 24,
                 TaxInformation?.SalaryEarned       ?? 0.0m,
                 TaxInformation?.AccumulatedIR      ?? 0.0m,
