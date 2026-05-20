@@ -16,6 +16,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
         {
             var reportDto = new ReportsDto();
 
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess) 
+            {
+                return access.ErrorResponse!; 
+            }
+            
             switch(request.Type)
             {
                 case ReportsType.VacationAccrual:
