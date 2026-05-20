@@ -16,9 +16,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
         public Guid PayrollId { get; set; }
         public Guid CollaboratorId { get; set; }
 
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        
         public decimal SalaryEarned { get; set; }
         public decimal AccumulatedIR { get; set; }
 

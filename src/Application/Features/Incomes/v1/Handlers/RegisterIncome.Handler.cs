@@ -54,6 +54,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
 
             switch (Income.IncomeCode)
             {
+                case "BONUS":
+                {
+                    logger.LogInformation("🚩Iniciando proceso de registro de bono");
+
+                    await _unitOfWork.Salaries.Entities
+                        .Where(col => col.EndDate == null)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    return true;
+                }
+
                 case "OVERTIME":
                 {
                     foreach (var collaborator in request.OvertimeIncomeData)
