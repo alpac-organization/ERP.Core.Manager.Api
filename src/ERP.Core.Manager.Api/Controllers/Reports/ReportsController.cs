@@ -31,13 +31,13 @@ namespace ERP.Core.Manager.Api.Controllers.Reports
 
             var result = await _mediator.Send(new GetReportsByTypeQuery()
             {
-                PayrollId   = payroll_id,
-                CompanyId   = companie_id,
-                PayrollType = payroll_type,
-                Type        = report_type,
-                UserId      = Guid.Parse(userIdStr ?? ""),
+                PayrollId            = payroll_id,
+                CompanyId            = companie_id,
+                PayrollType          = payroll_type,
+                Type                 = report_type,
+                UserId               = Guid.Parse(userIdStr ?? ""),
                 IdentificationNumber = identification_number,
-                WorkAreaId  =  work_area_id
+                WorkAreaId           =  work_area_id
             });
 
             return result;
