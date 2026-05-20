@@ -18,9 +18,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
 
             switch(request.Type)
             {
-                case ReportsType.TravelExpenses:
+                case ReportsType.VacationAccrual:
                 {
-                    //Obtener el reporte de viaticos totalde viaticos pagados en la quincena
+                    //Logica de acumulado de vacaciones
+                    var vacationAccrual = await  _unitOfWork.VacationAccruals.Entities
+                        .Where(vacation => vacation.PayrollId == request.PayrollId)
+                        .Include(vacation => vacation.Payroll)
+                        .Include(vacation => vacation.Collaborator)
+                            .ThenInclude(vacation => vacation.WorkingInformation)
+                            .Where(vacation => vacation.Collaborator.WorkingInformation.CompanyBranchId == request.BranchId)
+                        .ToListAsync(cancellationToken);
+
+                    
 
                     break;   
                 }
@@ -38,8 +47,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
 
                     break;   
                 }
-                case ReportsType.Incomes:
+                case ReportsType.ChristmasBonusAccrual:
                 {
+                    //Logica de acumulado de aguinaldo
                     
                     break;
                 }

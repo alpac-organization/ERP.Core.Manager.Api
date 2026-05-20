@@ -8,14 +8,14 @@
     ".NETCoreApp,Version=v10.0": {
       "Domain/1.0.0": {
         "dependencies": {
-          "ERP.Core.Database.Domain": "1.0.102",
-          "ERP.Core.Domain": "1.0.102"
+          "ERP.Core.Database.Domain": "1.0.104",
+          "ERP.Core.Domain": "1.0.104"
         },
         "runtime": {
           "Domain.dll": {}
         }
       },
-      "ERP.Core.Database.Domain/1.0.102": {
+      "ERP.Core.Database.Domain/1.0.104": {
         "runtime": {
           "lib/net9.0/ERP.Core.Database.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -23,7 +23,7 @@
           }
         }
       },
-      "ERP.Core.Domain/1.0.102": {
+      "ERP.Core.Domain/1.0.104": {
         "runtime": {
           "lib/net9.0/ERP.Core.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -39,19 +39,19 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ERP.Core.Database.Domain/1.0.102": {
+    "ERP.Core.Database.Domain/1.0.104": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-CfV8n9l1H/s7RK1xhMTC2O7ffLJnAex7AP27SL0fb46DAfyIEQvalzRbI6fiUCc4vyAYV9T2pPQZz6uDVl+UxA==",
-      "path": "erp.core.database.domain/1.0.102",
-      "hashPath": "erp.core.database.domain.1.0.102.nupkg.sha512"
+      "sha512": "sha512-xlShhqW5E2ej74MSQ7JGxTElFEH9v1o13JNfLslbzx63LZVxepfG/F0Vu5iIHhRLt+oP0x8cF9pmZVuG/KY97Q==",
+      "path": "erp.core.database.domain/1.0.104",
+      "hashPath": "erp.core.database.domain.1.0.104.nupkg.sha512"
     },
-    "ERP.Core.Domain/1.0.102": {
+    "ERP.Core.Domain/1.0.104": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-qiq0eQBtWieLvCFqAi/Ipd6B/8qasJttvAieAQSFGPYurOgtGAqePOnwrHax1+MRaHPlfGyHmpQ8Cjp4i2UTfg==",
-      "path": "erp.core.domain/1.0.102",
-      "hashPath": "erp.core.domain.1.0.102.nupkg.sha512"
+      "sha512": "sha512-eAismva7La//ybvIrvHdIZ4VdkxDhk7g73qer//A4+8XYkgDMk8Dt1GZRTKtvXyqmuUJJYka8MUzyQ3FUDoTrQ==",
+      "path": "erp.core.domain/1.0.104",
+      "hashPath": "erp.core.domain.1.0.104.nupkg.sha512"
     }
   }
 }

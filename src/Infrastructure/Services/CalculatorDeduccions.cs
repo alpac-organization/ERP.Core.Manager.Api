@@ -44,7 +44,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal netSalary = GrossSalary - biweeklyInss;
             decimal AnnualSalary = netSalary * nextFortnight;
 
-            decimal totalAnnualSalary = AnnualSalary + AccumulatedAccrued;
+            decimal totalAnnualSalary = AnnualSalary + AccumulatedAccrued + netSalary;
             decimal AnnualIr;
 
             //Aqui vamos bien
@@ -131,9 +131,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
         public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
         {
-            #pragma warning disable CA1873
+#pragma warning disable CA1873
 
             #region Primera Validación de apertura
+
+            if (collaborator.IdentificationNumber == "0012103011052V")
+            {
+                
+            }
 
             var payrollCreated = await _unitOfWork.Payrolls.Entities
                 .Where(payroll => payroll.Id == payrollId)
@@ -234,9 +239,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .FirstOrDefaultAsync(cancellationToken);
 
             var (BiweeklyInss, BiweeklyIr) = await CalculateIrToNextProcess(
-                TaxInformation?.NumberOfFortnights ?? 24,
-                TaxInformation?.SalaryEarned       ?? 0.0m,
-                TaxInformation?.AccumulatedIR      ?? 0.0m,
+                TaxInformation?.NumberOfFortnights - 1 ?? 24,
+                TaxInformation?.SalaryEarned           ?? 0.0m,
+                TaxInformation?.AccumulatedIR          ?? 0.0m,
                 TotalIncome,
                 cancellationToken
             );
@@ -445,23 +450,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             };
 
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(IncomeTaxAccrualPayload);
-            #endregion
-
-            #region Registrar pagos de viaticos
-
-            var assignedHistory = new AssignedTravelExpensesHistory()
-            {
-                CollaboratorId  = collaborator.Id,
-                PayrollId       = payrollCreated.Id,
-                Lodging         = Lodging,
-                Transport       = Transport,
-                NumberDaysPaid  = 13,
-                TotalAmountPaid = totalAssigned,
-                Feeding         = FoodTravelAllowance
-            };
-
-            await _unitOfWork.AssignedTravelExpensesHistories.RegisterAssignedTravelExpensesHistory(assignedHistory);
-
             #endregion
 
             #pragma warning restore CA1873
