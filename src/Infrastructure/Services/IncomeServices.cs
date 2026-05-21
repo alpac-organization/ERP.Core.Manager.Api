@@ -6,6 +6,7 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
 
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
@@ -14,6 +15,43 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     public class IncomeServices(IUnitOfWork _unitOfWork,ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IIncomeServices
     {
+
+        public async Task ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation,Payroll period, RegisterSubsidyCommmand data)
+        {
+            _logger.LogInformation("🚩Iniciando proceso de subsidio para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
+
+            var taxIncome = await _unitOfWork.IncomeTaxAccrual.Entities
+                .Where(tax => tax.PayrollId == period.Id)
+                .Where(tax => tax.CollaboratorId == collaboratorInformation.Id)
+                .FirstOrDefaultAsync(default);
+
+            decimal monthlySalary = salaryInformation.AmountInLocal;
+            decimal dailySalary = monthlySalary / 30;
+
+            var informationPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Include(ord => ord.Payroll)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+                .Where(ord => ord.PayrollId == period.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (informationPayroll is null)
+            {
+                _logger.LogInformation("No se la información contable de la nomina");
+                return;
+            }
+
+            #region Iniciar proceso de calculo de dias de subsidio dentro de la nomina
+
+            // DateTime PayrollStartDate = informationPayroll. payrollActive.StartDate;
+            // DateTime PayrollEndDate   = payrollActive.EndDate.HasValue ? : Pa
+
+
+            _logger.LogInformation("✅Subsidio aplicado con exito.");
+
+            #endregion 
+        }
+
+
         public async Task ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId)
         {
             var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
@@ -61,7 +99,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateTime entryDate  = salaryInformation.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart = salaryInformation.StartDate;
 
-            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate ?? payrollStart.AddDays(14);
+            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
             if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
             else  daysWorked = 15;
@@ -184,7 +222,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateTime entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart = salaryInformation.StartDate;
 
-            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate ?? payrollStart.AddDays(14);
+            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
             if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
             else  daysWorked = 15;

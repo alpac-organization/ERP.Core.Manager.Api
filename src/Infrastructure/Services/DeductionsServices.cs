@@ -103,7 +103,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 PayrollId           = ordinaryPayroll.PayrollId,           
                 AmountPaid          = TotalDeductionToLateArrivals,
                 AmountPaidInDollars = TotalDeductionToLateArrivals,
-                PaymentDate         = ordinaryPayroll.Payroll.EndDate ?? DateTime.Now
+                PaymentDate         = ordinaryPayroll.Payroll.EndDate
             });
 
             #endregion
@@ -178,7 +178,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 DeductionId         = deduction.Id,
                 AmountPaid          = fortnightlyAmount,
                 AmountPaidInDollars = fortnightlyAmount / 36.6243m,
-                PaymentDate         = ordinaryPayroll.Payroll.EndDate ?? DateTime.Now
+                PaymentDate         = ordinaryPayroll.Payroll.EndDate
             });
         }
     }

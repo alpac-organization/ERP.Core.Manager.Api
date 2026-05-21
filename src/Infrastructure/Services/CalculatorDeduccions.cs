@@ -164,7 +164,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             DateTime entryDate      = salary.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart   = payrollCreated.StartDate;
-            DateTime payrollEnd     = payrollCreated.EndDate ?? payrollStart.AddDays(14);
+            DateTime payrollEnd     = payrollCreated.EndDate;
 
             int daysWorked = 15;
 
@@ -271,7 +271,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     Origin              = SourceDeductionPayment.Payroll,
                     Currency            = deduction.Currency,
                     PayrollId           = payrollCreated.Id,
-                    PaymentDate         = payrollCreated.EndDate ?? DateTime.Now,
+                    PaymentDate         = payrollCreated.EndDate,
                 });
             }
             #endregion

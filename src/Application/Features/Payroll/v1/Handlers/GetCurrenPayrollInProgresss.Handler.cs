@@ -34,7 +34,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 {
                     PayrollId  = p.Id,
                     StartDate  = p.StartDate,
-                    EndDate    = p.EndDate ?? p.StartDate.AddDays(14),
+                    EndDate    = p.EndDate,
                     Type       = p.PayrollType,
                     BranchName = p.Branch.BranchName
                 })
