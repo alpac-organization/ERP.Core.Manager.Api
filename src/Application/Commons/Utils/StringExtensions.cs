@@ -32,8 +32,17 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
         }
         
         public static string? FormatWithNullWhenNoHasValue(string? text)
-        {   
-            return string.IsNullOrEmpty(text) ? null : text;
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return null;
+            }
+
+            // Limpiamos espacios, pestañas Y también las comillas dobles literales
+            string cleaned = text.Trim(' ', '\t', '"');
+
+            // Volvemos a validar por si al quitar las comillas el string quedó vacío (ej: "\"   \"")
+            return string.IsNullOrWhiteSpace(cleaned) ? null : cleaned;
         }
 
         public static string ConvertirEntero(long numero)
