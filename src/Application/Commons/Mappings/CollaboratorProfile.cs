@@ -117,19 +117,19 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             return new Collaborator
             {
                 Id = Guid.NewGuid(),
-                CompanyId = command.CompanyId,
-                FirstName = command.FirstName,
-                SecondName = command.SecondName,
-                ThirdName = command.ThirdName,
-                FirstLastname = command.FirstLastname,
-                SecondLastname = command.SecondLastname,
-                IdentificationNumber = command.IdentificationNumber,
-                IdentificationType = command.IdentificationType,
-                Gender = command.Gender,
-                Status = command.Status,
-                CollaboratorCode = generatedCode,
-                RegisteredBy = command.RegisteredBy ?? "Sistema ERP",
-                PictureUrl = null
+                CompanyId             = command.CompanyId,
+                FirstName             = command.FirstName,
+                SecondName            = StringExtensions.FormatWithNullWhenNoHasValue(command.SecondName),
+                ThirdName             = StringExtensions.FormatWithNullWhenNoHasValue(command.ThirdName),
+                FirstLastname         = command.FirstLastname,
+                SecondLastname        = StringExtensions.FormatWithNullWhenNoHasValue(command.SecondLastname),
+                IdentificationNumber  = command.IdentificationNumber,
+                IdentificationType    = command.IdentificationType,
+                Gender                = command.Gender,
+                Status                = command.Status,
+                CollaboratorCode      = generatedCode,
+                RegisteredBy          = command.RegisteredBy ?? "Sistema ERP",
+                PictureUrl            = null
             };
         }
 
@@ -138,13 +138,13 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             return new PersonalInformation
             {
                 Id = Guid.NewGuid(),
-                CollaboratorId = collaboratorId,
-                Address = info.Address,
-                PersonalEmail = info.PersonalEmail,
-                PersonalPhoneNumber = info.PersonalPhoneNumber,
-                DepartamentId = info.DepartamentId,
-                Birthdate = info.Birthdate,
-                MaritalStatus = info.MaritalStatus
+                CollaboratorId      = collaboratorId,
+                Address             = StringExtensions.FormatWithNullWhenNoHasValue(info.Address),
+                PersonalEmail       = StringExtensions.FormatWithNullWhenNoHasValue(info.PersonalEmail),
+                PersonalPhoneNumber = StringExtensions.FormatWithNullWhenNoHasValue(info.PersonalPhoneNumber),
+                DepartamentId       = info.DepartamentId,
+                Birthdate           = info.Birthdate,
+                MaritalStatus       = info.MaritalStatus
             };
         }
 
@@ -153,15 +153,15 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             return new WorkingInformation
             {
                 Id = Guid.NewGuid(),
-                CollaboratorId = collaboratorId,
-                WorkAreaId = info.WorkAreaId,
-                WorkPositionId = info.WorkPositionId,
-                CompanyBranchId = info.BranchId,
-                BankAccountNumber = info.BankAccountNumber,
-                WorkPhoneNumber = info.WorkPhoneNumber,
-                WorkEmail = info.WorkEmail,
-                InssNumber = info.InssNumber,
-                EntryDate = info.EntryDate
+                CollaboratorId      = collaboratorId,
+                WorkAreaId          = info.WorkAreaId,
+                WorkPositionId      = info.WorkPositionId,
+                CompanyBranchId     = info.BranchId,
+                BankAccountNumber   = StringExtensions.FormatWithNullWhenNoHasValue(info.BankAccountNumber),
+                WorkPhoneNumber     = StringExtensions.FormatWithNullWhenNoHasValue(info.WorkPhoneNumber),
+                WorkEmail           = StringExtensions.FormatWithNullWhenNoHasValue(info.WorkEmail),
+                InssNumber          = StringExtensions.FormatWithNullWhenNoHasValue(info.InssNumber),
+                EntryDate           = info.EntryDate
             };
         }
 

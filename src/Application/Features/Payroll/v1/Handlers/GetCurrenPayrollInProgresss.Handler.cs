@@ -6,6 +6,7 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
     public class GetCurrenPayrollInProgresssHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<GetCurrenPayrollInProgresssQuery, PayrollDto>(_unitOfWork, _errorManager)
@@ -113,7 +114,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         JobPosition = op.Collaborator.WorkingInformation.WorkPosition.CatalogName,
                         WorkArea = op.Collaborator.WorkingInformation.WorkArea.CatalogName,
                         EntryDate = op.Collaborator.WorkingInformation.EntryDate,
-                        BankAccount = op.Collaborator.WorkingInformation.BankAccountNumber
+                        BankAccount = StringExtensions.FormatWithNullWhenNoHasValue(op.Collaborator.WorkingInformation.BankAccountNumber)
                     }
                 })
                 .ToListAsync(cancellationToken);
