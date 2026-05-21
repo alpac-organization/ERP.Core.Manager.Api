@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
     [Route("api/v1/")]
     public class TypesIncomeController(IMediator _mediator) : ApiControllerBase
     {
-        [Tags("Modulos")] 
+        [Tags("Catalogos")] 
         [HttpGet("companies/{companie_id}/types-income")]      
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
