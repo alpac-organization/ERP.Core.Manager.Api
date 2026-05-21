@@ -30,6 +30,11 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
 
             return $"{ConvertirEntero(entero)} con {decimales:00}/100";
         }
+        
+        public static string? FormatWithNullWhenNoHasValue(string? text)
+        {   
+            return string.IsNullOrEmpty(text) ? null : text;
+        }
 
         public static string ConvertirEntero(long numero)
         {
