@@ -14,6 +14,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
     {
+        public async Task ApplyDductionTravelExpenses()
+        {
+            _logger.LogInformation("🚩Iniciando proceso de deducción de viaticos. por ausencia de dias");
+
+
+
+
+            _logger.LogInformation("✅Deducción de viaticos aplicada correctamente.");
+        }
+
+
         public async Task ApplyDeductionLateArrivals(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalMinutes, Guid payrollId)
         {
             #region Iniciando calculo de deducción

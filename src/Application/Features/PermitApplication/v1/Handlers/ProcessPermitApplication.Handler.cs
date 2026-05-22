@@ -6,6 +6,8 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using System.Text.Json;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using System.Reflection.Metadata;
+using ERP.Core.Database.Domain.Entities.Auth;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
@@ -14,6 +16,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
         public override async Task<bool> Handle(ProcessPermitApplicationCommand request, CancellationToken cancellationToken)
         {
 
+            #region Verificar acceso al modulo
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
@@ -21,14 +24,19 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 return access.ErrorResponse; 
             }
 
+            #endregion
+
+            #region Verificar si existe el permiso solicitado
             var permitApplication = await _unitOfWork.PermitApplications.Entities
                 .Where(vr => vr.Id == request.PermitApplicationId)
+                .Where(vr => vr.Status != PermitApplicationStatus.Cancelled)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (permitApplication is null)
             {
-                return _errorManager.ThrowBadRequest<bool>("No se encontro la solicitud de vacaciones", "ERP:001");
+                return _errorManager.ThrowBadRequest<bool>("No se encontro la solicitud del colaborador", "ERP:001");
             }
+            #endregion
 
             var user = await _unitOfWork.Users.Entities
                 .Where(u => u.Id == request.UserId)
@@ -40,8 +48,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             }
 
             var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                .Where(c => c.CompanyId == request.CompanyId)
                 .Where(c => c.Id == permitApplication.CollaboratorId)
+                .Where(c => c.CompanyId == request.CompanyId)
                 .Where(c => c.IdentificationNumber == user.IdentificationNumber)
                 .AnyAsync(cancellationToken);
 
@@ -149,22 +157,25 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 }
                 case PermitApplicationType.MedicalAppointment:
                 {
-                    #region Primer Proceso de aprobación
-                    var response = MapperInformationToApprovedFirstStep(
-                        permitApplication, 
-                        access.Role!.RoleType, 
-                        request.IsApproved, 
-                        user.Fullname ?? "unknow user"
-                    );
+                    #region Primero proceso de aprobación
+                    
+                    var (authorized, updateFirstStep) = ProcessFirstStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
 
-                    if (response)
+                    if (authorized is false)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar o rechazar esta solicitud", "ERP:01");        
+                    }
+                    else if (authorized && updateFirstStep)
                     {
                         await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
-                    }                            
-                    else return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar esta solicitud", "ERP:01");  
-                    
+
+                        return false;
+                    }
+
                     #endregion
+
+                    
 
                     #region Aprobar solicitu de cita medica
                     if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved)
@@ -209,6 +220,15 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         if (IsSuccess)
                         {
                             await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+
+                            //Actualizar procesos para descontar dias de viaticos
+
+                            //Viaticos asignados al colaborador, deducir en base a la cantidad de viaticos
+                            var assignedTravelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
+                                .Where(travel => travel.CollaboratorId == permitApplication.CollaboratorId)
+                                .ToListAsync(cancellationToken);
+
+
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
                         } else return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03");
                     }     
@@ -219,90 +239,55 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 case PermitApplicationType.Vacation:
                 {
                     #region Primero proceso de aprobación
-                    var response = MapperInformationToApprovedFirstStep(
-                        permitApplication, 
-                        access.Role!.RoleType, 
-                        request.IsApproved, 
-                        user.Fullname ?? "unknow user"
-                    );
+                    
+                    var (authorized, updateFirstStep) = ProcessFirstStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
 
-                    if (response)
+                    if (authorized is false)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar o rechazar esta solicitud", "ERP:01");        
+                    }
+                    else if (authorized && updateFirstStep)
                     {
                         await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
-                    }                            
-                    else return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar esta solicitud", "ERP:01"); 
+
+                        return false;
+                    }
+
                     #endregion
 
-                    #region Aprobar solicitud de vacaciones 
-                    if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved)
+                    #region Segundo paso de aprobación de solicitud de colaborador
+
+                    var (isAuthorized, continueProcess) = ProcessSecondStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
+
+                    if (isAuthorized is false)
                     {
-                        if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("No puedes aprobarte el proceso, no eres administrador", "ERP:03");
-                        }
-
-                        if (access.Role!.RoleType == RoleType.Administrator)
-                        {
-                            vacationInformationSolicitante.AvailableVacations -= permitApplication.AmountDays ?? 0.0m;
-                            vacationInformationSolicitante.EnjoyedVacation += permitApplication.AmountDays ?? 0.0m;
-                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
-
-                            // Obtenemos la fecha actual sin horas para una comparación exacta de días
-                            DateTime hoy = DateTime.Today;
-
-                            if (hoy >= permitApplication.StartDate && hoy <= permitApplication.EndDate)
-                            {
-                                var collaborator = await _unitOfWork.Collaborators.Entities
-                                    .Where(col => col.Id == permitApplication.CollaboratorId)
-                                    .FirstOrDefaultAsync(cancellationToken);
-                                
-                                collaborator!.Status = CollaboratorStatus.Vacation;
-
-                                await _unitOfWork.Collaborators.UpdateAsync(collaborator);
-                            }
-    
-                            permitApplication.AdministratorFullName = $"{user.Fullname}";
-                            permitApplication.SecondStepApproved = true;
-                            permitApplication.Status = PermitApplicationStatus.Approved;
-
-                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                            return true;
-                        }    
+                        return _errorManager.ThrowBadRequest<bool>("No tienes permisos para realizar esta operación, no eres administrador", "ERP:03");
                     }
-                    #endregion
+                    
+                    if(isAuthorized && continueProcess)
+                    {
+                        //Relizamos la deducciones respectivas al colaborador de viaticos y vacaciones.
+                        vacationInformationSolicitante.AvailableVacations -= permitApplication.AmountDays ?? 0.0m;
+                        vacationInformationSolicitante.EnjoyedVacation    += permitApplication.AmountDays ?? 0.0m;
 
-                    #region Rechazar solicitud de vacaciones
+                        await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
 
-                    else if((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved is false)
-                    {    
-                        var IsSuccess = RejectPermitApplication(access.Role.RoleType, permitApplication, user.Fullname!);
-
-                        if (IsSuccess)
-                        {
-                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
-                        } 
-                        else
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden rechazar la solicitud", "ERP:03"); 
-                        }
+                        //Aqui cambiar el estado del colaborador que esta solictando las vacaciones y fue aprobada dichas vacaciones.
+                        
                     }
 
+                    await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                
+                    return true;
                     #endregion
-
-                    break;
                 }
                 default:
                 {
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible", "ERP:001");
                 }
             }
-
-            return true;
         }
 
         private static bool RejectPermitApplication(RoleType roleType, Database.Domain.Entities.Payrolls.PermitApplication permitApplication, string userFullname)
@@ -325,8 +310,14 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             else return false;
         }
 
-        private static bool MapperInformationToApprovedFirstStep(Database.Domain.Entities.Payrolls.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
+
+        #region Función Manejadora de aprobar, rechazar el primer paso del traking.
+        private static (bool, bool) ProcessFirstStepOfPermitApplication(Database.Domain.Entities.Payrolls.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
         {
+            bool authorized   = true;
+            bool updateFirstStep = false;
+
+            //Jefe directo aprueba la solicitud realizada por el colaborador
             if (permitApplication.FirtsStepApproved is null && isApproved is true)
             {
                 if (roleType != RoleType.Supervisor || roleType != RoleType.Operator)
@@ -334,13 +325,16 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     permitApplication.FirtsStepApproved = true;
                     permitApplication.ManagerFullname = $"{userFullname}";
 
-                    return true;
+                    updateFirstStep = true;
+
+                    return (authorized, updateFirstStep);
                 }
-                else
-                {
-                    return false;
-                }
+
+                authorized = false;
+
+                return (authorized, updateFirstStep);
             }
+            //Jefe directo rechaza la solicitud de realizada por el colaborador
             else if(permitApplication.FirtsStepApproved is null && isApproved is false)
             {
                 if (roleType != RoleType.Supervisor || roleType != RoleType.Operator)
@@ -348,15 +342,60 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     permitApplication.FirtsStepApproved = false;
                     permitApplication.ManagerFullname = $"{userFullname}";
 
-                    return true;
+                    updateFirstStep = true;
+
+                    return (authorized, updateFirstStep);
                 }
-                else
-                {
-                   return false;  
-                }   
+
+                authorized = false;
+
+                return (authorized, updateFirstStep);  
             }
 
-            return true;
+            return (authorized, updateFirstStep);
         }
+        #endregion
+
+        #region Función Menajadora de rechar o reaprobar el primer paso del traking
+
+        private static (bool, bool) ProcessSecondStepOfPermitApplication(Database.Domain.Entities.Payrolls.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
+        {
+            bool authorized = true;
+            bool continueProcess = false;
+
+            if (roleType != RoleType.Administrator)
+            {
+                authorized = false;
+                return (authorized, continueProcess);
+            }
+
+            //No importa si el jefe directo rechazo la solicitud, puede reaprobar la solicitud
+            if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && isApproved)
+            {
+                //Caso de que el administrado haya aprobado la solicitud
+                permitApplication.FirtsStepApproved = true;
+                permitApplication.ManagerFullname = userFullname;
+                permitApplication.SecondStepApproved = true;
+                permitApplication.AdministratorFullName = userFullname;
+
+                permitApplication.Status = PermitApplicationStatus.Approved;
+
+                continueProcess = true;
+            }
+            
+            if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && isApproved is false)
+            {
+                //Caso de que el administrado haya rechazado la solictud
+                permitApplication.SecondStepApproved = false;
+                permitApplication.AdministratorFullName = userFullname;
+
+                permitApplication.Status = PermitApplicationStatus.Rejected;
+
+                continueProcess = false;
+            }
+
+            return (authorized, continueProcess);
+        }
+        #endregion
     }
 }
