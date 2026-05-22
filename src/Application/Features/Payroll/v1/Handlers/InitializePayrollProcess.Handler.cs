@@ -60,7 +60,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             DateTime startDate;
             DateTime endDate;
 
-            if (lastPayroll == null || !lastPayroll.EndDate.HasValue)
+            if (lastPayroll == null)
             {
                 DateTime hoy = DateTime.Now.Date;
                 if (hoy.Day <= 15)
@@ -76,7 +76,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             }
             else
             {
-                DateTime lastEnd = lastPayroll.EndDate.Value.Date;
+                DateTime lastEnd = lastPayroll.EndDate;
 
                 if (lastEnd.Day == 15)
                 {

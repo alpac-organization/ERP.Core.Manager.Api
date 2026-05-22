@@ -1,3 +1,0 @@
-C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\deployapi-main\Domain.dll
-C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\deployapi-main\Domain.deps.json
-C:\Users\desarrollo\Desktop\Back-End\ERP.Core.Manager.Api\deployapi-main\Domain.pdb

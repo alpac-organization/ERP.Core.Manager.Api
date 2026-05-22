@@ -55,11 +55,11 @@
           "dependencies": {
             "ERP.Core.Database.Domain": {
               "target": "Package",
-              "version": "[1.0.106, )"
+              "version": "[1.0.112, )"
             },
             "ERP.Core.Domain": {
               "target": "Package",
-              "version": "[1.0.106, )"
+              "version": "[1.0.112, )"
             }
           },
           "imports": [
