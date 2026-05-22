@@ -6,6 +6,7 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
 
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
@@ -14,6 +15,216 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     public class IncomeServices(IUnitOfWork _unitOfWork,ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IIncomeServices
     {
+
+        public async Task ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation,Payroll period, RegisterSubsidyCommmand data)
+        {
+            _logger.LogInformation("🚩Iniciando proceso de subsidio para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
+
+            var taxIncome = await _unitOfWork.IncomeTaxAccrual.Entities
+                .Where(tax => tax.PayrollId == period.Id)
+                .Where(tax => tax.CollaboratorId == collaboratorInformation.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (taxIncome is null)
+            {
+                _logger.LogInformation("El control de acumulado del colaborador con cedula {identification} no fue encontrado", collaboratorInformation.IdentificationNumber);
+                return;
+            }
+
+            decimal monthlySalary = salaryInformation.AmountInLocal;
+            decimal dailySalary = monthlySalary / 30;
+
+            var informationPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Include(ord => ord.Payroll)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+                .Where(ord => ord.PayrollId == period.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (informationPayroll is null)
+            {
+                _logger.LogInformation("No se la información contable de la nomina");
+                return;
+            }
+
+            #region Iniciar proceso de calculo de dias de subsidio dentro de la nomina
+
+            DateTime payrollStartDate = period.StartDate.Date;
+            DateTime payrollEndDate   = period.EndDate.Date;
+
+            DateTime subsidyStartDate = data.StartDate.Date;
+            DateTime subsidyEndDate   = data.EndDate.Date;
+
+            DateTime effectiveStart = subsidyStartDate;
+            DateTime effectiveEnd   = subsidyEndDate > payrollEndDate
+                ? payrollEndDate
+                : subsidyEndDate;
+
+            if (effectiveEnd < effectiveStart)
+            {
+                throw new Exception("La fecha final del subsidio es inválida.");
+            }
+
+            int subsidizedDays = (effectiveEnd - effectiveStart).Days + 1;
+            int daysWithoutSubsidy = 15 - subsidizedDays;
+
+            // A: 
+            decimal proportionalSalaryWithoutSubsidy = dailySalary * daysWithoutSubsidy;
+            proportionalSalaryWithoutSubsidy += informationPayroll.Antique + informationPayroll.Overtime + informationPayroll.Bonus + informationPayroll.Antique;
+
+            // B:
+            decimal proportionalSalaryWithSubsidy = dailySalary * subsidizedDays;
+
+            decimal inssWithoutSubsidy = await _calculatorDeductions.CalculateInss(proportionalSalaryWithoutSubsidy, default);
+            decimal GrossSalaryWithoutSubsidy = proportionalSalaryWithoutSubsidy - inssWithoutSubsidy;
+
+
+            //Sacar el 40% del pago de salario a los dias subsidiados
+            decimal GrossSalaryWithSubsidy = proportionalSalaryWithSubsidy * 0.4m;
+
+            //Sacar el 40% a los dias no subsidiado.
+
+            decimal TotalGrossSalary = GrossSalaryWithSubsidy + GrossSalaryWithoutSubsidy;
+
+            //Aplicamos inss.
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
+                taxIncome?.NumberOfFortnights   ?? 24,
+                taxIncome?.SalaryEarned         ?? 0,
+                taxIncome?.AccumulatedIR        ?? 0,
+                TotalGrossSalary,
+                default,
+                true
+            );
+
+            informationPayroll.Inss = inssWithoutSubsidy;
+            informationPayroll.Ir = BiweeklyIr;
+
+            informationPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyIr;
+
+            taxIncome?.FlagSalaryEarned += TotalGrossSalary;
+            taxIncome?.FlagAccumulatedIR += BiweeklyIr;
+            
+            informationPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyIr;
+
+
+            var deductions =
+                JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                    informationPayroll.DeductionsAdditionalData
+                ) ?? new DeductionsAdditionalData();
+
+            decimal totalDeductions =
+                deductions.Loans
+                + deductions.Purisima
+                + deductions.ChildSupportGarnishment
+                + deductions.SalaryAdvance
+                + deductions.ChristmasBonusAdvance
+                + deductions.JudicialSeizures
+                + deductions.UniformDeduction
+                + deductions.CashShortage
+                + deductions.OtherDeductions
+                + deductions.DeductionForLossesBulk
+                + deductions.Absences
+                + deductions.Sanction
+                + deductions.LateArrivals;
+
+            
+            informationPayroll.TotalDeducctions = informationPayroll.TotalLegalDeductions + totalDeductions;
+            informationPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+
+            informationPayroll.TotalToPay = informationPayroll.TotalIncome - informationPayroll.TotalDeducctions;
+
+            await _unitOfWork.IncomeTaxAccrual.UpdateAsync(taxIncome!);
+
+
+            _logger.LogInformation("✅Subsidio aplicado con exito.");
+
+            _logger.LogInformation("🚩Empezando proceso para disminución de viaticos por dias no laborados por subsidios");
+
+            var assignedTravelExpensive = await _unitOfWork.AssignedTravelExpenses.Entities
+                .Where(assig => assig.CollaboratorId == collaboratorInformation.Id)
+                .Where(assig => assig.EndDate == null)
+                .Include(assig => assig.TypeIncome)
+                .ToListAsync(default);
+
+            decimal transport = 0.0m;
+            decimal feeding   = 0.0m;
+            decimal lodging   = 0.0m;
+
+            foreach (var assig in assignedTravelExpensive)
+            {
+                if (assig.TypeIncome.IncomeCode == "ALW_MEAL")
+                {
+                    feeding = assig.AmountInLocalCurrency;
+                    continue;
+                }
+                if (assig.TypeIncome.IncomeCode == "ALW_TRANSPORT")
+                {
+                    transport = assig.AmountInLocalCurrency;
+                    continue;
+                }
+                if (assig.TypeIncome.IncomeCode == "ALW_HOUSING")
+                {
+                    lodging = assig.AmountInLocalCurrency;
+                    continue;
+                }
+            }
+
+            int totalDays = (subsidyEndDate - subsidyStartDate).Days + 1;
+            int sundays = 0;
+
+            for (DateTime date = subsidyStartDate; date <= subsidyEndDate; date = date.AddDays(1))
+            {
+                if (date.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    sundays++;
+                }
+            }
+
+            totalDays -= sundays;
+
+            if (!collaboratorInformation.DoesWorkSaturdays)
+            {
+                int saturdays = 0;
+
+                for (DateTime date = subsidyStartDate; date <= subsidyEndDate; date = date.AddDays(1))
+                {
+                    if (date.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        saturdays++;
+                    }
+                }
+
+                totalDays -= saturdays;
+            }
+
+            totalDays = Math.Max(totalDays, 0);
+
+
+            decimal totalDeductionTravelExpensive = (transport + feeding + lodging) * totalDays;
+
+            informationPayroll.TotalTravelExpenses -= totalDeductionTravelExpensive;
+
+            informationPayroll.TotalToPay = informationPayroll.TotalIncome - informationPayroll.TotalLegalDeductions - totalDeductions + informationPayroll.TotalTravelExpenses;
+
+            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(informationPayroll);
+
+            await _unitOfWork.Subsidies.CreateSubsidy(new ()
+            {
+                AmountDays = subsidizedDays,
+                CollaboratorId = collaboratorInformation.Id,
+                PayrollId = data.PayrollId,
+                StartDate = data.StartDate,
+                EndDate = data.EndDate,
+                Observations = data.Observations,
+                ReferenceNumber = data.ReferenceNumber,
+                TypeSubsidyId = data.TypeSubsidyId,
+                Percentage = 40,
+            });
+
+            _logger.LogInformation("✅Deducción de viaticos realizados correctament");
+            #endregion 
+        }
+
+
         public async Task ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId)
         {
             var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
@@ -61,7 +272,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateTime entryDate  = salaryInformation.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart = salaryInformation.StartDate;
 
-            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate ?? payrollStart.AddDays(14);
+            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
             if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
             else  daysWorked = 15;
@@ -184,7 +395,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateTime entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart = salaryInformation.StartDate;
 
-            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate ?? payrollStart.AddDays(14);
+            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
             if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
             else  daysWorked = 15;

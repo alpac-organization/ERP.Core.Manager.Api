@@ -72,11 +72,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
 
         //Este ir se basa en la numero de quincena que se encuentra actualmente el colaborador
-        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken)
+        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken, bool isSudsidy = false)
         {
             var nextFortnight = NFortnight;
 
-            var biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
+            decimal biweeklyInss = 0.0m;
+
+            if (!isSudsidy)
+            {
+                biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
+            }
 
             //Salario quincenal libre de inss.
             decimal netSalary = GrossSalary - biweeklyInss;
@@ -164,7 +169,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             DateTime entryDate      = salary.Collaborator.WorkingInformation.EntryDate;
             DateTime payrollStart   = payrollCreated.StartDate;
-            DateTime payrollEnd     = payrollCreated.EndDate ?? payrollStart.AddDays(14);
+            DateTime payrollEnd     = payrollCreated.EndDate;
 
             int daysWorked = 15;
 
@@ -271,7 +276,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     Origin              = SourceDeductionPayment.Payroll,
                     Currency            = deduction.Currency,
                     PayrollId           = payrollCreated.Id,
-                    PaymentDate         = payrollCreated.EndDate ?? DateTime.Now,
+                    PaymentDate         = payrollCreated.EndDate,
                 });
             }
             #endregion

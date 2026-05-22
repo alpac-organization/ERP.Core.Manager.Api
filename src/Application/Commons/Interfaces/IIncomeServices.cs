@@ -1,10 +1,13 @@
-using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Domain.Entities.Payrolls;
+using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 {
     public interface IIncomeServices
     {
+        Task ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation, Payroll period, RegisterSubsidyCommmand data);
+ 
         Task ApplyIncomeOvertime(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalHours, Guid payrollId, Guid incomeTypeId);
         
         Task ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId);

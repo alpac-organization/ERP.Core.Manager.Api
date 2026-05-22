@@ -30,6 +30,20 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
 
             return $"{ConvertirEntero(entero)} con {decimales:00}/100";
         }
+        
+        public static string? FormatWithNullWhenNoHasValue(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return null;
+            }
+
+            // Limpiamos espacios, pestañas Y también las comillas dobles literales
+            string cleaned = text.Trim(' ', '\t', '"');
+
+            // Volvemos a validar por si al quitar las comillas el string quedó vacío (ej: "\"   \"")
+            return string.IsNullOrWhiteSpace(cleaned) ? null : cleaned;
+        }
 
         public static string ConvertirEntero(long numero)
         {

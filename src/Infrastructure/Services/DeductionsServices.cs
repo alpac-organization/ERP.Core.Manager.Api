@@ -14,6 +14,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
     {
+        public async Task ApplyDductionTravelExpenses()
+        {
+            _logger.LogInformation("🚩Iniciando proceso de deducción de viaticos. por ausencia de dias");
+
+
+
+
+            _logger.LogInformation("✅Deducción de viaticos aplicada correctamente.");
+        }
+
+
         public async Task ApplyDeductionLateArrivals(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalMinutes, Guid payrollId)
         {
             #region Iniciando calculo de deducción
@@ -103,7 +114,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 PayrollId           = ordinaryPayroll.PayrollId,           
                 AmountPaid          = TotalDeductionToLateArrivals,
                 AmountPaidInDollars = TotalDeductionToLateArrivals,
-                PaymentDate         = ordinaryPayroll.Payroll.EndDate ?? DateTime.Now
+                PaymentDate         = ordinaryPayroll.Payroll.EndDate
             });
 
             #endregion
@@ -178,7 +189,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 DeductionId         = deduction.Id,
                 AmountPaid          = fortnightlyAmount,
                 AmountPaidInDollars = fortnightlyAmount / 36.6243m,
-                PaymentDate         = ordinaryPayroll.Payroll.EndDate ?? DateTime.Now
+                PaymentDate         = ordinaryPayroll.Payroll.EndDate
             });
         }
     }
