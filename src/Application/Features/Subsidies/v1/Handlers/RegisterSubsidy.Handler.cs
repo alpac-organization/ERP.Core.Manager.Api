@@ -62,7 +62,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No se puede iniciar el proceso de subsidio si no se encuentrea una nomina activa", "ERP:BadRequest");
             }
 
-
             switch (typeSubsidy.Code)
             {
                 case "COMMON_ILLNESS":
@@ -70,6 +69,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
                     await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
                     return true;
+                }
+                case "WORK_ACCIDENT":
+                {
+                    await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    return true;   
                 }
                 default:
                 {
