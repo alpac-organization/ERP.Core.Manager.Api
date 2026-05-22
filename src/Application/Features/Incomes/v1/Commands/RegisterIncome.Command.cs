@@ -9,7 +9,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands
         public Guid BranchId { get; set; }
         public Guid PayrollId { get; set; }
         public Guid TypeIncomeId  { get; set; }
-
+        
         public BonusPayload? BonusPayload { get; set; }
         public CommissionsPayload? CommissionsPayload { get; set; }
         public List<OvertimeIncomeData> OvertimeIncomeData { get; set; } = [];
