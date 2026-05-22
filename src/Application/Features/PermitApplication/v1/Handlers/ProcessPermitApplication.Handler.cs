@@ -65,96 +65,98 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             switch (permitApplication.Type)
             {
-                case PermitApplicationType.DonatedVacations:
-                {
-                    #region Primero proceso de aprobación
-                    var response = MapperInformationToApprovedFirstStep(
-                        permitApplication, 
-                        access.Role!.RoleType, 
-                        request.IsApproved, 
-                        user.Fullname ?? "unknow user"
-                    );
+                #region Proceso de pago de vaciones en el proceso de donaciones de vacaciones
+                // case PermitApplicationType.DonatedVacations:
+                // {
+                //     #region Primero proceso de aprobación
+                //     var response = MapperInformationToApprovedFirstStep(
+                //         permitApplication, 
+                //         access.Role!.RoleType, 
+                //         request.IsApproved, 
+                //         user.Fullname ?? "unknow user"
+                //     );
 
-                    if (response)
-                    {
-                        await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
-                    }                            
-                    else return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar esta solicitud", "ERP:01"); 
-                    #endregion
+                //     if (response)
+                //     {
+                //         await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                //         await _unitOfWork.SaveChangesAsync(cancellationToken);
+                //     }                            
+                //     else return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar esta solicitud", "ERP:01"); 
+                //     #endregion
 
-                    #region Aprobación de solicitud del colaborador
-                    if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved)
-                    {
-                        if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("No puedes aprobarte el proceso, no eres administrador", "ERP:03");
-                        }
+                //     #region Aprobación de solicitud del colaborador
+                //     if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved)
+                //     {
+                //         if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
+                //         {
+                //             return _errorManager.ThrowBadRequest<bool>("No puedes aprobarte el proceso, no eres administrador", "ERP:03");
+                //         }
 
-                        if (access.Role!.RoleType == RoleType.Administrator)
-                        {
-                            var vacationControlToReceive = await _unitOfWork.Vacations.Entities
-                                .Include(vac  => vac.Collaborator)
-                                .Where(vac  => vac.Collaborator.IdentificationNumber == permitApplication.IdentificationCollaboratorToReceive)
-                                .FirstOrDefaultAsync(cancellationToken);
+                //         if (access.Role!.RoleType == RoleType.Administrator)
+                //         {
+                //             var vacationControlToReceive = await _unitOfWork.Vacations.Entities
+                //                 .Include(vac  => vac.Collaborator)
+                //                 .Where(vac  => vac.Collaborator.IdentificationNumber == permitApplication.IdentificationCollaboratorToReceive)
+                //                 .FirstOrDefaultAsync(cancellationToken);
 
-                            if (vacationControlToReceive is null)
-                            {
-                                return _errorManager.ThrowBadRequest<bool>("El colaborador que recibira las vacaciones no tiene proceso de vacaciones", "ERP:03");                            
-                            }
+                //             if (vacationControlToReceive is null)
+                //             {
+                //                 return _errorManager.ThrowBadRequest<bool>("El colaborador que recibira las vacaciones no tiene proceso de vacaciones", "ERP:03");                            
+                //             }
 
-                            //Reducimos las vacaciones para el solicitante.
-                            vacationInformationSolicitante.AvailableVacations -= permitApplication.AmountDays ?? 0m;
-                            vacationInformationSolicitante.EnjoyedVacation += permitApplication.AmountDays ?? 0;
+                //             //Reducimos las vacaciones para el solicitante.
+                //             vacationInformationSolicitante.AvailableVacations -= permitApplication.AmountDays ?? 0m;
+                //             vacationInformationSolicitante.EnjoyedVacation += permitApplication.AmountDays ?? 0;
                             
-                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                //             await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
+                //             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
 
-                            //Le aumentamos la vacaciones a la persona que recibira las vacaciones.
-                            vacationControlToReceive.AvailableVacations += permitApplication.AmountDays ?? 0m;
-                            vacationControlToReceive.DonatedVacation += permitApplication.AmountDays ?? 0m;
+                //             //Le aumentamos la vacaciones a la persona que recibira las vacaciones.
+                //             vacationControlToReceive.AvailableVacations += permitApplication.AmountDays ?? 0m;
+                //             vacationControlToReceive.DonatedVacation += permitApplication.AmountDays ?? 0m;
 
-                            await _unitOfWork.Vacations.UpdateAsync(vacationControlToReceive);
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                //             await _unitOfWork.Vacations.UpdateAsync(vacationControlToReceive);
+                //             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                            permitApplication.AdministratorFullName = $"{user.Fullname}";
-                            permitApplication.SecondStepApproved = true;
-                            permitApplication.Status = PermitApplicationStatus.Approved;
+                //             permitApplication.AdministratorFullName = $"{user.Fullname}";
+                //             permitApplication.SecondStepApproved = true;
+                //             permitApplication.Status = PermitApplicationStatus.Approved;
 
-                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                //             await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                //             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                            return true;
-                        }
-                        else
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden aprobar el ultimo proceso de solicitud", "ERP:02");   
-                        }
-                    }
-                    #endregion
+                //             return true;
+                //         }
+                //         else
+                //         {
+                //             return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden aprobar el ultimo proceso de solicitud", "ERP:02");   
+                //         }
+                //     }
+                //     #endregion
 
-                    #region Rechazar Solicitud de colaborador
-                    else if((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved is false)
-                    {
+                //     #region Rechazar Solicitud de colaborador
+                //     else if((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved is false)
+                //     {
 
-                        if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("No puedes rechazar el proceso, no eres administrador", "ERP:03");
-                        }
+                //         if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
+                //         {
+                //             return _errorManager.ThrowBadRequest<bool>("No puedes rechazar el proceso, no eres administrador", "ERP:03");
+                //         }
 
-                        var IsSuccess = RejectPermitApplication(access.Role.RoleType, permitApplication, user.Fullname!);
+                //         var IsSuccess = RejectPermitApplication(access.Role.RoleType, permitApplication, user.Fullname!);
 
-                        if (IsSuccess)
-                        {
-                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
-                        } else return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03"); 
-                    }
-                    #endregion
+                //         if (IsSuccess)
+                //         {
+                //             await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                //             await _unitOfWork.SaveChangesAsync(cancellationToken);
+                //         } else return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03"); 
+                //     }
+                //     #endregion
 
-                    break;
-                }
+                //     break;
+                // }
+                #endregion
                 case PermitApplicationType.MedicalAppointment:
                 {
                     #region Primero proceso de aprobación
@@ -175,66 +177,46 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                     #endregion
 
-                    
+                    #region Segundo paso de aprobación de solicitud de colaborador
 
-                    #region Aprobar solicitu de cita medica
-                    if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved)
+                    var (isAuthorized, continueProcess) = ProcessSecondStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
+
+                    if (isAuthorized is false)
                     {
-                        if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
+                        return _errorManager.ThrowBadRequest<bool>("No tienes permisos para realizar esta operación, no eres administrador", "ERP:03");
+                    }
+                    
+                    if(isAuthorized && continueProcess)
+                    {
+                        //Realizamos las mismas operaciones de calculo en este proceso
+
+                        var additionalInformation = JsonSerializer.Deserialize<AdditionalDataPermitApplication>(permitApplication.AdditionalData);
+
+                        if (additionalInformation!.MedicalAppointmentData.IsFullDay)
                         {
-                            return _errorManager.ThrowBadRequest<bool>("No puedes aprobarte el proceso, no eres administrador", "ERP:03");
+                            vacationInformationSolicitante.AvailableVacations -= 0.5m;
+                            vacationInformationSolicitante.EnjoyedVacation += 0.5m;
+
+                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);  
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
                         }
 
-                        if (access.Role!.RoleType == RoleType.Administrator)
-                        {
-                            //Validar si es el dia completo que se tomo para la cita medica y deduciles lo dias de 0.5
+                        permitApplication.AdministratorFullName = $"{user.Fullname}";
+                        permitApplication.SecondStepApproved = true;
+                        permitApplication.Status = PermitApplicationStatus.Approved;
 
-                            var additionalInformation = JsonSerializer.Deserialize<AdditionalDataPermitApplication>(permitApplication.AdditionalData);
+                        await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                            if (additionalInformation!.MedicalAppointmentData.IsFullDay)
-                            {
-                                vacationInformationSolicitante.AvailableVacations -= 0.5m;
-                                vacationInformationSolicitante.EnjoyedVacation += 0.5m;
-
-                                await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);  
-                                await _unitOfWork.SaveChangesAsync(cancellationToken);
-                            }
-
-                            permitApplication.AdministratorFullName = $"{user.Fullname}";
-                            permitApplication.SecondStepApproved = true;
-                            permitApplication.Status = PermitApplicationStatus.Approved;
-
-                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                            return true;
-                        }    
+                        return true;
                     }
-                    #endregion
 
-                    #region Rechazar solicitud del colaborador
-                    else if((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved is false)
-                    {
-                        var IsSuccess = RejectPermitApplication(access.Role.RoleType, permitApplication, user.Fullname!);
-
-                        if (IsSuccess)
-                        {
-                            await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-
-                            //Actualizar procesos para descontar dias de viaticos
-
-                            //Viaticos asignados al colaborador, deducir en base a la cantidad de viaticos
-                            var assignedTravelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
-                                .Where(travel => travel.CollaboratorId == permitApplication.CollaboratorId)
-                                .ToListAsync(cancellationToken);
-
-
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
-                        } else return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03");
-                    }     
-                    #endregion           
+                    await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
                 
-                    break;
+                    return true;
+
+                    #endregion                
                 }
                 case PermitApplicationType.Vacation:
                 {
@@ -274,7 +256,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
 
                         //Aqui cambiar el estado del colaborador que esta solictando las vacaciones y fue aprobada dichas vacaciones.
-                        
+
                     }
 
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
