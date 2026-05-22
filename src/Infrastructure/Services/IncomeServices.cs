@@ -131,11 +131,29 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             informationPayroll.TotalToPay = informationPayroll.TotalIncome - informationPayroll.TotalDeducctions;
 
+            var existSubsidyRegistered = await _unitOfWork.Subsidies.Entities
+                .Where(sub => sub.PayrollId == data.PayrollId)
+                .Where(sub => sub.CollaboratorId == collaboratorInformation.Id)
+                .FirstOrDefaultAsync(default);
+
             await _unitOfWork.IncomeTaxAccrual.UpdateAsync(taxIncome!);
 
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(informationPayroll);
 
-            _logger.LogInformation("✅Subsidio aplicado con exito.");
+            await  _unitOfWork.Subsidies.CreateSubsidy(new()
+            {
+                AmountDays = subsidizedDays,
+                PayrollId = informationPayroll.Payroll.Id,
+                CollaboratorId = collaboratorInformation.Id ,
+                ReferenceNumber = data.ReferenceNumber,
+                TypeSubsidyId = data.TypeSubsidyId,
+                Percentage = 40,
+                Observations = data.Observations,
+                StartDate = data.StartDate,
+                EndDate = data.EndDate,
+            });
+
+            _logger.LogInformation("✅Subsidio registrado con exito.");
             #endregion 
         }
 
