@@ -204,9 +204,21 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             informationPayroll.TotalTravelExpenses -= totalDeductionTravelExpensive;
 
             informationPayroll.TotalToPay = informationPayroll.TotalIncome - informationPayroll.TotalLegalDeductions - totalDeductions + informationPayroll.TotalTravelExpenses;
-            informationPayroll.TotalToPay -= totalDeductionTravelExpensive;
 
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(informationPayroll);
+
+            await _unitOfWork.Subsidies.CreateSubsidy(new ()
+            {
+                AmountDays = subsidizedDays,
+                CollaboratorId = collaboratorInformation.Id,
+                PayrollId = data.PayrollId,
+                StartDate = data.StartDate,
+                EndDate = data.EndDate,
+                Observations = data.Observations,
+                ReferenceNumber = data.ReferenceNumber,
+                TypeSubsidyId = data.TypeSubsidyId,
+                Percentage = 40,
+            });
 
             _logger.LogInformation("✅Deducción de viaticos realizados correctament");
             #endregion 
