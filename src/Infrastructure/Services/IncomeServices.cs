@@ -74,13 +74,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             // B:
             decimal proportionalSalaryWithSubsidy = dailySalary * subsidizedDays;
 
+            decimal inssWithoutSubsidy = await _calculatorDeductions.CalculateInss(proportionalSalaryWithoutSubsidy, default);
+            decimal GrossSalaryWithoutSubsidy = proportionalSalaryWithoutSubsidy - inssWithoutSubsidy;
+
+
             //Sacar el 40% del pago de salario a los dias subsidiados
-            decimal inssWithSubsidy = await _calculatorDeductions.CalculateInss(proportionalSalaryWithSubsidy, default);
+            decimal GrossSalaryWithSubsidy = proportionalSalaryWithSubsidy * 0.4m;
 
-            decimal GrossSalaryWithSubsidy = proportionalSalaryWithSubsidy - inssWithSubsidy;
-
-            //Sacar el 40% a los dias no subsidiados
-            decimal GrossSalaryWithoutSubsidy = proportionalSalaryWithoutSubsidy * 0.4m;
+            //Sacar el 40% a los dias no subsidiado.
 
             decimal TotalGrossSalary = GrossSalaryWithSubsidy + GrossSalaryWithoutSubsidy;
 
@@ -94,15 +95,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 true
             );
 
-            informationPayroll.Inss = inssWithSubsidy;
+            informationPayroll.Inss = inssWithoutSubsidy;
             informationPayroll.Ir = BiweeklyIr;
 
-            informationPayroll.TotalLegalDeductions = inssWithSubsidy + BiweeklyIr;
+            informationPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyIr;
 
             taxIncome?.FlagSalaryEarned += TotalGrossSalary;
             taxIncome?.FlagAccumulatedIR += BiweeklyIr;
             
-            informationPayroll.TotalLegalDeductions = inssWithSubsidy + BiweeklyIr;
+            informationPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyIr;
 
 
             var deductions =
@@ -133,9 +134,81 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             await _unitOfWork.IncomeTaxAccrual.UpdateAsync(taxIncome!);
 
-            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(informationPayroll);
 
             _logger.LogInformation("✅Subsidio aplicado con exito.");
+
+            _logger.LogInformation("🚩Empezando proceso para disminución de viaticos por dias no laborados por subsidios");
+
+            var assignedTravelExpensive = await _unitOfWork.AssignedTravelExpenses.Entities
+                .Where(assig => assig.CollaboratorId == collaboratorInformation.Id)
+                .Where(assig => assig.EndDate == null)
+                .Include(assig => assig.TypeIncome)
+                .ToListAsync(default);
+
+            decimal transport = 0.0m;
+            decimal feeding   = 0.0m;
+            decimal lodging   = 0.0m;
+
+            foreach (var assig in assignedTravelExpensive)
+            {
+                if (assig.TypeIncome.IncomeCode == "ALW_MEAL")
+                {
+                    feeding = assig.AmountInLocalCurrency;
+                    continue;
+                }
+                if (assig.TypeIncome.IncomeCode == "ALW_TRANSPORT")
+                {
+                    transport = assig.AmountInLocalCurrency;
+                    continue;
+                }
+                if (assig.TypeIncome.IncomeCode == "ALW_HOUSING")
+                {
+                    lodging = assig.AmountInLocalCurrency;
+                    continue;
+                }
+            }
+
+            int totalDays = (subsidyEndDate - subsidyStartDate).Days + 1;
+            int sundays = 0;
+
+            for (DateTime date = subsidyStartDate; date <= subsidyEndDate; date = date.AddDays(1))
+            {
+                if (date.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    sundays++;
+                }
+            }
+
+            totalDays -= sundays;
+
+            if (!collaboratorInformation.DoesWorkSaturdays)
+            {
+                int saturdays = 0;
+
+                for (DateTime date = subsidyStartDate; date <= subsidyEndDate; date = date.AddDays(1))
+                {
+                    if (date.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        saturdays++;
+                    }
+                }
+
+                totalDays -= saturdays;
+            }
+
+            totalDays = Math.Max(totalDays, 0);
+
+
+            decimal totalDeductionTravelExpensive = (transport + feeding + lodging) * totalDays;
+
+            informationPayroll.TotalTravelExpenses -= totalDeductionTravelExpensive;
+
+            informationPayroll.TotalToPay = informationPayroll.TotalIncome - informationPayroll.TotalLegalDeductions - totalDeductions + informationPayroll.TotalTravelExpenses;
+            informationPayroll.TotalToPay -= totalDeductionTravelExpensive;
+
+            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(informationPayroll);
+
+            _logger.LogInformation("✅Deducción de viaticos realizados correctament");
             #endregion 
         }
 
