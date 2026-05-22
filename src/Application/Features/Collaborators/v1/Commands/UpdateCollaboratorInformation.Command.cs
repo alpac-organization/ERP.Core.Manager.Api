@@ -33,6 +33,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? WorkEmail { get; set; }
         public string? InssNumber { get; set; }
         public string? BankAccountNumber { get; set; }
+        public string? Daem { get; set; }
 
         //Solo por parte de administradores y manager pueden aplicar estos
         public int? WorkAreaId { get; set; }

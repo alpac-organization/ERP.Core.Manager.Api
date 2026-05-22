@@ -69,6 +69,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
                 if(request?.WorkingInformation is not null)
                 {
+                    WorkingInformation?.Daem = request.WorkingInformation.Daem ?? WorkingInformation.Daem;
                     WorkingInformation?.WorkPhoneNumber = request.WorkingInformation?.WorkPhoneNumber ?? WorkingInformation.WorkPhoneNumber;
                     WorkingInformation?.WorkEmail = request.WorkingInformation?.WorkEmail ?? WorkingInformation.WorkEmail;  
                 }

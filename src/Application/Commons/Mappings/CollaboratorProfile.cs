@@ -161,7 +161,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 WorkPhoneNumber     = StringExtensions.FormatWithNullWhenNoHasValue(info.WorkPhoneNumber),
                 WorkEmail           = StringExtensions.FormatWithNullWhenNoHasValue(info.WorkEmail),
                 InssNumber          = StringExtensions.FormatWithNullWhenNoHasValue(info.InssNumber),
-                EntryDate           = info.EntryDate
+                EntryDate           = info.EntryDate,
+                Daem                = info.Daem
             };
         }
 

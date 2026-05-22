@@ -45,6 +45,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? WorkPhoneNumber { get; set; }
         public string? WorkEmail { get; set; }
         public string? InssNumber { get; set; }
+        public string? Daem { get; set; }
 
         //Catalogs
         public int WorkAreaId { get; set; }
