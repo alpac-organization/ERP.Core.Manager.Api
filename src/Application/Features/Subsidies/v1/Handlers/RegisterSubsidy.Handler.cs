@@ -68,7 +68,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
                 case "COMMON_ILLNESS":
                 {
                     await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
-
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
                     return true;
                 }
                 default:

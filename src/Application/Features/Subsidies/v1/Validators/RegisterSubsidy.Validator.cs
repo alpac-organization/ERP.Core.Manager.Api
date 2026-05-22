@@ -31,6 +31,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Validators
                 .NotEmpty().WithMessage("El número de referencia es obligatorio")
                 .NotNull().WithMessage("El número de boleta es obligatorio");
 
+            RuleFor(x => x.PayrollId)
+                .NotEmpty().WithMessage("El id del periodo es obligatorio")
+                .NotNull().WithMessage("El id del periodo es obligatorio");
+
             RuleFor(x => x.StartDate)
                 .NotNull()
                     .WithMessage("La fecha de inicio del subsidio es requerida.")

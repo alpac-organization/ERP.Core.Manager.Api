@@ -72,11 +72,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
 
         //Este ir se basa en la numero de quincena que se encuentra actualmente el colaborador
-        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken)
+        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken, bool isSudsidy = false)
         {
             var nextFortnight = NFortnight;
 
-            var biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
+            decimal biweeklyInss = 0.0m;
+
+            if (!isSudsidy)
+            {
+                biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
+            }
 
             //Salario quincenal libre de inss.
             decimal netSalary = GrossSalary - biweeklyInss;
