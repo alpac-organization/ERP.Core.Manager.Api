@@ -1,17 +1,18 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
-using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Application.Commons.Interfaces;
-using System.Text.Json;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using System.Reflection.Metadata;
-using ERP.Core.Database.Domain.Entities.Auth;
+
+using ERP.Core.Application.Commons.Interfaces;
+
+using ERP.Core.Manager.Api.Application.Commons.Bases;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
+    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(ProcessPermitApplicationCommand request, CancellationToken cancellationToken)
         {
@@ -30,6 +31,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             var permitApplication = await _unitOfWork.PermitApplications.Entities
                 .Where(vr => vr.Id == request.PermitApplicationId)
                 .Where(vr => vr.Status != PermitApplicationStatus.Cancelled)
+                .Include(vr => vr.Collaborator)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (permitApplication is null)
@@ -61,6 +63,16 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             if (vacationInformationSolicitante is null)
             {
                 return _errorManager.ThrowBadRequest<bool>("No se encontro registro de vacaciones del solicitante", "ERP:02");
+            }
+
+            var payrollActive = await _unitOfWork.Payrolls.Entities
+                .Where(payroll => payroll.Id == Guid.Parse("5bab506b-5af4-4918-9945-8a8a3f262dcd"))
+                .Where(payroll => payroll.Status == PayrollStatus.Progress)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (payrollActive is null)
+            {
+                return _errorManager.ThrowBadRequest<bool>("No podemos procesar la solicitud, no se encuentra un periodo de nomina con el id indicado", "ERP:PayrollNotFound");
             }
 
             switch (permitApplication.Type)
@@ -201,10 +213,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
                         }
 
-                        permitApplication.AdministratorFullName = $"{user.Fullname}";
-                        permitApplication.SecondStepApproved = true;
-                        permitApplication.Status = PermitApplicationStatus.Approved;
-
                         await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -257,6 +265,59 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         //Aqui cambiar el estado del colaborador que esta solictando las vacaciones y fue aprobada dichas vacaciones.
 
+                        DateTime payrollStartDate = payrollActive.StartDate;
+                        DateTime payrollEndDate   = payrollActive.EndDate;
+
+                        if (permitApplication.StartDate is null || permitApplication.EndDate is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                "La fecha de inicio o fin de la solicitud es requerida. para continuar con este proceso", 
+                                "ERP:NotFound"
+                            );
+                        }
+
+                        DateTime permitApplicationStartDate = permitApplication.StartDate.Value;
+                        DateTime permitApplicationEndDate = permitApplication.EndDate.Value;
+
+                        // Tomar la fecha mayor entre inicio de nómina e inicio de solicitud
+                        DateTime effectiveStartDate =
+                            permitApplicationStartDate > payrollStartDate
+                                ? permitApplicationStartDate
+                                : payrollStartDate;
+
+                        // Tomar la fecha menor entre fin de nómina y fin de solicitud
+                        DateTime effectiveEndDate =
+                            permitApplicationEndDate < payrollEndDate
+                                ? permitApplicationEndDate
+                                : payrollEndDate;
+                                
+                        int totalDays = 0;
+
+                        if (effectiveStartDate <= effectiveEndDate)
+                        {
+                            // +1 porque el rango es inclusivo
+                            totalDays = (effectiveEndDate - effectiveStartDate).Days + 1;
+
+                            for (DateTime currentDate = effectiveStartDate;
+                                currentDate <= effectiveEndDate;
+                                currentDate = currentDate.AddDays(1))
+                            {
+                                if (currentDate.DayOfWeek == DayOfWeek.Sunday)
+                                {
+                                    totalDays--;
+                                    continue;
+                                }
+
+                                if (!permitApplication.Collaborator.DoesWorkSaturdays && currentDate.DayOfWeek == DayOfWeek.Saturday)
+                                {
+                                    totalDays--;
+                                }
+                            }
+                        }
+
+
+
+                        await _deductionServices.ApplyDeductionTravelExpenses();
                     }
 
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
@@ -271,27 +332,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 }
             }
         }
-
-        private static bool RejectPermitApplication(RoleType roleType, Database.Domain.Entities.Payrolls.PermitApplication permitApplication, string userFullname)
-        {
-            if (roleType == RoleType.Administrator )
-            {
-                permitApplication.AdministratorFullName = $"{userFullname}";
-                permitApplication.SecondStepApproved = false;
-                permitApplication.Status = PermitApplicationStatus.Rejected;
-
-                return true;
-            }
-            else if(roleType == RoleType.Manager)
-            {
-                permitApplication.ManagerFullname = $"{userFullname}";
-                permitApplication.FirtsStepApproved = false;
-
-                return true;
-            }
-            else return false;
-        }
-
 
         #region Función Manejadora de aprobar, rechazar el primer paso del traking.
         private static (bool, bool) ProcessFirstStepOfPermitApplication(Database.Domain.Entities.Payrolls.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
