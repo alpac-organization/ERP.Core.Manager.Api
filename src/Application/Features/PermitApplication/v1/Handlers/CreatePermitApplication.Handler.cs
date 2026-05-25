@@ -43,6 +43,18 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 );
             }
 
+            var payrollActive = await _unitOfWork.Payrolls.Entities
+                .Where(payroll => payroll.Id == request.PayrollId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (payrollActive is null)
+            {
+                return _errorManager.ThrowBadRequest<bool>(
+                    $"Ocurrio un error no puedes registrar solicitud si no existe un proceso de nomina activa asociado a este colaborador", 
+                    "ERP:003"
+                );                
+            }
+
             var collaborator = await _unitOfWork.Collaborators.Entities
                 .FirstOrDefaultAsync(c => c.IdentificationNumber == request.IdentificationNumber && c.CompanyId == request.CompanyId, cancellationToken);
 
@@ -89,8 +101,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             var permitApplication = new Database.Domain.Entities.Payrolls.PermitApplication
             {
-                StartDate = null,
-                EndDate = null,
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today,
                 EndTime = null,
                 StartTime = null,
                 Status = PermitApplicationStatus.Pending,
@@ -132,7 +144,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                     MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
                     permitApplication.Type = PermitApplicationType.MedicalAppointment;
-                    permitApplication.StartDate = request.PermitApplicationMedicalAppointment?.StartDate;
+                    permitApplication.StartDate = request.PermitApplicationMedicalAppointment!.StartDate;
                     permitApplication.StartTime = request.PermitApplicationMedicalAppointment?.StartTime;
                     permitApplication.EndTime = request.PermitApplicationMedicalAppointment?.EndTime;
                     
@@ -200,8 +212,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     //Registro de solicitud de vacaciones
                     var vacationData = request.PermitApplicationVacation!;
 
-                    permitApplication.EndDate = vacationData.EndDate;
-                    permitApplication.StartDate = vacationData.StartDate;
+                    permitApplication.EndDate = vacationData.EndDate!.Value.Date;
+                    permitApplication.StartDate = vacationData.StartDate!.Value.Date;
                     permitApplication.StartTime = vacationData.StartTime;
                     permitApplication.EndTime = vacationData.EndTime;
                     permitApplication.Type = PermitApplicationType.Vacation;
@@ -320,8 +332,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 .AnyAsync(p => 
                     p.CollaboratorId == collaboratorId && 
                     (p.Status == PermitApplicationStatus.Approved || p.Status == PermitApplicationStatus.Pending) &&
-                    startDate.Date <= p.EndDate!.Value.Date && 
-                    endDate.Date >= p.StartDate!.Value.Date, 
+                    startDate.Date <= p.EndDate.Date && 
+                    endDate.Date >= p.StartDate.Date, 
                     ct
                 );
 

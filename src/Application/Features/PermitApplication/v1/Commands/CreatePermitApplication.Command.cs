@@ -11,6 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
         public string? Description { get; set; }
         public PermitApplicationType PermitApplicationType { get; set; }
         public Channels Channel { get; set; }
+        public Guid PayrollId { get; set; }
         
         public PermitApplicationVacation? PermitApplicationVacation { get; set; }
         public PermitApplicationDonatedVacations? PermitApplicationDonatedVacations { get; set; }
