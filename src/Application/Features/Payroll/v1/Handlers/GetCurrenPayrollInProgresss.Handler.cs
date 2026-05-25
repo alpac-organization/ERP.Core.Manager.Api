@@ -7,6 +7,7 @@ using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
+
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
     public class GetCurrenPayrollInProgresssHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<GetCurrenPayrollInProgresssQuery, PayrollDto>(_unitOfWork, _errorManager)
@@ -33,8 +34,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Select(p => new PayrollDto
                 {
                     PayrollId  = p.Id,
-                    StartDate  = p.StartDate,
-                    EndDate    = p.EndDate,
+                    StartDate  = p.StartDate.ToLocalTime().Date,
+                    EndDate    = p.EndDate.ToLocalTime().Date,
                     Type       = p.PayrollType,
                     BranchName = p.Branch.BranchName
                 })

@@ -14,14 +14,158 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
     {
-        public async Task ApplyDductionTravelExpenses()
+        public async Task ApplyDeductionTravelExpenses(Collaborator collaboratorInformation, Salary salaryInformation)
         {
-            _logger.LogInformation("🚩Iniciando proceso de deducción de viaticos. por ausencia de dias");
+            _logger.LogInformation("🚩Iniciando proceso de deducción de viaticos. por ausencia de dias para colaborador con cedula: {identification}", collaboratorInformation.IdentificationNumber);
 
+            if (salaryInformation.SalaryType != SalaryType.Fixed)
+            {
+                _logger.LogInformation("Los colaboradores con salario variable o prestaciado todavia no puede establecer esta acción");
+                return;
+            }
 
+            var payrollActive = await _unitOfWork.Payrolls.Entities
+                .Where(pay => pay.Status == PayrollStatus.Progress)
+                .Where(pay => pay.PayrollType == PayrollType.Ordinary)
+                .Where(pay => pay.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId)
+                .FirstOrDefaultAsync(default);
 
+            if (payrollActive is null)
+            {
+                _logger.LogInformation("No se encuentra una nomina en progreso para continuar con este proceso");
+                return;
+            }
 
-            _logger.LogInformation("✅Deducción de viaticos aplicada correctamente.");
+            DateTime payrollStartDate = payrollActive.StartDate.ToLocalTime().Date;
+            DateTime payrollEndDate   = payrollActive.EndDate.ToLocalTime().Date;
+
+            var permitApplications = await _unitOfWork.PermitApplications.Entities
+                .Where(per => per.Status == PermitApplicationStatus.Approved)
+                .Where(per =>
+                    per.Type == PermitApplicationType.Vacation ||
+                    per.Type == PermitApplicationType.MedicalAppointment
+                )
+                .Where(per => per.CollaboratorId == collaboratorInformation.Id)
+                .ToListAsync();
+
+            decimal totalAmountDays = 0;
+
+            foreach (var permit in permitApplications)
+            {
+                DateTime permitStart = permit.StartDate!.Value.ToLocalTime().Date;
+                DateTime permitEnd   = permit.EndDate!.Value.ToLocalTime().Date;
+
+                // No intersecta
+                if (permitEnd < payrollStartDate || permitStart > payrollEndDate)
+                    continue;
+
+                bool isFullyInsidePayroll =
+                    permitStart >= payrollStartDate &&
+                    permitEnd <= payrollEndDate;
+
+                // CASO 1:
+                // El permiso está completamente dentro de la nómina
+                if (isFullyInsidePayroll)
+                {
+                    totalAmountDays += permit.AmountDays ?? 0;
+                    continue;
+                }
+
+                // CASO 2:
+                // Intersección parcial
+                DateTime overlapStart =
+                    permitStart > payrollStartDate
+                        ? permitStart
+                        : payrollStartDate;
+
+                DateTime overlapEnd =
+                    permitEnd < payrollEndDate
+                        ? permitEnd
+                        : payrollEndDate;
+
+                decimal overlapDays =
+                    (overlapEnd - overlapStart).Days + 1;
+
+                totalAmountDays += overlapDays;
+            }
+
+            var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+                .Where(ord => ord.PayrollId == payrollActive.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (ordinaryPayroll is null)
+            {
+                _logger.LogInformation("No se encontro la información de nomina para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
+                return;
+            }
+
+            var assignedTravelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
+                .Where(assign => assign.CollaboratorId == collaboratorInformation.Id)
+                .Where(assign => assign.EndDate == null)
+                .Include(assign => assign.TypeIncome)
+                .ToListAsync(default);
+
+            decimal transport   = 0.0m;
+            decimal feeding     = 0.0m;
+            decimal lodging     = 0.0m;
+
+            foreach (var assigne in assignedTravelExpenses)
+            {
+                if (assigne.TypeIncome.IncomeCode == "ALW_MEAL")
+                {
+                    feeding += assigne.AmountInLocalCurrency;
+                }
+
+                if (assigne.TypeIncome.IncomeCode == "ALW_HOUSING")
+                {
+                    lodging += assigne.AmountInLocalCurrency;
+                }
+
+                if (assigne.TypeIncome.IncomeCode == "ALW_TRANSPORT")
+                {
+                    transport += assigne.AmountInLocalCurrency;
+                }
+            }
+
+            int totalDays = collaboratorInformation.DoesWorkSaturdays ? 13 : 11;
+
+            //Calcular el total de viaticos que gana esta persona.
+            
+            decimal totalFeeding   = totalDays * feeding;
+            decimal totalTransport = totalDays * transport;
+            decimal totalLodging   = totalDays * lodging;
+            decimal totalTravels   = totalFeeding + totalTransport + totalLodging;
+
+            //Ahora que sabemos el total de recibe deduscamos los dias que no viene esa persona.
+
+            int totalDaysToDiscount = (int) Math.Floor(totalAmountDays);
+
+            decimal totalProporcionalFeeding    = feeding * totalDaysToDiscount;
+            decimal totalProporcionalTransport  = transport * totalDaysToDiscount;
+            decimal totalProporcionalLodging    = lodging * totalDaysToDiscount;
+
+            decimal totalProporcionalTravels  = totalProporcionalFeeding + totalProporcionalTransport + totalProporcionalLodging;
+
+            ordinaryPayroll.Transport = totalTransport - totalProporcionalTransport;
+            ordinaryPayroll.Feeding = totalFeeding - totalProporcionalFeeding;
+            ordinaryPayroll.Lodging = totalLodging - totalProporcionalLodging;
+
+            ordinaryPayroll.TotalTravelExpenses = totalTravels - totalProporcionalTravels;
+
+            decimal totalToPay = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalDeducctions + ordinaryPayroll.TotalTravelExpenses;
+            ordinaryPayroll.TotalToPay = totalToPay;
+
+            //Actualizar la reporteria actual de la nomina.
+            
+            // your code here.
+
+            //Actualizar la reporteria actual de la nomina.
+
+            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+            await _unitOfWork.SaveChangesAsync(default);
+
+            _logger.LogInformation("✅ Deducción de viáticos aplicada correctamente. Total días: {Days}", totalAmountDays);
         }
 
 
