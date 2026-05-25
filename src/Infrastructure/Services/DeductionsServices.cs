@@ -55,8 +55,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             foreach(var permit in permitApplications)   
             {
-                DateTime permitStartDate = permit.StartDate.Date;
-                DateTime permitEndDate   = permit.EndDate.Date;
+                DateTime permitStartDate = permit.StartDate.ToLocalTime().Date;
+                DateTime permitEndDate   = permit.EndDate.ToLocalTime().Date;
 
                 for (DateTime date = permitStartDate;
                     date <= permitEndDate;
@@ -95,12 +95,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     }
                 }
             }
-
-            DateTime payrollStartDate = payrollActive.StartDate.ToLocalTime().Date;
-            DateTime payrollEndDate   = payrollActive.EndDate.ToLocalTime().Date;
-
-
-            
 
             int dedutionToNextPayrol = 0;
             int totalDaysToDiscount = (int) Math.Floor(totalAmountDays) - inconsistentDays;

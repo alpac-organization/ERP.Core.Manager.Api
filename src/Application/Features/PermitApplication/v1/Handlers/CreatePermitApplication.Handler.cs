@@ -212,8 +212,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     //Registro de solicitud de vacaciones
                     var vacationData = request.PermitApplicationVacation!;
 
-                    permitApplication.EndDate = vacationData.EndDate!.Value.Date;
-                    permitApplication.StartDate = vacationData.StartDate!.Value.Date;
+                    permitApplication.EndDate = vacationData.EndDate!.Value.ToLocalTime().Date;
+                    permitApplication.StartDate = vacationData.StartDate!.Value.ToLocalTime().Date;
                     permitApplication.StartTime = vacationData.StartTime;
                     permitApplication.EndTime = vacationData.EndTime;
                     permitApplication.PayrolId = request.PayrollId;
