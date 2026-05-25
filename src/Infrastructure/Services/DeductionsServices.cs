@@ -154,6 +154,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayroll.TotalTravelExpenses = totalTravels - totalProporcionalTravels;
 
             decimal totalToPay = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalDeducctions + ordinaryPayroll.TotalTravelExpenses;
+            ordinaryPayroll.TotalToPay = totalToPay;
 
             //Actualizar la reporteria actual de la nomina.
             
