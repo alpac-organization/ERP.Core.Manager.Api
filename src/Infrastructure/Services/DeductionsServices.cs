@@ -14,7 +14,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
     {
-        public async Task ApplyDeductionTravelExpenses(Collaborator collaboratorInformation, Salary salaryInformation)
+        public async Task ApplyDeductionTravelExpenses(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId)
         {
             _logger.LogInformation("🚩Iniciando proceso de deducción de viaticos. por ausencia de dias para colaborador con cedula: {identification}", collaboratorInformation.IdentificationNumber);
 
@@ -25,6 +25,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             var payrollActive = await _unitOfWork.Payrolls.Entities
+                .Where(pay => pay.Id == payrollId)
                 .Where(pay => pay.Status == PayrollStatus.Progress)
                 .Where(pay => pay.PayrollType == PayrollType.Ordinary)
                 .Where(pay => pay.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId)
@@ -36,57 +37,78 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 return;
             }
 
+            var permitApplications = await _unitOfWork.PermitApplications.Entities
+                .Where(permit => permit.Status == PermitApplicationStatus.Approved)
+                .Where(permit => permit.CollaboratorId == collaboratorInformation.Id)
+                .Where(permit => permit.Type == PermitApplicationType.Vacation || permit.Type == PermitApplicationType.MedicalAppointment)
+                .ToListAsync(default);
+
+            int inconsistentDays = 0;
+            int totalDaysDefault = collaboratorInformation.DoesWorkSaturdays ? 13 : 11;
+
+            decimal totalAmountDays = permitApplications.Sum(x => x.AmountDays ?? 0.0m);
+
+            var holidays = await _unitOfWork.Holidays.Entities
+                .Where(day => day.IsActive)
+                .ToListAsync(default);
+
+
+            foreach(var permit in permitApplications)   
+            {
+                DateTime permitStartDate = permit.StartDate.Date;
+                DateTime permitEndDate   = permit.EndDate.Date;
+
+                for (DateTime date = permitStartDate;
+                    date <= permitEndDate;
+                    date = date.AddDays(1))
+                {
+                    bool shouldDiscount = false;
+
+                    if (date.DayOfWeek == DayOfWeek.Sunday)
+                    {
+                        shouldDiscount = true;
+                    }
+
+                    if (!collaboratorInformation.DoesWorkSaturdays &&
+                        date.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        shouldDiscount = true;
+                    }
+
+                    bool isHoliday = holidays.Any(holiday =>
+                        holiday.Day == date.Day &&
+                        holiday.Month == date.Month &&
+                        (
+                            holiday.IsGlobal ||
+                            holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
+                        )
+                    );
+
+                    if (isHoliday)
+                    {
+                        shouldDiscount = true;
+                    }
+
+                    if (shouldDiscount)
+                    {
+                        inconsistentDays++;
+                    }
+                }
+            }
+
             DateTime payrollStartDate = payrollActive.StartDate.ToLocalTime().Date;
             DateTime payrollEndDate   = payrollActive.EndDate.ToLocalTime().Date;
 
-            var permitApplications = await _unitOfWork.PermitApplications.Entities
-                .Where(per => per.Status == PermitApplicationStatus.Approved)
-                .Where(per =>
-                    per.Type == PermitApplicationType.Vacation ||
-                    per.Type == PermitApplicationType.MedicalAppointment
-                )
-                .Where(per => per.CollaboratorId == collaboratorInformation.Id)
-                .ToListAsync();
 
-            decimal totalAmountDays = 0;
+            
 
-            foreach (var permit in permitApplications)
+            int dedutionToNextPayrol = 0;
+            int totalDaysToDiscount = (int) Math.Floor(totalAmountDays) - inconsistentDays;
+
+            if (totalDaysToDiscount > totalDaysDefault)
             {
-                DateTime permitStart = permit.StartDate!.Value.ToLocalTime().Date;
-                DateTime permitEnd   = permit.EndDate!.Value.ToLocalTime().Date;
-
-                // No intersecta
-                if (permitEnd < payrollStartDate || permitStart > payrollEndDate)
-                    continue;
-
-                bool isFullyInsidePayroll =
-                    permitStart >= payrollStartDate &&
-                    permitEnd <= payrollEndDate;
-
-                // CASO 1:
-                // El permiso está completamente dentro de la nómina
-                if (isFullyInsidePayroll)
-                {
-                    totalAmountDays += permit.AmountDays ?? 0;
-                    continue;
-                }
-
-                // CASO 2:
-                // Intersección parcial
-                DateTime overlapStart =
-                    permitStart > payrollStartDate
-                        ? permitStart
-                        : payrollStartDate;
-
-                DateTime overlapEnd =
-                    permitEnd < payrollEndDate
-                        ? permitEnd
-                        : payrollEndDate;
-
-                decimal overlapDays =
-                    (overlapEnd - overlapStart).Days + 1;
-
-                totalAmountDays += overlapDays;
+                dedutionToNextPayrol = totalDaysToDiscount - totalDaysDefault;
+                totalDaysToDiscount = totalDaysDefault;
             }
 
             var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
@@ -128,18 +150,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 }
             }
 
-            int totalDays = collaboratorInformation.DoesWorkSaturdays ? 13 : 11;
-
-            //Calcular el total de viaticos que gana esta persona.
+            // //Calcular el total de viaticos que gana esta persona.
             
-            decimal totalFeeding   = totalDays * feeding;
-            decimal totalTransport = totalDays * transport;
-            decimal totalLodging   = totalDays * lodging;
+            decimal totalFeeding   = totalDaysDefault * feeding;
+            decimal totalTransport = totalDaysDefault * transport;
+            decimal totalLodging   = totalDaysDefault * lodging;
             decimal totalTravels   = totalFeeding + totalTransport + totalLodging;
 
-            //Ahora que sabemos el total de recibe deduscamos los dias que no viene esa persona.
-
-            int totalDaysToDiscount = (int) Math.Floor(totalAmountDays);
+            // //Ahora que sabemos el total de recibe deduscamos los dias que no viene esa persona.
 
             decimal totalProporcionalFeeding    = feeding * totalDaysToDiscount;
             decimal totalProporcionalTransport  = transport * totalDaysToDiscount;
@@ -159,8 +177,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             //Actualizar la reporteria actual de la nomina.
             
             // your code here.
+            var recordInformation = await _unitOfWork.RecordsTravelExpensePayments.Entities
+                .Where(history => history.CollaboratorId == collaboratorInformation.Id)
+                .Where(history => history.PayrollId == payrollId)
+                .FirstOrDefaultAsync(default);
+
+            if (recordInformation is null)
+            {
+                _logger.LogInformation("No se encontro el informe de pago de viaticos");
+                return;
+            }
 
             //Actualizar la reporteria actual de la nomina.
+            recordInformation.Lodging = totalLodging - totalProporcionalLodging;
+            recordInformation.Transport = totalTransport - totalProporcionalTransport;
+            recordInformation.Feeding = totalFeeding - totalProporcionalFeeding;
+
+            await _unitOfWork.RecordsTravelExpensePayments.UpdateAsync(recordInformation);
 
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
             await _unitOfWork.SaveChangesAsync(default);
