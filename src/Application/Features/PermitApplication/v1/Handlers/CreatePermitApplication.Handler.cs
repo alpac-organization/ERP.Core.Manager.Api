@@ -216,6 +216,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     permitApplication.StartDate = vacationData.StartDate!.Value.Date;
                     permitApplication.StartTime = vacationData.StartTime;
                     permitApplication.EndTime = vacationData.EndTime;
+                    permitApplication.PayrolId = request.PayrollId;
                     permitApplication.Type = PermitApplicationType.Vacation;
                     
                     MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
