@@ -6,10 +6,11 @@ using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 using System.Text.Json;
 using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class CreatePermitApplicationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager) : AlpacBaseHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
+    public class CreatePermitApplicationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<CreatePermitApplicationHandler> _logger) : AlpacBaseHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(CreatePermitApplicationCommand request, CancellationToken cancellationToken)
         {
@@ -113,6 +114,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             var startTimeLimit = new TimeOnly(8, 0);
             var endTimeLimit   = new TimeOnly(14, 30);
 
+            _logger.LogInformation("🚩Iniciando proceso para registrar solicitud de permiso");
+
             switch (request.PermitApplicationType)
             {
                 case PermitApplicationType.MedicalAppointment:
@@ -201,8 +204,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     permitApplication.StartDate = vacationData.StartDate;
                     permitApplication.StartTime = vacationData.StartTime;
                     permitApplication.EndTime = vacationData.EndTime;
-                    
                     permitApplication.Type = PermitApplicationType.Vacation;
+                    
                     MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
 
                     var vacationControl = await _unitOfWork.Vacations.Entities
