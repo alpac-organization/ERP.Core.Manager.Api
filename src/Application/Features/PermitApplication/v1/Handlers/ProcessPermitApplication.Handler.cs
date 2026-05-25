@@ -26,19 +26,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             }
 
             #endregion
-
-            #region Verificar si existe el permiso solicitado
-            var permitApplication = await _unitOfWork.PermitApplications.Entities
-                .Where(vr => vr.Id == request.PermitApplicationId)
-                .Where(vr => vr.Status != PermitApplicationStatus.Cancelled)
-                .Include(vr => vr.Collaborator)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (permitApplication is null)
-            {
-                return _errorManager.ThrowBadRequest<bool>("No se encontro la solicitud del colaborador", "ERP:001");
-            }
-            #endregion
+            
+            #region Información del usuario
 
             var user = await _unitOfWork.Users.Entities
                 .Where(u => u.Id == request.UserId)
@@ -49,126 +38,53 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 return _errorManager.ThrowBadRequest<bool>("No se encontro el usuario asociado a la solicitud", "ERP:001");
             }
 
-            var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                .Where(c => c.Id == permitApplication.CollaboratorId)
-                .Where(c => c.CompanyId == request.CompanyId)
-                .Where(c => c.IdentificationNumber == user.IdentificationNumber)
-                .AnyAsync(cancellationToken);
+            #endregion
 
-            //Información de vacaciones para reducción de información
+            #region Verificar si existe el permiso solicitado
+            
+            var permitApplication = await _unitOfWork.PermitApplications.Entities
+                .Where(vr => vr.Id == request.PermitApplicationId)
+                .Where(vr => vr.Status != PermitApplicationStatus.Cancelled)
+                .Include(vr => vr.Collaborator)
+                    .ThenInclude(vr => vr.WorkingInformation)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (permitApplication is null)
+            {
+                return _errorManager.ThrowBadRequest<bool>("No se encontro la solicitud del colaborador", "ERP:001");
+            }
+
+            #endregion
+            
+            #region Control de vacaciones
+            
             var vacationInformationSolicitante = await _unitOfWork.Vacations.Entities
                 .Where(v => v.CollaboratorId == permitApplication.CollaboratorId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (vacationInformationSolicitante is null)
             {
-                return _errorManager.ThrowBadRequest<bool>("No se encontro registro de vacaciones del solicitante", "ERP:02");
+                return _errorManager.ThrowBadRequest<bool>("😐No se encontro registro de vacaciones del solicitante", "ERP:02");
             }
 
-            var payrollActive = await _unitOfWork.Payrolls.Entities
-                .Where(payroll => payroll.Id == Guid.Parse("5bab506b-5af4-4918-9945-8a8a3f262dcd"))
-                .Where(payroll => payroll.Status == PayrollStatus.Progress)
+            #endregion
+
+            #region Información del tipo de salario
+
+            var salaryInformation = await _unitOfWork.Salaries.Entities
+                .Where(sal => sal.EndDate == null)
+                .Where(sal => sal.CollaboratorId == permitApplication.Collaborator.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (payrollActive is null)
+            if (salaryInformation is null)
             {
-                return _errorManager.ThrowBadRequest<bool>("No podemos procesar la solicitud, no se encuentra un periodo de nomina con el id indicado", "ERP:PayrollNotFound");
+                return _errorManager.ThrowBadRequest<bool>("😐No se encontro la información salarial del colaborador", "ERP:02");
             }
+
+            #endregion
 
             switch (permitApplication.Type)
             {
-                #region Proceso de pago de vaciones en el proceso de donaciones de vacaciones
-                // case PermitApplicationType.DonatedVacations:
-                // {
-                //     #region Primero proceso de aprobación
-                //     var response = MapperInformationToApprovedFirstStep(
-                //         permitApplication, 
-                //         access.Role!.RoleType, 
-                //         request.IsApproved, 
-                //         user.Fullname ?? "unknow user"
-                //     );
-
-                //     if (response)
-                //     {
-                //         await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-                //         await _unitOfWork.SaveChangesAsync(cancellationToken);
-                //     }                            
-                //     else return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar esta solicitud", "ERP:01"); 
-                //     #endregion
-
-                //     #region Aprobación de solicitud del colaborador
-                //     if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved)
-                //     {
-                //         if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
-                //         {
-                //             return _errorManager.ThrowBadRequest<bool>("No puedes aprobarte el proceso, no eres administrador", "ERP:03");
-                //         }
-
-                //         if (access.Role!.RoleType == RoleType.Administrator)
-                //         {
-                //             var vacationControlToReceive = await _unitOfWork.Vacations.Entities
-                //                 .Include(vac  => vac.Collaborator)
-                //                 .Where(vac  => vac.Collaborator.IdentificationNumber == permitApplication.IdentificationCollaboratorToReceive)
-                //                 .FirstOrDefaultAsync(cancellationToken);
-
-                //             if (vacationControlToReceive is null)
-                //             {
-                //                 return _errorManager.ThrowBadRequest<bool>("El colaborador que recibira las vacaciones no tiene proceso de vacaciones", "ERP:03");                            
-                //             }
-
-                //             //Reducimos las vacaciones para el solicitante.
-                //             vacationInformationSolicitante.AvailableVacations -= permitApplication.AmountDays ?? 0m;
-                //             vacationInformationSolicitante.EnjoyedVacation += permitApplication.AmountDays ?? 0;
-                            
-                //             await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
-                //             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-
-                //             //Le aumentamos la vacaciones a la persona que recibira las vacaciones.
-                //             vacationControlToReceive.AvailableVacations += permitApplication.AmountDays ?? 0m;
-                //             vacationControlToReceive.DonatedVacation += permitApplication.AmountDays ?? 0m;
-
-                //             await _unitOfWork.Vacations.UpdateAsync(vacationControlToReceive);
-                //             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                //             permitApplication.AdministratorFullName = $"{user.Fullname}";
-                //             permitApplication.SecondStepApproved = true;
-                //             permitApplication.Status = PermitApplicationStatus.Approved;
-
-                //             await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-                //             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                //             return true;
-                //         }
-                //         else
-                //         {
-                //             return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden aprobar el ultimo proceso de solicitud", "ERP:02");   
-                //         }
-                //     }
-                //     #endregion
-
-                //     #region Rechazar Solicitud de colaborador
-                //     else if((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && request.IsApproved is false)
-                //     {
-
-                //         if (access.Role!.RoleType == RoleType.Manager && collaboratorInformation)
-                //         {
-                //             return _errorManager.ThrowBadRequest<bool>("No puedes rechazar el proceso, no eres administrador", "ERP:03");
-                //         }
-
-                //         var IsSuccess = RejectPermitApplication(access.Role.RoleType, permitApplication, user.Fullname!);
-
-                //         if (IsSuccess)
-                //         {
-                //             await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
-                //             await _unitOfWork.SaveChangesAsync(cancellationToken);
-                //         } else return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden cancelar la solicitud", "ERP:03"); 
-                //     }
-                //     #endregion
-
-                //     break;
-                // }
-                #endregion
                 case PermitApplicationType.MedicalAppointment:
                 {
                     #region Primero proceso de aprobación
@@ -200,8 +116,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     
                     if(isAuthorized && continueProcess)
                     {
-                        //Realizamos las mismas operaciones de calculo en este proceso
-
                         var additionalInformation = JsonSerializer.Deserialize<AdditionalDataPermitApplication>(permitApplication.AdditionalData);
 
                         if (additionalInformation!.MedicalAppointmentData.IsFullDay)
@@ -254,7 +168,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     {
                         return _errorManager.ThrowBadRequest<bool>("No tienes permisos para realizar esta operación, no eres administrador", "ERP:03");
                     }
-                    
+
                     if(isAuthorized && continueProcess)
                     {
                         //Relizamos la deducciones respectivas al colaborador de viaticos y vacaciones.
@@ -262,67 +176,17 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         vacationInformationSolicitante.EnjoyedVacation    += permitApplication.AmountDays ?? 0.0m;
 
                         await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
-
-                        //Aqui cambiar el estado del colaborador que esta solictando las vacaciones y fue aprobada dichas vacaciones.
-
-                        DateTime payrollStartDate = payrollActive.StartDate;
-                        DateTime payrollEndDate   = payrollActive.EndDate;
-
-                        if (permitApplication.StartDate is null || permitApplication.EndDate is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                "La fecha de inicio o fin de la solicitud es requerida. para continuar con este proceso", 
-                                "ERP:NotFound"
-                            );
-                        }
-
-                        DateTime permitApplicationStartDate = permitApplication.StartDate.Value;
-                        DateTime permitApplicationEndDate = permitApplication.EndDate.Value;
-
-                        // Tomar la fecha mayor entre inicio de nómina e inicio de solicitud
-                        DateTime effectiveStartDate =
-                            permitApplicationStartDate > payrollStartDate
-                                ? permitApplicationStartDate
-                                : payrollStartDate;
-
-                        // Tomar la fecha menor entre fin de nómina y fin de solicitud
-                        DateTime effectiveEndDate =
-                            permitApplicationEndDate < payrollEndDate
-                                ? permitApplicationEndDate
-                                : payrollEndDate;
-                                
-                        int totalDays = 0;
-
-                        if (effectiveStartDate <= effectiveEndDate)
-                        {
-                            // +1 porque el rango es inclusivo
-                            totalDays = (effectiveEndDate - effectiveStartDate).Days + 1;
-
-                            for (DateTime currentDate = effectiveStartDate;
-                                currentDate <= effectiveEndDate;
-                                currentDate = currentDate.AddDays(1))
-                            {
-                                if (currentDate.DayOfWeek == DayOfWeek.Sunday)
-                                {
-                                    totalDays--;
-                                    continue;
-                                }
-
-                                if (!permitApplication.Collaborator.DoesWorkSaturdays && currentDate.DayOfWeek == DayOfWeek.Saturday)
-                                {
-                                    totalDays--;
-                                }
-                            }
-                        }
-
-
-
-                        await _deductionServices.ApplyDeductionTravelExpenses();
                     }
-
+                    
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
-                
+
+                    if (permitApplication.Status is PermitApplicationStatus.Approved)
+                    {
+                        await _deductionServices.ApplyDeductionTravelExpenses(permitApplication.Collaborator, salaryInformation);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    }
+
                     return true;
                     #endregion
                 }
