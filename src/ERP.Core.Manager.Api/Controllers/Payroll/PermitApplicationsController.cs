@@ -57,6 +57,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 Description = Payload.Description,
                 Channel = Payload.Channel,
                 PermitApplicationType = Payload.PermitApplicationType,
+                PayrollId = Payload.PayrollId,
                 
                 //Vacaciones
                 PermitApplicationVacation = Payload.PermitApplicationVacation,
