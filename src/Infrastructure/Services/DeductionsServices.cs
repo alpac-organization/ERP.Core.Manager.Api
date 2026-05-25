@@ -151,7 +151,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayroll.Feeding = totalFeeding - totalProporcionalFeeding;
             ordinaryPayroll.Lodging = totalLodging - totalProporcionalLodging;
 
-            decimal totalToPay = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - ordinaryPayroll.TotalDeducctions + (totalTravels - totalProporcionalTravels);
+            ordinaryPayroll.TotalTravelExpenses = totalTravels - totalProporcionalTravels;
+
+            decimal totalToPay = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalDeducctions + ordinaryPayroll.TotalTravelExpenses;
+
+            //Actualizar la reporteria actual de la nomina.
+            
+            // your code here.
 
             //Actualizar la reporteria actual de la nomina.
 
