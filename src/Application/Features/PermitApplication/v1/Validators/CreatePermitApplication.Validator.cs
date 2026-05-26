@@ -20,6 +20,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                 .NotEmpty().WithMessage("El id de usuario es requerido")
                 .NotNull().WithMessage("El id de usuario es requerido");
 
+            RuleFor(x => x.PayrollId)
+                .NotEmpty().WithMessage("El payroll id es requerido")
+                .NotNull().WithMessage("El payroll id es requerido");
+
             RuleFor(x => x.IdentificationNumber)
                 .NotEmpty().WithMessage("El número de identificación es requerido")
                 .NotNull().WithMessage("El número de identificación es requerido");

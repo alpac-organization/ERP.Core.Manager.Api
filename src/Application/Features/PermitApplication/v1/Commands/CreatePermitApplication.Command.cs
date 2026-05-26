@@ -11,6 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
         public string? Description { get; set; }
         public PermitApplicationType PermitApplicationType { get; set; }
         public Channels Channel { get; set; }
+        public Guid PayrollId { get; set; }
         
         public PermitApplicationVacation? PermitApplicationVacation { get; set; }
         public PermitApplicationDonatedVacations? PermitApplicationDonatedVacations { get; set; }
@@ -23,8 +24,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
 
     public class PermitApplicationVacation
     {
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         public TimeOnly? StartTime { get; set; }
         public TimeOnly? EndTime { get; set; }
 
@@ -36,7 +37,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
     public class PermitApplicationMedicalAppointment
     {
         //Fecha de solicitud
-        public DateTime StartDate { get; set; }
+        public DateOnly StartDate { get; set; }
 
         //Hora de inicio
         public TimeOnly? StartTime { get; set; }

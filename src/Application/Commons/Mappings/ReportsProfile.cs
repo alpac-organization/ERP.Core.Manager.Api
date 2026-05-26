@@ -38,6 +38,21 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                         src.Collaborator.SecondLastname 
                     }.Where(s => !string.IsNullOrWhiteSpace(s)))
                     .ToCapitalize()));
+
+            CreateMap<RecordsTravelExpensePayments, PaymentTravelExpensesHistory>()
+                .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.CollaboratorId))
+                .ForMember(dest => dest.PayrollId, opt => opt.MapFrom(src => src.PayrollId))
+                .ForMember(dest => dest.Transport, opt => opt.MapFrom(src => src.Transport))
+                .ForMember(dest => dest.Lodging, opt => opt.MapFrom(src => src.Lodging))
+                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => 
+                    string.Join(" ", new[] 
+                    { 
+                        src.Collaborator.FirstName, 
+                        src.Collaborator.SecondName, 
+                        src.Collaborator.FirstLastname, 
+                        src.Collaborator.SecondLastname 
+                    }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                    .ToCapitalize()));
         }
     }
 }
