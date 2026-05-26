@@ -55,10 +55,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             foreach(var permit in permitApplications)   
             {
-                DateTime permitStartDate = permit.StartDate.Date;
-                DateTime permitEndDate   = permit.EndDate.Date;
+                DateOnly permitStartDate = permit.StartDate;
+                DateOnly permitEndDate   = permit.EndDate;
 
-                for (DateTime date = permitStartDate;
+                for (DateOnly date = permitStartDate;
                     date <= permitEndDate;
                     date = date.AddDays(1))
                 {

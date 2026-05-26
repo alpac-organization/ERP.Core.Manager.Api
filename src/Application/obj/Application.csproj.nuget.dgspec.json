@@ -70,11 +70,11 @@
             },
             "ERP.Core.Application": {
               "target": "Package",
-              "version": "[1.0.118, )"
+              "version": "[1.0.120, )"
             },
             "ERP.Core.Database.Application": {
               "target": "Package",
-              "version": "[1.0.118, )"
+              "version": "[1.0.120, )"
             },
             "FluentValidation.DependencyInjectionExtensions": {
               "target": "Package",
@@ -438,11 +438,11 @@
           "dependencies": {
             "ERP.Core.Database.Domain": {
               "target": "Package",
-              "version": "[1.0.118, )"
+              "version": "[1.0.120, )"
             },
             "ERP.Core.Domain": {
               "target": "Package",
-              "version": "[1.0.118, )"
+              "version": "[1.0.120, )"
             }
           },
           "imports": [
