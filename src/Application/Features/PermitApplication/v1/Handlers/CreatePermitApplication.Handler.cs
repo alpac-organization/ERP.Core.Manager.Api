@@ -255,23 +255,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         var startTime = request.PermitApplicationVacation.StartTime!.Value;
                         var endTime = request.PermitApplicationVacation.EndTime!.Value;
 
-                        if (startTime.Minute != 0 || endTime.Minute != 0)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                "Solo se permiten solicitudes por horas completas (sin minutos).", 
-                                "ERP:ONLY_FULL_HOURS_ALLOWED"
-                            );
-                        }   
-
-                        // 2. Control del rango permitido (08:00 AM - 02:30 PM)
-                        if (startTime < startTimeLimit || endTime > endTimeLimit)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                "El horario solicitado está fuera del rango permitido (08:00 AM - 02:30 PM).", 
-                                "ERP:TIME_OUT_OF_RANGE"
-                            );
-                        }
-
                         int totalHours = endTime.Hour - startTime.Hour;
 
                         if (totalHours <= 0)
