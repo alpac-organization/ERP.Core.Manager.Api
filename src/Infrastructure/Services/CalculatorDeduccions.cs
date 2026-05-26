@@ -385,6 +385,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
 
+            #region Registrar informe de viaticos.
+
+            await _unitOfWork.RecordsTravelExpensePayments.RegisterRecordsTravelExpensePayment(new()
+            {
+                CollaboratorId = collaborator.Id,
+                PayrollId = payrollId,
+                PaidDays = collaborator.DoesWorkSaturdays ? 13 : 11,
+                Feeding =  FoodTravelAllowance,
+                Transport = Transport,
+                Lodging = Lodging
+            });
+
+            #endregion
+
             #region Iniciar proceso de acumulados
 
             //Registrar el acumulado para la siguiente apertura de quincena
