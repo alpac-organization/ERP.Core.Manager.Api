@@ -20,6 +20,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         {
             _logger.LogInformation("🚩Iniciando proceso de subsidio para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
 
+            var travelExpensePayments = await _unitOfWork.RecordsTravelExpensePayments.Entities
+                .Where(travel => travel.CollaboratorId == collaboratorInformation.Id)
+                .Where(travel => travel.PayrollId == period.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (travelExpensePayments is null)
+            {
+                _logger.LogInformation("El control de pago de viaticos del colaborador con cedula {identification} no fue encontrado", collaboratorInformation.IdentificationNumber);
+                return;
+            }
+
             var taxIncome = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(tax => tax.PayrollId == period.Id)
                 .Where(tax => tax.CollaboratorId == collaboratorInformation.Id)
@@ -204,6 +215,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             informationPayroll.TotalTravelExpenses -= totalDeductionTravelExpensive;
 
             informationPayroll.TotalToPay = informationPayroll.TotalIncome - informationPayroll.TotalLegalDeductions - totalDeductions + informationPayroll.TotalTravelExpenses;
+        
+            travelExpensePayments?.PaidDays = totalDays;
+            travelExpensePayments?.Lodging = lodging * totalDays;
+            travelExpensePayments?.Transport = transport * totalDays;
+            travelExpensePayments?.Feeding = feeding * totalDays;
+
+            await _unitOfWork.RecordsTravelExpensePayments.UpdateAsync(travelExpensePayments!);
 
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(informationPayroll);
 
@@ -456,6 +474,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
             ordinaryPayrollInfo.TotalToPay = total;
+
+            
 
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
 
