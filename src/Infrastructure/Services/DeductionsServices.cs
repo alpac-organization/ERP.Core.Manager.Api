@@ -99,6 +99,26 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             int dedutionToNextPayrol = 0;
             int totalDaysToDiscount = (int) Math.Floor(totalAmountDays) - inconsistentDays;
 
+            //Ahora aqui descontamos todos los sabados si esa persona biene sabado y pidio 0.5 dias
+           foreach (var permit in permitApplications)
+            {
+                bool sameDay =
+                    permit.StartDate == permit.EndDate;
+
+                bool isSaturday =
+                    permit.StartDate.DayOfWeek == DayOfWeek.Saturday;
+
+                bool collaboratorWorksSaturday =
+                    collaboratorInformation.DoesWorkSaturdays;
+
+                if (sameDay &&
+                    collaboratorWorksSaturday &&
+                    isSaturday)
+                {
+                    totalDaysToDiscount++;
+                }
+            }
+
             if (totalDaysToDiscount > totalDaysDefault)
             {
                 dedutionToNextPayrol = totalDaysToDiscount - totalDaysDefault;

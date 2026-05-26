@@ -301,15 +301,48 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     }
                     else
                     {
-                        int difference = permitApplication.EndDate.Day -  permitApplication.StartDate.Day;
-                        decimal totalDays = difference + 1.0m;
+                        int inconsistentDays = 0;
+                        int difference = permitApplication.EndDate.DayNumber - permitApplication.StartDate.DayNumber;
+
+                        int totalDays = difference + 1;
+
+                        var holidays = await _unitOfWork.Holidays.Entities
+                            .Where(day => day.IsActive)
+                            .ToListAsync(default);
+
+                        DateOnly permitStartDate = request.PermitApplicationVacation.StartDate;
+                        DateOnly permitEndDate   = request.PermitApplicationVacation.EndDate;
+
+                        for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
+                        {
+                            bool shouldDiscount = false;
+
+                            bool isHoliday = holidays.Any(holiday =>
+                                holiday.Day == date.Day &&
+                                holiday.Month == date.Month &&
+                                (
+                                    holiday.IsGlobal ||
+                                    holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
+                                )
+                            );
+
+                            if (isHoliday)
+                            {
+                                shouldDiscount = true;
+                            }
+
+                            if (shouldDiscount)
+                            {
+                                inconsistentDays++;
+                            }
+                        }
 
                         if(vacationControl.AvailableVacations < totalDays)
                         {
                             return _errorManager.ThrowBadRequest<bool>("No cuenta con cantidad de dias suficiente para realizar esta solicitud", "ERP:04");
                         }
 
-                        permitApplication.AmountDays = totalDays;
+                        permitApplication.AmountDays = totalDays - inconsistentDays;
                     }
 
                     break;   
