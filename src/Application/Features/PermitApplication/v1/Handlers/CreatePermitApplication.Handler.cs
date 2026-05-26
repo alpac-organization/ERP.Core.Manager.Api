@@ -250,7 +250,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         permitApplication.AmountDays = 0.5m;
                     }
-                   else if (request.PermitApplicationVacation.WithRangeHours)
+                    else if (request.PermitApplicationVacation.WithRangeHours)
                     {
                         var startTime = request.PermitApplicationVacation.StartTime!.Value;
                         var endTime = request.PermitApplicationVacation.EndTime!.Value;
@@ -301,22 +301,18 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     }
                     else
                     {
-                        int inconsistentDays = 0;
-                        int difference = permitApplication.EndDate.DayNumber - permitApplication.StartDate.DayNumber;
-
-                        int totalDays = difference + 1;
+                        decimal totalDays = 0;
+                        int validWorkingDays = 0;
 
                         var holidays = await _unitOfWork.Holidays.Entities
                             .Where(day => day.IsActive)
                             .ToListAsync(default);
 
-                        DateOnly permitStartDate = request.PermitApplicationVacation.StartDate;
-                        DateOnly permitEndDate   = request.PermitApplicationVacation.EndDate;
+                        DateOnly startDate = request.PermitApplicationVacation.StartDate;
+                        DateOnly endDate   = request.PermitApplicationVacation.EndDate;
 
-                        for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
+                        for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
                         {
-                            bool shouldDiscount = false;
-
                             bool isHoliday = holidays.Any(holiday =>
                                 holiday.Day == date.Day &&
                                 holiday.Month == date.Month &&
@@ -326,23 +322,52 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                                 )
                             );
 
+                            // Feriado no cuenta
                             if (isHoliday)
                             {
-                                shouldDiscount = true;
+                                continue;
                             }
 
-                            if (shouldDiscount)
+                            // Domingo no cuenta
+                            if (date.DayOfWeek == DayOfWeek.Sunday)
                             {
-                                inconsistentDays++;
+                                continue;
                             }
+
+                            // Contador de días válidos
+                            validWorkingDays++;
+
+                            // Sábado
+                            if (date.DayOfWeek == DayOfWeek.Saturday)
+                            {
+                                if (collaborator.DoesWorkSaturdays)
+                                {
+                                    totalDays += 0.5m;
+                                }
+
+                                continue;
+                            }
+
+                            // Lunes a viernes
+                            totalDays += 1;
                         }
+
+                        // Semana laboral completa
+                        if (
+                            collaborator.DoesWorkSaturdays &&
+                            validWorkingDays >= 6
+                        )
+                        {
+                            totalDays = 7;
+                        }
+
 
                         if(vacationControl.AvailableVacations < totalDays)
                         {
                             return _errorManager.ThrowBadRequest<bool>("No cuenta con cantidad de dias suficiente para realizar esta solicitud", "ERP:04");
                         }
 
-                        permitApplication.AmountDays = totalDays - inconsistentDays;
+                        permitApplication.AmountDays = totalDays;
                     }
 
                     break;   
