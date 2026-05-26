@@ -88,8 +88,37 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                 case ReportsType.ChristmasBonusAccrual:
                 {
                     //Logica de acumulado de aguinaldo
-                    
+
                     break;
+                }
+                case ReportsType.TravelExpenses:
+                {
+                    var queryReport = _unitOfWork.RecordsTravelExpensePayments.Entities
+                        .Include(tax => tax.Payroll)
+                        .Include(income => income.Collaborator)
+                            .ThenInclude(income => income.WorkingInformation)
+                        .Where(income => income.PayrollId == request.PayrollId);
+
+                    if (!string.IsNullOrEmpty(request.IdentificationNumber))
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                    }
+
+                    if (request.WorkAreaId.HasValue)
+                    {
+                        queryReport = queryReport
+                            .Where(tax => tax.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);   
+                    }
+
+                    var records = await queryReport
+                        .ToListAsync(cancellationToken);
+                    
+                    var mapped = _mapper.Map<List<PaymentTravelExpensesHistory>>(records);
+
+                    reportDto.PaymentTravelExpenses = mapped;
+
+                    return reportDto;
                 }
                 default:
                 {
