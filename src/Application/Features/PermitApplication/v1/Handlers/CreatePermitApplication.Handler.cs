@@ -74,26 +74,29 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 return _errorManager.ThrowBadRequest<bool>("Ya se encuentra un solicitud pendiente, cancelar la solicitud o esperar aprobación", "ERP:02");
             }
 
+           DateOnly? startToValidate =
+                request.PermitApplicationType == PermitApplicationType.MedicalAppointment
+                    ? request.PermitApplicationMedicalAppointment?.StartDate
+                    : request.PermitApplicationVacation?.StartDate;
 
-            DateTime? startToValidate = request.PermitApplicationType == PermitApplicationType.MedicalAppointment 
-                ? request.PermitApplicationMedicalAppointment?.StartDate 
-                : request.PermitApplicationVacation?.StartDate;
-
-            DateTime? endToValidate = request.PermitApplicationType == PermitApplicationType.MedicalAppointment 
-                ? request.PermitApplicationMedicalAppointment?.StartDate
-                : request.PermitApplicationVacation?.EndDate;
+            DateOnly? endToValidate =
+                request.PermitApplicationType == PermitApplicationType.MedicalAppointment
+                    ? request.PermitApplicationMedicalAppointment?.StartDate
+                    : request.PermitApplicationVacation?.EndDate;
 
             if (startToValidate.HasValue && endToValidate.HasValue)
             {
                 var (hasOverlap, overlapMessage) = await ValidateOverlapAsync(
-                    collaborator.Id, 
-                    startToValidate.Value, 
-                    endToValidate.Value, 
+                    collaborator.Id,
+                    startToValidate.Value,
+                    endToValidate.Value,
                     cancellationToken);
 
                 if (hasOverlap)
                 {
-                    return _errorManager.ThrowBadRequest<bool>(overlapMessage, "ERP:DATE_OVERLAP");
+                    return _errorManager.ThrowBadRequest<bool>(
+                        overlapMessage,
+                        "ERP:DATE_OVERLAP");
                 }
             }
 
@@ -101,8 +104,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             var permitApplication = new Database.Domain.Entities.Payrolls.PermitApplication
             {
-                StartDate = DateTime.Today,
-                EndDate = DateTime.Today,
                 EndTime = null,
                 StartTime = null,
                 Status = PermitApplicationStatus.Pending,
@@ -212,8 +213,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     //Registro de solicitud de vacaciones
                     var vacationData = request.PermitApplicationVacation!;
 
-                    permitApplication.EndDate = vacationData.EndDate!.Value.ToLocalTime().Date;
-                    permitApplication.StartDate = vacationData.StartDate!.Value.ToLocalTime().Date;
+                    permitApplication.EndDate = vacationData.EndDate;
+                    permitApplication.StartDate = vacationData.StartDate;
                     permitApplication.StartTime = vacationData.StartTime;
                     permitApplication.EndTime = vacationData.EndTime;
                     permitApplication.PayrolId = request.PayrollId;
@@ -300,8 +301,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     }
                     else
                     {
-                        TimeSpan difference = vacationData.EndDate!.Value.Date - vacationData.StartDate!.Value.Date;
-                        decimal totalDays = difference.Days + 1.0m;
+                        int difference = permitApplication.EndDate.Day -  permitApplication.StartDate.Day;
+                        decimal totalDays = difference + 1.0m;
 
                         if(vacationControl.AvailableVacations < totalDays)
                         {
@@ -327,20 +328,25 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             return true;
         }
 
-        private async Task<(bool hasOverlap, string message)> ValidateOverlapAsync(Guid collaboratorId, DateTime startDate, DateTime endDate, CancellationToken ct)
+        private async Task<(bool hasOverlap, string message)> ValidateOverlapAsync(Guid collaboratorId, DateOnly startDate, DateOnly endDate, CancellationToken ct)
         {
+
             var overlapExists = await _unitOfWork.PermitApplications.Entities
-                .AnyAsync(p => 
-                    p.CollaboratorId == collaboratorId && 
-                    (p.Status == PermitApplicationStatus.Approved || p.Status == PermitApplicationStatus.Pending) &&
-                    startDate.Date <= p.EndDate.Date && 
-                    endDate.Date >= p.StartDate.Date, 
+                .AnyAsync(p =>
+                    p.CollaboratorId == collaboratorId &&
+                    (p.Status == PermitApplicationStatus.Approved ||
+                    p.Status == PermitApplicationStatus.Pending) &&
+                    startDate <= p.EndDate &&
+                    endDate >= p.StartDate,
                     ct
                 );
 
             if (overlapExists)
             {
-                return (true, "Ya existe una solicitud (pendiente o aprobada) para las fechas seleccionadas. No se permite duplicar solicitudes el mismo día.");
+                return (
+                    true,
+                    "Ya existe una solicitud (pendiente o aprobada) para las fechas seleccionadas. No se permite duplicar solicitudes el mismo día."
+                );
             }
 
             return (false, string.Empty);
