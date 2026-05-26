@@ -300,8 +300,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     }
                     else
                     {
-                        TimeSpan difference = vacationData.EndDate!.Value.Date - vacationData.StartDate!.Value.Date;
-                        decimal totalDays = difference.Days + 1.0m;
+                        int difference = permitApplication.EndDate.Day -  permitApplication.StartDate.Day;
+                        decimal totalDays = difference.+ 1.0m;
 
                         if(vacationControl.AvailableVacations < totalDays)
                         {
