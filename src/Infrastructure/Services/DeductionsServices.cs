@@ -55,8 +55,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             foreach(var permit in permitApplications)   
             {
-                DateTime permitStartDate = permit.StartDate.ToLocalTime().Date;
-                DateTime permitEndDate   = permit.EndDate.ToLocalTime().Date;
+                DateTime permitStartDate = permit.StartDate.Date;
+                DateTime permitEndDate   = permit.EndDate.Date;
 
                 for (DateTime date = permitStartDate;
                     date <= permitEndDate;
