@@ -5,6 +5,8 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Infrastructure.Services; 
 using ERP.Core.Database.Infrastructure;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories.Payrolls;
+using ERP.Core.Database.Infrastructure.Persistence.Repositories.Payroll;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {

@@ -232,6 +232,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         return _errorManager.ThrowBadRequest<bool>("No se encontro el registro de vacaciones de este colaborador", "ERP:01");
                     }
 
+                    var holidays = await _unitOfWork.Holidays.Entities
+                        .Where(day => day.IsActive)
+                        .ToListAsync(default);
+
                     if (request.PermitApplicationVacation!.IsFullDay)
                     {
                         if (vacationControl.AvailableVacations < 1.0m)
@@ -286,10 +290,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     {
                         decimal totalDays = 0;
                         int validWorkingDays = 0;
-
-                        var holidays = await _unitOfWork.Holidays.Entities
-                            .Where(day => day.IsActive)
-                            .ToListAsync(default);
 
                         DateOnly startDate = request.PermitApplicationVacation.StartDate;
                         DateOnly endDate   = request.PermitApplicationVacation.EndDate;

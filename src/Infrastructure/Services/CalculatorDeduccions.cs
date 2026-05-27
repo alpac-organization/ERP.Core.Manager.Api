@@ -309,7 +309,53 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal FoodTravelAllowance = 0.0m;
             decimal totalAssigned       = 0.0m;
 
-            var DEFAULT_TOTAL_WORK_DAYS = collaborator.DoesWorkSaturdays ? 13 : 11;
+            if (collaborator.IdentificationNumber == "0431601670000A")
+            {
+                
+            }
+
+            if (collaborator.IdentificationNumber == "0012210790054K")
+            {
+                
+            }
+
+            int DEFAULT_TOTAL_WORK_DAYS = 0;
+            var holidays = await _unitOfWork.Holidays.Entities
+                .Where(day => day.IsActive)
+                .ToListAsync(default);
+
+            //Recorremos los dias
+            for (DateTime date = payrollStart.Date; date <= payrollEnd.Date; date = date.AddDays(1))
+            {
+                //Verificar si es un dia feriado contra nuestra base de datos.
+                bool isHoliday = holidays.Any(holiday =>
+                    holiday.Day == date.Day &&
+                    holiday.Month == date.Month &&
+                    (
+                        holiday.IsGlobal ||
+                        holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
+                    )
+                );
+
+                if (isHoliday)
+                {
+                    continue;
+                }
+
+                if (date.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    continue;
+                }
+
+                // Excluir sábados si no trabaja sábado
+                if (!collaborator.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    continue;
+                }
+
+                DEFAULT_TOTAL_WORK_DAYS++;
+            }
+
 
             foreach (var current in asssineds)
             {
@@ -391,7 +437,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                 CollaboratorId = collaborator.Id,
                 PayrollId = payrollId,
-                PaidDays = collaborator.DoesWorkSaturdays ? 13 : 11,
+                PaidDays = DEFAULT_TOTAL_WORK_DAYS,
                 Feeding =  FoodTravelAllowance,
                 Transport = Transport,
                 Lodging = Lodging
