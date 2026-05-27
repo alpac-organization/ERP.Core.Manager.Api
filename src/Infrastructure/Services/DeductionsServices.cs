@@ -75,6 +75,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                         shouldDiscount = true;
                     }
 
+                    if (collaboratorInformation.DoesWorkSaturdays && permit.AmountDays == 0.5m && date.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        totalAmountDays++;
+                    }
+
                     bool isHoliday = holidays.Any(holiday =>
                         holiday.Day == date.Day &&
                         holiday.Month == date.Month &&
