@@ -60,10 +60,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(day => day.IsGlobal)
                 .ToListAsync(default);
 
-            int inconsistentDays = 0;  //Cantidad de dias a deducir de viaticos.
-            int totalDaysDefault = 0;  //Cantidad de dias que tiene permitido pagar en viaticos
-
-            decimal totalAmountDays = permitApplications.Sum(x => x.AmountDays ?? 0.0m); //Total de dias acumulados de vacaciones. para asi sumar los dias redondiados
+            int totalDaysDefault = 0;            
+            int totalDaysToDiscount = 0;
+            decimal totalDaysResult = 0;
 
             #region Calculo de dias permitidos a tener viaticos en la quincena.
 
@@ -107,15 +106,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
                 {
+
+                    if (permit.AmountDays < 1 && date.DayOfWeek != DayOfWeek.Saturday && permit.Collaborator.DoesWorkSaturdays)
+                    {
+                        totalDaysResult += permit.AmountDays ?? 0;
+                        continue;
+                    }
+
                     if (date.DayOfWeek == DayOfWeek.Sunday)
                     {
-                        inconsistentDays++;
                         continue;
                     }
 
                     if (!collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
                     {
-                        inconsistentDays++;
                         continue;
                     }
 
@@ -128,21 +132,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                     if (isHoliday)
                     {
-                        inconsistentDays++;
                         continue;
                     }
 
                     if (collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday && permit.IsWithRangeDate is false && permit.AmountDays == 0.5m)
                     {
-                        totalAmountDays++;
+                        totalDaysToDiscount++;
                         continue;
                     }
+
+                    totalDaysToDiscount++;
                 }
             }
 
             #endregion
 
-            int totalDaysToDiscount  = (int) Math.Floor(totalAmountDays) - inconsistentDays;
+            totalDaysToDiscount += (int)Math.Floor(totalDaysResult);
 
             var assignedTravelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Where(assign => assign.CollaboratorId == collaboratorInformation.Id)
@@ -220,7 +225,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
             await _unitOfWork.SaveChangesAsync(default);
 
-            _logger.LogInformation("✅ Deducción de viáticos aplicada correctamente. Total días: {Days}", totalAmountDays);
+            _logger.LogInformation("✅ Deducción de viáticos aplicada correctamente. Total días: {Days}", totalDaysToDiscount);
         }
 
 
