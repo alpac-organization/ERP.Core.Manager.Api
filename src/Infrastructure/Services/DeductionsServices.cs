@@ -41,6 +41,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(permit => permit.Status == PermitApplicationStatus.Approved)
                 .Where(permit => permit.CollaboratorId == collaboratorInformation.Id)
                 .Where(permit => permit.Type == PermitApplicationType.Vacation || permit.Type == PermitApplicationType.MedicalAppointment)
+                .Include(permit => permit.Collaborator)
+                    .ThenInclude(col => col.WorkingInformation)
                 .ToListAsync(default);
 
             int inconsistentDays = 0;
@@ -48,8 +50,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal totalAmountDays = permitApplications.Sum(x => x.AmountDays ?? 0.0m);
 
-            var holidays = await _unitOfWork.Holidays.Entities
-                .Where(day => day.IsActive)
+            var holidaysGlobal = await _unitOfWork.Holidays.Entities
+                .Where(day => day.IsGlobal)
                 .ToListAsync(default);
 
 
@@ -79,7 +81,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     }
                     
                     //Ahora si encuenta un dia feriado tambien se descuenta de sus viaticos
-                    bool isHoliday = holidays.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month &&
+                    bool isHoliday = holidaysGlobal.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month &&
                         (
                             holiday.IsGlobal ||
                             holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
