@@ -214,10 +214,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     var vacationData = request.PermitApplicationVacation!;
 
                     permitApplication.EndDate = vacationData.EndDate;
+                    permitApplication.EndTime = vacationData.EndTime;
+
                     permitApplication.StartDate = vacationData.StartDate;
                     permitApplication.StartTime = vacationData.StartTime;
-                    permitApplication.EndTime = vacationData.EndTime;
+                    
                     permitApplication.PayrolId = request.PayrollId;
+                    
                     permitApplication.Type = PermitApplicationType.Vacation;
                     
                     MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
@@ -236,16 +239,17 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         .Where(day => day.IsActive)
                         .ToListAsync(default);
 
-                    if (request.PermitApplicationVacation!.IsFullDay)
+                    if (request.PermitApplicationVacation?.IsFullDay ?? false)
                     {
                         if (vacationControl.AvailableVacations < 1.0m)
                         {
                             return _errorManager.ThrowBadRequest<bool>("No cuentas con dias sufientes para solicitar vacaciones", "ERP:02");                        
                         }
-
+                        
                         permitApplication.AmountDays = 1.0m;
+                        permitApplication.IsWithRangeDate = false;
                     }
-                    else if (request.PermitApplicationVacation.IsItMidday)
+                    else if (request.PermitApplicationVacation?.IsItMidday ?? false)
                     {
                         if (vacationControl.AvailableVacations < 0.5m)
                         {
@@ -253,51 +257,44 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         }
 
                         permitApplication.AmountDays = 0.5m;
+                        permitApplication.IsWithRangeDate = false;
                     }
-                    else if (request.PermitApplicationVacation.WithRangeHours)
+                    else if (request.PermitApplicationVacation?.WithRangeHours ?? false)
                     {
-                        var startTime = request.PermitApplicationVacation.StartTime!.Value;
                         var endTime = request.PermitApplicationVacation.EndTime!.Value;
+                        var startTime = request.PermitApplicationVacation.StartTime!.Value;
 
                         int totalHours = endTime.Hour - startTime.Hour;
 
-                        if (totalHours <= 0)
+                        decimal daysToDeduct = totalHours switch
                         {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                "La hora de fin debe ser mayor a la hora de inicio.", 
-                                "ERP:INVALID_TIME_RANGE"
-                            );
-                        }
+                            1 => 0.1m,
+                            2 => 0.2m,
+                            3 => 0.3m,
+                            4 => 0.4m,
+                            5 => 0.5m,
+                            6 => 0.6m,
+                            7 => 0.7m,
+                            _ when totalHours >= 8 => 1.0m,
+                            _ => 0.0m
+                        };
 
-                        decimal daysToDeduct;
-
-                        if (totalHours > 5)
-                        {
-                            daysToDeduct = 1.0m;
-                        }
-                        else if (totalHours == 5)
-                        {
-                            daysToDeduct = 0.5m;
-                        }
-                        else
-                        {
-                            daysToDeduct = totalHours * 0.1m;
-                        }
-                        
                         permitApplication.AmountDays = daysToDeduct;
+                        permitApplication.IsWithRangeDate = false;
                     }
                     else
                     {
+                        //Esto es para el contador del dia de vacaciones
                         decimal totalDays = 0;
-                        decimal allSaturdays = 0;
 
-                        DateOnly startDate = request.PermitApplicationVacation.StartDate;
+                        DateOnly startDate = request.PermitApplicationVacation!.StartDate;
                         DateOnly endDate   = request.PermitApplicationVacation.EndDate;
 
+                        //Aqui sumamos todo correctamente, exceptuamos los dias feriados y contamos todos los dias de forma correcta.
                         for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
                         {
                             bool isHoliday = holidays.Any(holiday =>
-                                holiday.Day == date.Day &&
+                                holiday.Day == date.Day     &&
                                 holiday.Month == date.Month &&
                                 (
                                     holiday.IsGlobal ||
@@ -305,13 +302,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                                 )
                             );
 
-                            // Feriado no cuenta
                             if (isHoliday)
                             {
                                 continue;
                             }
 
-                            // Sábado
                             if (date.DayOfWeek == DayOfWeek.Saturday)
                             {
                                 if (collaborator.DoesWorkSaturdays)
@@ -325,43 +320,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             totalDays += 1;
                         }
 
-                        if (totalDays > 6)
-                        {
-                            for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
-                            {
-                                bool isHoliday = holidays.Any(holiday =>
-                                    holiday.Day == date.Day &&
-                                    holiday.Month == date.Month &&
-                                    (
-                                        holiday.IsGlobal ||
-                                        holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
-                                    )
-                                );
-
-                                // Feriado no cuenta
-                                if (isHoliday)
-                                {
-                                    continue;
-                                }
-
-                                // Sábado
-                                if (date.DayOfWeek == DayOfWeek.Saturday)
-                                {
-                                    allSaturdays += 0.5m;
-                                }
-                            }
-                            
-                        }
-
                         if(vacationControl.AvailableVacations < totalDays)
                         {
                             return _errorManager.ThrowBadRequest<bool>("No cuenta con cantidad de dias suficiente para realizar esta solicitud", "ERP:04");
                         }
-
-                        permitApplication.AmountDays = totalDays + allSaturdays;
                     }
 
-                    break;   
+                    return true;
                 }
                 default:    
                 {
