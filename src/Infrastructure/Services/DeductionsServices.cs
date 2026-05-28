@@ -58,9 +58,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 DateOnly permitStartDate = permit.StartDate;
                 DateOnly permitEndDate   = permit.EndDate;
 
-                for (DateOnly date = permitStartDate;
-                    date <= permitEndDate;
-                    date = date.AddDays(1))
+                for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
                 {
                     bool shouldDiscount = false;
 
@@ -69,20 +67,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                         shouldDiscount = true;
                     }
 
-                    if (!collaboratorInformation.DoesWorkSaturdays &&
-                        date.DayOfWeek == DayOfWeek.Saturday)
+                    if (!collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
                     {
                         shouldDiscount = true;
                     }
 
+                    //Si el dia es sabado y trabaja sabado y el solicito 0.5, quiere decir que no vino, entonces tambien descontamos ese dia
                     if (collaboratorInformation.DoesWorkSaturdays && permit.AmountDays == 0.5m && date.DayOfWeek == DayOfWeek.Saturday)
                     {
                         totalAmountDays++;
                     }
-
-                    bool isHoliday = holidays.Any(holiday =>
-                        holiday.Day == date.Day &&
-                        holiday.Month == date.Month &&
+                    
+                    //Ahora si encuenta un dia feriado tambien se descuenta de sus viaticos
+                    bool isHoliday = holidays.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month &&
                         (
                             holiday.IsGlobal ||
                             holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
