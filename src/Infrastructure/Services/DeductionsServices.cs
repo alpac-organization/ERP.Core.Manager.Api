@@ -62,25 +62,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
                 {
-                    bool shouldDiscount = false;
-
                     if (date.DayOfWeek == DayOfWeek.Sunday)
                     {
-                        shouldDiscount = true;
+                        inconsistentDays++;
+                        continue;
                     }
 
                     if (!collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
                     {
-                        shouldDiscount = true;
+                        inconsistentDays++;
+                        continue;
                     }
 
-                    //Si el dia es sabado y trabaja sabado y el solicito 0.5, quiere decir que no vino, entonces tambien descontamos ese dia
-                    if (collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
-                    {
-                        totalAmountDays++;
-                    }
-                    
-                    //Ahora si encuenta un dia feriado tambien se descuenta de sus viaticos
                     bool isHoliday = holidaysGlobal.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month &&
                         (
                             holiday.IsGlobal ||
@@ -90,12 +83,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                     if (isHoliday)
                     {
-                        shouldDiscount = true;
+                        inconsistentDays++;
+                        continue;
                     }
 
-                    if (shouldDiscount)
+                    //Si el dia es sabado y trabaja sabado y el solicito 0.5, quiere decir que no vino, entonces tambien descontamos ese dia
+                    if (collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
                     {
-                        inconsistentDays++;
+                        totalAmountDays++;
                     }
                 }
             }

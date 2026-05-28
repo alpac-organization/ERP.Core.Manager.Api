@@ -309,17 +309,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal FoodTravelAllowance = 0.0m;
             decimal totalAssigned       = 0.0m;
 
-            if (collaborator.IdentificationNumber == "0431601670000A")
-            {
-                
-            }
-
-            if (collaborator.IdentificationNumber == "0012210790054K")
-            {
-                
-            }
-
             int DEFAULT_TOTAL_WORK_DAYS = 0;
+            
             var holidays = await _unitOfWork.Holidays.Entities
                 .Where(day => day.IsActive)
                 .ToListAsync(default);
@@ -327,7 +318,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             //Recorremos los dias
             for (DateTime date = payrollStart.Date; date <= payrollEnd.Date; date = date.AddDays(1))
             {
-                //Verificar si es un dia feriado contra nuestra base de datos.
                 bool isHoliday = holidays.Any(holiday =>
                     holiday.Day == date.Day &&
                     holiday.Month == date.Month &&
@@ -347,7 +337,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     continue;
                 }
 
-                // Excluir sábados si no trabaja sábado
                 if (!collaborator.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
                 {
                     continue;
