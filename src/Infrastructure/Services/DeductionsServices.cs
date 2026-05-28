@@ -73,7 +73,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     }
 
                     //Si el dia es sabado y trabaja sabado y el solicito 0.5, quiere decir que no vino, entonces tambien descontamos ese dia
-                    if (collaboratorInformation.DoesWorkSaturdays && permit.AmountDays == 0.5m && date.DayOfWeek == DayOfWeek.Saturday)
+                    if (collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
                     {
                         totalAmountDays++;
                     }
