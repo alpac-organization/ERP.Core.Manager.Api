@@ -56,6 +56,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             }
 
             var collaborator = await _unitOfWork.Collaborators.Entities
+                .Include(col => col.WorkingInformation)
                 .FirstOrDefaultAsync(c => c.IdentificationNumber == request.IdentificationNumber && c.CompanyId == request.CompanyId, cancellationToken);
 
             if (collaborator is null)
@@ -235,10 +236,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         return _errorManager.ThrowBadRequest<bool>("No se encontro el registro de vacaciones de este colaborador", "ERP:01");
                     }
 
-                    var holidays = await _unitOfWork.Holidays.Entities
-                        .Where(day => day.IsActive)
-                        .ToListAsync(default);
-
                     if (request.PermitApplicationVacation?.IsFullDay ?? false)
                     {
                         if (vacationControl.AvailableVacations < 1.0m)
@@ -284,35 +281,59 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     }
                     else
                     {
-                        //Esto es para el contador del dia de vacaciones
                         decimal totalDays = 0;
 
                         DateOnly startDate = request.PermitApplicationVacation!.StartDate;
                         DateOnly endDate   = request.PermitApplicationVacation.EndDate;
 
-                        //Aqui sumamos todo correctamente, exceptuamos los dias feriados y contamos todos los dias de forma correcta.
-                        for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
+                        if (!collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Friday)
                         {
-                            bool isHoliday = holidays.Any(holiday =>
-                                holiday.Day == date.Day     &&
-                                holiday.Month == date.Month &&
+                            int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
+                            endDate = endDate.AddDays(daysUntilSunday);
+                        }
+                        else if (collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Saturday)
+                        {
+                            int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
+                            endDate = endDate.AddDays(daysUntilSunday);
+                        }
+
+                        var holidays = await _unitOfWork.Holidays.Entities
+                            .Where(day => day.IsActive)
+                            .ToListAsync(cancellationToken);
+
+                        int totalCalendarDays = endDate.DayNumber - startDate.DayNumber + 1;
+                        int fullWeeks         = totalCalendarDays / 7;
+                        int remainingDays     = totalCalendarDays % 7;
+
+                        // Semanas completas siempre son 7 días fijos
+                        totalDays += fullWeeks * 7;
+
+                        // Días sobrantes se calculan proporcional
+                        for (int i = 0; i < remainingDays; i++)
+                        {
+                            DateOnly date = startDate.AddDays(fullWeeks * 7 + i);
+
+                            // Domingo nunca cuenta en días parciales
+                            if (date.DayOfWeek == DayOfWeek.Sunday)
+                                continue;
+
+                            bool isHoliday = holidays.Any(h =>
+                                h.Day   == date.Day   &&
+                                h.Month == date.Month &&
                                 (
-                                    holiday.IsGlobal ||
-                                    holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
+                                    h.IsGlobal ||
+                                    (collaborator.WorkingInformation != null &&
+                                    h.BranchId == collaborator.WorkingInformation.CompanyBranchId)
                                 )
                             );
 
                             if (isHoliday)
-                            {
                                 continue;
-                            }
 
                             if (date.DayOfWeek == DayOfWeek.Saturday)
                             {
                                 if (collaborator.DoesWorkSaturdays)
-                                {
                                     totalDays += 0.5m;
-                                }
 
                                 continue;
                             }
@@ -322,11 +343,17 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         if(vacationControl.AvailableVacations < totalDays)
                         {
-                            return _errorManager.ThrowBadRequest<bool>("No cuenta con cantidad de dias suficiente para realizar esta solicitud", "ERP:04");
+                            return _errorManager.ThrowBadRequest<bool>(
+                                "No cuenta con cantidad de dias suficiente para realizar esta solicitud", 
+                                "ERP:04"
+                            );
                         }
+
+                        permitApplication.AmountDays = totalDays;
+                        permitApplication.IsWithRangeDate = true;
                     }
 
-                    return true;
+                    break;
                 }
                 default:    
                 {
