@@ -37,6 +37,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 return;
             }
 
+            var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+                .Where(ord => ord.PayrollId == payrollActive.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (ordinaryPayroll is null)
+            {
+                _logger.LogInformation("No se encontro la información de nomina para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
+                return;
+            }
+
             var permitApplications = await _unitOfWork.PermitApplications.Entities
                 .Where(permit => permit.Status == PermitApplicationStatus.Approved)
                 .Where(permit => permit.CollaboratorId == collaboratorInformation.Id)
@@ -45,16 +56,50 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     .ThenInclude(col => col.WorkingInformation)
                 .ToListAsync(default);
 
-            int inconsistentDays = 0;
-            int totalDaysDefault = collaboratorInformation.DoesWorkSaturdays ? 13 : 11;
-
-            decimal totalAmountDays = permitApplications.Sum(x => x.AmountDays ?? 0.0m);
-
-            var holidaysGlobal = await _unitOfWork.Holidays.Entities
+            var holidays = await _unitOfWork.Holidays.Entities
                 .Where(day => day.IsGlobal)
                 .ToListAsync(default);
 
+            int inconsistentDays = 0;  //Cantidad de dias a deducir de viaticos.
+            int totalDaysDefault = 0;  //Cantidad de dias que tiene permitido pagar en viaticos
 
+            decimal totalAmountDays = permitApplications.Sum(x => x.AmountDays ?? 0.0m); //Total de dias acumulados de vacaciones. para asi sumar los dias redondiados
+
+            #region Calculo de dias permitidos a tener viaticos en la quincena.
+
+            for (DateTime date = payrollActive.StartDate; date <= payrollActive.EndDate; date = date.AddDays(1))
+            {
+                bool isHoliday = holidays.Any(holiday =>
+                    holiday.Day == date.Day &&
+                    holiday.Month == date.Month &&
+                    (
+                        holiday.IsGlobal ||
+                        holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
+                    )
+                );
+
+                if (isHoliday)
+                {
+                    continue;
+                }
+
+                if (date.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    continue;
+                }
+
+                if (!collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    continue;
+                }
+
+                totalDaysDefault++;
+            }
+
+            #endregion
+    
+            #region Calculo de dias de incosistencia. quitar a la cantidad total esos dias de viaticos y sumarlos para restarlo al disponibles
+            
             foreach(var permit in permitApplications)   
             {
                 DateOnly permitStartDate = permit.StartDate;
@@ -74,7 +119,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                         continue;
                     }
 
-                    bool isHoliday = holidaysGlobal.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month &&
+                    bool isHoliday = holidays.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month &&
                         (
                             holiday.IsGlobal ||
                             holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
@@ -87,53 +132,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                         continue;
                     }
 
-                    //Si el dia es sabado y trabaja sabado y el solicito 0.5, quiere decir que no vino, entonces tambien descontamos ese dia
-                    if (collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
+                    if (collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday && permit.IsWithRangeDate is false && permit.AmountDays == 0.5m)
                     {
                         totalAmountDays++;
+                        continue;
                     }
                 }
             }
 
-            int dedutionToNextPayrol = 0;
-            int totalDaysToDiscount = (int) Math.Floor(totalAmountDays) - inconsistentDays;
+            #endregion
 
-            //Ahora aqui descontamos todos los sabados si esa persona biene sabado y pidio 0.5 dias
-           foreach (var permit in permitApplications)
-            {
-                bool sameDay =
-                    permit.StartDate == permit.EndDate;
-
-                bool isSaturday =
-                    permit.StartDate.DayOfWeek == DayOfWeek.Saturday;
-
-                bool collaboratorWorksSaturday =
-                    collaboratorInformation.DoesWorkSaturdays;
-
-                if (sameDay &&
-                    collaboratorWorksSaturday &&
-                    isSaturday)
-                {
-                    totalDaysToDiscount++;
-                }
-            }
-
-            if (totalDaysToDiscount > totalDaysDefault)
-            {
-                dedutionToNextPayrol = totalDaysToDiscount - totalDaysDefault;
-                totalDaysToDiscount = totalDaysDefault;
-            }
-
-            var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
-                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
-                .Where(ord => ord.PayrollId == payrollActive.Id)
-                .FirstOrDefaultAsync(default);
-
-            if (ordinaryPayroll is null)
-            {
-                _logger.LogInformation("No se encontro la información de nomina para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
-                return;
-            }
+            int totalDaysToDiscount  = (int) Math.Floor(totalAmountDays) - inconsistentDays;
 
             var assignedTravelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Where(assign => assign.CollaboratorId == collaboratorInformation.Id)
