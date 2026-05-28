@@ -62,6 +62,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             int totalDaysDefault = 0;            
             int totalDaysToDiscount = 0;
+            decimal totalDaysResult = 0;
 
             #region Calculo de dias permitidos a tener viaticos en la quincena.
 
@@ -105,6 +106,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
                 {
+
+                    if (permit.AmountDays < 1)
+                    {
+                        totalDaysResult += permit.AmountDays ?? 0;
+                    }
+
                     if (date.DayOfWeek == DayOfWeek.Sunday)
                     {
                         continue;
@@ -138,6 +145,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             #endregion
+
+            totalDaysToDiscount += (int)Math.Floor(totalDaysResult);
 
             var assignedTravelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Where(assign => assign.CollaboratorId == collaboratorInformation.Id)
