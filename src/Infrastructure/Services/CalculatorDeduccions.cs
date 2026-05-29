@@ -13,14 +13,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     public class CalculatorDeductions(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : ICalculatorDeductions
     {
-        public decimal CalculateAntique(decimal monthlySalary, DateTime payrollStartDate, DateTime collaboratorEntryDate)
+        public decimal CalculateAntique( decimal monthlySalary, DateOnly payrollStartDate, DateOnly collaboratorEntryDate)
         {
             _logger.LogInformation("Iniciando Proceso para calcular antiguedad✅");
 
-            DateTime EntryDate = collaboratorEntryDate;
+            int yearsOfService = payrollStartDate.Year - collaboratorEntryDate.Year;
 
-            int yearsOfService = payrollStartDate.Year - EntryDate.Year;    
-            if (EntryDate.Date > payrollStartDate.AddYears(-yearsOfService)) yearsOfService--;
+            if (collaboratorEntryDate > payrollStartDate.AddYears(-yearsOfService))
+            {
+                yearsOfService--;
+            }
 
             decimal seniorityPercentage = yearsOfService switch
             {
@@ -167,17 +169,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #endregion 
 
-            DateTime entryDate      = salary.Collaborator.WorkingInformation.EntryDate;
-            DateTime payrollStart   = payrollCreated.StartDate;
-            DateTime payrollEnd     = payrollCreated.EndDate;
+            DateOnly entryDate      = salary.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart   = payrollCreated.StartDate;
+            DateOnly payrollEnd     = payrollCreated.EndDate;
 
-            int daysWorked = 15;
+           int daysWorked = 15;
 
-            if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
-            else  daysWorked = 15; 
+            if (entryDate > payrollStart) daysWorked = (payrollEnd.DayNumber - entryDate.DayNumber) + 1;
+            else daysWorked = 15;
 
-            if (daysWorked < 0)  daysWorked = 0;
-            if (daysWorked > 15) daysWorked = 15;
+            if (daysWorked < 0)     daysWorked = 0;
+            if (daysWorked > 15)    daysWorked = 15;
 
             decimal monthlySalary   = salary.AmountInLocal;
             decimal BiweeklySalary  = monthlySalary / 2;
@@ -276,7 +278,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     Origin              = SourceDeductionPayment.Payroll,
                     Currency            = deduction.Currency,
                     PayrollId           = payrollCreated.Id,
-                    PaymentDate         = payrollCreated.EndDate,
+                    PaymentDate         = DateTime.Now,
                 });
             }
             #endregion
@@ -316,7 +318,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .ToListAsync(default);
 
             //Recorremos los dias
-            for (DateTime date = payrollStart.Date; date <= payrollEnd.Date; date = date.AddDays(1))
+            for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
             {
                 bool isHoliday = holidays.Any(holiday =>
                     holiday.Day == date.Day &&

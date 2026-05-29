@@ -2,15 +2,20 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
 {
     public static class CalculatorUtils
     {
-        public static int CalculateDaysElapsedCommercial(DateTime entryDate)
+        public static int CalculateDaysElapsedCommercial(DateOnly? entryDate)
         {
-            var start = entryDate.Date;
-            var today = DateTime.UtcNow.Date;
 
-            if (today < start) return 0;
+            if (!entryDate.HasValue)
+                return 0;
+
+            DateOnly start = entryDate.Value;
+            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            if (today < start)
+                return 0;
 
             int days = 0;
-            DateTime current = start;
+            DateOnly current = start;
 
             while (current < today)
             {
@@ -20,10 +25,12 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
                     continue;
                 }
 
-                if (current.Month == 2 && current.Day == DateTime.DaysInMonth(current.Year, 2))
+                if (current.Month == 2 &&
+                    current.Day == DateTime.DaysInMonth(current.Year, 2))
                 {
-                    int adjustment = 30 - current.Day; 
-                    days += (1 + adjustment);
+                    int adjustment = 30 - current.Day;
+
+                    days += 1 + adjustment;
 
                     current = current.AddDays(1);
                 }

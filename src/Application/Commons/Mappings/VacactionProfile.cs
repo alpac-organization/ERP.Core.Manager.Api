@@ -35,7 +35,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                     WorkAreaName = src.Collaborator.WorkingInformation.WorkArea.CatalogName,
                     EntryDate = src.Collaborator.WorkingInformation != null 
                                 ? src.Collaborator.WorkingInformation.EntryDate 
-                                : DateTime.MinValue,
+                                : DateOnly.MinValue,
                     CollaboratorFullname = FormatFullName(
                         src.Collaborator.FirstName, 
                         src.Collaborator.SecondName, 

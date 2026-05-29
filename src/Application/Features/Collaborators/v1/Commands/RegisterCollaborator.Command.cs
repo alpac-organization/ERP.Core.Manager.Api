@@ -52,7 +52,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public int WorkPositionId { get; set; }
         public Guid BranchId { get; set; }
 
-        public DateTime EntryDate { get; set; }
+        public DateOnly EntryDate { get; set; }
     }
 
     public class PersonalInformation
