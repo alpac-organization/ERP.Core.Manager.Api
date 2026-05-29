@@ -6,8 +6,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
     public class PayrollDto
     {
         public Guid PayrollId { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         public PayrollType Type { get; set; }
         public string? BranchName { get; set; }
 
@@ -66,6 +66,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
         public string? WorkArea { get; set; }
         public string? IdentificationNumber { get; set; }
         public string? BankAccount { get; set; }
-        public DateTime EntryDate { get; set; }
+        public DateOnly EntryDate { get; set; }
     }
 }

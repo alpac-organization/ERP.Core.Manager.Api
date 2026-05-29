@@ -34,8 +34,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Select(p => new PayrollDto
                 {
                     PayrollId  = p.Id,
-                    StartDate  = p.StartDate.ToLocalTime().Date,
-                    EndDate    = p.EndDate.ToLocalTime().Date,
+                    StartDate  = p.StartDate,
+                    EndDate    = p.EndDate,
                     Type       = p.PayrollType,
                     BranchName = p.Branch.BranchName
                 })

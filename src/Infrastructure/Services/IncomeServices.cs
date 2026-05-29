@@ -59,23 +59,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Iniciar proceso de calculo de dias de subsidio dentro de la nomina
 
-            DateTime payrollStartDate = period.StartDate.Date;
-            DateTime payrollEndDate   = period.EndDate.Date;
+            DateOnly payrollStartDate = period.StartDate;
+            DateOnly payrollEndDate   = period.EndDate;
 
-            DateTime subsidyStartDate = data.StartDate.Date;
-            DateTime subsidyEndDate   = data.EndDate.Date;
+            DateOnly subsidyStartDate = DateOnly.FromDateTime(data.StartDate.Date);
+            DateOnly subsidyEndDate   = DateOnly.FromDateTime(data.EndDate.Date);
 
-            DateTime effectiveStart = subsidyStartDate;
-            DateTime effectiveEnd   = subsidyEndDate > payrollEndDate
+            DateOnly effectiveStart = subsidyStartDate;
+            DateOnly effectiveEnd = subsidyEndDate > payrollEndDate
                 ? payrollEndDate
                 : subsidyEndDate;
-
+                
             if (effectiveEnd < effectiveStart)
             {
                 throw new Exception("La fecha final del subsidio es inválida.");
             }
 
-            int subsidizedDays = (effectiveEnd - effectiveStart).Days + 1;
+            int subsidizedDays = effectiveEnd.DayNumber - effectiveStart.DayNumber + 1;
             int daysWithoutSubsidy = 15 - subsidizedDays;
 
             // A: 
@@ -179,10 +179,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 }
             }
 
-            int totalDays = (subsidyEndDate - subsidyStartDate).Days + 1;
+            int totalDays = (subsidyEndDate.DayNumber - subsidyStartDate.DayNumber) + 1;
             int sundays = 0;
 
-            for (DateTime date = subsidyStartDate; date <= subsidyEndDate; date = date.AddDays(1))
+            for (DateOnly date = subsidyStartDate; date <= subsidyEndDate; date = date.AddDays(1))
             {
                 if (date.DayOfWeek == DayOfWeek.Sunday)
                 {
@@ -196,7 +196,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                 int saturdays = 0;
 
-                for (DateTime date = subsidyStartDate; date <= subsidyEndDate; date = date.AddDays(1))
+                for (DateOnly date = subsidyStartDate; date <= subsidyEndDate; date = date.AddDays(1))
                 {
                     if (date.DayOfWeek == DayOfWeek.Saturday)
                     {
@@ -287,13 +287,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal HourlyWage = DailySalary / 8;
                         
             int daysWorked = 15;
-            DateTime entryDate  = salaryInformation.Collaborator.WorkingInformation.EntryDate;
-            DateTime payrollStart = salaryInformation.StartDate;
+            DateOnly entryDate  = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart = DateOnly.FromDateTime(salaryInformation.StartDate);
 
-            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
+            DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
-            if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
-            else  daysWorked = 15;
+            daysWorked = entryDate > payrollStart
+                ? payrollEnd.DayNumber - entryDate.DayNumber + 1
+                : 15;
 
             if (daysWorked < 0) daysWorked = 0;
             if (daysWorked > 15) daysWorked = 15;
@@ -410,12 +411,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             int daysWorked = 15;
-            DateTime entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
-            DateTime payrollStart = salaryInformation.StartDate;
+            DateOnly entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart = DateOnly.FromDateTime(salaryInformation.StartDate);
 
-            DateTime payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
+            DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
-            if (entryDate > payrollStart) daysWorked = (payrollEnd - entryDate).Days + 1;
+            if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
             else  daysWorked = 15;
 
             if (daysWorked < 0) daysWorked = 0;
