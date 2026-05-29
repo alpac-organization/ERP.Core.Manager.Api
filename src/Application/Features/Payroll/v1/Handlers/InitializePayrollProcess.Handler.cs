@@ -62,21 +62,21 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
             if (lastPayroll == null)
             {
-                DateOnly hoy = DateOnly.FromDateTime(DateTime.Now);
+                DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
-                if (hoy.Day <= 15)
+                if (today.Day <= 15)
                 {
-                    startDate = new DateOnly(hoy.Year, hoy.Month, 1);
-                    endDate = new DateOnly(hoy.Year, hoy.Month, 15);
+                    startDate = new DateOnly(today.Year, today.Month, 1);
+                    endDate = new DateOnly(today.Year, today.Month, 15);
                 }
                 else
                 {
-                    startDate = new DateOnly(hoy.Year, hoy.Month, 16);
+                    startDate = new DateOnly(today.Year, today.Month, 16);
 
-                    endDate = DateOnly
-                        .FromDateTime(new DateTime(hoy.Year, hoy.Month, 1)
-                        .AddMonths(1)
-                        .AddDays(-1));
+                    endDate = DateOnly.FromDateTime(
+                        new DateTime(today.Year, today.Month, 1)
+                            .AddMonths(1)
+                            .AddDays(-1));
                 }
             }
             else
@@ -85,20 +85,21 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                 if (lastEnd.Day == 15)
                 {
-                    startDate = new DateOnly(lastEnd.Year, lastEnd.Month, 16);
+                    startDate = lastEnd.AddDays(1);
 
-                    endDate = DateOnly
-                        .FromDateTime(new DateTime(lastEnd.Year, lastEnd.Month, 1)
-                        .AddMonths(1)
-                        .AddDays(-1));
+                    endDate = DateOnly.FromDateTime(
+                        new DateTime(lastEnd.Year, lastEnd.Month, 1)
+                            .AddMonths(1)
+                            .AddDays(-1));
                 }
                 else
                 {
-                    startDate = DateOnly
-                        .FromDateTime(new DateTime(lastEnd.Year, lastEnd.Month, 1)
-                        .AddMonths(1));
+                    startDate = lastEnd.AddDays(1);
 
-                    endDate = new DateOnly(startDate.Year, startDate.Month, 15);
+                    endDate = new DateOnly(
+                        startDate.Year,
+                        startDate.Month,
+                        15);
                 }
             }
 
