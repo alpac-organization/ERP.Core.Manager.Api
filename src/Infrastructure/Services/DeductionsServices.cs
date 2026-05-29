@@ -118,7 +118,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     }
 
                     if (
-                        permit.AmountDays < 1 && 
+                        permit.AmountDays < 0.5m && 
                         date.DayOfWeek == DayOfWeek.Saturday && 
                         permit.IsWithRangeDate is false &&
                         collaboratorInformation.DoesWorkSaturdays
