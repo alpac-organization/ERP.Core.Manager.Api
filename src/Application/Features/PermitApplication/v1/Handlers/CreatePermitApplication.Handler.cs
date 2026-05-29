@@ -56,6 +56,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             }
 
             var collaborator = await _unitOfWork.Collaborators.Entities
+                .Include(col => col.WorkingInformation)
                 .FirstOrDefaultAsync(c => c.IdentificationNumber == request.IdentificationNumber && c.CompanyId == request.CompanyId, cancellationToken);
 
             if (collaborator is null)
@@ -214,10 +215,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     var vacationData = request.PermitApplicationVacation!;
 
                     permitApplication.EndDate = vacationData.EndDate;
+                    permitApplication.EndTime = vacationData.EndTime;
+
                     permitApplication.StartDate = vacationData.StartDate;
                     permitApplication.StartTime = vacationData.StartTime;
-                    permitApplication.EndTime = vacationData.EndTime;
+                    
                     permitApplication.PayrolId = request.PayrollId;
+                    
                     permitApplication.Type = PermitApplicationType.Vacation;
                     
                     MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
@@ -232,16 +236,17 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         return _errorManager.ThrowBadRequest<bool>("No se encontro el registro de vacaciones de este colaborador", "ERP:01");
                     }
 
-                    if (request.PermitApplicationVacation!.IsFullDay)
+                    if (request.PermitApplicationVacation?.IsFullDay ?? false)
                     {
                         if (vacationControl.AvailableVacations < 1.0m)
                         {
                             return _errorManager.ThrowBadRequest<bool>("No cuentas con dias sufientes para solicitar vacaciones", "ERP:02");                        
                         }
-
+                        
                         permitApplication.AmountDays = 1.0m;
+                        permitApplication.IsWithRangeDate = false;
                     }
-                    else if (request.PermitApplicationVacation.IsItMidday)
+                    else if (request.PermitApplicationVacation?.IsItMidday ?? false)
                     {
                         if (vacationControl.AvailableVacations < 0.5m)
                         {
@@ -249,111 +254,106 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         }
 
                         permitApplication.AmountDays = 0.5m;
+                        permitApplication.IsWithRangeDate = false;
                     }
-                    else if (request.PermitApplicationVacation.WithRangeHours)
+                    else if (request.PermitApplicationVacation?.WithRangeHours ?? false)
                     {
-                        var startTime = request.PermitApplicationVacation.StartTime!.Value;
                         var endTime = request.PermitApplicationVacation.EndTime!.Value;
+                        var startTime = request.PermitApplicationVacation.StartTime!.Value;
 
                         int totalHours = endTime.Hour - startTime.Hour;
 
-                        if (totalHours <= 0)
+                        decimal daysToDeduct = totalHours switch
                         {
-                            return _errorManager.ThrowBadRequest<bool>(
-                                "La hora de fin debe ser mayor a la hora de inicio.", 
-                                "ERP:INVALID_TIME_RANGE"
-                            );
-                        }
+                            1 => 0.1m,
+                            2 => 0.2m,
+                            3 => 0.3m,
+                            4 => 0.4m,
+                            5 => 0.5m,
+                            6 => 0.6m,
+                            7 => 0.7m,
+                            _ when totalHours >= 8 => 1.0m,
+                            _ => 0.0m
+                        };
 
-                        decimal daysToDeduct;
-
-                        if (totalHours > 5)
-                        {
-                            daysToDeduct = 1.0m;
-                        }
-                        else if (totalHours == 5)
-                        {
-                            daysToDeduct = 0.5m;
-                        }
-                        else
-                        {
-                            daysToDeduct = totalHours * 0.1m;
-                        }
-                        
                         permitApplication.AmountDays = daysToDeduct;
+                        permitApplication.IsWithRangeDate = false;
                     }
                     else
                     {
                         decimal totalDays = 0;
-                        int validWorkingDays = 0;
+
+                        DateOnly startDate = request.PermitApplicationVacation!.StartDate;
+                        DateOnly endDate   = request.PermitApplicationVacation.EndDate;
+
+                        if (!collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Friday)
+                        {
+                            int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
+                            endDate = endDate.AddDays(daysUntilSunday);
+                        }
+                        else if (collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Saturday)
+                        {
+                            int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
+                            endDate = endDate.AddDays(daysUntilSunday);
+                        }
 
                         var holidays = await _unitOfWork.Holidays.Entities
                             .Where(day => day.IsActive)
-                            .ToListAsync(default);
+                            .ToListAsync(cancellationToken);
 
-                        DateOnly startDate = request.PermitApplicationVacation.StartDate;
-                        DateOnly endDate   = request.PermitApplicationVacation.EndDate;
+                        int totalCalendarDays = endDate.DayNumber - startDate.DayNumber + 1;
+                        int fullWeeks         = totalCalendarDays / 7;
+                        int remainingDays     = totalCalendarDays % 7;
 
-                        for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
+                        // Semanas completas siempre son 7 días fijos
+                        totalDays += fullWeeks * 7;
+
+                        // Días sobrantes se calculan proporcional
+                        for (int i = 0; i < remainingDays; i++)
                         {
-                            bool isHoliday = holidays.Any(holiday =>
-                                holiday.Day == date.Day &&
-                                holiday.Month == date.Month &&
+                            DateOnly date = startDate.AddDays(fullWeeks * 7 + i);
+
+                            // Domingo nunca cuenta en días parciales
+                            if (date.DayOfWeek == DayOfWeek.Sunday)
+                                continue;
+
+                            bool isHoliday = holidays.Any(h =>
+                                h.Day   == date.Day   &&
+                                h.Month == date.Month &&
                                 (
-                                    holiday.IsGlobal ||
-                                    holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
+                                    h.IsGlobal ||
+                                    (collaborator.WorkingInformation != null &&
+                                    h.BranchId == collaborator.WorkingInformation.CompanyBranchId)
                                 )
                             );
 
-                            // Feriado no cuenta
                             if (isHoliday)
-                            {
                                 continue;
-                            }
 
-                            // Domingo no cuenta
-                            if (date.DayOfWeek == DayOfWeek.Sunday)
-                            {
-                                continue;
-                            }
-
-                            // Contador de días válidos
-                            validWorkingDays++;
-
-                            // Sábado
                             if (date.DayOfWeek == DayOfWeek.Saturday)
                             {
                                 if (collaborator.DoesWorkSaturdays)
-                                {
                                     totalDays += 0.5m;
-                                }
 
                                 continue;
                             }
 
-                            // Lunes a viernes
                             totalDays += 1;
                         }
 
-                        // Semana laboral completa
-                        if (
-                            collaborator.DoesWorkSaturdays &&
-                            validWorkingDays >= 6
-                        )
-                        {
-                            totalDays = 7;
-                        }
-
-
                         if(vacationControl.AvailableVacations < totalDays)
                         {
-                            return _errorManager.ThrowBadRequest<bool>("No cuenta con cantidad de dias suficiente para realizar esta solicitud", "ERP:04");
+                            return _errorManager.ThrowBadRequest<bool>(
+                                "No cuenta con cantidad de dias suficiente para realizar esta solicitud", 
+                                "ERP:04"
+                            );
                         }
 
                         permitApplication.AmountDays = totalDays;
+                        permitApplication.IsWithRangeDate = true;
                     }
 
-                    break;   
+                    break;
                 }
                 default:    
                 {

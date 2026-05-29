@@ -309,7 +309,42 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal FoodTravelAllowance = 0.0m;
             decimal totalAssigned       = 0.0m;
 
-            var DEFAULT_TOTAL_WORK_DAYS = collaborator.DoesWorkSaturdays ? 13 : 11;
+            int DEFAULT_TOTAL_WORK_DAYS = 0;
+            
+            var holidays = await _unitOfWork.Holidays.Entities
+                .Where(day => day.IsActive)
+                .ToListAsync(default);
+
+            //Recorremos los dias
+            for (DateTime date = payrollStart.Date; date <= payrollEnd.Date; date = date.AddDays(1))
+            {
+                bool isHoliday = holidays.Any(holiday =>
+                    holiday.Day == date.Day &&
+                    holiday.Month == date.Month &&
+                    (
+                        holiday.IsGlobal ||
+                        holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
+                    )
+                );
+
+                if (isHoliday)
+                {
+                    continue;
+                }
+
+                if (date.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    continue;
+                }
+
+                if (!collaborator.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    continue;
+                }
+
+                DEFAULT_TOTAL_WORK_DAYS++;
+            }
+
 
             foreach (var current in asssineds)
             {
@@ -391,7 +426,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                 CollaboratorId = collaborator.Id,
                 PayrollId = payrollId,
-                PaidDays = collaborator.DoesWorkSaturdays ? 13 : 11,
+                PaidDays = DEFAULT_TOTAL_WORK_DAYS,
                 Feeding =  FoodTravelAllowance,
                 Transport = Transport,
                 Lodging = Lodging

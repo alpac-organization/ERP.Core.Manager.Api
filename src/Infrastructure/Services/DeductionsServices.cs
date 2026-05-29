@@ -37,94 +37,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 return;
             }
 
-            var permitApplications = await _unitOfWork.PermitApplications.Entities
-                .Where(permit => permit.Status == PermitApplicationStatus.Approved)
-                .Where(permit => permit.CollaboratorId == collaboratorInformation.Id)
-                .Where(permit => permit.Type == PermitApplicationType.Vacation || permit.Type == PermitApplicationType.MedicalAppointment)
-                .ToListAsync(default);
-
-            int inconsistentDays = 0;
-            int totalDaysDefault = collaboratorInformation.DoesWorkSaturdays ? 13 : 11;
-
-            decimal totalAmountDays = permitApplications.Sum(x => x.AmountDays ?? 0.0m);
-
-            var holidays = await _unitOfWork.Holidays.Entities
-                .Where(day => day.IsActive)
-                .ToListAsync(default);
-
-
-            foreach(var permit in permitApplications)   
-            {
-                DateOnly permitStartDate = permit.StartDate;
-                DateOnly permitEndDate   = permit.EndDate;
-
-                for (DateOnly date = permitStartDate;
-                    date <= permitEndDate;
-                    date = date.AddDays(1))
-                {
-                    bool shouldDiscount = false;
-
-                    if (date.DayOfWeek == DayOfWeek.Sunday)
-                    {
-                        shouldDiscount = true;
-                    }
-
-                    if (!collaboratorInformation.DoesWorkSaturdays &&
-                        date.DayOfWeek == DayOfWeek.Saturday)
-                    {
-                        shouldDiscount = true;
-                    }
-
-                    bool isHoliday = holidays.Any(holiday =>
-                        holiday.Day == date.Day &&
-                        holiday.Month == date.Month &&
-                        (
-                            holiday.IsGlobal ||
-                            holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
-                        )
-                    );
-
-                    if (isHoliday)
-                    {
-                        shouldDiscount = true;
-                    }
-
-                    if (shouldDiscount)
-                    {
-                        inconsistentDays++;
-                    }
-                }
-            }
-
-            int dedutionToNextPayrol = 0;
-            int totalDaysToDiscount = (int) Math.Floor(totalAmountDays) - inconsistentDays;
-
-            //Ahora aqui descontamos todos los sabados si esa persona biene sabado y pidio 0.5 dias
-           foreach (var permit in permitApplications)
-            {
-                bool sameDay =
-                    permit.StartDate == permit.EndDate;
-
-                bool isSaturday =
-                    permit.StartDate.DayOfWeek == DayOfWeek.Saturday;
-
-                bool collaboratorWorksSaturday =
-                    collaboratorInformation.DoesWorkSaturdays;
-
-                if (sameDay &&
-                    collaboratorWorksSaturday &&
-                    isSaturday)
-                {
-                    totalDaysToDiscount++;
-                }
-            }
-
-            if (totalDaysToDiscount > totalDaysDefault)
-            {
-                dedutionToNextPayrol = totalDaysToDiscount - totalDaysDefault;
-                totalDaysToDiscount = totalDaysDefault;
-            }
-
             var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
                 .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
                 .Where(ord => ord.PayrollId == payrollActive.Id)
@@ -135,6 +47,129 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 _logger.LogInformation("No se encontro la información de nomina para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
                 return;
             }
+
+            var permitApplications = await _unitOfWork.PermitApplications.Entities
+                .Where(permit => permit.Status == PermitApplicationStatus.Approved)
+                .Where(permit => permit.CollaboratorId == collaboratorInformation.Id)
+                .Where(permit => permit.Type == PermitApplicationType.Vacation || permit.Type == PermitApplicationType.MedicalAppointment)
+                .Include(permit => permit.Collaborator)
+                    .ThenInclude(col => col.WorkingInformation)
+                .ToListAsync(default);
+
+            var holidays = await _unitOfWork.Holidays.Entities
+                .Where(day => day.IsGlobal)
+                .ToListAsync(default);
+
+            int totalDaysDefault = 0;            
+            int totalDaysToDiscount = 0;
+            decimal totalDaysResult = 0;
+
+            #region Calculo de dias permitidos a tener viaticos en la quincena.
+
+            for (DateTime date = payrollActive.StartDate; date <= payrollActive.EndDate; date = date.AddDays(1))
+            {
+                bool isHoliday = holidays.Any(holiday =>
+                    holiday.Day == date.Day &&
+                    holiday.Month == date.Month &&
+                    (
+                        holiday.IsGlobal ||
+                        holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
+                    )
+                );
+
+                if (isHoliday)
+                {
+                    continue;
+                }
+
+                if (date.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    continue;
+                }
+
+                if (!collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    continue;
+                }
+
+                totalDaysDefault++;
+            }
+
+            #endregion
+    
+            #region Calculo de dias de incosistencia. quitar a la cantidad total esos dias de viaticos y sumarlos para restarlo al disponibles
+            
+            foreach(var permit in permitApplications)   
+            {
+                DateOnly permitStartDate = permit.StartDate;
+                DateOnly permitEndDate   = permit.EndDate;
+
+                for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
+                {
+
+                    if (
+                        permit.AmountDays < 1 && 
+                        date.DayOfWeek != DayOfWeek.Saturday && 
+                        permit.IsWithRangeDate is false
+                    )
+                    {
+                        totalDaysResult += permit.AmountDays ?? 0;
+                        continue;
+                    }
+
+                    if (
+                        permit.AmountDays < 0.5m && 
+                        date.DayOfWeek == DayOfWeek.Saturday && 
+                        permit.IsWithRangeDate is false &&
+                        collaboratorInformation.DoesWorkSaturdays
+                    )
+                    {
+                        totalDaysResult += permit.AmountDays ?? 0;
+                        continue;
+                    }
+                    
+
+                    if (date.DayOfWeek == DayOfWeek.Sunday)
+                    {
+                        continue;
+                    }
+
+                    if (!collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        continue;
+                    }
+
+                    bool isHoliday = holidays.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month &&
+                        (
+                            holiday.IsGlobal ||
+                            holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
+                        )
+                    );
+
+                    if (isHoliday)
+                    {
+                        continue;
+                    }
+
+                    if (
+                        collaboratorInformation.DoesWorkSaturdays && 
+                        date.DayOfWeek == DayOfWeek.Saturday &&
+                        permit.IsWithRangeDate is false && 
+                        permit.AmountDays == 0.5m
+                    )
+                    {
+                        totalDaysToDiscount++;
+                        continue;
+                    }
+
+                    totalDaysToDiscount++;
+                }
+            }
+
+            #endregion
+
+            int result = (int)Math.Floor(totalDaysResult);
+            totalDaysToDiscount += result;
 
             var assignedTravelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Where(assign => assign.CollaboratorId == collaboratorInformation.Id)
@@ -212,7 +247,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
             await _unitOfWork.SaveChangesAsync(default);
 
-            _logger.LogInformation("✅ Deducción de viáticos aplicada correctamente. Total días: {Days}", totalAmountDays);
+            _logger.LogInformation("✅ Deducción de viáticos aplicada correctamente. Total días: {Days}", totalDaysToDiscount);
         }
 
 
