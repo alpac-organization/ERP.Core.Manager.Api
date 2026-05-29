@@ -107,11 +107,27 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
                 {
 
-                    if (permit.AmountDays < 1 && date.DayOfWeek != DayOfWeek.Saturday && permit.Collaborator.DoesWorkSaturdays)
+                    if (
+                        permit.AmountDays < 1 && 
+                        date.DayOfWeek != DayOfWeek.Saturday && 
+                        permit.IsWithRangeDate is false
+                    )
                     {
                         totalDaysResult += permit.AmountDays ?? 0;
                         continue;
                     }
+
+                    if (
+                        permit.AmountDays < 1 && 
+                        date.DayOfWeek == DayOfWeek.Saturday && 
+                        permit.IsWithRangeDate is false &&
+                        collaboratorInformation.DoesWorkSaturdays
+                    )
+                    {
+                        totalDaysResult += permit.AmountDays ?? 0;
+                        continue;
+                    }
+                    
 
                     if (date.DayOfWeek == DayOfWeek.Sunday)
                     {
@@ -135,7 +151,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                         continue;
                     }
 
-                    if (collaboratorInformation.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday && permit.IsWithRangeDate is false && permit.AmountDays == 0.5m)
+                    if (
+                        collaboratorInformation.DoesWorkSaturdays && 
+                        date.DayOfWeek == DayOfWeek.Saturday &&
+                        permit.IsWithRangeDate is false && 
+                        permit.AmountDays == 0.5m
+                    )
                     {
                         totalDaysToDiscount++;
                         continue;
@@ -147,7 +168,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #endregion
 
-            totalDaysToDiscount += (int)Math.Floor(totalDaysResult);
+            int result = (int)Math.Floor(totalDaysResult);
+            totalDaysToDiscount += result;
 
             var assignedTravelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Where(assign => assign.CollaboratorId == collaboratorInformation.Id)
