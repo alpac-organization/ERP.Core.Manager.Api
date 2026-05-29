@@ -179,7 +179,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 }
             }
 
-            int totalDays = (subsidyEndDate.DayNumber - subsidyStartDate.DayNumber) + 1;
+            int totalDays = subsidyEndDate.DayNumber - subsidyStartDate.DayNumber + 1;
             int sundays = 0;
 
             for (DateOnly date = subsidyStartDate; date <= subsidyEndDate; date = date.AddDays(1))

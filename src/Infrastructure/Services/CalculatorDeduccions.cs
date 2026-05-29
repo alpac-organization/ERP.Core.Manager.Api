@@ -424,15 +424,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Registrar informe de viaticos.
 
-            // await _unitOfWork.RecordsTravelExpensePayments.RegisterRecordsTravelExpensePayment(new()
-            // {
-            //     CollaboratorId = collaborator.Id,
-            //     PayrollId = payrollId,
-            //     PaidDays = DEFAULT_TOTAL_WORK_DAYS,
-            //     Feeding =  FoodTravelAllowance,
-            //     Transport = Transport,
-            //     Lodging = Lodging
-            // });
+            await _unitOfWork.RecordsTravelExpensePayments.RegisterRecordsTravelExpensePayment(new()
+            {
+                CollaboratorId = collaborator.Id,
+                PayrollId = payrollId,
+                PaidDays = DEFAULT_TOTAL_WORK_DAYS,
+                Feeding =  FoodTravelAllowance,
+                Transport = Transport,
+                Lodging = Lodging
+            });
 
             #endregion
 
