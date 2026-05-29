@@ -471,13 +471,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + deductions.Sanction
                 + deductions.LateArrivals;
 
-            decimal total = ordinaryPayrollInfo.TotalIncome - BiweeklyInss - BiweeklyIr - totalDeductions + ordinaryPayrollInfo.TotalTravelExpenses;
+            ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
+
+            decimal total = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
 
             ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
             ordinaryPayrollInfo.TotalToPay = total;
 
-            
-
+    
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
 
             await _unitOfWork.Incomes.RegisterIncome(new()
