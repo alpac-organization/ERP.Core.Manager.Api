@@ -39,7 +39,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public string? WorkArea { get; set; }
         public string? WorkPosition { get; set; }
         public string? BranchName { get; set; } 
-        public DateTime EntryDate { get; set; }
+        public DateOnly EntryDate { get; set; }
     }
 
     public class SalaryInformationDto
