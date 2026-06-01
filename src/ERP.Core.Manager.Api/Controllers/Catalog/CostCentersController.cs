@@ -21,21 +21,42 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         {
             payload.CompanyId = company_id;
             payload.AreaId = area_id;
-            
+
             await _mediator.Send(payload);
             return Created();
         }
 
-        // [Tags("Empresas")]  
-        // [HttpGet("companies/{company_id}/areas/{area_id}/cost-centers")]   
-        // [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status200OK)]
-        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        // public async Task<CreatedResult> RegisterCostCenterAsync()
-        // {
-            
+        [Tags("Centros de costo")]  
+        [HttpDelete("companies/{company_id}/areas/{area_id}/cost-centers/{cost_center_id}")]   
+        [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<NoContentResult> DeleteCostCenterAsync([FromRoute] Guid company_id, [FromRoute] Guid area_id, [FromRoute] Guid cost_center_id)
+        {
+            await _mediator.Send(new DeleteCostCenterCommand()
+            {
+                CompanyId = company_id,
+                CostCenterId = company_id,
+            });
 
-        //     return Created();
-        // }
+            return NoContent();
+        }
+
+        [Tags("Centros de costo")]  
+        [HttpGet("companies/{company_id}/areas/{area_id}/cost-centers")]   
+        [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<OkResult> GetCostCenterAsync([FromRoute] Guid company_id, [FromRoute] Guid area_id, [FromRoute] Guid cost_center_id)
+        {
+            await _mediator.Send(new DeleteCostCenterCommand()
+            {
+                CompanyId = company_id,
+                CostCenterId = company_id,
+                AreaId = area_id
+            });
+
+            return Ok();
+        }
     }
 }
