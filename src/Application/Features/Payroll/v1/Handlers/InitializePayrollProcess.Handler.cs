@@ -57,36 +57,49 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .OrderByDescending(payroll => payroll.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            DateTime startDate;
-            DateTime endDate;
+            DateOnly startDate;
+            DateOnly endDate;
 
             if (lastPayroll == null)
             {
-                DateTime hoy = DateTime.Now.Date;
-                if (hoy.Day <= 15)
+                DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+                if (today.Day <= 15)
                 {
-                    startDate = new DateTime(hoy.Year, hoy.Month, 1);
-                    endDate = new DateTime(hoy.Year, hoy.Month, 15);
+                    startDate = new DateOnly(today.Year, today.Month, 1);
+                    endDate = new DateOnly(today.Year, today.Month, 15);
                 }
                 else
                 {
-                    startDate = new DateTime(hoy.Year, hoy.Month, 16);
-                    endDate = new DateTime(hoy.Year, hoy.Month, 1).AddMonths(1).AddDays(-1);
+                    startDate = new DateOnly(today.Year, today.Month, 16);
+
+                    endDate = DateOnly.FromDateTime(
+                        new DateTime(today.Year, today.Month, 1)
+                            .AddMonths(1)
+                            .AddDays(-1));
                 }
             }
             else
             {
-                DateTime lastEnd = lastPayroll.EndDate;
+                DateOnly lastEnd = lastPayroll.EndDate;
 
                 if (lastEnd.Day == 15)
                 {
-                    startDate = new DateTime(lastEnd.Year, lastEnd.Month, 16);
-                    endDate = new DateTime(lastEnd.Year, lastEnd.Month, 1).AddMonths(1).AddDays(-1);
+                    startDate = lastEnd.AddDays(1);
+
+                    endDate = DateOnly.FromDateTime(
+                        new DateTime(lastEnd.Year, lastEnd.Month, 1)
+                            .AddMonths(1)
+                            .AddDays(-1));
                 }
                 else
                 {
-                    startDate = new DateTime(lastEnd.Year, lastEnd.Month, 1).AddMonths(1);
-                    endDate = new DateTime(startDate.Year, startDate.Month, 15);
+                    startDate = lastEnd.AddDays(1);
+
+                    endDate = new DateOnly(
+                        startDate.Year,
+                        startDate.Month,
+                        15);
                 }
             }
 

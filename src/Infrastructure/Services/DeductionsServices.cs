@@ -66,7 +66,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Calculo de dias permitidos a tener viaticos en la quincena.
 
-            for (DateTime date = payrollActive.StartDate; date <= payrollActive.EndDate; date = date.AddDays(1))
+            for (DateOnly date = payrollActive.StartDate; date <= payrollActive.EndDate; date = date.AddDays(1))
             {
                 bool isHoliday = holidays.Any(holiday =>
                     holiday.Day == date.Day &&
@@ -340,7 +340,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 PayrollId           = ordinaryPayroll.PayrollId,           
                 AmountPaid          = TotalDeductionToLateArrivals,
                 AmountPaidInDollars = TotalDeductionToLateArrivals,
-                PaymentDate         = ordinaryPayroll.Payroll.EndDate
+                PaymentDate         = DateTime.Now
             });
 
             #endregion
@@ -415,7 +415,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 DeductionId         = deduction.Id,
                 AmountPaid          = fortnightlyAmount,
                 AmountPaidInDollars = fortnightlyAmount / 36.6243m,
-                PaymentDate         = ordinaryPayroll.Payroll.EndDate
+                PaymentDate         = DateTime.Now
             });
         }
     }

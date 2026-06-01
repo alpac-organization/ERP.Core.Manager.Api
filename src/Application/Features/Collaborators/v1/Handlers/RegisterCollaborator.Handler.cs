@@ -117,7 +117,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
                 if (salary.SalaryType != SalaryType.ProfessionalServices)
                 {
-                    var daysElapsed = CalculatorUtils.CalculateDaysElapsedCommercial(request?.WorkingInformation?.EntryDate ?? DateTime.Now);            
+                    var daysElapsed = CalculatorUtils.CalculateDaysElapsedCommercial(request?.WorkingInformation?.EntryDate);
+
                     decimal generated = Math.Round((decimal)(daysElapsed * 30.0 / 360.0), 4);
 
                     Vacation vacation = new ()

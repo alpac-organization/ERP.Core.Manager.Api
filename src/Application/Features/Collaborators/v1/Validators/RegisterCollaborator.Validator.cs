@@ -80,7 +80,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
             RuleFor(x => x.EntryDate)
                 .NotEmpty() 
                 .WithMessage("La fecha de ingreso es obligatoria")
-                .NotEqual(default(DateTime))
+                .NotEqual(default(DateOnly))
                 .WithMessage("La fecha de ingreso no es válida");
 
             RuleFor(x => x.BranchId) 
