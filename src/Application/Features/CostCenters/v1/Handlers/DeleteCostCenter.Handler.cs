@@ -15,9 +15,19 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
         {
             _logger.LogInformation("🚩Iniciando proceso de eliminación del centro de costo con id: {identification}", request.CostCenterId);
 
+            var area = await _unitOfWork.WorkAreas.Entities
+                .Where(area => area.IsActive)
+                .Where(area => area.CompanyId == request.CompanyId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (area is null)
+            {
+                return _errorManager.ThrowBadRequest<bool>("Esta area de trabajo no existe, porfavor seleccionar un area correcta", "ERP:AreaNotFound");
+            }
+
             var costCenter = await _unitOfWork.CostCenters.Entities
                 .Where(cost => cost.Id == request.CostCenterId)
-                .Where(cost => cost.WorkAreaId == request.AreaId)
+                .Where(cost => cost.WorkAreaId == area.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (costCenter is null)

@@ -36,6 +36,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             await _mediator.Send(new DeleteCostCenterCommand()
             {
                 CompanyId = company_id,
+                AreaId = area_id,
                 CostCenterId = company_id,
             });
 
@@ -47,12 +48,11 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<OkResult> GetCostCenterAsync([FromRoute] Guid company_id, [FromRoute] Guid area_id, [FromRoute] Guid cost_center_id)
+        public async Task<OkResult> GetCostCenterAsync([FromRoute] Guid company_id, [FromRoute] Guid area_id)
         {
             await _mediator.Send(new DeleteCostCenterCommand()
             {
                 CompanyId = company_id,
-                CostCenterId = company_id,
                 AreaId = area_id
             });
 
