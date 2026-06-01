@@ -126,6 +126,21 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                     await _unitOfWork.Deductions.UpdateAsync(deduction);
                 }
+
+
+                //Acumulado de vacaciones
+                var vacationControl = await _unitOfWork.Vacations.Entities
+                    .Where(col => col.CollaboratorId == collaborator.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (vacationControl is null)
+                {
+                    _logger.LogInformation("No se encontro el registro y control de vacaciones");
+                    continue;
+                }
+
+                vacationControl.AvailableVacations += 1.25m;
+                vacationControl.GeneredVacation+= 1.25m;
             }
             
             await _unitOfWork.SaveChangesAsync(cancellationToken);
