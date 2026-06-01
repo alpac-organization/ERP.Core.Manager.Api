@@ -7,13 +7,17 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
+using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
 {
-    public class RegisterSubsidyHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IIncomeServices _incomeServices): AlpacBaseHandler<RegisterSubsidyCommmand, bool>(_unitOfWork, _errorManager)
+    public class RegisterSubsidyHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IIncomeServices _incomeServices, ILogger<RegisterSubsidyHandler> _logger): AlpacBaseHandler<RegisterSubsidyCommmand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterSubsidyCommmand request, CancellationToken cancellationToken)
         {
+
+            _logger.LogInformation("Iniciando registro de subsidio");
+
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess)
@@ -66,12 +70,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
             {
                 case "COMMON_ILLNESS":
                 {
+                    _logger.LogInformation("Subsidio por enfermedad común");
+
                     await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
                     return true;
                 }
                 case "WORK_ACCIDENT":
                 {
+                    _logger.LogInformation("Subsidio por enfermedad laboral");
+
                     await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
                     return true;   
