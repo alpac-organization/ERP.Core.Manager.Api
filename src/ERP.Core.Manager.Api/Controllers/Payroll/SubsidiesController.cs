@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Infrastructure.Attributes;
-using ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
@@ -14,7 +13,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     public class SubsidiesController(IMediator _mediator) : ApiControllerBase
     {
         [Tags("Subsidio")] 
-        [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators/{collaborator_id}/subsidy")]
+        [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators/{collaborator_id}/subsidies")]
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
