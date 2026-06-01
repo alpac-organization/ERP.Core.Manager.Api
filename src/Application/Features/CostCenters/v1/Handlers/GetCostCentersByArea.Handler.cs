@@ -9,9 +9,9 @@ using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
 {
-    public class GetCostCenterHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) : IRequestHandler<GetCostCenterQuery, List<CostCenterDto>>
+    public class GetCostCenterByAreaHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) : IRequestHandler<GetCostCentersByAreaQuery, List<CostCenterDto>>
     {
-        public async Task<List<CostCenterDto>> Handle(GetCostCenterQuery request, CancellationToken cancellationToken)
+        public async Task<List<CostCenterDto>> Handle(GetCostCentersByAreaQuery request, CancellationToken cancellationToken)
         {
             var area =  await _unitOfWork.WorkAreas.Entities
                 .Where(area => area.Id == request.AreaId)

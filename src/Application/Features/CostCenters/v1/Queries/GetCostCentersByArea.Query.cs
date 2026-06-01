@@ -4,7 +4,7 @@ using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries
 {
-    public class GetCostCenterQuery : BaseRequest, IRequest<List<CostCenterDto>>
+    public class GetCostCentersByAreaQuery : BaseRequest, IRequest<List<CostCenterDto>>
     {
         public Guid AreaId { get; set; }
     }

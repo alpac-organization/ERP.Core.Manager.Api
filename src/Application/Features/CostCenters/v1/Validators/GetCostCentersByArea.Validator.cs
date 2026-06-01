@@ -1,12 +1,11 @@
 using FluentValidation;
-using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Validators
 {
-    public class GetCostCentersValidator: AbstractValidator<GetCostCenterQuery>
+    public class GetCostCentersByAreaValidator: AbstractValidator<GetCostCentersByAreaQuery>
     {
-        public GetCostCentersValidator()
+        public GetCostCentersByAreaValidator()
         {
             RuleFor(x => x.CompanyId)
                 .NotEmpty()
