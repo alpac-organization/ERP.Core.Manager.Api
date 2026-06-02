@@ -1,131 +1,56 @@
-
-
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
-using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 
+//Obtener solicitudes de vacaciones registradas durante el periodo de nomina
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
     public class GetPermitApplicationInPayrollHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GetPermitApplicationInPayrollQuery, List<PermitApplicationDto>>(_unitOfWork, _errorManager)
     {
         public override async Task<List<PermitApplicationDto>> Handle(GetPermitApplicationInPayrollQuery request, CancellationToken cancellationToken)
         {
+            #region Evaluar acceso al modulo
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
             {
                 return access.ErrorResponse!; 
             }
+            #endregion Evaluar acceso al modulo
 
+            //Query de busqueda.
+            var recordsQuery = _unitOfWork.PermitApplications.Entities
+                .Where(permit => permit.PayrolId == request.PayrollId)
+                .Include(permit => permit.Collaborator)
+                .AsNoTracking();
 
-            // await _unitOfWork.PermitApplications.Entities
-            //     .Where()
-            //     .FirstOrDefaultAsync(cancellationToken);
+            //Primer filtro de la busqueda de permit applications realizadas
+            if (!string.IsNullOrEmpty(request.IdentificationNumber))
+            {
+                recordsQuery = recordsQuery
+                    .Where(permit => permit.Collaborator.IdentificationNumber == request.IdentificationNumber);
+            }
 
-            // var branchSelected = await _unitOfWork.Branches.Entities
-            //     .Where(bran => bran.IsActive)
-            //     .Where(bran => bran.Id == request.BranchId)
-            //     .Where(bran => bran.CompanyId == request.CompanyId)
-            //     .FirstOrDefaultAsync(cancellationToken);
+            //Segundo filtro de la busqueda de permit application realizada
+            if (request.Status.HasValue)
+            {
+                recordsQuery = recordsQuery
+                    .Where(permit => permit.Status == request.Status);
+            }
 
-            // if (branchSelected is null)
-            // {
-            //     return _errorManager.ThrowBadRequest<PayrollDetailsDto>("¡Esta sucursal no esta existe!", "ERP:BranchNotFound");
-            // }
+            //Busqueda final de los permisos
+            var records = await recordsQuery
+                .OrderBy(permit => permit.CreatedAt)
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync(cancellationToken);
 
-            // var payroll = await _unitOfWork.Payrolls.Entities
-            //     .Where(pay => pay.Id == request.PayrollId)
-            //     .Where(pay => pay.BranchId == branchSelected.Id)
-            //     .FirstOrDefaultAsync(cancellationToken);
-
-            // if (payroll is null)
-            // {
-            //     return _errorManager.ThrowBadRequest<PayrollDetailsDto>("¡No se encontro registro de esta nomina actualmente!", "ERP:PayrollNotFound");
-            // }
-
-            // var payrollDetails = _unitOfWork.OrdinaryPayrolls.Entities
-            //     .AsNoTracking()
-            //     .Include(op => op.Collaborator)
-            //         .ThenInclude(col => col.WorkingInformation)
-            //             .ThenInclude(col => col.WorkPosition)
-            //     .Where(op => op.PayrollId == payroll.Id);
-
-
-            // #region Filtro de nomina
-            // if (!string.IsNullOrEmpty(request.IdentificationNumber))
-            // {
-            //     payrollDetails = payrollDetails
-            //         .Where(op => op.Collaborator.IdentificationNumber == request.IdentificationNumber);
-            // }
-
-            // if (request.WorkAreaId.HasValue)
-            // {
-            //     payrollDetails = payrollDetails
-            //         .Where(op => op.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);
-            // }
-
-            // if (request.WorkPositionId.HasValue)
-            // {
-            //     payrollDetails = payrollDetails
-            //         .Where(op => op.Collaborator.WorkingInformation.WorkPositionId == request.WorkPositionId);
-            // }
-            // #endregion
-
-            // int totalRecords= await payrollDetails.CountAsync(cancellationToken);
-
-            // var records = await payrollDetails
-            //     .Include(x => x.Collaborator)
-            //         .ThenInclude(x => x.WorkingInformation)
-            //             .ThenInclude(x => x.WorkArea)
-
-            //     .Include(x => x.Collaborator)
-            //         .ThenInclude(x => x.WorkingInformation)
-            //             .ThenInclude(x => x.WorkPosition)
-                        
-            //     .OrderBy(op => op.Collaborator.FirstName)
-            //     .Skip((request.PageNumber - 1) * request.PageSize)
-            //     .Take(request.PageSize)
-            //     .ToListAsync(cancellationToken);
-
-            // var Information = new PayrollDetailsDto ()
-            // {
-            //     PayrollId = payroll.Id,
-            //     EndDate = payroll.EndDate,
-            //     StartDate = payroll.StartDate,
-            //     Type = payroll.PayrollType,
-            //     BranchName = branchSelected.BranchName,
-            //     PageSize = request.PageSize,
-            //     PageNumber = request.PageNumber,
-            //     TotalItems = totalRecords
-            // };
-
-            // if (payroll.PayrollType == PayrollType.Ordinary)
-            // {
-
-            //     var tuples = records.Select(x =>
-            //     (
-            //         x,
-            //         x.Collaborator,
-            //         x.Collaborator.WorkingInformation,
-            //         x.Collaborator.WorkingInformation.WorkPosition, 
-            //         x.Collaborator.WorkingInformation.WorkArea 
-            //     ));
-
-            //     var mapped = _mapper.Map<List<OrdinaryPayrollDetailsDto>>(tuples);
-
-            //     Information.OrdinaryPayrollData = mapped;
-            // }
-
-            // if(payroll.PayrollType == PayrollType.ProfessionalServices)
-            // {
-                
-            // }
-
-            return [];
+            return _mapper.Map<List<PermitApplicationDto>>(records);
         }
     }
 }   
