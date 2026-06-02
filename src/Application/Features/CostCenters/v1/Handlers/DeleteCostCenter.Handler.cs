@@ -8,7 +8,6 @@ using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
 {
-    #pragma warning disable CA1873 
     public class DeleteCostCenterHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterCostCenterHandler> _logger) : IRequestHandler<DeleteCostCenterCommand, bool>
     {
         public async Task<bool> Handle(DeleteCostCenterCommand request, CancellationToken cancellationToken)
@@ -47,6 +46,4 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
             return true;
         }
     }
-
-    #pragma warning restore CA1873
 }
