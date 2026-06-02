@@ -156,7 +156,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             [FromQuery] int? work_area_id,
             [FromQuery] int? job_position_id,
-            [FromQuery] string? IdentificationNumber,
+            [FromQuery] string? identification_number,
 
             [FromQuery] int page_size = 10,
             [FromQuery] int page_number = 1
@@ -174,7 +174,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 
                 WorkAreaId = work_area_id,
                 WorkPositionId = job_position_id,
-                IdentificationNumber = IdentificationNumber,
+                IdentificationNumber = identification_number,
 
                 PageSize = page_size,
                 PageNumber = page_number,

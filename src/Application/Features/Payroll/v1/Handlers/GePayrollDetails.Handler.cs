@@ -7,10 +7,11 @@ using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Enums;
+using AutoMapper;
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class GetPayrollDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<GePayrollDetaillsQuery, PayrollDetailsDto>(_unitOfWork, _errorManager)
+    public class GetPayrollDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GePayrollDetaillsQuery, PayrollDetailsDto>(_unitOfWork, _errorManager)
     {
         public override async Task<PayrollDetailsDto> Handle(GePayrollDetaillsQuery request, CancellationToken cancellationToken)
         {
@@ -46,6 +47,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .AsNoTracking()
                 .Include(op => op.Collaborator)
                     .ThenInclude(col => col.WorkingInformation)
+                        .ThenInclude(col => col.WorkPosition)
                 .Where(op => op.PayrollId == payroll.Id);
 
 
@@ -72,6 +74,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             int totalRecords= await payrollDetails.CountAsync(cancellationToken);
 
             var records = await payrollDetails
+                .Include(x => x.Collaborator)
+                    .ThenInclude(x => x.WorkingInformation)
+                        .ThenInclude(x => x.WorkArea)
+
+                .Include(x => x.Collaborator)
+                    .ThenInclude(x => x.WorkingInformation)
+                        .ThenInclude(x => x.WorkPosition)
+                        
                 .OrderBy(op => op.Collaborator.FirstName)
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
@@ -91,8 +101,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
             if (payroll.PayrollType == PayrollType.Ordinary)
             {
-                
 
+                var tuples = records.Select(x =>
+                (
+                    x,
+                    x.Collaborator,
+                    x.Collaborator.WorkingInformation,
+                    x.Collaborator.WorkingInformation.WorkPosition, 
+                    x.Collaborator.WorkingInformation.WorkArea 
+                ));
+
+                var mapped = _mapper.Map<List<OrdinaryPayrollDetailsDto>>(tuples);
+
+                Information.OrdinaryPayrollData = mapped;
             }
 
             if(payroll.PayrollType == PayrollType.ProfessionalServices)

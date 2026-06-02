@@ -37,7 +37,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             {
                 CompanyId = company_id,
                 AreaId = area_id,
-                CostCenterId = company_id,
+                CostCenterId = cost_center_id,
             });
 
             return NoContent();
