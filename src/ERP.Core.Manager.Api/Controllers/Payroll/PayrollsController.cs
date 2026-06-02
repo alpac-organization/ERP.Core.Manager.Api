@@ -144,11 +144,11 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         //Obtener detalles de una nomina de algun periodo cerrado.
         [Tags("Nomina")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/branches/{branch_id}/payrolls/{payroll_id}/history")]      
-        [ProducesResponseType(typeof(PayrollDto), StatusCodes.Status200OK)]
+        [HttpGet("companies/{companie_id}/modules/{module_code}/branches/{branch_id}/payrolls/{payroll_id}/details")]      
+        [ProducesResponseType(typeof(PayrollDetailsDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
             [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<IActionResult> GetPayrollDetailsByIdAsync(
+        public async Task<PayrollDetailsDto> GetPayrollDetailsByIdAsync(
             [FromRoute] Guid branch_id,
             [FromRoute] Guid payroll_id,
             [FromRoute] Guid companie_id,
@@ -165,7 +165,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             var userIdStr = HttpContext.Items["UserId"] as string;
             //Solo administradores pueden aperturar ciclo de nomina.
 
-            await _mediator.Send(new GePayrollDetaillsQuery()
+            return await _mediator.Send(new GePayrollDetaillsQuery()
             {
                 BranchId = branch_id,
                 PayrollId = payroll_id,
@@ -180,8 +180,6 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 PageNumber = page_number,
                 UserId = Guid.Parse(userIdStr ?? "")
             });
-
-            return Ok();
         }
     }
 }

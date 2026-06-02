@@ -9,7 +9,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries
     {
         public Guid BranchId { get; set; }
         public Guid PayrollId { get; set; }
-        public PayrollType Type { get; set; }
 
         public int? WorkAreaId { get; set; }
         public int? WorkPositionId { get; set; }

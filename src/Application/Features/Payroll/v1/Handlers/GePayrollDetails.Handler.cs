@@ -6,10 +6,11 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class GetPayrollDetaillsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<GePayrollDetaillsQuery, PayrollDetailsDto>(_unitOfWork, _errorManager)
+    public class GetPayrollDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<GePayrollDetaillsQuery, PayrollDetailsDto>(_unitOfWork, _errorManager)
     {
         public override async Task<PayrollDetailsDto> Handle(GePayrollDetaillsQuery request, CancellationToken cancellationToken)
         {
@@ -33,7 +34,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
             var payroll = await _unitOfWork.Payrolls.Entities
                 .Where(pay => pay.Id == request.PayrollId)
-                .Where(pay => pay.PayrollType == request.Type)
                 .Where(pay => pay.BranchId == branchSelected.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -77,19 +77,30 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
-            return new()
+            var Information = new PayrollDetailsDto ()
             {
                 PayrollId = payroll.Id,
                 EndDate = payroll.EndDate,
                 StartDate = payroll.StartDate,
-
-                OrdinaryPayrollData = [],
-                ProfessionalServicesPayrollData = [],
-
+                Type = payroll.PayrollType,
+                BranchName = branchSelected.BranchName,
                 PageSize = request.PageSize,
                 PageNumber = request.PageNumber,
                 TotalItems = totalRecords
             };
+
+            if (payroll.PayrollType == PayrollType.Ordinary)
+            {
+                
+
+            }
+
+            if(payroll.PayrollType == PayrollType.ProfessionalServices)
+            {
+                
+            }
+
+            return Information;
         }
     }
 }   
