@@ -16,6 +16,7 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
 
             var area = await _unitOfWork.WorkAreas.Entities
                 .Where(area => area.IsActive)
+                .Where(area => area.Id == request.AreaId)
                 .Where(area => area.CompanyId == request.CompanyId)
                 .FirstOrDefaultAsync(cancellationToken);
 
