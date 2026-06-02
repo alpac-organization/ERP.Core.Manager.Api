@@ -8,7 +8,7 @@ using ERP.Core.Manager.Api.Application.Features.Branches.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Branches.v1.Handlers
 {
-    public class RegisterBranchHandler(IUnitOfWork _unitOfWork,IErrorManager _errorManager, ILogger<RegisterBranchHandler> _logger) : IRequestHandler<RegisterBranchCommand, bool>
+    public class RegisterBranchHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterBranchHandler> _logger) : IRequestHandler<RegisterBranchCommand, bool>
     {
         public async Task<bool> Handle(RegisterBranchCommand request, CancellationToken cancellationToken)
         {
