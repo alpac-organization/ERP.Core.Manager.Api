@@ -28,12 +28,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .Where(payroll => payroll.Status == PayrollStatus.Progress)
                 .Where(payroll => payroll.PayrollType == request.PayrollType)
                 .Where(payroll => payroll.BranchId == request.BranchId)
-                .AnyAsync(cancellationToken);
-           
-           return new ()
-           {
-               ExistPayrollInProgress = isTherePending
-           };
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (isTherePending is null)
+            {
+                return new()
+                {
+                    ExistPayrollInProgress = false,
+                    PayrollId = null
+                };
+            }
+            else
+            {
+                return new ()
+                {
+                    ExistPayrollInProgress = true,
+                    PayrollId = isTherePending.Id
+                };
+            }
         }
     }
 }
