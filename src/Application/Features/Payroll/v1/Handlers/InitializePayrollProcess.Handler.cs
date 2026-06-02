@@ -138,7 +138,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     }
 
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
-                    break;
+
+                    
+                    return true;
                 }
 
                 case PayrollType.ProfessionalServices:

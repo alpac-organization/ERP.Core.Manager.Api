@@ -18,6 +18,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 .Where(c => c.CompanyId == request.CompanyId);
 
             var totalCollaborators = await baseQuery.CountAsync(cancellationToken);
+            
             var totalActive = await baseQuery.CountAsync(c => c.Status == CollaboratorStatus.Active, cancellationToken);
             var totalOnVacation = await baseQuery.CountAsync(c => c.Status == CollaboratorStatus.Vacation, cancellationToken);
             var totalOnSubsidy = await baseQuery.CountAsync(c => c.Status == CollaboratorStatus.Subsidy, cancellationToken);

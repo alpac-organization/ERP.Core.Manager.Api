@@ -7,10 +7,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries
 {
     public class GetPermitApplicationInPayrollQuery: BaseRequest, IRequest<List<PermitApplicationDto>>
     {
-        public Guid BranchId { get; set; }
         public Guid PayrollId { get; set; }
+
         public string? IdentificationNumber { get; set; }
-        public PermitApplicationStatus Status { get; set; }
+        public PermitApplicationStatus? Status { get; set; }
 
         public int PageSize { get; set; }
         public int PageNumber { get; set; }

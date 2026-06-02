@@ -23,4 +23,8 @@
     <NoWarn>$(NoWarn);NU1903</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);CA1873</NoWarn>
+  </PropertyGroup>
+
 </Project>
