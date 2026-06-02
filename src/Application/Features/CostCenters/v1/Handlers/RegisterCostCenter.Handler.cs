@@ -29,6 +29,7 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
                 WorkAreaId = request.AreaId,
                 CostCenterName = request.CostCenterName,
                 Description = request?.Description ?? "Sin Descripción",
+                IsActive = true
             });
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -13,13 +13,14 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             CreateMap<Payroll, PayrollPeriodDto>()
                 .ForMember(dest => dest.PayrollId, src => src.MapFrom(or => or.Id))
                 .ForMember(dest => dest.StartDate, src => src.MapFrom(or => or.StartDate))
-                .ForMember(dest => dest.BranchName, src => src.MapFrom(or => or.Branch.BranchName))
                 .ForMember(dest => dest.EndDate, src => src.MapFrom(or => or.EndDate))
-                .ForMember(dest => dest.Type, src => src.MapFrom(or => or.PayrollType));
+                .ForMember(dest => dest.Type, src => src.MapFrom(or => or.PayrollType))
+                .ForMember(dest => dest.BranchName, src => src.MapFrom(or => or.Branch.BranchName));
 
-
+            #region Mapeo del detalles de nomina.
             CreateMap<(OrdinaryPayroll, Collaborator, WorkingInformation, SubCatalog, SubCatalog), OrdinaryPayrollDetailsDto>()
                 .ForMember(dest => dest.Commissions, src => src.MapFrom(or => or.Item1.Commissions))
+                .ForMember(dest => dest.OrdinaryPayrollId, src => src.MapFrom(or => or.Item1.Id))
                 .ForMember(dest => dest.Antique, src => src.MapFrom(or => or.Item1.Antique))
                 .ForMember(dest => dest.Bonus, src => src.MapFrom(or => or.Item1.Bonus))
                 .ForMember(dest => dest.Overtime, src => src.MapFrom(or => or.Item1.Bonus))
@@ -59,6 +60,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForPath(dest => dest.CollaboratorInformation.JobPosition, opt => opt.MapFrom(src => src.Item4.CatalogName))
                 .ForPath(dest => dest.CollaboratorInformation.WorkArea, opt => opt.MapFrom(src => src.Item5.CatalogName))
                 .ForPath(dest => dest.CollaboratorInformation.InssNumber, opt => opt.MapFrom(src => src.Item3.InssNumber));
+            #endregion
         }
     }
 }
