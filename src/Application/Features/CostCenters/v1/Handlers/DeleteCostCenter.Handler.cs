@@ -26,8 +26,9 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
             }
 
             var costCenter = await _unitOfWork.CostCenters.Entities
-                .Where(cost => cost.Id == request.CostCenterId)
+                .Where(cost => cost.IsActive)
                 .Where(cost => cost.WorkAreaId == area.Id)
+                .Where(cost => cost.Id == request.CostCenterId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (costCenter is null)

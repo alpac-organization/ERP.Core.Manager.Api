@@ -10,7 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Handlers
     {
         public async Task Handle(RegisterWorkAreaCommand request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("🚩Iniciando proceso de registro de area de trabajo");
+            _logger.LogInformation("🚩Iniciando proceso de registro de area de trabajo: \n\nData inicial: {@request}", request);
 
             await _unitOfWork.WorkAreas.RegisterWorkArea(new()
             {

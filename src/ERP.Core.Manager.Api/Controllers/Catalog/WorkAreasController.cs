@@ -26,6 +26,24 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             return Created();
         }
 
+        [Tags("Areas de trabajo")]  
+        [HttpPost("companies/{company_id}/areas/{area_id}")]   
+        [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<NoContentResult> DeleteWorkAreaAsync([FromRoute] Guid company_id, [FromRoute] Guid area_id)
+        {
+            var payload = new DeleteWorkAreaCommand()
+            {
+                CompanyId = company_id,
+                WorkAreaId = area_id,
+            };
+
+            await _mediator.Send(payload);
+
+            return NoContent();
+        }
+
         [Tags("Centros de costo")]  
         [HttpGet("companies/{company_id}/areas")]   
         [ProducesResponseType(typeof(List<WorkAreaDto>), StatusCodes.Status200OK)]
