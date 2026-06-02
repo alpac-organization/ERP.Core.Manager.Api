@@ -23,7 +23,7 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
                 return _errorManager.ThrowBadRequest<List<CostCenterDto>>("El area seleccionada no existe", "ERP:AreaNotFound");
             }
 
-            var costCenters = _unitOfWork.CostCenters.Entities    
+            var costCenters = await _unitOfWork.CostCenters.Entities    
                 .Where(cost => cost.IsActive)
                 .Where(cost => cost.WorkAreaId == area.Id)
                 .ToListAsync(cancellationToken);

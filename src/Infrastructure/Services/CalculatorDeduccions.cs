@@ -97,9 +97,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal AnnualExpectationIR = 0.0m;
             decimal IrBiweekly = 0.0m;
 
-
             if (totalAnnualSalary <= 100000)
-                AnnualIr = 0;
+            {
+                AnnualIr = 0;                
+            }
             else if (totalAnnualSalary > 100000 && totalAnnualSalary <= 200000)
             {
                 BaseTax = 0;
@@ -143,6 +144,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         {
             #region Primera Validación de apertura
 
+            if (collaborator.IdentificationNumber == "0011112760036V")
+            {
+                
+            }
+
+            if (collaborator.IdentificationNumber == "0821402770004F")
+            {
+                
+            }
+
             var payrollCreated = await _unitOfWork.Payrolls.Entities
                 .Where(payroll => payroll.Id == payrollId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -175,7 +186,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
            int daysWorked = 15;
 
-            if (entryDate > payrollStart) daysWorked = (payrollEnd.DayNumber - entryDate.DayNumber) + 1;
+            if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
             else daysWorked = 15;
 
             if (daysWorked < 0)     daysWorked = 0;
@@ -456,6 +467,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             });
             
             #endregion
+
+
+            #region Calcular Inatec e inss patronal
+
+
+            #endregion Calcular Inatec e inss patronal
+
         }
     }
 
