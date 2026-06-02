@@ -120,8 +120,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         public async Task<List<PayrollPeriodDto>> ObtainPayrollPeriodsAsync(
             [FromRoute] Guid companie_id,
             [FromRoute] Guid branch_id,
-            [FromRoute] string module_code, 
             [FromQuery] PayrollType type,
+            [FromRoute] string module_code, 
 
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
@@ -131,41 +131,55 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             return await _mediator.Send(new ObtainPayrollPeriodsQuery()
             {
+                Type = type,
                 BrachId = branch_id,
                 CompanyId = companie_id,
                 ModuleCode = module_code,
-                Type = type,
-                UserId = Guid.Parse(userIdStr ?? ""),
+
+                PageSize = page_size,
                 PageNumber = page_number,
-                PageSize = page_size
+                UserId = Guid.Parse(userIdStr ?? "")
             });
         }
 
         //Obtener detalles de una nomina de algun periodo cerrado.
         [Tags("Nomina")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/branches/{branch_id}/payrolls/{payroll_id}/history")]      
-        [ProducesResponseType(typeof(PayrollDto), StatusCodes.Status200OK)]
+        [HttpGet("companies/{companie_id}/modules/{module_code}/branches/{branch_id}/payrolls/{payroll_id}/details")]      
+        [ProducesResponseType(typeof(PayrollDetailsDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
             [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<IActionResult> GetPayrollDetailsByIdAsync(
-            [FromRoute] Guid companie_id,  
-            [FromRoute] string module_code,
+        public async Task<PayrollDetailsDto> GetPayrollDetailsByIdAsync(
             [FromRoute] Guid branch_id,
             [FromRoute] Guid payroll_id,
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
 
-            [FromQuery] string? IdentificationNumber,
             [FromQuery] int? work_area_id,
             [FromQuery] int? job_position_id,
+            [FromQuery] string? identification_number,
 
-            [FromQuery] int page_number = 1,
-            [FromQuery] int page_size = 10
+            [FromQuery] int page_size = 10,
+            [FromQuery] int page_number = 1
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
             //Solo administradores pueden aperturar ciclo de nomina.
 
+            return await _mediator.Send(new GePayrollDetaillsQuery()
+            {
+                BranchId = branch_id,
+                PayrollId = payroll_id,
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                
+                WorkAreaId = work_area_id,
+                WorkPositionId = job_position_id,
+                IdentificationNumber = identification_number,
 
-            return Ok();
+                PageSize = page_size,
+                PageNumber = page_number,
+                UserId = Guid.Parse(userIdStr ?? "")
+            });
         }
     }
 }
