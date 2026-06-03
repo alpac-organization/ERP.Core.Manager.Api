@@ -205,7 +205,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 case PermitApplicationType.Vacation:
                 {
                     //Registro de solicitud de vacaciones
-                    var vacationData = request.PermitApplicationVacation!;
+                    var vacationData = request.PermitApplicationVacation ?? new ();
 
                     permitApplication.PayrolId  = request.PayrollId;
                     permitApplication.EndDate   = vacationData.EndDate;
@@ -214,6 +214,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     permitApplication.StartTime = vacationData.StartTime;
                     permitApplication.Type      = PermitApplicationType.Vacation;
 
+                    MappingRecords(request.Channel, permitApplication, access.Role?.RoleType ?? RoleType.Operator);
+
+                    //Obtener control de vacaciones.
                     var vacationControl = await _unitOfWork.Vacations.Entities
                         .Include(vtl => vtl.Collaborator)
                         .Where(vtl => vtl.Collaborator.IdentificationNumber == request.IdentificationNumber)
@@ -271,8 +274,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     {
                         decimal totalDays = 0;
 
-                        DateOnly startDate = request.PermitApplicationVacation!.StartDate;
-                        DateOnly endDate   = request.PermitApplicationVacation.EndDate;
+                        DateOnly endDate   = vacationData.EndDate;
+                        DateOnly startDate = vacationData.StartDate;
 
                         if (!collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Friday)
                         {
@@ -285,6 +288,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             endDate = endDate.AddDays(daysUntilSunday);
                         }
 
+                        //✅Cargar los dias feriados del año
                         var holidays = await _unitOfWork.Holidays.Entities
                             .Where(day => day.IsActive)
                             .ToListAsync(cancellationToken);
@@ -292,18 +296,18 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         int totalCalendarDays = endDate.DayNumber - startDate.DayNumber + 1;
                         int fullWeeks         = totalCalendarDays / 7;
                         int remainingDays     = totalCalendarDays % 7;
+                        int totalHolidays     = 0;
 
-                        // Semanas completas siempre son 7 días fijos
                         totalDays += fullWeeks * 7;
 
-                        // Días sobrantes se calculan proporcional
                         for (int i = 0; i < remainingDays; i++)
                         {
                             DateOnly date = startDate.AddDays(fullWeeks * 7 + i);
 
-                            // Domingo nunca cuenta en días parciales
                             if (date.DayOfWeek == DayOfWeek.Sunday)
+                            {
                                 continue;
+                            }
 
                             bool isHoliday = holidays.Any(h =>
                                 h.Day   == date.Day   &&
@@ -316,7 +320,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             );
 
                             if (isHoliday)
+                            {
+                                totalHolidays++;        
                                 continue;
+                            }
 
                             if (date.DayOfWeek == DayOfWeek.Saturday)
                             {
