@@ -3,9 +3,9 @@ using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validators
 {
-    public class GetVacationRequestHistoryValidator : AbstractValidator<GetPermitApplicationHistoryQuery>
+    public class GetVacationRequestValidator : AbstractValidator<GetPermitApplicationsQuery>
     {
-        public GetVacationRequestHistoryValidator()
+        public GetVacationRequestValidator()
         {
             RuleFor(x => x.CompanyId)
                 .NotEmpty()

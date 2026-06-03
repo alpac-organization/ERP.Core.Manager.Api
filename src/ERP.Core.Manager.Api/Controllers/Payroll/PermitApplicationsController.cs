@@ -47,10 +47,11 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(PagedResponse<PermitApplicationDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<PagedResponse<PermitApplicationDto>> GetVacationRequestsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
-            [FromQuery] int page_size = 10, 
-            [FromQuery] int page_number = 1, 
-            [FromQuery] string? identification_number,
+        public async Task<PagedResponse<PermitApplicationDto>> GetPermitApplicationsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
+            [FromQuery] int page_size                   = 10, 
+            [FromQuery] int page_number                 = 1, 
+            [FromQuery] string? identification_number   = null,
+            [FromQuery] PermitApplicationType? type     = null,
             [FromQuery] PermitApplicationStatus? status = null
         )
         {
@@ -58,36 +59,39 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             return await _mediator.Send(new GetPermitApplicationsQuery()
             {
+                Type = type,
+                Status = status,
                 CompanyId = companie_id,
                 ModuleCode = module_code,
                 UserId = Guid.Parse(userIdStr ?? ""),
                 IdentificationNumber = identification_number,
                 PageSize = page_size,
-                PageNumber = page_number,
-                Status = status
+                PageNumber = page_number
             });            
         }
 
 
-        [Tags("Permisos")] 
-        [HttpPut("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}")]      
-        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<OkResult> GetVacationRequestsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
-            [FromQuery] string? identification_number, 
-            [FromQuery] int page_size = 10, 
-            [FromQuery] int page_number = 1, 
-            [FromQuery] PermitApplicationStatus? status = null
-        )
-        {
-            var userIdStr = HttpContext.Items["UserId"] as string;
+        // [Tags("Permisos")] 
+        // [HttpPut("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}")]      
+        // [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        // public async Task<OkResult> UpdatePermitApplicationAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
+        //     [FromQuery] string? identification_number, 
+        //     [FromQuery] int page_size = 10, 
+        //     [FromQuery] int page_number = 1, 
+        //     [FromQuery] PermitApplicationStatus? status = null
+        // )
+        // {
+        //     var userIdStr = HttpContext.Items["UserId"] as string;
 
-           Ok();          
-        }
+        //    Ok();          
+        // }
 
 
 
+
+        //Procesar solicitud de permiso, en este caso aprobar steps, seconds steps
         [Tags("Permisos")] 
         [HttpPost("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}/process")]      
         [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]   

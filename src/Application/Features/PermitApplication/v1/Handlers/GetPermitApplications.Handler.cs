@@ -2,13 +2,13 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 
-
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
 
+//✅Obtener solicitudes de permisos realizadas por empresas.
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
     public class GetPermitApplicationsRequestHandler(IUnitOfWork _unitOfWork, IMapper  _mapper, IErrorManager _errorManager) : AlpacBaseHandler<GetPermitApplicationsQuery, PagedResponse<PermitApplicationDto>>(_unitOfWork, _errorManager)
@@ -22,36 +22,44 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 return access.ErrorResponse!; 
             }
 
+            var permitQuery = _unitOfWork.PermitApplications.Entities
+                .Include(permit => permit.Collaborator)
+                .Where(permit => permit.Collaborator.CompanyId == request.CompanyId)
+                .AsNoTracking();
 
+            if (request.PayrollId.HasValue)
+            {
+                permitQuery = permitQuery
+                    .Where(permit => permit.PayrolId == request.PayrollId);
+            }
+
+            if (!string.IsNullOrEmpty(request.IdentificationNumber))
+            {
+                permitQuery = permitQuery
+                    .Where(permit => permit.Collaborator.IdentificationNumber == request.IdentificationNumber);
+            }
+
+            if (request.Type.HasValue)
+            {
+                permitQuery = permitQuery
+                    .Where(permit => permit.Type == request.Type);
+            }
+
+            if (request.Status.HasValue)
+            {
+                permitQuery = permitQuery
+                    .Where(permit => permit.Status == request.Status);
+            }
+
+            //✅Contar el total de solicitudes en base a los filtros
+            var totalPermitApplications = await permitQuery.CountAsync(cancellationToken);
             
-            // var query = _unitOfWork.PermitApplications.Entities
-            //     .Include(info => info.Collaborator)
-            //     .Where(info => info.Collaborator.CompanyId == request.CompanyId)
-            //     .Where(info => info.Status != PermitApplicationStatus.Cancelled)
-            //     .AsQueryable();
-
-            // if (!string.IsNullOrWhiteSpace(request.IdentificationNumber))
-            // {
-            //     query = query.Where(info => info.Collaborator.IdentificationNumber == request.IdentificationNumber);
-            // }
-
-            // if (request.Status.HasValue)
-            // {
-            //     query = query.Where(info => info.Status == request.Status.Value);
-            // }
-
-            // if (request.Type.HasValue)
-            // {
-            //     query = query.Where(info => info.Type == request.Type.Value);
-            // }
-
-            // var totalPermitApplications = await query.CountAsync(cancellationToken);
-
-            // var items = await query
-            //     .OrderByDescending(info => info.CreatedAt) 
-            //     .Skip((request.PageNumber - 1) * request.PageSize)
-            //     .Take(request.PageSize)
-            //     .ToListAsync(cancellationToken);
+            //Obtener todos los elementos con filtros aplicados
+            var items = await permitQuery
+                .OrderByDescending(info => info.CreatedAt) 
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync(cancellationToken);
 
             // var permitApplications = _mapper.Map<List<PermitApplicationDto>>(items);
 
@@ -59,7 +67,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 [],
                 request.PageNumber,
                 request.PageSize,
-                0
+                totalPermitApplications
             );
         }
     }
