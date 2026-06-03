@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace ERP.Core.Manager.Api.Application.Commons.Utils
 {
     public static class StringExtensions
@@ -13,14 +11,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
                 "" => string.Empty,
                 string s => char.ToUpper(s[0]) + s[1..]
             };
-        }
-
-        public static string Capitalize(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-                return text;
-
-            return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(text.ToLower());
         }
 
         public static string ToNumberToLetters(decimal amount)

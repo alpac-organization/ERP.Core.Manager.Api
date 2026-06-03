@@ -1,13 +1,16 @@
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Application.Commons.Interfaces;
+
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
-using System.Text.Json;
-using ERP.Core.Manager.Api.Domain.Enums;
-using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using Microsoft.Extensions.Logging;
 
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+
+using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
     public class CreatePermitApplicationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<CreatePermitApplicationHandler> _logger) : AlpacBaseHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
@@ -103,72 +106,59 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             #endregion Validaciones
 
+            var AdditionalData    = new AdditionalDataPermitApplication();
+            
             var permitApplication = new Database.Domain.Entities.Payrolls.PermitApplication
             {
-                EndTime = null,
-                StartTime = null,
-                Status = PermitApplicationStatus.Pending,
+                EndTime          = null,
+                StartTime        = null,
+                Status           = PermitApplicationStatus.Pending,
                 CollaboratorCode = collaborator.CollaboratorCode,
-                CollaboratorId = collaborator.Id,
-                Description = request.Description
+                CollaboratorId   = collaborator.Id,
+                Description      = request.Description,
+                PayrolId         = request.PayrollId,
+                RequestedBy      = ManagerUtils.FromSliceToCollaboratorFullname(collaborator)
             };
-
-            var AdditionalData = new AdditionalDataPermitApplication();
-
-            var fullNames = new[] 
-            { 
-                collaborator.FirstName, 
-                collaborator.SecondName, 
-                collaborator.FirstLastname, 
-                collaborator.SecondLastname 
-            };
-
-            permitApplication.RequestedBy = string.Join(" ", fullNames.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n?.Trim()));
-
-            var startTimeLimit = new TimeOnly(8, 0);
-            var endTimeLimit   = new TimeOnly(14, 30);
-
-            _logger.LogInformation("🚩Iniciando proceso para registrar solicitud de permiso");
 
             switch (request.PermitApplicationType)
             {
                 case PermitApplicationType.MedicalAppointment:
                 {
-                    var medicalReq = request.PermitApplicationMedicalAppointment!;
+                    _logger.LogInformation("🚀Iniciando proceso de registro de solicitud de permiso.");
 
-                    if (medicalReq.StartTime < startTimeLimit || medicalReq.EndTime > endTimeLimit)
-                    {
-                        return _errorManager.ThrowBadRequest<bool>(
-                            "El horario solicitado está fuera del rango permitido (08:00 AM - 02:30 PM).", 
-                            "ERP:TIME_OUT_OF_RANGE"
-                        );
-                    }
+                    var medicalReq = request?.PermitApplicationMedicalAppointment ?? new();
 
-                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
-                    permitApplication.Type = PermitApplicationType.MedicalAppointment;
-                    permitApplication.StartDate = request.PermitApplicationMedicalAppointment!.StartDate;
-                    permitApplication.StartTime = request.PermitApplicationMedicalAppointment?.StartTime;
-                    permitApplication.EndTime = request.PermitApplicationMedicalAppointment?.EndTime;
+                    permitApplication.IsWithRangeDate = false;
+                    permitApplication.StartDate = medicalReq.StartDate;
+                    permitApplication.EndDate   = medicalReq.StartDate;
+                    permitApplication.StartTime = medicalReq.StartTime;
+                    permitApplication.EndTime   = medicalReq.EndTime;
+                    permitApplication.Type      = PermitApplicationType.MedicalAppointment;
                     
-                    //Calcular las horas que solicito para evitar, falsos positivos
-                    var duration = medicalReq.EndTime!.Value - medicalReq.StartTime!.Value;
-                    decimal totalHours = (decimal)duration.TotalHours;
+                    // MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
 
-                    if (totalHours >= 5)
+                    if (medicalReq.IsFullDay)
                     {
-                        AdditionalData.MedicalAppointmentData.IsFullDay = true;   
+                        //Lo definimos como dia completo
+                        permitApplication.AmountDays = 1;
+                        AdditionalData.MedicalAppointmentData.IsFullDay = true;
                     }
                     else
                     {
-                        AdditionalData.MedicalAppointmentData.IsFullDay = request.PermitApplicationMedicalAppointment?.IsFullDay ?? false;
-                        permitApplication.AmountDays = 0;
+                        //Calcular las horas que solicito para evitar, falsos positivos
+                        var duration = medicalReq.EndTime!.Value - medicalReq.StartTime!.Value;
+                        decimal totalHours = (decimal) duration.TotalHours;
+
+                        permitApplication.AmountDays = totalHours;
+                        AdditionalData.MedicalAppointmentData.IsFullDay = false;
                     }
 
-                    permitApplication.AmountDays = 0.5m;
+                    //Evaluar las imagenes adjuntadas.
+                    AdditionalData.MedicalAppointmentData.ImagesAttached = medicalReq.Images;
 
+                    //✅Terminar de evaluar la solicitud
                     break;
                 }
-
                 case PermitApplicationType.DonatedVacations:
                 {
                     //Validamos la cedula de la persona que viene a recibir el gozo de vacaciones donadas.
@@ -208,7 +198,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                     break;   
                 }
-
                 case PermitApplicationType.Vacation:
                 {
                     //Registro de solicitud de vacaciones
@@ -361,7 +350,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 }
             }
 
-            //Registrar Solicitud
+            //Serializamos la data adicional del permiso, solicitado.
             permitApplication.AdditionalData = JsonSerializer.Serialize(AdditionalData);
             await _unitOfWork.PermitApplications.CreatePermitApplication(permitApplication);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -395,12 +384,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
         public static async void MapperCaseDefaultValues(Database.Domain.Entities.Payrolls.PermitApplication entity, RoleType role, Channels channels, string moduleCode)
         {
-            if (moduleCode == "SOL-6NF2" && channels == Channels.DirectManagerPanel && role == RoleType.Manager)
-            {
-                entity.FirtsStepApproved = true;    
-                entity.ManagerFullname = "Control Administración";
-            }
-            else if (moduleCode == "NMI-43GW" && (role == RoleType.Operator || role == RoleType.Administrator) &&  channels == Channels.AdministrativePanel)
+           
+            if (moduleCode == "NMI-43GW" && (role == RoleType.Operator || role == RoleType.Administrator) &&  channels == Channels.AdministrativePanel)
             {
                 entity.FirtsStepApproved = true;    
                 entity.ManagerFullname = "Control Administración";

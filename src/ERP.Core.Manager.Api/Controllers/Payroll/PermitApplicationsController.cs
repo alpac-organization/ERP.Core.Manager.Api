@@ -37,39 +37,27 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
            );
         }
 
+        //✅Registro de una nueva solicitud de trabajo.
         [Tags("Permisos")] 
-        [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/permit-applications")]      
+        [HttpPost("companies/{companie_id}/modules/{module_code}/permit-applications")]      
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]     
-        public async Task<CreatedResult> CreateVacationRequestRecordAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number, 
+        public async Task<CreatedResult> CreatePermitApplicationAsync(
+            [FromRoute] Guid companie_id, 
+            [FromRoute] string module_code,
             [FromBody] CreatePermitApplicationCommand Payload 
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            await _mediator.Send(new CreatePermitApplicationCommand()
-            {
-                CompanyId = companie_id,
-                ModuleCode = module_code,
-                UserId = Guid.Parse(userIdStr ?? ""),
-                IdentificationNumber = identification_number,
-                Description = Payload.Description,
-                Channel = Payload.Channel,
-                PermitApplicationType = Payload.PermitApplicationType,
-                PayrollId = Payload.PayrollId,
-                
-                //Vacaciones
-                PermitApplicationVacation = Payload.PermitApplicationVacation,
+            Payload.CompanyId = companie_id;
+            Payload.ModuleCode = module_code;
+            Payload.UserId = Guid.Parse(userIdStr ?? "");
 
-                //Donación
-                PermitApplicationDonatedVacations = Payload.PermitApplicationDonatedVacations,
+            await _mediator.Send(Payload);
 
-                //Cita Medica
-                PermitApplicationMedicalAppointment = Payload.PermitApplicationMedicalAppointment
-            });
-
-            return Created(string.Empty, null);
+            return Created();
         }
 
         [Tags("Permisos")] 
