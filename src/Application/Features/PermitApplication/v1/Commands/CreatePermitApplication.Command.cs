@@ -17,7 +17,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
 
        
         public PermitApplicationVacation? PermitApplicationVacation { get; set; }
-        public PermitApplicationDonatedVacations? PermitApplicationDonatedVacations { get; set; }
         public PermitApplicationMedicalAppointment? PermitApplicationMedicalAppointment { get; set; }
     }
 
@@ -25,8 +24,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
     {
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
-        public TimeOnly? StartTime { get; set; }
         public TimeOnly? EndTime { get; set; }
+        public TimeOnly? StartTime { get; set; }
 
         public bool IsFullDay { get; set; } = false;
         public bool IsItMidday { get; set; } = false;
@@ -50,13 +49,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
         //Imagenes abjuntadas
         public List<ImageData> Images { get; set; } = [];
     }
-
-    public class PermitApplicationDonatedVacations
-    {
-        public decimal AmountDays { get; set; }
-        public string? IdentificationCollaboratorToReceive { get; set; }
-    }
-
 
     public class ImageData
     {

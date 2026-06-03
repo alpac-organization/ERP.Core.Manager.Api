@@ -70,28 +70,23 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             });            
         }
 
+        //❌Actualizar solicitud de permiso. pendiente.
+        [Tags("Permisos")] 
+        [HttpPut("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}")]      
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<OkResult> UpdatePermitApplicationAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
+            [FromRoute] Guid permit_application_id
+            // [FromBody] CuerpoActualización 
+        )
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
 
-        // [Tags("Permisos")] 
-        // [HttpPut("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}")]      
-        // [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
-        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        // public async Task<OkResult> UpdatePermitApplicationAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
-        //     [FromQuery] string? identification_number, 
-        //     [FromQuery] int page_size = 10, 
-        //     [FromQuery] int page_number = 1, 
-        //     [FromQuery] PermitApplicationStatus? status = null
-        // )
-        // {
-        //     var userIdStr = HttpContext.Items["UserId"] as string;
-
-        //    Ok();          
-        // }
-
-
-
-
-        //Procesar solicitud de permiso, en este caso aprobar steps, seconds steps
+           return Ok();          
+        }
+        
+        //✅Procesar solicitud de permiso, en este caso aprobar steps, seconds steps
         [Tags("Permisos")] 
         [HttpPost("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}/process")]      
         [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]   
@@ -115,6 +110,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             return Ok();            
         }
 
+
+        //✅Cancelar solicitud de permisos
         [Tags("Permisos")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}/abort")]      
         [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
@@ -133,26 +130,6 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             });
 
             return Ok();            
-        }
-
-        [Tags("Permisos")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/permit-applications/{permit_application_id}/documents")]      
-        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<PermitApplicationDocumentDto> GenerateDocumentAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid permit_application_id)
-        {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
-            var query = new GenerateWorkPermitDocumentQuery 
-            { 
-                UserId = Guid.Parse(userIdStr ?? ""),
-                CompanyId = companie_id,
-                ModuleCode = module_code,
-                PermitApplicationRequestId = permit_application_id
-            };
-
-            return await _mediator.Send(query);
         }
     }
 }

@@ -6,6 +6,8 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
+
+//✅Cancelar solicitud de permisos.
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
     public class CancelPermitRequestHandler(IUnitOfWork _unitOfWork,  IErrorManager _errorManager) : AlpacBaseHandler<CancelPermitRequestQuery, bool>(_unitOfWork, _errorManager)

@@ -11,6 +11,10 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
+
+//Alias
+using PermitApplicationEntity = ERP.Core.Database.Domain.Entities.Payrolls.PermitApplication;
+
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
     public class CreatePermitApplicationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<CreatePermitApplicationHandler> _logger) : AlpacBaseHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
@@ -108,7 +112,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             var AdditionalData    = new AdditionalDataPermitApplication();
             
-            var permitApplication = new Database.Domain.Entities.Payrolls.PermitApplication
+            var permitApplication = new PermitApplicationEntity
             {
                 EndTime          = null,
                 StartTime        = null,
@@ -134,8 +138,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     permitApplication.StartTime = medicalReq.StartTime;
                     permitApplication.EndTime   = medicalReq.EndTime;
                     permitApplication.Type      = PermitApplicationType.MedicalAppointment;
-                    
-                    // MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
+
+                    MappingRecords(request?.Channel ?? Channels.PersonalPanel, permitApplication, access.Role?.RoleType ?? RoleType.Operator);                    
 
                     if (medicalReq.IsFullDay)
                     {
@@ -162,39 +166,39 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 case PermitApplicationType.DonatedVacations:
                 {
                     //Validamos la cedula de la persona que viene a recibir el gozo de vacaciones donadas.
-                    if (request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive is null)
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("La identificación del colaborador que recibiras las vacaciones es requerido!", "ERP:02"); 
-                    }
+                    // if (request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive is null)
+                    // {
+                    //     return _errorManager.ThrowBadRequest<bool>("La identificación del colaborador que recibiras las vacaciones es requerido!", "ERP:02"); 
+                    // }
 
-                    var collaboratoToReceive = await _unitOfWork.Collaborators.Entities
-                        .Where(col => col.IdentificationNumber == request.PermitApplicationDonatedVacations!.IdentificationCollaboratorToReceive)
-                        .FirstOrDefaultAsync(cancellationToken);
+                    // var collaboratoToReceive = await _unitOfWork.Collaborators.Entities
+                    //     .Where(col => col.IdentificationNumber == request.PermitApplicationDonatedVacations!.IdentificationCollaboratorToReceive)
+                    //     .FirstOrDefaultAsync(cancellationToken);
 
-                    if (collaboratoToReceive is null)
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("El colaborador beneficiado por las vacaciones donadas no se existe!", "ERP:03");       
-                    }
+                    // if (collaboratoToReceive is null)
+                    // {
+                    //     return _errorManager.ThrowBadRequest<bool>("El colaborador beneficiado por las vacaciones donadas no se existe!", "ERP:03");       
+                    // }
 
-                    var vacationControl = await _unitOfWork.Vacations.Entities
-                        .Where(vac => vac.CollaboratorId == collaborator.Id)
-                        .FirstOrDefaultAsync(cancellationToken);
+                    // var vacationControl = await _unitOfWork.Vacations.Entities
+                    //     .Where(vac => vac.CollaboratorId == collaborator.Id)
+                    //     .FirstOrDefaultAsync(cancellationToken);
 
-                    if (vacationControl is null)
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("No se encontro su control de vacaciones no puede generar esta solicitud", "ERP:04");       
-                    }
+                    // if (vacationControl is null)
+                    // {
+                    //     return _errorManager.ThrowBadRequest<bool>("No se encontro su control de vacaciones no puede generar esta solicitud", "ERP:04");       
+                    // }
 
-                    if (vacationControl.AvailableVacations < request.PermitApplicationDonatedVacations.AmountDays)
-                    {
-                         return _errorManager.ThrowBadRequest<bool>("No se cuentas con sufientes dias de vacaciones para donar", "ERP:05");       
-                    }
+                    // if (vacationControl.AvailableVacations < request.PermitApplicationDonatedVacations.AmountDays)
+                    // {
+                    //      return _errorManager.ThrowBadRequest<bool>("No se cuentas con sufientes dias de vacaciones para donar", "ERP:05");       
+                    // }
 
-                    //Mapeamos la data para crear la solicitud de permiso
-                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
-                    permitApplication.Type = PermitApplicationType.DonatedVacations;
-                    permitApplication.AmountDays = request.PermitApplicationDonatedVacations?.AmountDays ?? 0;
-                    permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive ?? string.Empty;
+                    // //Mapeamos la data para crear la solicitud de permiso
+                    // MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
+                    // permitApplication.Type = PermitApplicationType.DonatedVacations;
+                    // permitApplication.AmountDays = request.PermitApplicationDonatedVacations?.AmountDays ?? 0;
+                    // permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive ?? string.Empty;
 
                     break;   
                 }
@@ -203,17 +207,12 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     //Registro de solicitud de vacaciones
                     var vacationData = request.PermitApplicationVacation!;
 
-                    permitApplication.EndDate = vacationData.EndDate;
-                    permitApplication.EndTime = vacationData.EndTime;
-
+                    permitApplication.PayrolId  = request.PayrollId;
+                    permitApplication.EndDate   = vacationData.EndDate;
+                    permitApplication.EndTime   = vacationData.EndTime;
                     permitApplication.StartDate = vacationData.StartDate;
                     permitApplication.StartTime = vacationData.StartTime;
-                    
-                    permitApplication.PayrolId = request.PayrollId;
-                    
-                    permitApplication.Type = PermitApplicationType.Vacation;
-                    
-                    MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
+                    permitApplication.Type      = PermitApplicationType.Vacation;
 
                     var vacationControl = await _unitOfWork.Vacations.Entities
                         .Include(vtl => vtl.Collaborator)
@@ -350,7 +349,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 }
             }
 
-            //Serializamos la data adicional del permiso, solicitado.
+            //✅Serializamos la data adicional del permiso, solicitado y registramos
             permitApplication.AdditionalData = JsonSerializer.Serialize(AdditionalData);
             await _unitOfWork.PermitApplications.CreatePermitApplication(permitApplication);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -382,21 +381,17 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             return (false, string.Empty);
         }
 
-        public static async void MapperCaseDefaultValues(Database.Domain.Entities.Payrolls.PermitApplication entity, RoleType role, Channels channels, string moduleCode)
+        public static void MappingRecords(Channels channels, PermitApplicationEntity entity, RoleType role)
         {
-           
-            if (moduleCode == "NMI-43GW" && (role == RoleType.Operator || role == RoleType.Administrator) &&  channels == Channels.AdministrativePanel)
+            if (channels == Channels.AdministrativePanel && role == RoleType.Administrator)
             {
-                entity.FirtsStepApproved = true;    
-                entity.ManagerFullname = "Control Administración";
+                entity.FirtsStepApproved = true;
+                entity.ManagerFullname = "Control Administrativo";
             }
-            else if (moduleCode == "SOL-6NF2" && role == RoleType.Operator && channels == Channels.PersonalPanel)
+            else if(channels == Channels.PersonalPanel && role == RoleType.Manager)
             {
-                entity.FirtsStepApproved = null;
-            }
-            else
-            {
-                entity.FirtsStepApproved = null;
+                entity.FirtsStepApproved = true;
+                entity.ManagerFullname = "Control Administrativo";
             }
         }
     }
