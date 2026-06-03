@@ -23,6 +23,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             }
 
             var permitQuery = _unitOfWork.PermitApplications.Entities
+                .Include(permit => permit.Payroll)
                 .Include(permit => permit.Collaborator)
                 .Where(permit => permit.Collaborator.CompanyId == request.CompanyId)
                 .AsNoTracking();
@@ -55,16 +56,16 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             var totalPermitApplications = await permitQuery.CountAsync(cancellationToken);
             
             //Obtener todos los elementos con filtros aplicados
-            var items = await permitQuery
+            var records = await permitQuery
                 .OrderByDescending(info => info.CreatedAt) 
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
-            // var permitApplications = _mapper.Map<List<PermitApplicationDto>>(items);
+            var recordsMapped = _mapper.Map<List<PermitApplicationDto>>(records);
 
             return new PagedResponse<PermitApplicationDto>(
-                [],
+                recordsMapped,
                 request.PageNumber,
                 request.PageSize,
                 totalPermitApplications
