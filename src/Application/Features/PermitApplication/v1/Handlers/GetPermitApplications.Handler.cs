@@ -3,17 +3,17 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
-using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
+//✅Obtener solicitudes de permisos realizadas por empresas.
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class GetPermitApplicationsRequestHandler(IUnitOfWork _unitOfWork, IMapper  _mapper, IErrorManager _errorManager) : AlpacBaseHandler<GetPermitApplicationQuery, PagedResponse<PermitApplicationDto>>(_unitOfWork, _errorManager)
+    public class GetPermitApplicationsRequestHandler(IUnitOfWork _unitOfWork, IMapper  _mapper, IErrorManager _errorManager) : AlpacBaseHandler<GetPermitApplicationsQuery, PagedResponse<PermitApplicationDto>>(_unitOfWork, _errorManager)
     {
-        public override async Task<PagedResponse<PermitApplicationDto>> Handle(GetPermitApplicationQuery request, CancellationToken cancellationToken)
+        public override async Task<PagedResponse<PermitApplicationDto>> Handle(GetPermitApplicationsQuery request, CancellationToken cancellationToken)
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
@@ -21,40 +21,51 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             {
                 return access.ErrorResponse!; 
             }
-            
-            var query = _unitOfWork.PermitApplications.Entities
-                .Include(info => info.Collaborator)
-                .Where(info => info.Collaborator.CompanyId == request.CompanyId)
-                .Where(info => info.Status != PermitApplicationStatus.Cancelled)
-                .AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(request.IdentificationNumber))
+            var permitQuery = _unitOfWork.PermitApplications.Entities
+                .Include(permit => permit.Payroll)
+                .Include(permit => permit.Collaborator)
+                .Where(permit => permit.Collaborator.CompanyId == request.CompanyId)
+                .AsNoTracking();
+
+            if (request.PayrollId.HasValue)
             {
-                query = query.Where(info => info.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                permitQuery = permitQuery
+                    .Where(permit => permit.PayrolId == request.PayrollId);
             }
 
-            if (request.Status.HasValue)
+            if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {
-                query = query.Where(info => info.Status == request.Status.Value);
+                permitQuery = permitQuery
+                    .Where(permit => permit.Collaborator.IdentificationNumber == request.IdentificationNumber);
             }
 
             if (request.Type.HasValue)
             {
-                query = query.Where(info => info.Type == request.Type.Value);
+                permitQuery = permitQuery
+                    .Where(permit => permit.Type == request.Type);
             }
 
-            var totalPermitApplications = await query.CountAsync(cancellationToken);
+            if (request.Status.HasValue)
+            {
+                permitQuery = permitQuery
+                    .Where(permit => permit.Status == request.Status);
+            }
 
-            var items = await query
+            //✅Contar el total de solicitudes en base a los filtros
+            var totalPermitApplications = await permitQuery.CountAsync(cancellationToken);
+            
+            //Obtener todos los elementos con filtros aplicados
+            var records = await permitQuery
                 .OrderByDescending(info => info.CreatedAt) 
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
-            var permitApplications = _mapper.Map<List<PermitApplicationDto>>(items);
+            var recordsMapped = _mapper.Map<List<PermitApplicationDto>>(records);
 
             return new PagedResponse<PermitApplicationDto>(
-                permitApplications,
+                recordsMapped,
                 request.PageNumber,
                 request.PageSize,
                 totalPermitApplications

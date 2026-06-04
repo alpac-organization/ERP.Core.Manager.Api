@@ -46,13 +46,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .SetValidator(new PermitApplicationMedicalAppointmentValidator());
             });
 
-            When(x => x.PermitApplicationType == PermitApplicationType.DonatedVacations, () =>
-            {
-                RuleFor(x => x.PermitApplicationDonatedVacations)
-                    .NotNull().WithMessage("Los datos de la solicitud de donación son obligatorios.")
-                    .SetValidator(new PermitApplicationDonatedVacationsValidator());
-            });
-
             When(x => x.PermitApplicationType == PermitApplicationType.Vacation, () =>
             {
                 RuleFor(x => x.PermitApplicationVacation)
@@ -61,18 +54,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
             });
         }
 
-        public class PermitApplicationDonatedVacationsValidator : AbstractValidator<PermitApplicationDonatedVacations?>
-        {
-            public PermitApplicationDonatedVacationsValidator()
-            {
-                RuleFor(x => x!.AmountDays)
-                    .NotEmpty().WithMessage("La cantidad de días a donar es requerida.")
-                    .GreaterThan(0).WithMessage("La cantidad de días a donar debe ser mayor a 0.");
-
-                RuleFor(x => x!.IdentificationCollaboratorToReceive)
-                    .NotEmpty().WithMessage("La identificación del colaborador que recibirá las vacaciones es requerida.");
-            }
-        }
 
         public class PermitApplicationMedicalAppointmentValidator : AbstractValidator<PermitApplicationMedicalAppointment?>
         {
