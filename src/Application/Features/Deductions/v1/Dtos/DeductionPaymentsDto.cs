@@ -4,19 +4,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Dtos
 {
     public class DeductionPaymentsDto
     {   
-        public int? NumberFortnights { get; set; }
-        public int? NumberFortnightsPaid { get; set; }
+        public Currency Currency { get; set; }
+        public decimal AmountPaid { get; set; }
+        public decimal AmountPaidInDollars { get; set; }
+        public DeductionPaymentStatus Status { get; set; }
+        public SourceDeductionPayment Origin { get; set; }
 
-        public decimal? FortnightlyAmount { get; set; } 
-        public decimal? FortnightlyAmountInDollars { get; set; } 
+        public DeductionDetails DeductionDetails { get; set; } = new();
+    }
 
-        public decimal? TotalBalance { get; set; }
-        public decimal? TotalBalanceInDollars { get; set; }
-
-        public decimal? AmountPaid { get; set; }
-        public decimal? AmountPaidInDollars { get; set; }
-
-        public decimal TotalAmount { get; set; }
-        public decimal TotalAmountInDollars { get; set; }
+    public class DeductionDetails
+    {
+        public Guid PayrollId { get; set; }
+        public DateOnly EndDate { get; set; }
+        public DateOnly StartDate { get; set; }
     }
 }

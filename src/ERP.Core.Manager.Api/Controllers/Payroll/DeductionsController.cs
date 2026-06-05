@@ -73,7 +73,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             return deductionHistory;            
         }
 
-
+        //✅Obtener detalles de la deducción
         [Tags("Deducciones")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/deductions/{deduction_id}/details")]      
         [ProducesResponseType(typeof(PagedResponseDeduction<DeductionDto>), StatusCodes.Status200OK)]
@@ -101,6 +101,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
 
+        //✅Obtener detalles de pagos realizados a la deducción
         [Tags("Deducciones")] 
         [HttpGet("companies/{companie_id}/modules/{module_code}/deductions/{deduction_id}/payments")]      
         [ProducesResponseType(typeof(PagedResponseDeduction<DeductionPaymentsDto>), StatusCodes.Status200OK)]
@@ -108,27 +109,24 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<PagedResponseDeduction<DeductionPaymentsDto>> GetDeductionsPaymentsAsync(
             [FromRoute] Guid companie_id,
+            [FromRoute] Guid deduction_id,
             [FromRoute] string module_code,
-
-            
-            [FromQuery] DeductionType? type,
-            [FromQuery] DeductionStatus? status,
-            [FromQuery] string? identification_number,
-
-
 
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
         )
         {
-            
+            var userIdStr = HttpContext.Items["UserId"] as string;
 
-            return new PagedResponseDeduction<DeductionPaymentsDto>(
-                [],
-                0,
-                0,
-                0
-            );
+            return await _mediator.Send(new GetDeductionPaymentsQuery()
+            {
+                CompanyId = companie_id,
+                DeductionId = deduction_id,
+                ModuleCode = module_code,
+                PageNumber = page_number,
+                PageSize = page_size,
+                UserId = Guid.Parse(userIdStr ?? "") 
+            });
         }
     }
 }

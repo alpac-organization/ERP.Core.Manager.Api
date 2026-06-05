@@ -32,7 +32,16 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount))
                 .ForMember(dest => dest.TotalAmountInDollars, opt => opt.MapFrom(src => src.TotalAmountInDollars));;
 
-                // .ForMember(dest => dest., opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)))
+
+            CreateMap<DeductionPaymentHistory, DeductionPaymentsDto>()
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency))
+                .ForMember(dest => dest.AmountPaid, opt => opt.MapFrom(src => src.AmountPaid))
+                .ForMember(dest => dest.AmountPaidInDollars, opt => opt.MapFrom(src => src.AmountPaidInDollars))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.Origin, opt => opt.MapFrom(src => src.Origin))
+                .ForPath(dest => dest.DeductionDetails.StartDate, opt => opt.MapFrom(src => src.Payroll.StartDate))
+                .ForPath(dest => dest.DeductionDetails.EndDate, opt => opt.MapFrom(src => src.Payroll.EndDate))
+                .ForPath(dest => dest.DeductionDetails.PayrollId, opt => opt.MapFrom(src => src.Payroll.Id));
         }
     }
 }
