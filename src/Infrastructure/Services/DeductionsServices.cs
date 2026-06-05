@@ -14,6 +14,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
     {
+
+        //✅Deducción de viaticos por inasistencia
         public async Task ApplyDeductionTravelExpenses(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId)
         {
             _logger.LogInformation("🚩Iniciando proceso de deducción de viaticos. por ausencia de dias para colaborador con cedula: {identification}", collaboratorInformation.IdentificationNumber);
@@ -106,29 +108,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
                 {
-
-                    // if (
-                    //     permit.AmountDays < 1 && 
-                    //     date.DayOfWeek != DayOfWeek.Saturday && 
-                    //     permit.IsWithRangeDate is false
-                    // )
-                    // {
-                    //     totalDaysResult += permit.AmountDays ?? 0;
-                    //     continue;
-                    // }
-
-                    // if (
-                    //     permit.AmountDays < 0.5m && 
-                    //     date.DayOfWeek == DayOfWeek.Saturday && 
-                    //     permit.IsWithRangeDate is false &&
-                    //     collaboratorInformation.DoesWorkSaturdays
-                    // )
-                    // {
-                    //     totalDaysResult += permit.AmountDays ?? 0;
-                    //     continue;
-                    // }
-                    
-
                     if (date.DayOfWeek == DayOfWeek.Sunday)
                     {
                         continue;
@@ -200,7 +179,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             // //Calcular el total de viaticos que gana esta persona.
-            
             decimal totalFeeding   = totalDaysDefault * feeding;
             decimal totalTransport = totalDaysDefault * transport;
             decimal totalLodging   = totalDaysDefault * lodging;
@@ -249,7 +227,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             _logger.LogInformation("✅ Deducción de viáticos aplicada correctamente. Total días: {Days}", totalDaysToDiscount);
         }
-
 
         public async Task ApplyDeductionLateArrivals(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalMinutes, Guid payrollId)
         {
