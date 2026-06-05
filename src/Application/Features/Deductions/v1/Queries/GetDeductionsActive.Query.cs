@@ -1,7 +1,7 @@
 using MediatR;
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Dtos;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Queries
 {
