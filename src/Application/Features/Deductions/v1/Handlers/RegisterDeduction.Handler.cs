@@ -148,7 +148,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 
                             _logger.LogInformation("🚩Iniciando registro de deducción por purisima, collaborador: {identificacion}", payload.IdentificationNumber);
                                 
-                            await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, payload.Amount, request.PayrollId);
+                            await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, payload.Amount, request.PayrollId, payload.NumberFortnights);
                             
                             break;
                         }
@@ -169,7 +169,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                                     continue;   
                                 }
 
-                                await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, collaborator.Amount, payrollActive.Id);
+                                await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, collaborator.Amount, payrollActive.Id, collaborator.NumberFortnights);
                             }
 
                             break;   

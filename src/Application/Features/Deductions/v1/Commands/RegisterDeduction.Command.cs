@@ -8,7 +8,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
     public class RegisterDeductionCommand: BaseRequest, IRequest<bool>
     {
         //Registrar el periodo las deducciones
-        public Guid BranchId { get; set; }
         public Guid PayrollId { get; set; }     
         public DeductionType DeductionType { get; set; }
 
@@ -64,13 +63,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
         public decimal Amount { get; set; }
         public Currency Currency { get; set; }
         public int NumberFortnights { get; set; }
+        public string? Description { get; set; }
+        public string? IdentificationNumber { get; set; }
     }
 
     //✅Carga util para registrar prestamos.
     public class LoansPayload
     {
-        public decimal Amount { get; set; }
         public Currency Currency { get; set; }
+        public decimal Amount { get; set; }
+        public string? Description { get; set; }
         public int NumberFortnights { get; set; }
+        public string? IdentificationNumber { get; set; }
     }
 }

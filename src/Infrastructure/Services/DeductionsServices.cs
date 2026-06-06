@@ -322,7 +322,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #endregion
         }
 
-        public async Task ApplyDeductionPurisima(Collaborator collaboratorInformation, decimal fortnightlyAmount, Guid payrollId)
+        public async Task ApplyDeductionPurisima(Collaborator collaboratorInformation, decimal amount, Guid payrollId, int numberFortnights)
         {
             var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
                 .Where(ord => ord.PayrollId == payrollId)
@@ -341,6 +341,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     ordinaryPayroll.DeductionsAdditionalData
                 ) ?? new DeductionsAdditionalData();
 
+            decimal fortnightlyAmount = amount / numberFortnights;
+
             deductions.Purisima = fortnightlyAmount;
 
             decimal totalDeductions =
@@ -358,9 +360,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + deductions.Sanction
                 + deductions.LateArrivals;
 
-            decimal total = ordinaryPayroll.GrossSalary - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+            decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
 
             ordinaryPayroll.TotalToPay = total;
+            ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
             ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
 
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
@@ -372,10 +375,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Status                      = DeductionStatus.Progress,
                 Description                 = "Aportación de purisima",
                 CollaboratorId              = collaboratorInformation.Id,
+
                 FortnightlyAmount           = fortnightlyAmount,
                 FortnightlyAmountInDollars  = fortnightlyAmount / 36.6243m,
-                AmountPaid                  = fortnightlyAmount,
-                AmountPaidInDollars         = fortnightlyAmount,
+                
+                AmountPaid                  = 0.0m,
+                AmountPaidInDollars         = 0.0m,
+
+                TotalBalance                = amount,   
+                TotalBalanceInDollars       = amount / 36.6243m,
+
+                NumberFortnights            = numberFortnights,
+                NumberFortnightsPaid        = 0,
+
                 TotalAmount                 = fortnightlyAmount,
                 TotalAmountInDollars        = fortnightlyAmount / 36.6243m,
             });
@@ -383,10 +395,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
             {
                 Currency            = Currency.NIO,
-                Status              = DeductionPaymentStatus.Paid,
+                Status              = DeductionPaymentStatus.Pending,
                 Origin              = SourceDeductionPayment.Payroll,
                 PayrollId           = payrollId,
                 DeductionId         = deduction.Id,
+
                 AmountPaid          = fortnightlyAmount,
                 AmountPaidInDollars = fortnightlyAmount / 36.6243m,
                 PaymentDate         = DateTime.Now
