@@ -10,8 +10,6 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
-    #pragma warning disable CA1873
-
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
     {
 
@@ -279,7 +277,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + deductions.Sanction
                 + deductions.LateArrivals;
 
-
             deductions.LateArrivalsInMinutes = totalMinutes;
             decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
 
@@ -395,7 +392,5 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 PaymentDate         = DateTime.Now
             });
         }
-    }
-    
-    #pragma warning restore CA1873
+    }    
 }
