@@ -36,7 +36,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos
 
     public class SteptStatus
     {
-        public bool IsApproved { get; set; }
+        public bool? IsApproved { get; set; }
         public string? ReviewedBy { get; set; }
     }
 }

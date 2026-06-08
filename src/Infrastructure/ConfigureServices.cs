@@ -1,12 +1,13 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using ERP.Core.Manager.Api.Infrastructure.Services;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Infrastructure.Services; 
+
 using ERP.Core.Database.Infrastructure;
-using ERP.Core.Database.Application.Commons.Interfaces.Repositories.Payrolls;
-using ERP.Core.Database.Infrastructure.Persistence.Repositories.Payroll;
+
+using ERP.Core.Manager.Api.Infrastructure.Services;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -25,6 +26,8 @@ namespace ERP.Core.Manager.Api.Infrastructure
             
             //Servicios de deduciones e ingresos colaborador.
             services.AddScoped<IIncomeServices, IncomeServices>();
+            services.AddScoped<IPayrollServices, PayrollServices>();
+            services.AddScoped<IReportingServices, ReportingServices>();
             services.AddScoped<IDeductionsServices, DeductionsServices>();
             
             services.AddScoped<ITemplateServices, TemplateServices>();

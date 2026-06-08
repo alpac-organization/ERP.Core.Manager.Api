@@ -6,9 +6,11 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
+using Microsoft.Extensions.DependencyInjection;
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class InitializePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ICalculatorDeductions _calculatorDeductions): AlpacBaseHandler<InitializePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
+    public class InitializePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IServiceProvider _serviceProvider): AlpacBaseHandler<InitializePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(InitializePayrollProcessCommand request, CancellationToken cancellationToken)
         {
@@ -57,51 +59,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .OrderByDescending(payroll => payroll.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            DateOnly startDate;
-            DateOnly endDate;
-
-            if (lastPayroll == null)
-            {
-                DateOnly today = DateOnly.FromDateTime(DateTime.Now);
-
-                if (today.Day <= 15)
-                {
-                    startDate = new DateOnly(today.Year, today.Month, 1);
-                    endDate = new DateOnly(today.Year, today.Month, 15);
-                }
-                else
-                {
-                    startDate = new DateOnly(today.Year, today.Month, 16);
-
-                    endDate = DateOnly.FromDateTime(
-                        new DateTime(today.Year, today.Month, 1)
-                            .AddMonths(1)
-                            .AddDays(-1));
-                }
-            }
-            else
-            {
-                DateOnly lastEnd = lastPayroll.EndDate;
-
-                if (lastEnd.Day == 15)
-                {
-                    startDate = lastEnd.AddDays(1);
-
-                    endDate = DateOnly.FromDateTime(
-                        new DateTime(lastEnd.Year, lastEnd.Month, 1)
-                            .AddMonths(1)
-                            .AddDays(-1));
-                }
-                else
-                {
-                    startDate = lastEnd.AddDays(1);
-
-                    endDate = new DateOnly(
-                        startDate.Year,
-                        startDate.Month,
-                        15);
-                }
-            }
+            var (startDate, endDate) = ManagerUtils.DefineRegularPayrollOpeningDates(lastPayroll);
 
             var newPayroll = new Database.Domain.Entities.Payrolls.Payroll()
             {   Id = Guid.NewGuid(),
@@ -113,6 +71,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             };
 
             await _unitOfWork.Payrolls.InitializePayroll(newPayroll);
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             switch (request.Type)
@@ -132,14 +91,27 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         )
                         .ToListAsync(cancellationToken);
 
-                    foreach(var collaborator in collaborators)
-                    {
-                        await _calculatorDeductions.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
-                    }
+                    await Parallel.ForEachAsync(
+                        collaborators,
+                        new ParallelOptions
+                        {
+                            MaxDegreeOfParallelism = 10,
+                            CancellationToken = cancellationToken
+                        },
+                        async (collaborator, ct) =>
+                        {
+                            await using var scope = _serviceProvider.CreateAsyncScope();
+                            
+                            var calculator = scope.ServiceProvider
+                                .GetRequiredService<IPayrollServices>();
+                            
+                            await calculator.RegisterOrdinaryPayrollForCollaborator(
+                                newPayroll.Id, collaborator, ct);
+                        }
+                    );
 
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                    
                     return true;
                 }
 

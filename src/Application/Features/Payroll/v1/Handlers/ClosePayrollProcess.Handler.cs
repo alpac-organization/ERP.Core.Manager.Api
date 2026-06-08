@@ -77,7 +77,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                     if(payment is null)
                     {
-                        _logger.LogInformation("");
+                        _logger.LogInformation("No cuenta con pagos pendientes, ha cancelado!");
                         continue;
                     }
                     
@@ -87,42 +87,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     deduction.AmountPaid += amountInLocal;
                     deduction.AmountPaidInDollars += amountInDollars;
                     deduction.NumberFortnightsPaid += 1;
+                    
+                    deduction.TotalBalance -= amountInLocal;
+                    deduction.TotalBalanceInDollars -= amountInDollars;
 
-                    if (deduction.Type == DeductionType.Loans)
+                    if (deduction.TotalBalance <= 0 && deduction.TotalBalanceInDollars <= 0)
                     {
-                        deduction.TotalBalance -= amountInLocal;
-                        deduction.TotalBalanceInDollars -= amountInDollars;
-
-                        if (deduction.TotalBalance <= 0 && deduction.TotalBalanceInDollars <= 0)
-                        {
-                            deduction.Status = DeductionStatus.Completed;
-                            await _unitOfWork.Deductions.UpdateAsync(deduction);
-                        }
-
-                        payment.Status = DeductionPaymentStatus.Paid;
-                        await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
+                        deduction.Status = DeductionStatus.Completed;
+                        await _unitOfWork.Deductions.UpdateAsync(deduction);
                     }
 
-                    if (deduction.Type == DeductionType.Purisima)
-                    {
-                        payment.Status = DeductionPaymentStatus.Paid;
-                        await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
-                    }
-
-                    if (deduction.Type == DeductionType.OtherDeductions)
-                    {
-                        deduction.TotalBalance -= amountInLocal;
-                        deduction.TotalBalanceInDollars -= amountInDollars;
-
-                        if (deduction.TotalBalance <= 0 && deduction.TotalBalanceInDollars <= 0)
-                        {
-                            deduction.Status = DeductionStatus.Completed;
-                            await _unitOfWork.Deductions.UpdateAsync(deduction);
-                        }
-
-                        payment.Status = DeductionPaymentStatus.Paid;
-                        await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
-                    }
+                    payment.Status = DeductionPaymentStatus.Paid;
+                    await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
 
                     await _unitOfWork.Deductions.UpdateAsync(deduction);
                 }
@@ -141,6 +117,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                 vacationControl.AvailableVacations += 1.25m;
                 vacationControl.GeneredVacation+= 1.25m;
+
+
+                await _unitOfWork.Vacations.UpdateAsync(vacationControl);
             }
             
             await _unitOfWork.SaveChangesAsync(cancellationToken);

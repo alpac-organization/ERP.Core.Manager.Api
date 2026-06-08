@@ -139,7 +139,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     permitApplication.EndTime   = medicalReq.EndTime;
                     permitApplication.Type      = PermitApplicationType.MedicalAppointment;
 
-                    MappingRecords(request?.Channel ?? Channels.PersonalPanel, permitApplication, access.Role?.RoleType ?? RoleType.Operator);                    
+                    MappingRecords(request?.Channel ?? Channels.PersonalPanel, permitApplication, access.Role?.RoleType ?? RoleType.Operator, user.Fullname);                    
 
                     if (medicalReq.IsFullDay)
                     {
@@ -214,7 +214,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     permitApplication.StartTime = vacationData.StartTime;
                     permitApplication.Type      = PermitApplicationType.Vacation;
 
-                    MappingRecords(request.Channel, permitApplication, access.Role?.RoleType ?? RoleType.Operator);
+                    MappingRecords(request.Channel, permitApplication, access.Role?.RoleType ?? RoleType.Operator, user.Fullname);
 
                     //Obtener control de vacaciones.
                     var vacationControl = await _unitOfWork.Vacations.Entities
@@ -388,17 +388,17 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             return (false, string.Empty);
         }
 
-        public static void MappingRecords(Channels channels, PermitApplicationEntity entity, RoleType role)
+        public static void MappingRecords(Channels channels, PermitApplicationEntity entity, RoleType role, string? userFullname)
         {
             if (channels == Channels.AdministrativePanel && role == RoleType.Administrator)
             {
                 entity.FirtsStepApproved = true;
-                entity.ManagerFullname = "Control Administrativo";
+                entity.ManagerFullname = userFullname;
             }
             else if(channels == Channels.PersonalPanel && role == RoleType.Manager)
             {
                 entity.FirtsStepApproved = true;
-                entity.ManagerFullname = "Control Administrativo";
+                entity.ManagerFullname = userFullname;
             }
         }
     }
