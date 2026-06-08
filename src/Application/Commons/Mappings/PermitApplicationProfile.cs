@@ -1,5 +1,6 @@
 using AutoMapper;
 using ERP.Core.Database.Domain.Entities.Payrolls;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
@@ -13,6 +14,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.PayrollId, opt => opt.MapFrom(src => src.Payroll.Id))
                 .ForMember(dest => dest.PermitApllicationId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
+                .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.RequestedBy, opt => opt.MapFrom(src => src.RequestedBy))
                 .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
