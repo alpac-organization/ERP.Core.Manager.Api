@@ -185,7 +185,21 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                 }
                 case DeductionType.Loans:
                 {
-                    return _errorManager.ThrowBadRequest<bool>("El servidor se encuentra en proceso de mejorar para traerte mas funcionalidades", "ERP:01");
+                    var payload = request.LoansPayload ?? new ();
+
+                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                        .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
+                        .Include(col => col.WorkingInformation)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (collaboratorInformation is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");   
+                    }
+
+                    await _deductionServices.ApplyDeductionLoans(collaboratorInformation, payload.Amount, request.PayrollId, payload.NumberFortnights, payload.Currency);
+                    
+                    return true;
                 }
                 default:
                 {
