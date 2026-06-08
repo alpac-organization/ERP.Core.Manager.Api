@@ -18,5 +18,56 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
             return string.Join(" ", fullNames.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n?.Trim()));
         }
 
+        public static (DateOnly, DateOnly) DefineRegularPayrollOpeningDates(Payroll? payroll)
+        {
+            DateOnly startDate;
+            DateOnly endDate;            
+
+            if (payroll == null)
+            {
+                DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+                if (today.Day <= 15)
+                {
+                    startDate = new DateOnly(today.Year, today.Month, 1);
+                    endDate = new DateOnly(today.Year, today.Month, 15);
+                }
+                else
+                {
+                    startDate = new DateOnly(today.Year, today.Month, 16);
+
+                    endDate = DateOnly.FromDateTime(
+                        new DateTime(today.Year, today.Month, 1)
+                            .AddMonths(1)
+                            .AddDays(-1));
+                }
+            }
+            else
+            {
+                DateOnly lastEnd = payroll.EndDate;
+
+                if (lastEnd.Day == 15)
+                {
+                    startDate = lastEnd.AddDays(1);
+
+                    endDate = DateOnly.FromDateTime(
+                        new DateTime(lastEnd.Year, lastEnd.Month, 1)
+                            .AddMonths(1)
+                            .AddDays(-1));
+                }
+                else
+                {
+                    startDate = lastEnd.AddDays(1);
+
+                    endDate = new DateOnly(
+                        startDate.Year,
+                        startDate.Month,
+                        15);
+                }
+            }
+
+            return (startDate, endDate);
+        }
+
     }
 }

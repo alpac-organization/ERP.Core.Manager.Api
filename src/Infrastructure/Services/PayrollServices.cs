@@ -1,143 +1,19 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Payrolls;
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
+
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
-    public class CalculatorDeductions(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : ICalculatorDeductions
+    public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IPayrollServices
     {
-        public decimal CalculateAntique( decimal monthlySalary, DateOnly payrollStartDate, DateOnly collaboratorEntryDate)
-        {
-            _logger.LogInformation("Iniciando Proceso para calcular antiguedad✅");
-
-            int yearsOfService = payrollStartDate.Year - collaboratorEntryDate.Year;
-
-            if (collaboratorEntryDate > payrollStartDate.AddYears(-yearsOfService))
-            {
-                yearsOfService--;
-            }
-
-            decimal seniorityPercentage = yearsOfService switch
-            {
-                <= 0 => 0.00m,
-                1    => 0.03m,
-                2    => 0.05m,
-                3    => 0.07m,
-                4    => 0.09m,
-                5    => 0.10m,
-                6    => 0.11m,
-                7    => 0.12m,
-                8    => 0.13m,
-                9    => 0.14m,
-                10   => 0.15m,
-                11   => 0.155m,
-                12   => 0.16m,
-                13   => 0.165m,
-                14   => 0.17m,
-                15   => 0.175m,
-                16   => 0.18m,
-                17   => 0.185m,
-                18   => 0.19m,
-                19   => 0.195m,
-                _    => 0.20m
-            };
-
-            return seniorityPercentage * monthlySalary;
-        }
-        public async Task<decimal> CalculateInss(decimal GrossSalary, CancellationToken cancellationToken)
-        {
-            //Realizar la consulta a la tabla constantes de deducciones de ley,
-            var valuesDeductions = await _unitOfWork.ValidityDeductions.Entities
-                .Where(deduction => deduction.Type == TaxType.Inss)
-                .Where(deduction => deduction.Status == true)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (valuesDeductions is null)
-            {
-                _logger.LogWarning("No se encontró configuración activa de INSS");
-                return 0.0m;
-            }
-
-            _logger.LogInformation("Iniciando calculo de Inss");
-            
-            var result = GrossSalary * valuesDeductions.Value;
-
-            return Math.Round(result, 2, MidpointRounding.AwayFromZero);
-        }
-
-        //Este ir se basa en la numero de quincena que se encuentra actualmente el colaborador
-        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken, bool isSudsidy = false)
-        {
-            var nextFortnight = NFortnight;
-
-            decimal biweeklyInss = 0.0m;
-
-            if (!isSudsidy)
-            {
-                biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
-            }
-
-            //Salario quincenal libre de inss.
-            decimal netSalary = GrossSalary - biweeklyInss;
-            decimal AnnualSalary = netSalary * nextFortnight;
-
-            decimal totalAnnualSalary = AnnualSalary + AccumulatedAccrued;
-            decimal AnnualIr;
-
-            //Agregar regla del ir
-            decimal BaseTax;
-            decimal AnnualExpectationIR = 0.0m;
-            decimal IrBiweekly = 0.0m;
-
-            if (totalAnnualSalary <= 100000)
-            {
-                AnnualIr = 0;                
-            }
-            else if (totalAnnualSalary > 100000 && totalAnnualSalary <= 200000)
-            {
-                BaseTax = 0;
-                AnnualIr = ((totalAnnualSalary - 100000) * 0.15m);
-                AnnualExpectationIR = AnnualIr + BaseTax;
-
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
-            }
-            else if (totalAnnualSalary > 200000 && totalAnnualSalary <= 350000)
-            {
-                BaseTax = 15000.00m;
-                AnnualIr = ((totalAnnualSalary - 200000) * 0.20m);
-                AnnualExpectationIR = AnnualIr + BaseTax;
-
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
-            }
-            else if (totalAnnualSalary > 350000 && totalAnnualSalary <= 500000)
-            {
-                BaseTax = 45000.00m;
-                AnnualIr = ((totalAnnualSalary - 350000) * 0.25m);
-                AnnualExpectationIR = AnnualIr + BaseTax;
-
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
-            }
-            else
-            {
-                BaseTax = 82500.00m;
-                AnnualIr = ((totalAnnualSalary - 500000) * 0.30m);
-
-                AnnualExpectationIR = AnnualIr + BaseTax;
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
-            }
-
-            return new IrCalculationResult(
-                biweeklyInss,
-                IrBiweekly
-            );
-        }
-
-        public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
+         public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
         {
             #region Primera Validación de apertura
 
@@ -195,7 +71,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
             {
-                Antique = CalculateAntique(monthlySalary, payrollStart, entryDate);
+                Antique = _calculatorDeductions.CalculateAntique(monthlySalary, payrollStart, entryDate);
             }
 
             #endregion
@@ -216,7 +92,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             var numberFortnights = TaxInformation.FlagNumberOfFortnights;
 
-            var (BiweeklyInss, BiweeklyIr) = await CalculateIr(
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
                 TaxInformation.FlagNumberOfFortnights ?? 24,
                 TaxInformation.FlagSalaryEarned       ?? 0.0m,
                 TaxInformation.FlagAccumulatedIR      ?? 0.0m,

@@ -25,6 +25,8 @@ namespace ERP.Core.Manager.Api.Infrastructure
             
             //Servicios de deduciones e ingresos colaborador.
             services.AddScoped<IIncomeServices, IncomeServices>();
+            services.AddScoped<IPayrollServices, PayrollServices>();
+            services.AddScoped<IReportingServices, ReportingServices>();
             services.AddScoped<IDeductionsServices, DeductionsServices>();
             
             services.AddScoped<ITemplateServices, TemplateServices>();
