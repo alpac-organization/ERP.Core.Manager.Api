@@ -50,6 +50,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         public async Task<PagedResponse<PermitApplicationDto>> GetPermitApplicationsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
             [FromQuery] int page_size                   = 10, 
             [FromQuery] int page_number                 = 1, 
+            [FromQuery] Guid? payroll_id                = null,
             [FromQuery] string? identification_number   = null,
             [FromQuery] PermitApplicationType? type     = null,
             [FromQuery] PermitApplicationStatus? status = null
@@ -64,6 +65,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 CompanyId = companie_id,
                 ModuleCode = module_code,
                 UserId = Guid.Parse(userIdStr ?? ""),
+                PayrollId  = payroll_id,
                 IdentificationNumber = identification_number,
                 PageSize = page_size,
                 PageNumber = page_number

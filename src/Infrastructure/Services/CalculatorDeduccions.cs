@@ -171,7 +171,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateOnly payrollStart   = payrollCreated.StartDate;
             DateOnly payrollEnd     = payrollCreated.EndDate;
 
-           int daysWorked = 15;
+            int daysWorked = 15;
 
             if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
             else daysWorked = 15;
@@ -268,13 +268,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                 {
                     DeductionId         = deduction.Id,
-
                     AmountPaid          = deduction.FortnightlyAmount ?? 0.0m,
                     AmountPaidInDollars = (deduction.FortnightlyAmount ?? 0.0m) / 36.6243m,
-                    
+
                     Status              = DeductionPaymentStatus.Pending,
                     Origin              = SourceDeductionPayment.Payroll,
+                    
                     Currency            = deduction.Currency,
+                    
                     PayrollId           = payrollCreated.Id,
                     PaymentDate         = DateTime.Now,
                 });

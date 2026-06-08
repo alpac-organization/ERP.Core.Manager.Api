@@ -6,14 +6,55 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
 
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IPayrollServices
     {
-         public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
+        public async Task<int> CalculateNumberDaysToAssignedTravelExpenses(Collaborator collaborator, DateOnly payrollStart, DateOnly payrollEnd)
+        {
+            int DEFAULT_TOTAL_WORK_DAYS = 0;
+
+
+            var holidays = await _unitOfWork.Holidays.Entities
+                .Where(day => day.IsActive)
+                .ToListAsync(default);
+
+            //Recorremos los dias
+            for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
+            {
+                bool isHoliday = holidays.Any(holiday =>
+                    holiday.Day == date.Day &&
+                    holiday.Month == date.Month &&
+                    (
+                        holiday.IsGlobal ||
+                        holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
+                    )
+                );
+
+                if (isHoliday)
+                {
+                    continue;
+                }
+
+                if (date.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    continue;
+                }
+
+                if (!collaborator.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    continue;
+                }
+
+                DEFAULT_TOTAL_WORK_DAYS++;
+            }
+
+            return DEFAULT_TOTAL_WORK_DAYS;
+        }
+
+        public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
         {
             #region Primera Validación de apertura
 
@@ -174,6 +215,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Asignación de viaticos
 
+            //Saber cuantos dias tiene con derecho a viaticos en base al calendario del mes del colaborador.
+            int totalWorkDays = await CalculateNumberDaysToAssignedTravelExpenses(collaborator, payrollStart, payrollEnd);
+
             var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Include(asssined => asssined.Collaborator)
                 .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
@@ -184,43 +228,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal Transport           = 0.0m;
             decimal FoodTravelAllowance = 0.0m;
             decimal totalAssigned       = 0.0m;
-
-            int DEFAULT_TOTAL_WORK_DAYS = 0;
-            
-            var holidays = await _unitOfWork.Holidays.Entities
-                .Where(day => day.IsActive)
-                .ToListAsync(default);
-
-            //Recorremos los dias
-            for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
-            {
-                bool isHoliday = holidays.Any(holiday =>
-                    holiday.Day == date.Day &&
-                    holiday.Month == date.Month &&
-                    (
-                        holiday.IsGlobal ||
-                        holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
-                    )
-                );
-
-                if (isHoliday)
-                {
-                    continue;
-                }
-
-                if (date.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    continue;
-                }
-
-                if (!collaborator.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
-                {
-                    continue;
-                }
-
-                DEFAULT_TOTAL_WORK_DAYS++;
-            }
-
 
             foreach (var current in asssineds)
             {
@@ -234,7 +241,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     }
                     case "ALW_HOUSING" :
                     {
-                        Lodging = current.AmountInLocalCurrency * DEFAULT_TOTAL_WORK_DAYS;
+                        Lodging = current.AmountInLocalCurrency;
                         totalAssigned += Lodging;
                         break;
                     }
@@ -256,9 +263,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
             decimal TotalDeducctions = TotalLegalDeductions + totalDeductionsAdditionals;
 
-            Lodging             *= DEFAULT_TOTAL_WORK_DAYS;
-            Transport           *= DEFAULT_TOTAL_WORK_DAYS;
-            FoodTravelAllowance *= DEFAULT_TOTAL_WORK_DAYS;
+            Lodging             *= totalWorkDays;
+            Transport           *= totalWorkDays;
+            FoodTravelAllowance *= totalWorkDays;
             totalAssigned       = Lodging + Transport + FoodTravelAllowance;
 
             decimal TotalToPay = TotalIncome - TotalDeducctions + totalAssigned;
@@ -296,16 +303,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
 
+
             #region Registrar informe de viaticos.
 
+            //Registro de pagos de viaticos.
             await _unitOfWork.RecordsTravelExpensePayments.RegisterRecordsTravelExpensePayment(new()
             {
                 CollaboratorId = collaborator.Id,
-                PayrollId = payrollId,
-                PaidDays = DEFAULT_TOTAL_WORK_DAYS,
-                Feeding =  FoodTravelAllowance,
-                Transport = Transport,
-                Lodging = Lodging
+                PayrollId      = payrollId,
+                PaidDays       = totalWorkDays,
+                Feeding        = FoodTravelAllowance,
+                Transport      = Transport,
+                Lodging        = Lodging
             });
 
             #endregion
@@ -313,30 +322,24 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #region Iniciar proceso de acumulados
 
             //Registrar el acumulado para la siguiente apertura de quincena
-
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
             {
-                AccumulatedIR       = TaxInformation.FlagAccumulatedIR      ?? 0.0m,
-                SalaryEarned        = TaxInformation.FlagSalaryEarned       ?? 0.0m,
-                NumberOfFortnights  = TaxInformation.FlagNumberOfFortnights ?? 24,
+                AccumulatedIR           = TaxInformation.FlagAccumulatedIR      ?? 0.0m,
+                SalaryEarned            = TaxInformation.FlagSalaryEarned       ?? 0.0m,
+                NumberOfFortnights      = TaxInformation.FlagNumberOfFortnights ?? 24,
 
-                FlagAccumulatedIR      = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m : (TaxInformation.FlagAccumulatedIR ?? 0.0m) + BiweeklyIr,
-                FlagSalaryEarned       = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m : (TaxInformation.FlagSalaryEarned ?? 0.0m)  + (TotalIncome - BiweeklyInss),
-                FlagNumberOfFortnights = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 24 : (TaxInformation.FlagNumberOfFortnights - 1),
+                FlagAccumulatedIR       = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation.FlagAccumulatedIR ?? 0.0m)  + BiweeklyIr,
+                FlagSalaryEarned        = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation.FlagSalaryEarned  ?? 0.0m)  + (TotalIncome - BiweeklyInss),
+                FlagNumberOfFortnights  = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 24    : (TaxInformation.FlagNumberOfFortnights - 1),
 
-                CollaboratorId      = collaborator.Id,
-                PayrollId           = payrollCreated.Id,
-                AccumulatedSeniority = 0.0m,
+                PayrollId               = payrollCreated.Id,
+                CollaboratorId          = collaborator.Id,
+
+                AccumulatedSeniority    = 0.0m,
+                //Agregar bandera de antiguedad.
             });
             
             #endregion
-
-
-            #region Calcular Inatec e inss patronal
-
-
-            #endregion Calcular Inatec e inss patronal
-
         }
     }
 }
