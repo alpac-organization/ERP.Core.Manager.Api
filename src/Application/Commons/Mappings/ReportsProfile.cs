@@ -19,9 +19,12 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             CreateMap<VacationAccrual, VacationAccrualsHistory>()
                 .ForMember(dest => dest.VacationBalance, opt => opt.MapFrom(src => src.AvailableVacations))
                 .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(src => src.Collaborator.WorkingInformation.EntryDate))
+                .ForMember(dest => dest.BeginningBalance, opt => opt.MapFrom(src => src.BeginningBalance))
+                .ForMember(dest => dest.FinalBalance, opt => opt.MapFrom(src => src.FinalBalance))
                 .ForMember(dest => dest.EquivalesQuantity, opt => opt.MapFrom(src => src.EquivalentQuantity))
                 .ForMember(dest => dest.EquivalesQuantityInDollars, opt => opt.MapFrom(src => src.EquivalentQuantityInDollars))
                 .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
+
                 .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)));
 
             CreateMap<RecordsTravelExpensePayments, PaymentTravelExpensesHistory>()
