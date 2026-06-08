@@ -103,7 +103,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                             await using var scope = _serviceProvider.CreateAsyncScope();
                             
                             var calculator = scope.ServiceProvider
-                                .GetRequiredService<ICalculatorDeductions>();
+                                .GetRequiredService<IPayrollServices>();
                             
                             await calculator.RegisterOrdinaryPayrollForCollaborator(
                                 newPayroll.Id, collaborator, ct);

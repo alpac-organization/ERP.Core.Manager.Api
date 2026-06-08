@@ -302,8 +302,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             };
 
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
-
-
+            
             #region Registrar informe de viaticos.
 
             //Registro de pagos de viaticos.
