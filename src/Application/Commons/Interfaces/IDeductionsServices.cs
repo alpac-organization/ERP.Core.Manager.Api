@@ -1,4 +1,5 @@
 using ERP.Core.Database.Domain.Entities.Payrolls;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 {
@@ -6,6 +7,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
     {
         Task ApplyDeductionTravelExpenses(Collaborator collaboratorInformation, Salary salaryInformation, Guid PayrollId);
         Task ApplyDeductionLateArrivals(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalMinutes, Guid payrollId);
-        Task ApplyDeductionPurisima(Collaborator collaboratorInformation, decimal fortnightlyAmount, Guid payrollId);
+        Task ApplyDeductionPurisima(Collaborator collaboratorInformation, decimal fortnightlyAmount, Guid payrollId, int numberFortnights);
+        Task ApplyDeductionLoans(Collaborator collaboratorInformation, decimal amount, Guid payrollId, int numberFortnights, Currency currency, string description = "Registro de préstamo");
     }
 }
