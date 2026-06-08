@@ -13,9 +13,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
     public class RegisterIncomeHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterIncomeHandler> logger, IIncomeServices _incomeServices): AlpacBaseHandler<RegisterIncomeCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterIncomeCommand request, CancellationToken cancellationToken)
-        {
-            #pragma warning disable CA1873 
-            
+        {            
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
@@ -58,9 +56,48 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                 {
                     logger.LogInformation("🚩Iniciando proceso de registro de bono");
 
-                    await _unitOfWork.Salaries.Entities
-                        .Where(col => col.EndDate == null)
+                    if (request.BonusPayload is null)                   
+                        return _errorManager.ThrowBadRequest<bool>("Los datos para registro de bonos es requerido", "ERP:02");
+                    
+                    if (request.BonusPayload.BonusAmount <= 0)     
+                        return _errorManager.ThrowBadRequest<bool>("El monto de los bonos no puede ser menor o igual a 0", "ERP:02");
+
+                    if (string.IsNullOrEmpty(request.BonusPayload.IdentificationNumber))     
+                        return _errorManager.ThrowBadRequest<bool>("El número de identificación es requerido", "ERP:02");
+
+                    if (!Enum.IsDefined(request.BonusPayload.Currency)) 
+                        return _errorManager.ThrowBadRequest<bool>("La moneda es requerida", "ERP:02");
+
+                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                        .Include(col => col.WorkingInformation)
+                        .Where(col => col.IdentificationNumber == request.BonusPayload.IdentificationNumber 
+                            && col.CompanyId == request.CompanyId 
+                            && col.Status != CollaboratorStatus.Inactive 
+                            && col.Status != CollaboratorStatus.Subsidy)
                         .FirstOrDefaultAsync(cancellationToken);
+
+                    if (collaboratorInformation is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("Este collaborador no existe", "ERP:01");
+                    }
+
+                    var salaryInformation = await _unitOfWork.Salaries.Entities
+                        
+                        .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
+                        .Include(sal => sal.Collaborator)
+                            .ThenInclude(sal => sal.WorkingInformation)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (salaryInformation is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
+                    }
+
+                    await _incomeServices.ApplyIncomeBonus(collaboratorInformation, salaryInformation, request.BonusPayload.BonusAmount, request.BonusPayload.Currency, payroll.Id, request.TypeIncomeId);
+                   
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    logger.LogInformation("Se agrego con exito el registro de comisiones"); 
 
                     return true;
                 }
@@ -152,8 +189,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de ingreso no esta disponible", "ERP:04");
                 }
             }
-
-            #pragma warning restore CA1873
         }
     }
 }

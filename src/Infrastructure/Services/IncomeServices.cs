@@ -11,11 +11,8 @@ using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
-    #pragma warning disable CA1873
-
     public class IncomeServices(IUnitOfWork _unitOfWork,ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IIncomeServices
     {
-
         public async Task ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation,Payroll period, RegisterSubsidyCommmand data)
         {
             _logger.LogInformation("🚩Iniciando proceso de subsidio para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
@@ -266,7 +263,87 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 return;
             }
             
+            int daysWorked = 15;
+            DateOnly entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart = DateOnly.FromDateTime(salaryInformation.StartDate);
 
+            DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
+
+            if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
+            else  daysWorked = 15;
+
+            if (daysWorked < 0) daysWorked = 0;
+            if (daysWorked > 15) daysWorked = 15;
+
+            decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Commissions + ordinaryPayrollInfo.BiweeklySalary;
+
+            var bonus = amountBonus;
+
+            if (currency == Currency.USD)
+            {
+                bonus = amountBonus * 36.6243m;
+            }
+
+            TotalIncome += bonus;         
+            ordinaryPayrollInfo.TotalIncome = TotalIncome;
+            ordinaryPayrollInfo.Bonus = bonus;
+
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
+                lastIncomeTax.NumberOfFortnights,
+                lastIncomeTax?.SalaryEarned       ?? 0.0m,
+                lastIncomeTax?.AccumulatedIR      ?? 0.0m,
+                TotalIncome,
+                default
+            );
+
+            lastIncomeTax?.FlagAccumulatedIR = lastIncomeTax?.AccumulatedIR + BiweeklyIr;
+            lastIncomeTax?.FlagSalaryEarned  = TotalIncome - BiweeklyInss;
+
+            //Actualizar datos de deducciones.
+            ordinaryPayrollInfo.Ir                   = BiweeklyIr;
+            ordinaryPayrollInfo.Inss                 = BiweeklyInss;
+            ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+
+            var deductions =
+                JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                    ordinaryPayrollInfo.DeductionsAdditionalData
+                ) ?? new DeductionsAdditionalData();
+
+            decimal totalDeductions =
+                deductions.Loans
+                + deductions.Purisima
+                + deductions.ChildSupportGarnishment
+                + deductions.SalaryAdvance
+                + deductions.ChristmasBonusAdvance
+                + deductions.JudicialSeizures
+                + deductions.UniformDeduction
+                + deductions.CashShortage
+                + deductions.OtherDeductions
+                + deductions.DeductionForLossesBulk
+                + deductions.Absences
+                + deductions.Sanction
+                + deductions.LateArrivals;
+
+            ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
+
+            decimal total = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+
+            ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+            ordinaryPayrollInfo.TotalToPay = total;
+    
+            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+            await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
+
+            await _unitOfWork.Incomes.RegisterIncome(new()
+            {
+                CollaboratorId  =  collaboratorInformation.Id,
+                AmountInDollars = amountBonus / 3.6246m,
+                AmountInLocal   = amountBonus,
+                Currency        = currency,
+                IncomeTypeId    = incomeTypeId,
+                Description     = "Ingreso de bonos",
+                PayrollId       = payrollId,
+            });
         }
 
         public async Task ApplyIncomeOvertime(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalHours, Guid payrollId, Guid typeIncomeId)
@@ -480,6 +557,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
     
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+            await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
 
             await _unitOfWork.Incomes.RegisterIncome(new()
             {
@@ -493,6 +571,4 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             });
         }
     }
-    
-    #pragma warning restore CA1873
 }
