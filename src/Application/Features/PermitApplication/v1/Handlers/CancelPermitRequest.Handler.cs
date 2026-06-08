@@ -39,10 +39,14 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 }
                 
                 requestApplication.Status = PermitApplicationStatus.Cancelled;
+                requestApplication.FirtsStepApproved = null;
+                requestApplication.SecondStepApproved = null;
             }
             if (access.Role!.RoleType == RoleType.Manager || access.Role.RoleType == RoleType.Administrator)
             {
                 requestApplication.Status = PermitApplicationStatus.Cancelled;
+                requestApplication.FirtsStepApproved = null;
+                requestApplication.SecondStepApproved = null;
             }
 
             await _unitOfWork.PermitApplications.UpdateAsync(requestApplication);
