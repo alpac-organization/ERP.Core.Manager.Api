@@ -11,7 +11,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
-    {
+    {   
 
         //✅Deducción de viaticos por inasistencia
         public async Task ApplyDeductionTravelExpenses(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId)

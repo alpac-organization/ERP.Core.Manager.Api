@@ -12,7 +12,7 @@ using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
+    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices, IReportingServices _reportingServices): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(ProcessPermitApplicationCommand request, CancellationToken cancellationToken)
         {
@@ -123,7 +123,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             vacationInformationSolicitante.AvailableVacations -= 0.5m;
                             vacationInformationSolicitante.EnjoyedVacation += 0.5m;
 
-                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);  
+                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
+                            await _reportingServices.ApplyVacationMovement(permitApplication.Collaborator, permitApplication.PayrolId);
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
                         }
 
@@ -184,6 +185,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     if (permitApplication.Status is PermitApplicationStatus.Approved)
                     {
                         await _deductionServices.ApplyDeductionTravelExpenses(permitApplication.Collaborator, salaryInformation, permitApplication.PayrolId);
+                        await _reportingServices.ApplyVacationMovement(permitApplication.Collaborator, permitApplication.PayrolId);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
                     }
 
