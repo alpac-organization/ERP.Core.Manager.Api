@@ -31,6 +31,28 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 _logger.LogInformation("No se encontro registro del control de reporte: {identfication}", collaborator.IdentificationNumber);
                 return;
             }
+
+            var salary = await _unitOfWork.Salaries.Entities
+                .Where(sal => sal.CollaboratorId == collaborator.Id)
+                .Where(sal => sal.EndDate == null)
+                .FirstOrDefaultAsync();
+
+            if(salary is null)
+            {
+                _logger.LogInformation("No se encontro el registro salarial del colaborador con cedula: {identfication}", collaborator.IdentificationNumber);
+                return;
+            }
+
+            decimal MonthlySalary = salary.AmountInLocal;
+            decimal DailySalary  = MonthlySalary / 30;
+
+            decimal newEquivalent = vacationControl.AvailableVacations * DailySalary;
+
+            vacationAccruals.FinalBalance = vacationControl.AvailableVacations;
+            vacationAccruals.EquivalentQuantity = newEquivalent;
+            vacationAccruals.EquivalentQuantityInDollars = newEquivalent / 36.6243m;
+
+            await _unitOfWork.VacationAccruals.UpdateAsync(vacationAccruals);
         }
     }
 }
