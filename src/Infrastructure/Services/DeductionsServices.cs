@@ -409,122 +409,176 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
     
         //✅Deducción por prestamos. Listo
-        public async Task ApplyDeductionLoans(Collaborator collaboratorInformation, decimal amount, Guid payrollId, int numberFortnights, Currency currency)
+        public async Task ApplyDeductionLoans(Collaborator collaboratorInformation, decimal amount, Guid payrollId, int numberFortnights, Currency currency, string description = "Registro de préstamo")
         {
+
             const decimal exchangeRate = 36.6243m;
-
             decimal fortnightlyAmount = amount / numberFortnights;
-
             var deductionId = Guid.NewGuid();
 
-            await _unitOfWork.Deductions.RegisterDeduction(new()
+            var loanActive = await _unitOfWork.Deductions.Entities
+                .Where(ded => ded.Type == DeductionType.Loans)
+                .Where(ded => ded.Status == DeductionStatus.Progress)
+                .Where(ded => ded.CollaboratorId == collaboratorInformation.Id)
+                .ToListAsync(default);
+
+            if (loanActive is not null)
             {
-                Id = deductionId,
-                Currency = currency,
-                Type = DeductionType.Loans,
-                Status = DeductionStatus.Progress,
-                Description = "Registro de Préstamo",
-                CollaboratorId = collaboratorInformation.Id,
+                // Manejar el caso donde ya existe un préstamo activo
+                await _unitOfWork.Deductions.RegisterDeduction(new()
+                {
+                    Id = deductionId,
+                    Currency = currency,
+                    Type = DeductionType.Loans,
+                    Status = DeductionStatus.Pending,
+                    Description = description,
+                    CollaboratorId = collaboratorInformation.Id,
 
-                FortnightlyAmount = currency == Currency.NIO
-                    ? fortnightlyAmount
-                    : fortnightlyAmount * exchangeRate,
+                    FortnightlyAmount = currency == Currency.NIO
+                        ? fortnightlyAmount
+                        : fortnightlyAmount * exchangeRate,
 
-                FortnightlyAmountInDollars = currency == Currency.USD
-                    ? fortnightlyAmount
-                    : fortnightlyAmount / exchangeRate,
+                    FortnightlyAmountInDollars = currency == Currency.USD
+                        ? fortnightlyAmount
+                        : fortnightlyAmount / exchangeRate,
 
-                // Pagado
-                AmountPaid = 0.0m,
-                AmountPaidInDollars = 0.0m,
+                    // Pagado
+                    AmountPaid = 0.0m,
+                    AmountPaidInDollars = 0.0m,
 
-                // Saldo pendiente
-                TotalBalance = currency == Currency.NIO
-                    ? amount
-                    : amount * exchangeRate,
+                    // Saldo pendiente
+                    TotalBalance = currency == Currency.NIO
+                        ? amount
+                        : amount * exchangeRate,
 
-                TotalBalanceInDollars = currency == Currency.USD
-                    ? amount
-                    : amount / exchangeRate,
+                    TotalBalanceInDollars = currency == Currency.USD
+                        ? amount
+                        : amount / exchangeRate,
 
-                NumberFortnights = numberFortnights,
-                NumberFortnightsPaid = 0,
+                    NumberFortnights = numberFortnights,
+                    NumberFortnightsPaid = 0,
 
-                // Monto total del préstamo
-                TotalAmount = currency == Currency.NIO
-                    ? amount
-                    : amount * exchangeRate,
+                    // Monto total del préstamo
+                    TotalAmount = currency == Currency.NIO
+                        ? amount
+                        : amount * exchangeRate,
 
-                TotalAmountInDollars = currency == Currency.USD
-                    ? amount
-                    : amount / exchangeRate,
-            });
-
-            //Aplicar la deducción del préstamo en la nómina actual del colaborador.
-            var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
-                .Where(ord => ord.PayrollId == payrollId)
-                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
-                .FirstOrDefaultAsync(default);
-
-            if (ordinaryPayroll is null)
-            {
-                _logger.LogInformation("No se encontro registro de nomina de este colaborador => {identificacion}", collaboratorInformation.IdentificationNumber);
-                return;
+                    TotalAmountInDollars = currency == Currency.USD
+                        ? amount
+                        : amount / exchangeRate,
+                });
             }
-
-            var deductions =
-                JsonSerializer.Deserialize<DeductionsAdditionalData>(
-                    ordinaryPayroll.DeductionsAdditionalData
-                ) ?? new DeductionsAdditionalData();
-
-            deductions.Loans = currency == Currency.NIO
-                ? fortnightlyAmount
-                : fortnightlyAmount * exchangeRate;
-
-            decimal totalDeductions =
-                deductions.Loans
-                + deductions.Purisima
-                + deductions.ChildSupportGarnishment
-                + deductions.SalaryAdvance
-                + deductions.ChristmasBonusAdvance
-                + deductions.JudicialSeizures
-                + deductions.UniformDeduction
-                + deductions.CashShortage
-                + deductions.OtherDeductions
-                + deductions.DeductionForLossesBulk
-                + deductions.Absences
-                + deductions.Sanction
-                + deductions.LateArrivals;
-
-
-            decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
-
-            ordinaryPayroll.TotalToPay = total;
-            ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
-
-            ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-
-            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
-
-            
-            await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+            else
             {
-                Currency = currency,
-                Status = DeductionPaymentStatus.Pending,
-                Origin = SourceDeductionPayment.Payroll,
-                PayrollId = payrollId,
-                DeductionId = deductionId,
+                await _unitOfWork.Deductions.RegisterDeduction(new()
+                {
+                    Id = deductionId,
+                    Currency = currency,
+                    Type = DeductionType.Loans,
+                    Status = DeductionStatus.Progress,
+                    Description = description,
+                    CollaboratorId = collaboratorInformation.Id,
 
-                AmountPaid = currency == Currency.NIO
+                    FortnightlyAmount = currency == Currency.NIO
+                        ? fortnightlyAmount
+                        : fortnightlyAmount * exchangeRate,
+
+                    FortnightlyAmountInDollars = currency == Currency.USD
+                        ? fortnightlyAmount
+                        : fortnightlyAmount / exchangeRate,
+
+                    // Pagado
+                    AmountPaid = 0.0m,
+                    AmountPaidInDollars = 0.0m,
+
+                    // Saldo pendiente
+                    TotalBalance = currency == Currency.NIO
+                        ? amount
+                        : amount * exchangeRate,
+
+                    TotalBalanceInDollars = currency == Currency.USD
+                        ? amount
+                        : amount / exchangeRate,
+
+                    NumberFortnights = numberFortnights,
+                    NumberFortnightsPaid = 0,
+
+                    // Monto total del préstamo
+                    TotalAmount = currency == Currency.NIO
+                        ? amount
+                        : amount * exchangeRate,
+
+                    TotalAmountInDollars = currency == Currency.USD
+                        ? amount
+                        : amount / exchangeRate,
+                });
+
+                //Aplicar la deducción del préstamo en la nómina actual del colaborador.
+                var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                    .Where(ord => ord.PayrollId == payrollId)
+                    .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+                    .FirstOrDefaultAsync(default);
+
+                if (ordinaryPayroll is null)
+                {
+                    _logger.LogInformation("No se encontro registro de nomina de este colaborador => {identificacion}", collaboratorInformation.IdentificationNumber);
+                    return;
+                }
+
+                var deductions =
+                    JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                        ordinaryPayroll.DeductionsAdditionalData
+                    ) ?? new DeductionsAdditionalData();
+
+                deductions.Loans = currency == Currency.NIO
                     ? fortnightlyAmount
-                    : fortnightlyAmount * exchangeRate,
+                    : fortnightlyAmount * exchangeRate;
 
-                AmountPaidInDollars = currency == Currency.USD
-                    ? fortnightlyAmount
-                    : fortnightlyAmount / exchangeRate,
+                decimal totalDeductions =
+                    deductions.Loans
+                    + deductions.Purisima
+                    + deductions.ChildSupportGarnishment
+                    + deductions.SalaryAdvance
+                    + deductions.ChristmasBonusAdvance
+                    + deductions.JudicialSeizures
+                    + deductions.UniformDeduction
+                    + deductions.CashShortage
+                    + deductions.OtherDeductions
+                    + deductions.DeductionForLossesBulk
+                    + deductions.Absences
+                    + deductions.Sanction
+                    + deductions.LateArrivals;
 
-                PaymentDate = DateTime.UtcNow,
-            });
+
+                decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+
+                ordinaryPayroll.TotalToPay = total;
+                ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
+
+                ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+
+                await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+
+                
+                await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+                {
+                    Currency = currency,
+                    Status = DeductionPaymentStatus.Pending,
+                    Origin = SourceDeductionPayment.Payroll,
+                    PayrollId = payrollId,
+                    DeductionId = deductionId,
+
+                    AmountPaid = currency == Currency.NIO
+                        ? fortnightlyAmount
+                        : fortnightlyAmount * exchangeRate,
+
+                    AmountPaidInDollars = currency == Currency.USD
+                        ? fortnightlyAmount
+                        : fortnightlyAmount / exchangeRate,
+
+                    PaymentDate = DateTime.UtcNow,
+                });
+            }
         }
     }
 }

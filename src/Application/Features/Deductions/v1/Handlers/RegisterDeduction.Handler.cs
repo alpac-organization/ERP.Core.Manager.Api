@@ -174,17 +174,25 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 
                             break;   
                         }
+                        default:
+                        {
+                            _logger.LogInformation("No se ha seleccionado un metodo valido para el registro para la aportación de la purisima");
+                            return _errorManager.ThrowBadRequest<bool>("No se ha seleccionado un metodo valido para el registro para la aportación de la purisima", "ERP:01");
+                        }
                     }
 
                     //✅Finalizar Proceso y registrar deducción de forma activa como si fuera un prestamo.
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
                     
-                    _logger.LogInformation("✅Se finaliza el proceso de deducción pora la purisima🎆");
+                    _logger.LogInformation("✅Se finaliza el proceso de deducción para la purisima🎆");
 
                     return true;
                 }
                 case DeductionType.Loans:
                 {
+
+                    _logger.LogInformation("🚩Iniciando proceso de deducción por prestamos");
+
                     var payload = request.LoansPayload ?? new ();
 
                     var collaboratorInformation = await _unitOfWork.Collaborators.Entities
@@ -197,8 +205,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                         return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");   
                     }
 
-                    await _deductionServices.ApplyDeductionLoans(collaboratorInformation, payload.Amount, request.PayrollId, payload.NumberFortnights, payload.Currency);
+                    _logger.LogInformation("🚩Iniciando registro de deducción por prestamos, collaborador: {identificacion}, data: {@data}", payload.IdentificationNumber, payload);
+
+                    await _deductionServices.ApplyDeductionLoans(collaboratorInformation, payload.Amount, request.PayrollId, payload.NumberFortnights, payload.Currency, payload?.Description ?? "Registro de préstamo");
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
                     
+                    _logger.LogInformation("✅Se finaliza el proceso de deducción por prestamos");
                     return true;
                 }
                 default:
