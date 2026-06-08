@@ -303,6 +303,38 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
             
+            #region Registro del inss
+
+            #endregion
+
+            #region Registro de vacaciones
+
+            var vacationControl = await _unitOfWork.Vacations.Entities    
+                .Where(vac => vac.CollaboratorId == collaborator.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (vacationControl is null)
+            {
+                _logger.LogInformation("Este colaborador no cuenta con control de vacaciones: {identification}", collaborator.IdentificationNumber);
+                return;
+            }
+
+            decimal vacationAmountInCordobas = vacationControl.AvailableVacations * dailySalary;
+            decimal vacationAmountInDollars =  (vacationControl.AvailableVacations * dailySalary) / 36.6243m;
+
+            await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
+            {
+                BeginningBalance = vacationControl.AvailableVacations,
+                FinalBalance = vacationControl.AvailableVacations,
+                PayrollId = payrollCreated.Id,
+                CollaboratorId = collaborator.Id,
+                AvailableVacations  = vacationControl.AvailableVacations,
+                EquivalentQuantity = vacationAmountInCordobas,
+                EquivalentQuantityInDollars = vacationAmountInDollars
+            });
+
+            #endregion
+
             #region Registrar informe de viaticos.
 
             //Registro de pagos de viaticos.

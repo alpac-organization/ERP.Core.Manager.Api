@@ -7,10 +7,9 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
-using Microsoft.Extensions.DependencyInjection;
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class InitializePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IServiceProvider _serviceProvider): AlpacBaseHandler<InitializePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
+    public class InitializePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPayrollServices _payrollServices): AlpacBaseHandler<InitializePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(InitializePayrollProcessCommand request, CancellationToken cancellationToken)
         {
@@ -91,24 +90,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         )
                         .ToListAsync(cancellationToken);
 
-                    await Parallel.ForEachAsync(
-                        collaborators,
-                        new ParallelOptions
-                        {
-                            MaxDegreeOfParallelism = 10,
-                            CancellationToken = cancellationToken
-                        },
-                        async (collaborator, ct) =>
-                        {
-                            await using var scope = _serviceProvider.CreateAsyncScope();
-                            
-                            var calculator = scope.ServiceProvider
-                                .GetRequiredService<IPayrollServices>();
-                            
-                            await calculator.RegisterOrdinaryPayrollForCollaborator(
-                                newPayroll.Id, collaborator, ct);
-                        }
-                    );
+                    foreach(var collaborator in collaborators)
+                    {
+                        await _payrollServices.RegisterOrdinaryPayrollForCollaborator(newPayroll.Id, collaborator, cancellationToken);   
+                    }
 
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
 

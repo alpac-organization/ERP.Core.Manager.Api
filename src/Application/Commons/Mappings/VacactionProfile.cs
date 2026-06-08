@@ -22,26 +22,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.VacationId, opt => opt.MapFrom(src => src.Item1.Id))
                 .ForMember(dest => dest.GeneredVacation, opt => opt.MapFrom(src => src.Item1.GeneredVacation))
                 .ForMember(dest => dest.EnjoyedVacation, opt => opt.MapFrom(src => src.Item1.EnjoyedVacation));
-
-            CreateMap<Vacation, VacationAccruals>()
-                .ForMember(dest => dest.VacationId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.VacationBalance, opt => opt.MapFrom(src => src.AvailableVacations))
-                .ForMember(dest => dest.EnjoyedVacations, opt => opt.MapFrom(src => src.EnjoyedVacation))
-                .ForMember(dest => dest.CollaboratorInformation, opt => opt.MapFrom(src => new CollaboratorInformation
-                {
-                    CollaboratorId = src.CollaboratorId,
-                    IdentificationNumber = src.Collaborator.IdentificationNumber,
-                    Code = src.Collaborator.CollaboratorCode,
-                    WorkAreaName = src.Collaborator.WorkingInformation.WorkArea.CatalogName,
-                    EntryDate = src.Collaborator.WorkingInformation != null 
-                                ? src.Collaborator.WorkingInformation.EntryDate 
-                                : DateOnly.MinValue,
-                    CollaboratorFullname = FormatFullName(
-                        src.Collaborator.FirstName, 
-                        src.Collaborator.SecondName, 
-                        src.Collaborator.FirstLastname, 
-                        src.Collaborator.SecondLastname)
-            }));
         }
 
         private static string FormatFullName(params string?[] names)

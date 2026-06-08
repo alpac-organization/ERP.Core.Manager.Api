@@ -13,6 +13,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos
         public string? RequestedBy { get; set; }
         public string? AdditionalData { get; set; }
         public string? CollaboratorCode { get; set; }
+        public string? Fullname { get; set; }
 
 
         //Estados de la solicitud
