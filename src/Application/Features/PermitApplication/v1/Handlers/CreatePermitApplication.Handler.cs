@@ -170,7 +170,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         permitApplication.AmountDays = daysToDeduct;
                         permitApplication.IsWithRangeDate = false;
 
-                        permitApplication.AmountDays = totalHours;
                         AdditionalData.MedicalAppointmentData.IsFullDay = false;
                     }
 
