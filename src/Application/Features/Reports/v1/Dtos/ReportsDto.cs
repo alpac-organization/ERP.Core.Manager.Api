@@ -9,8 +9,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
 
     public class VacationAccrualsHistory
     {
+        public DateOnly EntryDate { get; set; }
         public string? CollaboratorCode { get; set; }
         public string? CollaboratorFullname { get; set; }
+
+        public decimal FinalBalance { get; set; }
+        public decimal BeginningBalance { get; set; }
+
         public decimal VacationBalance { get; set; }
         public decimal EquivalesQuantity { get; set; }
         public decimal EquivalesQuantityInDollars { get; set; }

@@ -8,6 +8,8 @@ using ERP.Core.Database.Infrastructure;
 
 using ERP.Core.Manager.Api.Infrastructure.Services;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Database.Infrastructure.Persistence.Repositories.Catalogs;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories.Catalogs;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -36,6 +38,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
 
             // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
+            services.AddScoped<ITypesAccountingPayrollRepository, TypesAccountingPayrollRepository>();
 
             return services;
         }

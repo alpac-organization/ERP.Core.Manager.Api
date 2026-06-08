@@ -22,10 +22,10 @@ namespace ERP.Core.Manager.Api.Controllers.Reports
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<ReportsDto> GetReportsByTypeAsync(
             [FromRoute] Guid companie_id, 
-            [FromRoute] string module_code,
-            [FromQuery] ReportsType report_type, 
             [FromQuery] Guid payroll_id, 
+            [FromQuery] ReportsType report_type, 
             [FromQuery] PayrollType payroll_type, 
+            [FromRoute] string module_code,
             [FromQuery] string? identification_number, 
             [FromQuery] int? work_area_id 
         )

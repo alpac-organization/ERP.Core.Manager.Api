@@ -14,30 +14,15 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.AccumulatedIR, opt => opt.MapFrom(src => src.AccumulatedIR))
                 .ForMember(dest => dest.SalaryEarned, opt => opt.MapFrom(src => src.SalaryEarned))
                 .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
-                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => 
-                    string.Join(" ", new[] 
-                    { 
-                        src.Collaborator.FirstName, 
-                        src.Collaborator.SecondName, 
-                        src.Collaborator.FirstLastname, 
-                        src.Collaborator.SecondLastname 
-                    }.Where(s => !string.IsNullOrWhiteSpace(s)))
-                    .ToCapitalize()));
+                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)));
 
             CreateMap<VacationAccrual, VacationAccrualsHistory>()
                 .ForMember(dest => dest.VacationBalance, opt => opt.MapFrom(src => src.AvailableVacations))
+                .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(src => src.Collaborator.WorkingInformation.EntryDate))
                 .ForMember(dest => dest.EquivalesQuantity, opt => opt.MapFrom(src => src.EquivalentQuantity))
                 .ForMember(dest => dest.EquivalesQuantityInDollars, opt => opt.MapFrom(src => src.EquivalentQuantityInDollars))
                 .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
-                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => 
-                    string.Join(" ", new[] 
-                    { 
-                        src.Collaborator.FirstName, 
-                        src.Collaborator.SecondName, 
-                        src.Collaborator.FirstLastname, 
-                        src.Collaborator.SecondLastname 
-                    }.Where(s => !string.IsNullOrWhiteSpace(s)))
-                    .ToCapitalize()));
+                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)));
 
             CreateMap<RecordsTravelExpensePayments, PaymentTravelExpensesHistory>()
                 .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.CollaboratorId))
