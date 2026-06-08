@@ -38,7 +38,6 @@ namespace ERP.Core.Manager.Api.Infrastructure
 
             // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
-            services.AddScoped<ITypesAccountingPayrollRepository, TypesAccountingPayrollRepository>();
 
             return services;
         }
