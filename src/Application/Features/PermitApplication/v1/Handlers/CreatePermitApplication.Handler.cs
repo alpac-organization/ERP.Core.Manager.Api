@@ -149,9 +149,26 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     }
                     else
                     {
-                        //Calcular las horas que solicito para evitar, falsos positivos
-                        var duration = medicalReq.EndTime!.Value - medicalReq.StartTime!.Value;
-                        decimal totalHours = (decimal) duration.TotalHours;
+                        var endTime = medicalReq.EndTime!.Value;
+                        var startTime = medicalReq.StartTime!.Value;
+
+                        int totalHours = endTime.Hour - startTime.Hour;
+
+                        decimal daysToDeduct = totalHours switch
+                        {
+                            1 => 0.1m,
+                            2 => 0.2m,
+                            3 => 0.3m,
+                            4 => 0.4m,
+                            5 => 0.5m,
+                            6 => 0.6m,
+                            7 => 0.7m,
+                            _ when totalHours >= 8 => 1.0m,
+                            _ => 0.0m
+                        };
+
+                        permitApplication.AmountDays = daysToDeduct;
+                        permitApplication.IsWithRangeDate = false;
 
                         permitApplication.AmountDays = totalHours;
                         AdditionalData.MedicalAppointmentData.IsFullDay = false;
