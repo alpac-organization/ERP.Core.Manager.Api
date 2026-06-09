@@ -3,9 +3,9 @@ using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Validators
 {
-    public class RegisterJobPositionValidator: AbstractValidator<RegisterJobPositionCommand>
+    public class DeleteJobPositionValidator: AbstractValidator<DeleteJobPositionCommand>
     {
-        public RegisterJobPositionValidator()
+        public DeleteJobPositionValidator()
         {
             RuleFor(x => x.CompanyId)
                 .NotEmpty()
@@ -13,12 +13,11 @@ namespace ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Validators
                 .NotNull()
                     .WithMessage("El id de la empresa es requerido");
 
-            RuleFor(x => x.JobPositionName)
+            RuleFor(x => x.JobPositionId)
                 .NotEmpty()
-                    .WithMessage("Asegurese de ingresar el nombre del cargo es obligatorio.")
+                    .WithMessage("El id del cargo es requerido.")
                 .NotNull()
-                    .WithMessage("Asegurese de ingresar el nombre del cargo es obligatorio.");
-
+                    .WithMessage("El id del cargo es requerido.");
         }
     }
 }

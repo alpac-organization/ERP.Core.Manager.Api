@@ -8,33 +8,32 @@ using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Handlers
 {
-    public class DeleteJobPositionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<DeleteJobPositionHandler> _logger) : IRequestHandler<RegisterJobPositionCommand>
+    public class DeleteJobPositionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<DeleteJobPositionHandler> _logger) : IRequestHandler<DeleteJobPositionCommand, bool>
     {
-        public async Task Handle(RegisterJobPositionCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeleteJobPositionCommand request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("🚩Iniciando proceso de registro de cargo");
+            _logger.LogInformation("🚩Iniciando proceso de eliminación de cargo");
 
-            var company = await _unitOfWork.Companies.Entities    
-                .Where(com => com.IsActive)
-                .Where(com => com.Id == request.CompanyId)
+            var jobPosition = await _unitOfWork.JobPositions.Entities
+                .Where(job => job.IsActive)
+                .Where(job => job.Id == request.JobPositionId)
+                .Where(job => job.CompanyId == request.CompanyId)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (company is null )
+            if (jobPosition is null)
             {
-                _errorManager.ThrowBadRequest("Esta empresa no existe en nuestro sistema!", "ERP:01");
+                return _errorManager.ThrowBadRequest<bool>("Este cargo no se encuentra registrado!", "ERP");
             }
 
-            await _unitOfWork.JobPositions.RegisterJobPosition(new()
-            {
-                IsActive = true,
-                CompanyId = request.CompanyId,
-                Description = request.Description ?? "Sin Descripción",
-                JobPositionName = request.JobPositionName
-            });
+            jobPosition.DeletedAt = DateTime.Now;
+            jobPosition.IsActive = false;
+
+            await _unitOfWork.JobPositions.UpdateAsync(jobPosition);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             
-            _logger.LogInformation("✅Cargo registrado con exito");
+            _logger.LogInformation("✅Cargo eliminado con exito");
+            return true;
         }
     }
 }
