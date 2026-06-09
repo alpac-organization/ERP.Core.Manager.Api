@@ -1,9 +1,11 @@
-using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Database.Domain.Entities.Payrolls;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Domain.Entities.Payrolls;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     //Administrador de reportes de nomina.
@@ -11,6 +13,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
     {
         public async Task ApplyVacationMovement(Collaborator collaborator, Guid payrollId)
         {
+            //Obtener la mesa de cambio oficial
+            var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
+                .Where(val => val.Status)
+                .Where(val => val.Type == TaxType.ExchangeRate)
+                .FirstOrDefaultAsync(default);
+
+            if (exchangeRate is null)
+            {
+                _logger.LogInformation("No fue posible obtener la mesa de cambio");
+                return;
+            }
+
             var vacationControl = await _unitOfWork.Vacations.Entities
                 .Where(vac => vac.CollaboratorId == collaborator.Id)
                 .FirstOrDefaultAsync(default);
@@ -50,9 +64,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             vacationAccruals.FinalBalance = vacationControl.AvailableVacations;
             vacationAccruals.EquivalentQuantity = newEquivalent;
-            vacationAccruals.EquivalentQuantityInDollars = newEquivalent / 36.6243m;
+            vacationAccruals.EquivalentQuantityInDollars = newEquivalent / exchangeRate.Value;
 
             await _unitOfWork.VacationAccruals.UpdateAsync(vacationAccruals);
+        }
+    
+        public async Task ApplyVacationRegistration(Collaborator collaborator, Guid payrollId)
+        {
+            
+            
         }
     }
 }

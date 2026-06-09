@@ -1,18 +1,21 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+
+using ERP.Core.Manager.Api.Application.Commons.Utils;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IPayrollServices
     {
-        public async Task<int> CalculateNumberDaysToAssignedTravelExpenses(Collaborator collaborator, DateOnly payrollStart, DateOnly payrollEnd)
+        public async Task<int> AssignTravelDays(Collaborator collaborator, DateOnly payrollStart, DateOnly payrollEnd)
         {
             int DEFAULT_TOTAL_WORK_DAYS = 0;
 
@@ -52,6 +55,115 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             return DEFAULT_TOTAL_WORK_DAYS;
+        }
+        
+        public async Task AssignTravelAllowance(Collaborator collaborator, List<TravelExpenses> travelExpenses)
+        {
+            //Mandar a llamar la tasa de cambio registrada en nuestra base de datos.
+
+            foreach (var travel in travelExpenses)
+            {
+                if (travel.IncomeAmount == 0)
+                {
+                    _logger.LogInformation("La cantidad asignada no puede ser 0");
+                    continue;
+                }
+                if (string.IsNullOrEmpty(travel.TypeIncomeId.ToString()))
+                {
+
+                    _logger.LogInformation("El tipo de ingreso es obligatorio");
+                    continue;
+                }
+
+                var history = new AssignedTravelExpenses
+                {
+                    Id = Guid.NewGuid(),
+                    AmountInDollars = travel.IncomeAmount / 36.6243m,
+                    AmountInLocalCurrency = travel.IncomeAmount,
+                    CollaboratorId = collaborator.Id,
+                    Currency = Currency.NIO,
+                    TypeIncomeId = travel.TypeIncomeId,
+                    StartDate = DateTime.Now,
+                    EndDate = null
+                };
+
+
+                await _unitOfWork.AssignedTravelExpenses.RegisterAssignedTravelExpenses(history);
+            }
+        }
+
+        public async Task AssignVacationControl(Collaborator collaborator)
+        {
+            var daysElapsed = CalculatorUtils.CalculateDaysElapsedCommercial(collaborator.WorkingInformation.EntryDate);
+
+            decimal generated = Math.Round((decimal)(daysElapsed * 30.0 / 360.0), 4);
+
+            Vacation vacation = new ()
+            {
+                CollaboratorId = collaborator.Id,
+                EnjoyedVacation = 0,
+                GeneredVacation = generated,
+                AvailableVacations = generated,
+            };
+
+            await _unitOfWork.Vacations.RegisterVacationControl(vacation);
+        }
+        
+        public async Task<bool> AssignSalary(Collaborator collaborator, SalaryInformation salaryInformation)
+        {
+            var salary = new Salary();
+
+            decimal amountInLocal = 0;
+            decimal amountInForeign = 0;
+
+            //Consultando mesa de cambio actual
+            var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
+                .Where(val => val.Status)
+                .Where(val => val.EndDate == null)
+                .Where(val => val.Type == TaxType.ExchangeRate)
+                .FirstOrDefaultAsync(default);
+
+            if (exchangeRate is null)
+            {
+                _logger.LogInformation("❌No se pudo consultar la mesa de cambio");
+                return false ;
+            }
+
+            if (salaryInformation.SalaryType != SalaryType.ProfessionalServices)
+            {
+                decimal amountSalary = salaryInformation?.Salary ?? 0;
+
+                if (salaryInformation!.Currency == Currency.USD)
+                {
+                    amountInLocal   = amountSalary * exchangeRate.Value;
+                    amountInForeign = amountSalary;
+                }
+                else
+                {
+                    amountInLocal   = amountSalary;
+                    amountInForeign = amountSalary / exchangeRate.Value;
+                }
+
+                salary = new Salary()
+                {
+                    CollaboratorId      = collaborator.Id,
+                    Currency            = salaryInformation.Currency,
+                    SalaryType          = salaryInformation.SalaryType,
+                    BankSubCatalogId    = salaryInformation.SubCatalogBankId,
+                    AmountSalary        = amountSalary,
+                    AmountInLocal       = amountInLocal, 
+                    AmountInForeign     = amountInForeign,
+                    StartDate           = DateTime.Now
+                };
+
+                //✅Registro de salario exitoso
+                await _unitOfWork.Salaries.RegisterSalary(salary);
+
+                _logger.LogInformation("✅Se registro exitosamente el salario. para colaborador con cedula: {identification}", collaborator.IdentificationNumber);
+            }
+
+            //Devolvemos exitoso
+            return true;
         }
 
         public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
@@ -182,13 +294,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     AdditionalDeducctions.OtherDeductions += deduction.FortnightlyAmount ?? 0.0m;                
                 }
 
+                //Aqui van los embargos judiciales
+
+                //Aqui van los embargos alimenticios
+
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                 {
                     DeductionId         = deduction.Id,
 
                     AmountPaid          = deduction.FortnightlyAmount ?? 0.0m,
                     AmountPaidInDollars = (deduction.FortnightlyAmount ?? 0.0m) / 36.6243m,
-                    
                     Status              = DeductionPaymentStatus.Pending,
                     Origin              = SourceDeductionPayment.Payroll,
                     Currency            = deduction.Currency,
@@ -216,7 +331,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #region Asignación de viaticos
 
             //Saber cuantos dias tiene con derecho a viaticos en base al calendario del mes del colaborador.
-            int totalWorkDays = await CalculateNumberDaysToAssignedTravelExpenses(collaborator, payrollStart, payrollEnd);
+            int totalWorkDays = await AssignTravelDays(collaborator, payrollStart, payrollEnd);
 
             var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Include(asssined => asssined.Collaborator)
@@ -304,7 +419,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
             
             #region Registro del inss
+            #endregion
 
+            #region Registro de Aguinaldo
             #endregion
 
             #region Registro de vacaciones
