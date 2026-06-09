@@ -48,7 +48,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                         {
                             _logger.LogInformation("El proceso de deducción por llegadas tardes se realizara de forma manual");
 
-                            var payload = request.LateArrivalsInformation.LateArrivalsPaylod;
+                            var payload = request.LateArrivalsInformation.LateArrivalsPayload;
 
                             var collaboratorInformation = await _unitOfWork.Collaborators.Entities
                                 .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
@@ -134,7 +134,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                         {
                             _logger.LogInformation("El proceso de deducción por purisima se realizara de forma manual");
 
-                            var payload = request.PurisimaInformation.PurisimaPaylod;
+                            var payload = request.PurisimaInformation.PurisimaPayload;
 
                             var collaboratorInformation = await _unitOfWork.Collaborators.Entities
                                 .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)

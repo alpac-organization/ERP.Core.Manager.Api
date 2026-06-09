@@ -25,7 +25,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
     //✅Carga util para registrar purisima. (importación, manual)
     public class PurisimaInformation
     {
-        public PurisimaData PurisimaPaylod { get; set; } = new();
+        public PurisimaData PurisimaPayload { get; set; } = new();
         public List<PurisimaData> PurisimaData { get; set; } = [];
 
         public ProcedureMethod ProcedureMethod { get; set; }
@@ -44,7 +44,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
     //✅Carga util para registrar llegadas tardes. (importación, manual)
     public class LateArrivalsInformation
     {
-        public LateArrivalsData LateArrivalsPaylod { get; set; } = new();
+        public LateArrivalsData LateArrivalsPayload { get; set; } = new();
         public List<LateArrivalsData> LateArrivalsData { get; set; } = [];
 
         public ProcedureMethod ProcedureMethod { get; set; }
