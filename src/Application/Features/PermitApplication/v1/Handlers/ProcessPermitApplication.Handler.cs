@@ -136,6 +136,12 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    if (permitApplication.Status == PermitApplicationStatus.Approved)
+                    {
+                        await _deductionServices.ApplyDeductionTravelExpenses(permitApplication.Collaborator, salaryInformation, permitApplication.PayrolId);   
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    }
                 
                     return true;
 
