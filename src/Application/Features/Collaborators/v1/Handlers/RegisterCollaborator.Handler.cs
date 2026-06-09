@@ -38,6 +38,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
             if (access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Operator)
             {
+
+                #region Mapeo de campos.
                 var code = _codeGenerator.GenerateModuleCode(request.IdentificationNumber!);
                 request.RegisteredBy = user!.UserName;
 
@@ -61,6 +63,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
                     await _unitOfWork.WorkingInformations.RegisterWorkingInformation(workingInfo);
                 }
+                #endregion
 
                 // Registrar Información Salarial
                 var salary = new Salary();
@@ -132,7 +135,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                     await _unitOfWork.Vacations.RegisterVacationControl(vacation);
                 }
 
-
+                #region Sin se le aplicaron viaticos
                 if (request?.TravelExpenses?.Count > 0)
                 {
                     // Registramos los viáticos
@@ -150,7 +153,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                         var history = new AssignedTravelExpenses
                         {
                             Id = Guid.NewGuid(),
-                            AmountInDollars = travel.IncomeAmount / 36.6273m,
+                            AmountInDollars = travel.IncomeAmount / 36.6243m,
                             AmountInLocalCurrency = travel.IncomeAmount,
                             CollaboratorId = collaboratorEntity.Id,
                             Currency = Currency.NIO,
@@ -163,6 +166,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                         await _unitOfWork.AssignedTravelExpenses.RegisterAssignedTravelExpenses(history);
                     }
                 }
+                #endregion
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
