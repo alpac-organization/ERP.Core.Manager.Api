@@ -27,7 +27,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         }
 
         [Tags("Areas de trabajo")]  
-        [HttpPost("companies/{company_id}/areas/{area_id}")]   
+        [HttpDelete("companies/{company_id}/areas/{area_id}")]   
         [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
