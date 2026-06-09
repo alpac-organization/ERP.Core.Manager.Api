@@ -18,6 +18,7 @@ namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Handlers
 
             var workAreas = await _unitOfWork.WorkAreas.Entities
                 .Where(wk => wk.CompanyId == request.CompanyId)
+                .Where(wk => wk.IsActive)
                 .ToListAsync(cancellationToken);
             
             _logger.LogInformation("✅Area de trabajo obtenidas con exito");
