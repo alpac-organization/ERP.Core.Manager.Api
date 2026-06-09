@@ -114,9 +114,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         return _errorManager.ThrowBadRequest<bool>("No tienes permisos para realizar esta operación, no eres administrador", "ERP:03");
                     }
                     
+                    var additionalInformation = JsonSerializer.Deserialize<AdditionalDataPermitApplication>(permitApplication.AdditionalData);
+
                     if(isAuthorized && continueProcess)
                     {
-                        var additionalInformation = JsonSerializer.Deserialize<AdditionalDataPermitApplication>(permitApplication.AdditionalData);
 
                         if (additionalInformation!.MedicalAppointmentData.IsFullDay)
                         {
@@ -137,7 +138,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                    if (permitApplication.Status == PermitApplicationStatus.Approved)
+                    if (permitApplication.Status == PermitApplicationStatus.Approved && additionalInformation!.MedicalAppointmentData.IsFullDay)
                     {
                         await _deductionServices.ApplyDeductionTravelExpenses(permitApplication.Collaborator, salaryInformation, permitApplication.PayrolId);   
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
