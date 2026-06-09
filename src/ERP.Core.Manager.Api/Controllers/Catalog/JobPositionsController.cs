@@ -5,6 +5,9 @@ using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Controllers.Catalog
 {
@@ -17,35 +20,41 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<CreatedResult> RegisterJobPositionAsync([FromRoute] Guid company_id)
+        public async Task<CreatedResult> RegisterJobPositionAsync([FromRoute] Guid company_id, [FromBody] RegisterJobPositionCommand payload)
         {
-
+            payload.CompanyId = company_id;
+            
+            await _mediator.Send(payload);
             return Created();
         }
 
         [Tags("Centros de costo")]  
         [HttpDelete("companies/{company_id}/job-positions/{job_position_id}")]   
-        [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<NoContentResult> DeleteCostCenterAsync([FromRoute] Guid company_id, [FromRoute] Guid job_position_id)
         {
 
+            await _mediator.Send(new DeleteJobPositionCommand()
+            {
+                CompanyId = company_id,
+                JobPositionId = job_position_id,
+            });
 
             return NoContent();
         }
 
         [Tags("Centros de costo")]  
         [HttpGet("companies/{company_id}/job-positions")]   
-        [ProducesResponseType(typeof(List<CostCenterDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<JobPositionDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<List<CostCenterDto>> GetCostCenterByAreaAsync([FromRoute] Guid company_id, [FromRoute] Guid area_id)
+        public async Task<List<JobPositionDto>> GetCostCenterByAreaAsync([FromRoute] Guid company_id, [FromRoute] Guid area_id)
         {
-            return await _mediator.Send(new GetCostCentersByAreaQuery()
+            return await _mediator.Send(new GetJobPositionsQuery()
             {
                 CompanyId = company_id,
-                AreaId = area_id
             });
         }
     }
