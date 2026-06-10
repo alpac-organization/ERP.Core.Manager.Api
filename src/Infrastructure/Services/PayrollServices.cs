@@ -166,7 +166,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             return true;
         }
 
-        public async Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
+        public async Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
         {
             #region Primera Validación de apertura
 

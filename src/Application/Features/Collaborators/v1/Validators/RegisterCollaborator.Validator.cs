@@ -47,8 +47,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
                 .When(x => x.WorkingInformation != null);
 
             RuleFor(x => x.SalaryInformation)
-                .SetValidator(new SalaryInformationValidator()!)
-                .When(x => x.SalaryInformation != null);
+                .SetValidator(new SalaryInformationValidator());
         }
     }
 

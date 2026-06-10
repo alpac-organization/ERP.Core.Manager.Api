@@ -9,10 +9,11 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-    public class RegisterCollaboratorHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ICodeGenerator _codeGenerator, IPayrollServices _payrollServices) : AlpacBaseHandler<RegisterCollaboratorCommand, bool>(_unitOfWork, _errorManager)
+    public class RegisterCollaboratorHandler(IUnitOfWork _unitOfWork, ILogger<RegisterCollaboratorHandler> _logger, IErrorManager _errorManager, ICodeGenerator _codeGenerator, IPayrollServices _payrollServices) : AlpacBaseHandler<RegisterCollaboratorCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterCollaboratorCommand request, CancellationToken cancellationToken)
         {
@@ -34,11 +35,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 );
             }
 
+            bool isSuccess = true;
+
             var user = await _unitOfWork.Users.FirstOrDefaultAsync(user => user.Id == request.UserId, cancellationToken);
 
             if (access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Operator)
             {
-
                 #region Mapeo de campos.
                 var code = _codeGenerator.GenerateModuleCode(request.IdentificationNumber!);
                 request.RegisteredBy = user!.UserName;
@@ -65,13 +67,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 }
                 #endregion
 
-
                 #region Registrar salario laboral
 
-                await _payrollServices.AssignSalary(collaboratorEntity, request.SalaryInformation ?? new());
+                isSuccess = await _payrollServices.AssignSalary(collaboratorEntity, request.SalaryInformation ?? new());
+
+                if (isSuccess is false)
+                {
+                    return _errorManager.ThrowBadRequest<bool>("No se pudo realizar la asignación de salario. consultar con IT", "ERP");
+                }
 
                 #endregion
-
 
                 #region Asignación de vacaciones
 
@@ -88,10 +93,47 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 {
                     await _payrollServices.AssignTravelAllowance(collaboratorEntity, request.TravelExpenses);
                 }
-                
+
                 #endregion
 
+                //✅Colaborador registrado con exito
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+                
+                //Procesos para realizar insert a la nomina actual
+                #region Insertar colaborador a la nomina si se encuentra activa
+
+                _logger.LogInformation("Verificar si existe una nomina en progreso✅");
+
+                var payroll = await _unitOfWork.Payrolls.Entities
+                    .Where(pay => pay.Status == PayrollStatus.Progress)
+                    .Where(pay => pay.BranchId == request!.WorkingInformation!.BranchId)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if(payroll is not null)
+                {
+                    _logger.LogInformation("✅Nomina en progreso encontrada");
+
+                    if (request!.SalaryInformation.SalaryType == SalaryType.Fixed)
+                    {
+                        var collaborator = await _unitOfWork.Collaborators.Entities
+                            .Where(col => col.IdentificationNumber == request.IdentificationNumber)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (collaborator is null)
+                        {
+                            _logger.LogInformation("No se encontro registros del colaborador recien ingresado");
+                        }
+                        else
+                        {
+                            await _payrollServices.RegisterCollaboratorToPayroll(payroll.Id, collaborator, cancellationToken);
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                            
+                            _logger.LogInformation("Colaborador ingresado correctamente a la nomina✅");
+                        }
+                    }    
+                }
+
+                #endregion
 
                 return true;
             }
