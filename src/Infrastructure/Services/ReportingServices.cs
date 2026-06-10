@@ -11,6 +11,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
     //Administrador de reportes de nomina.
     public class ReportingServices(IUnitOfWork _unitOfWork, ILogger<ReportingServices> _logger) : IReportingServices
     {
+
+        public async Task RegisterChrismasBonus(Collaborator collaborator, Guid payrollId)
+        {
+            // await _unitOfWork.   
+        }
+
         public async Task ApplyVacationMovement(Collaborator collaborator, Guid payrollId)
         {
             //Obtener la mesa de cambio oficial
@@ -71,7 +77,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
     
         public async Task ApplyVacationRegistration(Collaborator collaborator, Guid payrollId)
         {
-            
             
         }
     }

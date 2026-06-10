@@ -417,8 +417,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             };
 
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
-            
+
             #region Registro del inss
+
+
+
+
             #endregion
 
             #region Registro de Aguinaldo
