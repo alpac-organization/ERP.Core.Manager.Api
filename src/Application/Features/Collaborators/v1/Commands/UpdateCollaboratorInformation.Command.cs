@@ -13,6 +13,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? ThirdName { get; set; }
         public string? FirstSurname { get; set; }
         public string? SecondSurname { get; set; }
+        public string? CodeCollaborator { get; set; }
 
         public PInformation? PersonalInformation { get; set; } = new ();
         public WInformation? WorkingInformation { get; set; } = new();

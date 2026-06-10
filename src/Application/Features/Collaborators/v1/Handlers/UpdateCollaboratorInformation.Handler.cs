@@ -40,6 +40,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 collaborator.ThirdName = request.ThirdName ?? collaborator.ThirdName;
                 collaborator.FirstLastname = request.FirstSurname ?? collaborator.FirstLastname;
                 collaborator.SecondLastname = request.SecondSurname ?? collaborator.SecondLastname;
+                collaborator.CollaboratorCode = request.CodeCollaborator ?? collaborator.CollaboratorCode;
 
                 if (request.WorkingInformation != null)
                 {
