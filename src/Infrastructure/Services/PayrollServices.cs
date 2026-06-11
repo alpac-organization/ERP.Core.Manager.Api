@@ -15,6 +15,24 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IPayrollServices
     {
+        public async Task<List<Collaborator>> ObtainsCollaboratorByType(SalaryType salaryType, Guid companyId, Guid branchId)
+        {
+            var collabotators = await _unitOfWork.Collaborators.Entities
+                .Where(col => col.CompanyId == companyId)
+                .Where(col => col.Status != CollaboratorStatus.Inactive)
+                .Include(col => col.WorkingInformation)
+                .Where(col => col.WorkingInformation.BranchId == branchId)
+                .Include(c => c.Salaries
+                    .Where(s => s.EndDate == null && s.SalaryType == salaryType)
+                )
+                .Where(c => c.Salaries
+                    .Any(s => s.EndDate == null && s.SalaryType == salaryType)
+                )
+                .ToListAsync(default);   
+
+            return collabotators;
+        }
+
         public async Task<int> AssignTravelDays(Collaborator collaborator, DateOnly payrollStart, DateOnly payrollEnd)
         {
             int DEFAULT_TOTAL_WORK_DAYS = 0;
@@ -492,6 +510,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             });
             
             #endregion
+        }
+    
+        public async Task RegisterCollaboratorToVigemsaProfessional(Guid payrollId, Collaborator collaborator)
+        {
+            
+        }
+
+        public async Task RegisterCollaboratorToAvasaTransport()
+        {
+            
         }
     }
 }
