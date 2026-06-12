@@ -438,8 +438,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Registro del inss
 
+            if(payrollCreated.Period == PayrollPeriod.FirstPeriod)
+            {
 
-
+            }
+            else
+            {
+                
+            }
 
             #endregion
 
@@ -506,7 +512,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 CollaboratorId          = collaborator.Id,
 
                 AccumulatedSeniority    = 0.0m,
-                //Agregar bandera de antiguedad.
             });
             
             #endregion
@@ -520,8 +525,60 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (payrollCreated is null)
             {
-                
+                _logger.LogInformation("");
+                return;
             }
+
+             var salary = await _unitOfWork.Salaries.Entities 
+                .Include(salary => salary.Collaborator) 
+                    .ThenInclude(salary => salary.WorkingInformation)
+                .Where(salary => salary.EndDate == null)
+                .Where(salary => salary.SalaryType == SalaryType.Fixed)
+                .Where(salary => salary.CollaboratorId == collaborator.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (salary is null)
+            {
+                _logger.LogInformation("No pudistmos encontrar la información salarial del colaborador con cedula => {identificacion}", collaborator.IdentificationNumber);                   
+                return;
+            }
+
+
+            var additionalData = new VigemsaAdditionalData()
+            {
+                TotalHoursWorked = 0.0m,
+                TotalNumberShiftsPerformed = 0.0m,
+            };
+
+
+            var payload = new ProfessionalServicesPayroll()
+            {
+                Id = Guid.NewGuid(),
+                Ir = 0.0m,
+                Inss = 0.0m,
+                GrossSalary = 0.0m,
+
+                Vacations = 0.0m,
+                TotalToPay = 0.0m,
+                ChristmasBonus = 0.0m,
+                TotalLegalDeductions = 0.0m,
+                VigemsaAdditionalData = JsonSerializer.Serialize(additionalData),
+
+                PayrollId = payrollCreated.Id,
+                CollaboratorId = collaborator.Id
+            };
+
+            await _unitOfWork.ProfessionalServicesPayrolls.RegisterCollaboratorInTheProfessionalServicesPayroll(payload);
+
+            DateOnly payrollStart = payrollCreated.StartDate;
+            DateOnly payrollEnd   = payrollCreated.EndDate;
+
+            //Crear registros de fechas para el control de asistencias
+            // for (DateOnly Current in )
+            // {
+                
+            // }
+
         }
 
         public async Task RegisterCollaboratorToAvasaTransport()

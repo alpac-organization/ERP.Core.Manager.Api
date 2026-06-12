@@ -103,19 +103,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         case "VIGEMSA" :
                         {
                             foreach(var collaborator in collaborators)
-                            {            
+                            {          
                                 await _payrollServices.RegisterCollaboratorToVigemsaProfessional(newPayroll.Id, collaborator);
                             }
 
                             break;    
-                        }
-                        case "AVASA":
-                        {
-                            break;
-                        }   
-                        case "TMN":
-                        {
-                            break;   
                         }
                     }
 
