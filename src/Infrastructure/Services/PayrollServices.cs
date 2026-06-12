@@ -514,7 +514,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
     
         public async Task RegisterCollaboratorToVigemsaProfessional(Guid payrollId, Collaborator collaborator)
         {
-            
+            var payrollCreated = await _unitOfWork.Payrolls.Entities
+                .Where(pay => pay.Id == payrollId)
+                .FirstOrDefaultAsync(default);
+
+            if (payrollCreated is null)
+            {
+                
+            }
         }
 
         public async Task RegisterCollaboratorToAvasaTransport()

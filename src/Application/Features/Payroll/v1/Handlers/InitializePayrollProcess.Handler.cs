@@ -3,10 +3,10 @@ using ERP.Core.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Commons.Utils;
 
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
@@ -104,7 +104,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         {
                             foreach(var collaborator in collaborators)
                             {            
-                                await _payrollServices.RegisterCollaboratorToVigemsaProfessional(newPayroll.Id, collaborator);   
+                                await _payrollServices.RegisterCollaboratorToVigemsaProfessional(newPayroll.Id, collaborator);
                             }
 
                             break;    
