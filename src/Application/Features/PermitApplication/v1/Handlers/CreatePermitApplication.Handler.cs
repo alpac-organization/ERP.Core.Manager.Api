@@ -108,6 +108,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 }
             }
 
+            if (access.Role!.RoleType == RoleType.Operator && request.Channel == Channels.AdministrativePanel)
+            {
+                return _errorManager.ThrowBadRequest<bool>("No tienes permisos para realizar esta operación", "ERP:01");
+            }
+
             #endregion Validaciones
 
             var AdditionalData    = new AdditionalDataPermitApplication();

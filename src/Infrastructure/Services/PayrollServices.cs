@@ -15,6 +15,24 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IPayrollServices
     {
+        public async Task<List<Collaborator>> ObtainsCollaboratorByType(SalaryType salaryType, Guid companyId, Guid branchId)
+        {
+            var collabotators = await _unitOfWork.Collaborators.Entities
+                .Where(col => col.CompanyId == companyId)
+                .Where(col => col.Status != CollaboratorStatus.Inactive)
+                .Include(col => col.WorkingInformation)
+                .Where(col => col.WorkingInformation.BranchId == branchId)
+                .Include(c => c.Salaries
+                    .Where(s => s.EndDate == null && s.SalaryType == salaryType)
+                )
+                .Where(c => c.Salaries
+                    .Any(s => s.EndDate == null && s.SalaryType == salaryType)
+                )
+                .ToListAsync(default);   
+
+            return collabotators;
+        }
+
         public async Task<int> AssignTravelDays(Collaborator collaborator, DateOnly payrollStart, DateOnly payrollEnd)
         {
             int DEFAULT_TOTAL_WORK_DAYS = 0;
@@ -420,8 +438,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Registro del inss
 
+            if(payrollCreated.Period == PayrollPeriod.FirstPeriod)
+            {
 
-
+            }
+            else
+            {
+                
+            }
 
             #endregion
 
@@ -488,10 +512,78 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 CollaboratorId          = collaborator.Id,
 
                 AccumulatedSeniority    = 0.0m,
-                //Agregar bandera de antiguedad.
             });
             
             #endregion
+        }
+    
+        public async Task RegisterCollaboratorToVigemsaProfessional(Guid payrollId, Collaborator collaborator)
+        {
+            var payrollCreated = await _unitOfWork.Payrolls.Entities
+                .Where(pay => pay.Id == payrollId)
+                .FirstOrDefaultAsync(default);
+
+            if (payrollCreated is null)
+            {
+                _logger.LogInformation("");
+                return;
+            }
+
+             var salary = await _unitOfWork.Salaries.Entities 
+                .Include(salary => salary.Collaborator) 
+                    .ThenInclude(salary => salary.WorkingInformation)
+                .Where(salary => salary.EndDate == null)
+                .Where(salary => salary.SalaryType == SalaryType.Fixed)
+                .Where(salary => salary.CollaboratorId == collaborator.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (salary is null)
+            {
+                _logger.LogInformation("No pudistmos encontrar la información salarial del colaborador con cedula => {identificacion}", collaborator.IdentificationNumber);                   
+                return;
+            }
+
+
+            var additionalData = new VigemsaAdditionalData()
+            {
+                TotalHoursWorked = 0.0m,
+                TotalNumberShiftsPerformed = 0.0m,
+            };
+
+
+            var payload = new ProfessionalServicesPayroll()
+            {
+                Id = Guid.NewGuid(),
+                Ir = 0.0m,
+                Inss = 0.0m,
+                GrossSalary = 0.0m,
+
+                Vacations = 0.0m,
+                TotalToPay = 0.0m,
+                ChristmasBonus = 0.0m,
+                TotalLegalDeductions = 0.0m,
+                VigemsaAdditionalData = JsonSerializer.Serialize(additionalData),
+
+                PayrollId = payrollCreated.Id,
+                CollaboratorId = collaborator.Id
+            };
+
+            await _unitOfWork.ProfessionalServicesPayrolls.RegisterCollaboratorInTheProfessionalServicesPayroll(payload);
+
+            DateOnly payrollStart = payrollCreated.StartDate;
+            DateOnly payrollEnd   = payrollCreated.EndDate;
+
+            //Crear registros de fechas para el control de asistencias
+            // for (DateOnly Current in )
+            // {
+                
+            // }
+
+        }
+
+        public async Task RegisterCollaboratorToAvasaTransport()
+        {
+            
         }
     }
 }
