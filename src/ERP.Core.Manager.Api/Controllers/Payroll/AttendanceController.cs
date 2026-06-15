@@ -20,7 +20,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<PagedResponse<AttendanceDto>> GetAttendanceAsync(
-            [FromQuery] Guid company_id,
+            [FromRoute] Guid company_id,
             [FromQuery] DateTime start_date,
             [FromQuery] DateTime end_date,
             [FromQuery] string? identification_number = null,
