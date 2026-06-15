@@ -21,6 +21,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
             var collaborator = await _unitOfWork.Collaborators.Entities
                 .Where(col => col.IdentificationNumber == request.IdentificationNumber)
+                .Where(col => col.CompanyId == request.CompanyId)
                 .Include(col => col.PersonalInformation)
                 .Include(col => col.WorkingInformation)
                 .FirstOrDefaultAsync(cancellationToken);
