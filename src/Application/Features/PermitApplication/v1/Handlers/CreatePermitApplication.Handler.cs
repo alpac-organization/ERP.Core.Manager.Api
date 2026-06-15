@@ -312,41 +312,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                             totalDays += fullWeeks * 7;
 
-                            // for (int i = 0; i < remainingDays; i++)
-                            // {
-                            //     DateOnly date = startDate.AddDays(fullWeeks * 7 + i);
-
-                            //     if (date.DayOfWeek == DayOfWeek.Sunday)
-                            //     {
-                            //         continue;
-                            //     }
-
-                            //     bool isHoliday = holidays.Any(h =>
-                            //         h.Day   == date.Day   &&
-                            //         h.Month == date.Month &&
-                            //         (
-                            //             h.IsGlobal ||
-                            //             (collaborator.WorkingInformation != null &&
-                            //             h.BranchId == collaborator.WorkingInformation.CompanyBranchId)
-                            //         )
-                            //     );
-
-                            //     if (isHoliday)
-                            //     {
-                            //         totalHolidays++;        
-                            //         continue;
-                            //     }
-
-                            //     if (date.DayOfWeek == DayOfWeek.Saturday)
-                            //     {
-                            //         if (collaborator.DoesWorkSaturdays)
-                            //             totalDays += 0.5m;
-
-                            //         continue;
-                            //     }
-
-                            //     totalDays += 1;
-                            // }
                             for (int i = 0; i <= remainingDays; i++)
                             {
                                 DateOnly date = startDate.AddDays(fullWeeks * 7 + i);
