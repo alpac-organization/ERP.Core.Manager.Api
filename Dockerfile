@@ -1,7 +1,7 @@
 # =========================
 # 1. BUILD STAGE
 # =========================
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.5 AS build
 WORKDIR /src
 
 ARG GH_PACKAGE_TOKEN
@@ -42,7 +42,7 @@ RUN dotnet publish "ERP.Core.Manager.Api.csproj" -c Release -o /app/publish /p:U
 # =========================
 # 3. RUNTIME STAGE
 # =========================
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.5 AS final
 WORKDIR /app
 
 USER root
