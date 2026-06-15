@@ -2,9 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
-using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries;
-using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Commands;
@@ -50,7 +47,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
       [ProducesResponseType(typeof(List<JobPositionDto>), StatusCodes.Status200OK)]
       [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
       [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-      public async Task<List<JobPositionDto>> GetCostCenterByAreaAsync([FromRoute] Guid company_id, [FromRoute] Guid area_id)
+      public async Task<List<JobPositionDto>> GetCostCenterByAreaAsync([FromRoute] Guid company_id)
       {
          return await _mediator.Send(new GetJobPositionsQuery()
          {

@@ -25,7 +25,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForPath(dest => dest.FirstStepStatus.ReviewedBy, opt => opt.MapFrom(src => src.ManagerFullname))
 
                 .ForPath(dest => dest.SecondStepStatus.IsApproved, opt => opt.MapFrom(src => src.SecondStepApproved))
-                .ForPath(dest => dest.SecondStepStatus.ReviewedBy, opt => opt.MapFrom(src => src.ManagerFullname))
+                .ForPath(dest => dest.SecondStepStatus.ReviewedBy, opt => opt.MapFrom(src => src.AdministratorFullName))
                 
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.PermitApllicationId, opt => opt.MapFrom(src => src.Id))

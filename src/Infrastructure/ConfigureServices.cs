@@ -10,6 +10,10 @@ using ERP.Core.Manager.Api.Infrastructure.Services;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Infrastructure.Persistence.Repositories.Catalogs;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories.Catalogs;
+using ERP.Core.Database.Domain.Entities.Payrolls;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories.Payrolls;
+using ERP.Core.Database.Infrastructure.Persistence.Repositories.Payroll;
+using ERP.Core.Clock.Database.Infrastructure;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -36,8 +40,14 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IPdfGeneratorServices, PdfGeneratorServices>();
             services.AddScoped<IAuthServices, AuthServices>();
 
+
+            services.AddScoped<ILocationsRepository, LocationsRepository>();
+            services.AddScoped<IAssistanceControlRepository, AssistanceControlRepository>();
+            // services.AddScoped<IPa
+
             // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
+            services.AddClockDatabaseServices(configuration);
 
             return services;
         }
