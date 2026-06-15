@@ -13,6 +13,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories.Catalogs;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories.Payrolls;
 using ERP.Core.Database.Infrastructure.Persistence.Repositories.Payroll;
+using ERP.Core.Clock.Database.Infrastructure;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -46,6 +47,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
 
             // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
+            services.AddClockDatabaseServices(configuration);
 
             return services;
         }

@@ -269,7 +269,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             {
                 //Caso de que el administrado haya aprobado la solicitud
                 permitApplication.FirtsStepApproved = true;
-                permitApplication.ManagerFullname = userFullname;
+                permitApplication.ManagerFullname = string.IsNullOrEmpty(permitApplication.ManagerFullname) ?  userFullname : permitApplication.ManagerFullname;
                 permitApplication.SecondStepApproved = true;
                 permitApplication.AdministratorFullName = userFullname;
 
@@ -283,6 +283,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 //Caso de que el administrado haya rechazado la solictud
                 permitApplication.SecondStepApproved = false;
                 permitApplication.AdministratorFullName = userFullname;
+                permitApplication.ManagerFullname = string.IsNullOrEmpty(permitApplication.ManagerFullname) ?  userFullname : permitApplication.ManagerFullname;
 
                 permitApplication.Status = PermitApplicationStatus.Rejected;
 
