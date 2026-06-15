@@ -46,7 +46,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             {
                 requestApplication.Status = PermitApplicationStatus.Cancelled;
                 requestApplication.FirtsStepApproved = null;
+                requestApplication.ManagerFullname = null;
                 requestApplication.SecondStepApproved = null;
+                requestApplication.AdministratorFullName = null;
             }
 
             await _unitOfWork.PermitApplications.UpdateAsync(requestApplication);
