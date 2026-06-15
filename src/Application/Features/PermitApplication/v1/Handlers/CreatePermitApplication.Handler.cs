@@ -50,18 +50,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 );
             }
 
-            var payrollActive = await _unitOfWork.Payrolls.Entities
-                .Where(payroll => payroll.Id == request.PayrollId)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (payrollActive is null)
-            {
-                return _errorManager.ThrowBadRequest<bool>(
-                    $"Ocurrio un error no puedes registrar solicitud si no existe un proceso de nomina activa asociado a este colaborador", 
-                    "ERP:003"
-                );                
-            }
-
             var collaborator = await _unitOfWork.Collaborators.Entities
                 .Include(col => col.WorkingInformation)
                 .FirstOrDefaultAsync(c => c.IdentificationNumber == request.IdentificationNumber && c.CompanyId == request.CompanyId, cancellationToken);
@@ -112,6 +100,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             {
                 return _errorManager.ThrowBadRequest<bool>("No tienes permisos para realizar esta operación", "ERP:01");
             }
+
+            var payrollActive = await _unitOfWork.Payrolls.Entities
+                .Where(payroll => payroll.Id == request.PayrollId)
+                .FirstOrDefaultAsync(cancellationToken);
 
             #endregion Validaciones
 
@@ -379,7 +371,28 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             //✅Serializamos la data adicional del permiso, solicitado y registramos
             permitApplication.AdditionalData = JsonSerializer.Serialize(AdditionalData);
-            await _unitOfWork.PermitApplications.CreatePermitApplication(permitApplication);
+
+            if (payrollActive is null)
+            {
+                await _unitOfWork.PermitApplicationsPending.CreatePermitApplicationPending(new()
+                {
+                    AdditionalData = permitApplication.AdditionalData,
+                    CollaboratorId = permitApplication.CollaboratorId,
+                    StartDate = permitApplication.StartDate,
+                    EndDate = permitApplication.EndDate,
+                    StartTime = permitApplication.StartTime,
+                    EndTime = permitApplication.EndTime,
+                    Description = permitApplication.Description,
+                    Type = permitApplication.Type,
+                    RequestedBy = ManagerUtils.FromSliceToCollaboratorFullname(collaborator),
+                    IsActive = true
+                });                
+            }
+            else
+            {            
+                await _unitOfWork.PermitApplications.CreatePermitApplication(permitApplication);
+            }
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return true;
