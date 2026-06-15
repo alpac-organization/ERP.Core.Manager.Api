@@ -13,8 +13,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Attendance.v1.Handlers
         public async Task<List<AttendanceDto>> Handle(GetAttendanceQuery request, CancellationToken cancellationToken)
         {
 
-            // var readings = await _clockUnitOfWork.Readings.Entities
-            //     .ToListAsync(cancellationToken);
+            var readings = await _clockUnitOfWork.Readings.Entities
+                .ToListAsync(cancellationToken);
 
             return [];
         }
