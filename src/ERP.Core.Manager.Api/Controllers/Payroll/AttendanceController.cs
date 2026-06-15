@@ -17,7 +17,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetAttendanceAsync([FromRoute] Guid companie_id, [FromRoute] string module_code)
+        public async Task<IActionResult> GetAttendanceAsync( )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
@@ -28,4 +28,4 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             return Ok();
         }
     }
-}
+}   
