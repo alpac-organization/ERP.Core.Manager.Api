@@ -420,6 +420,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Bonus                    = Bonus,
                 Commissions              = Commissions,
                 Antique                  = Antique,
+                YearAntique              = YearAntique,
 
                 GrossSalary              = GrossSalary,
                 TotalIncome              = TotalIncome,
