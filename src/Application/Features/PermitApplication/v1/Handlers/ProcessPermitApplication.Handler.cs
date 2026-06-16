@@ -267,9 +267,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             //No importa si el jefe directo rechazo la solicitud, puede reaprobar la solicitud
             if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && isApproved)
             {
-                //Caso de que el administrado haya aprobado la solicitud
-                permitApplication.FirtsStepApproved = true;
-                permitApplication.ManagerFullname = string.IsNullOrEmpty(permitApplication.ManagerFullname) ?  userFullname : permitApplication.ManagerFullname;
                 permitApplication.SecondStepApproved = true;
                 permitApplication.AdministratorFullName = userFullname;
 
