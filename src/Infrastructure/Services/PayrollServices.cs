@@ -184,7 +184,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             return true;
         }
 
-        public async Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken)
+        public async Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken, bool isFirstTimes)
         {
             #region Primera Validación de apertura
 
@@ -259,18 +259,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .OrderByDescending(income => income.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (TaxInformation is null)
-            {
-                _logger.LogInformation("No se encontro la información de acumlado del colaborador con identificaión: {identificaion}", collaborator.IdentificationNumber);
-                return;
-            }
 
-            var numberFortnights = TaxInformation.FlagNumberOfFortnights;
+            var numberFortnights = TaxInformation?.FlagNumberOfFortnights ?? 24;
 
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
-                TaxInformation.FlagNumberOfFortnights ?? 24,
-                TaxInformation.FlagSalaryEarned       ?? 0.0m,
-                TaxInformation.FlagAccumulatedIR      ?? 0.0m,
+                TaxInformation?.FlagNumberOfFortnights ?? 24,
+                TaxInformation?.FlagSalaryEarned       ?? 0.0m,
+                TaxInformation?.FlagAccumulatedIR      ?? 0.0m,
                 TotalIncome,
                 cancellationToken
             );
@@ -323,7 +318,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                 {
                     DeductionId         = deduction.Id,
-
                     AmountPaid          = deduction.FortnightlyAmount ?? 0.0m,
                     AmountPaidInDollars = (deduction.FortnightlyAmount ?? 0.0m) / 36.6243m,
                     Status              = DeductionPaymentStatus.Pending,
@@ -443,15 +437,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Registro del inss
 
-            if(payrollCreated.Period == PayrollPeriod.FirstPeriod)
-            {
-
-            }
-            else
-            {
-                
-            }
-
             #endregion
 
             #region Registro de Aguinaldo
@@ -503,21 +488,43 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #region Iniciar proceso de acumulados
 
             //Registrar el acumulado para la siguiente apertura de quincena
-            await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
+
+            if (isFirstTimes)
             {
-                AccumulatedIR           = TaxInformation.FlagAccumulatedIR      ?? 0.0m,
-                SalaryEarned            = TaxInformation.FlagSalaryEarned       ?? 0.0m,
-                NumberOfFortnights      = TaxInformation.FlagNumberOfFortnights ?? 24,
+                await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
+                {   
+                    AccumulatedIR           = TaxInformation?.FlagAccumulatedIR      ?? 0.0m,
+                    SalaryEarned            = TaxInformation?.FlagSalaryEarned       ?? 0.0m,
+                    NumberOfFortnights      = TaxInformation?.FlagNumberOfFortnights ?? 24,
 
-                FlagAccumulatedIR       = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation.FlagAccumulatedIR ?? 0.0m)  + BiweeklyIr,
-                FlagSalaryEarned        = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation.FlagSalaryEarned  ?? 0.0m)  + (TotalIncome - BiweeklyInss),
-                FlagNumberOfFortnights  = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 24    : (TaxInformation.FlagNumberOfFortnights - 1),
+                    FlagAccumulatedIR       = BiweeklyIr,
+                    FlagSalaryEarned        = TotalIncome - BiweeklyInss,
+                    FlagNumberOfFortnights  = 23,
 
-                PayrollId               = payrollCreated.Id,
-                CollaboratorId          = collaborator.Id,
+                    PayrollId               = payrollCreated.Id,
+                    CollaboratorId          = collaborator.Id,
 
-                AccumulatedSeniority    = 0.0m,
-            });
+                    AccumulatedSeniority    = 0.0m,
+                });
+            }
+            else
+            {
+                await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
+                {   
+                    AccumulatedIR           = TaxInformation?.FlagAccumulatedIR      ?? 0.0m,
+                    SalaryEarned            = TaxInformation?.FlagSalaryEarned       ?? 0.0m,
+                    NumberOfFortnights      = TaxInformation?.FlagNumberOfFortnights ?? 24,
+
+                    FlagAccumulatedIR       = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation?.FlagAccumulatedIR ?? 0.0m)  + BiweeklyIr,
+                    FlagSalaryEarned        = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation?.FlagSalaryEarned  ?? 0.0m)  + (TotalIncome - BiweeklyInss),
+                    FlagNumberOfFortnights  = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 24    : (TaxInformation?.FlagNumberOfFortnights - 1),
+
+                    PayrollId               = payrollCreated.Id,
+                    CollaboratorId          = collaborator.Id,
+
+                    AccumulatedSeniority    = 0.0m,
+                });
+            }
             
             #endregion
         }
