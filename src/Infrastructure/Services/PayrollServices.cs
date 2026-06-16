@@ -21,7 +21,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(col => col.CompanyId == companyId)
                 .Where(col => col.Status != CollaboratorStatus.Inactive)
                 .Include(col => col.WorkingInformation)
-                .Where(col => col.WorkingInformation.BranchId == branchId)
+                .Where(col => col.WorkingInformation.CompanyBranchId == branchId)
                 .Include(c => c.Salaries
                     .Where(s => s.EndDate == null && s.SalaryType == salaryType)
                 )
@@ -232,6 +232,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
 
+
+            int YearAntique = 0;
             decimal Bonus = 0.0m;
             decimal Antique = 0.0m;
             decimal Overtime = 0.0m;
@@ -242,7 +244,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
             {
-                Antique = _calculatorDeductions.CalculateAntique(monthlySalary, payrollStart, entryDate);
+                var (antique, yearsOfService) = _calculatorDeductions.CalculateAntique(monthlySalary, payrollStart, entryDate);;
+                Antique = antique;
+                YearAntique = yearsOfService;
             }
 
             #endregion
@@ -579,6 +583,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 
             // }
 
+
+
+
+
+            //Se finaliza el proceso de registro a la nomina prestacionada.
         }
 
         public async Task RegisterCollaboratorToAvasaTransport()

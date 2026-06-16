@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class CalculatorDeductions(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : ICalculatorDeductions
     {
-        public decimal CalculateAntique( decimal monthlySalary, DateOnly payrollStartDate, DateOnly collaboratorEntryDate)
+       public (decimal antiquePay, int yearsOfService) CalculateAntique(decimal monthlySalary, DateOnly payrollStartDate, DateOnly collaboratorEntryDate)
         {
             _logger.LogInformation("Iniciando Proceso para calcular antiguedad✅");
 
@@ -47,7 +47,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 _    => 0.20m
             };
 
-            return seniorityPercentage * monthlySalary;
+            return (seniorityPercentage * monthlySalary, yearsOfService);
         }
         public async Task<decimal> CalculateInss(decimal GrossSalary, CancellationToken cancellationToken)
         {
@@ -185,6 +185,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
 
+            int YearAntique = 0;
             decimal Bonus = 0.0m;
             decimal Antique = 0.0m;
             decimal Overtime = 0.0m;
@@ -195,7 +196,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
             {
-                Antique = CalculateAntique(monthlySalary, payrollStart, entryDate);
+                var (antique, yearsOfService) = CalculateAntique(monthlySalary, payrollStart, entryDate);
+                Antique = antique;
+                YearAntique = yearsOfService;
             }
 
             #endregion
