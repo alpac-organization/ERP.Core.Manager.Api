@@ -84,6 +84,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 {
                     var collaborators = await _payrollServices.ObtainsCollaboratorByType(SalaryType.Fixed, request.CompanyId, request.BranchId);
 
+                
                     foreach(var collaborator in collaborators)
                     {
                         await _payrollServices.RegisterCollaboratorToPayroll(newPayroll.Id, collaborator, cancellationToken);   

@@ -355,9 +355,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         break;
                     }
                 default:
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible de momento", "ERP:ErrorRequest");
-                    }
+                {
+                    return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible de momento", "ERP:ErrorRequest");
+                }
             }
 
             //✅Serializamos la data adicional del permiso, solicitado y registramos
