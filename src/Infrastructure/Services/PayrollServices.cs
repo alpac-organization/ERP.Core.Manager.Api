@@ -335,20 +335,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
             #endregion
 
-            decimal totalDeductionsAdditionals =
-                AdditionalDeducctions.Loans
-                + AdditionalDeducctions.Purisima
-                + AdditionalDeducctions.ChildSupportGarnishment
-                + AdditionalDeducctions.SalaryAdvance
-                + AdditionalDeducctions.ChristmasBonusAdvance
-                + AdditionalDeducctions.JudicialSeizures
-                + AdditionalDeducctions.UniformDeduction
-                + AdditionalDeducctions.CashShortage
-                + AdditionalDeducctions.OtherDeductions
-                + AdditionalDeducctions.DeductionForLossesBulk
-                + AdditionalDeducctions.Absences
-                + AdditionalDeducctions.Sanction
-                + AdditionalDeducctions.LateArrivals;
+                decimal totalDeductionsAdditionals =
+                    AdditionalDeducctions.Loans
+                    + AdditionalDeducctions.Purisima
+                    + AdditionalDeducctions.ChildSupportGarnishment
+                    + AdditionalDeducctions.SalaryAdvance
+                    + AdditionalDeducctions.ChristmasBonusAdvance
+                    + AdditionalDeducctions.JudicialSeizures
+                    + AdditionalDeducctions.UniformDeduction
+                    + AdditionalDeducctions.CashShortage
+                    + AdditionalDeducctions.OtherDeductions
+                    + AdditionalDeducctions.DeductionForLossesBulk
+                    + AdditionalDeducctions.Absences
+                    + AdditionalDeducctions.Sanction
+                    + AdditionalDeducctions.LateArrivals;
 
             #region Asignación de viaticos
 
@@ -420,6 +420,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Bonus                    = Bonus,
                 Commissions              = Commissions,
                 Antique                  = Antique,
+                YearAntique              = YearAntique,
 
                 GrossSalary              = GrossSalary,
                 TotalIncome              = TotalIncome,
@@ -471,16 +472,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal vacationAmountInCordobas = vacationControl.AvailableVacations * dailySalary;
             decimal vacationAmountInDollars =  (vacationControl.AvailableVacations * dailySalary) / 36.6243m;
 
-            await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
-            {
-                BeginningBalance = vacationControl.AvailableVacations,
-                FinalBalance = vacationControl.AvailableVacations,
-                PayrollId = payrollCreated.Id,
-                CollaboratorId = collaborator.Id,
-                AvailableVacations  = vacationControl.AvailableVacations,
-                EquivalentQuantity = vacationAmountInCordobas,
-                EquivalentQuantityInDollars = vacationAmountInDollars
-            });
+            // await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
+            // {
+            //     BeginningBalance = vacationControl.AvailableVacations,
+            //     FinalBalance = vacationControl.AvailableVacations,
+            //     PayrollId = payrollCreated.Id,
+            //     CollaboratorId = collaborator.Id,
+            //     AvailableVacations  = vacationControl.AvailableVacations,
+            //     EquivalentQuantity = vacationAmountInCordobas,
+            //     EquivalentQuantityInDollars = vacationAmountInDollars
+            // });
 
             #endregion
 
