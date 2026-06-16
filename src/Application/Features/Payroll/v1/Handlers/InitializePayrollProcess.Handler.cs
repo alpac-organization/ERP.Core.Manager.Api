@@ -87,7 +87,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 
                     foreach(var collaborator in collaborators)
                     {
-                        await _payrollServices.RegisterCollaboratorToPayroll(newPayroll.Id, collaborator, cancellationToken);   
+                        await _payrollServices.RegisterCollaboratorToPayroll(newPayroll.Id, collaborator, cancellationToken, false);   
                     }
 
                     await _unitOfWork.SaveChangesAsync(cancellationToken);

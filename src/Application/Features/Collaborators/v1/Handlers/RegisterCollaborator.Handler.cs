@@ -127,7 +127,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                         }
                         else
                         {
-                            await _payrollServices.RegisterCollaboratorToPayroll(payroll.Id, collaborator, cancellationToken);
+                            await _payrollServices.RegisterCollaboratorToPayroll(payroll.Id, collaborator, cancellationToken, true);
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
                             
                             _logger.LogInformation("Colaborador ingresado correctamente a la nomina✅");
