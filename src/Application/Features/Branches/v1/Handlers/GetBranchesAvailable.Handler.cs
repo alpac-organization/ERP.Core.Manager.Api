@@ -12,6 +12,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Branches.v1.Handlers
         public async Task<List<BranchesDto>> Handle(GetBranchesAvailableQuery request, CancellationToken cancellationToken)
         {
             var branches = await _unitOfWork.Branches.Entities
+                .Where(branch => branch.IsActive)
                 .Where(branch => branch.CompanyId == request.CompanyId)
                 .ToListAsync(cancellationToken);
 
