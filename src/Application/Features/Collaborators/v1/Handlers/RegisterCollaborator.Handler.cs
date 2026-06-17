@@ -73,6 +73,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
                 if (isSuccess is false)
                 {
+                    //Rollback
                     return _errorManager.ThrowBadRequest<bool>("No se pudo realizar la asignación de salario. consultar con IT", "ERP");
                 }
 
@@ -94,10 +95,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                     await _payrollServices.AssignTravelAllowance(collaboratorEntity, request.TravelExpenses);
                 }
 
-                #endregion
 
-                //✅Colaborador registrado con exito
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                #endregion
                 
                 //Procesos para realizar insert a la nomina actual
                 #region Insertar colaborador a la nomina si se encuentra activa
@@ -134,9 +135,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                         }
                     }    
                 }
-
                 #endregion
 
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
                 return true;
             }
             else

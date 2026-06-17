@@ -10,7 +10,6 @@ using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
-
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IPayrollServices
@@ -105,7 +104,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     EndDate = null
                 };
 
-
+                //Rollback
                 await _unitOfWork.AssignedTravelExpenses.RegisterAssignedTravelExpenses(history);
             }
         }
@@ -125,6 +124,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             };
 
             await _unitOfWork.Vacations.RegisterVacationControl(vacation);
+
+            //Rollback
         }
         
         public async Task<bool> AssignSalary(Collaborator collaborator, SalaryInformation salaryInformation)
@@ -184,7 +185,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             return true;
         }
 
-        public async Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken, bool isFirstTimes)
+
+        //Inicialización de nomina, al registrar colaorador. reggistro y es primera vez y cuando es inicialización y es primera vez
+        public async Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken, bool isFirstTimes = false)
         {
             #region Primera Validación de apertura
 
@@ -232,7 +235,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
 
-
             int YearAntique = 0;
             decimal Bonus = 0.0m;
             decimal Antique = 0.0m;
@@ -244,7 +246,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
             {
-                var (antique, yearsOfService) = _calculatorDeductions.CalculateAntique(monthlySalary, payrollStart, entryDate);;
+                var (antique, yearsOfService) = _calculatorDeductions.CalculateAntique(BiweeklySalary, payrollEnd, entryDate);;
                 Antique = antique;
                 YearAntique = yearsOfService;
             }
@@ -252,7 +254,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #endregion
             
             decimal GrossSalary = ProportionalBiweeklySalary;
-            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions + Antique;
+            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Commissions + Antique;
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
@@ -269,6 +271,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 TotalIncome,
                 cancellationToken
             );
+
+            TotalIncome += Bonus;
 
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
@@ -311,10 +315,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     AdditionalDeducctions.OtherDeductions += deduction.FortnightlyAmount ?? 0.0m;                
                 }
 
-                //Aqui van los embargos judiciales
-
-                //Aqui van los embargos alimenticios
-
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                 {
                     DeductionId         = deduction.Id,
@@ -329,20 +329,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
             #endregion
 
-                decimal totalDeductionsAdditionals =
-                    AdditionalDeducctions.Loans
-                    + AdditionalDeducctions.Purisima
-                    + AdditionalDeducctions.ChildSupportGarnishment
-                    + AdditionalDeducctions.SalaryAdvance
-                    + AdditionalDeducctions.ChristmasBonusAdvance
-                    + AdditionalDeducctions.JudicialSeizures
-                    + AdditionalDeducctions.UniformDeduction
-                    + AdditionalDeducctions.CashShortage
-                    + AdditionalDeducctions.OtherDeductions
-                    + AdditionalDeducctions.DeductionForLossesBulk
-                    + AdditionalDeducctions.Absences
-                    + AdditionalDeducctions.Sanction
-                    + AdditionalDeducctions.LateArrivals;
+            decimal totalDeductionsAdditionals =
+                AdditionalDeducctions.Loans
+                + AdditionalDeducctions.Purisima
+                + AdditionalDeducctions.ChildSupportGarnishment
+                + AdditionalDeducctions.SalaryAdvance
+                + AdditionalDeducctions.ChristmasBonusAdvance
+                + AdditionalDeducctions.JudicialSeizures
+                + AdditionalDeducctions.UniformDeduction
+                + AdditionalDeducctions.CashShortage
+                + AdditionalDeducctions.OtherDeductions
+                + AdditionalDeducctions.DeductionForLossesBulk
+                + AdditionalDeducctions.Absences
+                + AdditionalDeducctions.Sanction
+                + AdditionalDeducctions.LateArrivals;
 
             #region Asignación de viaticos
 
@@ -437,9 +437,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Registro del inss
 
+
             #endregion
 
             #region Registro de Aguinaldo
+
             #endregion
 
             #region Registro de vacaciones
@@ -517,7 +519,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                     FlagAccumulatedIR       = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation?.FlagAccumulatedIR ?? 0.0m)  + BiweeklyIr,
                     FlagSalaryEarned        = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation?.FlagSalaryEarned  ?? 0.0m)  + (TotalIncome - BiweeklyInss),
-                    FlagNumberOfFortnights  = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 24    : (TaxInformation?.FlagNumberOfFortnights - 1),
+                    FlagNumberOfFortnights  = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 24    : (TaxInformation?.FlagNumberOfFortnights ?? 25 - 1),
 
                     PayrollId               = payrollCreated.Id,
                     CollaboratorId          = collaborator.Id,

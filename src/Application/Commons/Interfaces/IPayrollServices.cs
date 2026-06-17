@@ -21,7 +21,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
         //Asignar Salario al colaborador
         Task<bool> AssignSalary(Collaborator collaborator, SalaryInformation salaryInformation);
 
-        Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken, bool isFirstTimes);
+        Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken, bool isFirstTimes = false);
 
         Task RegisterCollaboratorToVigemsaProfessional(Guid payrollId, Collaborator collaborator);
 

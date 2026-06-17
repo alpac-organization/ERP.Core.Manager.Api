@@ -265,8 +265,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             int daysWorked = 15;
             DateOnly entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
-            DateOnly payrollStart = DateOnly.FromDateTime(salaryInformation.StartDate);
-
+            DateOnly payrollStart = ordinaryPayrollInfo.Payroll.StartDate;
             DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
             if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
@@ -275,7 +274,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (daysWorked < 0) daysWorked = 0;
             if (daysWorked > 15) daysWorked = 15;
 
-            decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Commissions + ordinaryPayrollInfo.BiweeklySalary;
+            decimal salaryDaily = salaryInformation.AmountInLocal / 30;
+            decimal salaryProportional = salaryDaily * daysWorked;
+
+            decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Commissions + salaryProportional;
 
             var bonus = amountBonus;
 
@@ -284,7 +286,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 bonus = amountBonus * 36.6243m;
             }
 
-            TotalIncome += bonus;         
             ordinaryPayrollInfo.TotalIncome = TotalIncome;
             ordinaryPayrollInfo.Bonus = bonus;
 
@@ -293,16 +294,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 lastIncomeTax?.SalaryEarned       ?? 0.0m,
                 lastIncomeTax?.AccumulatedIR      ?? 0.0m,
                 TotalIncome,
-                default
+                default,
+                false,
+                bonus
             );
+
+            TotalIncome += bonus;
 
             lastIncomeTax?.FlagAccumulatedIR = lastIncomeTax?.AccumulatedIR + BiweeklyIr;
             lastIncomeTax?.FlagSalaryEarned  = TotalIncome - BiweeklyInss;
 
             //Actualizar datos de deducciones.
-            ordinaryPayrollInfo.Ir                   = BiweeklyIr;
-            ordinaryPayrollInfo.Inss                 = BiweeklyInss;
-            ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+            ordinaryPayrollInfo.Ir                   += BiweeklyIr;
+            ordinaryPayrollInfo.Inss                 += BiweeklyInss;
+            ordinaryPayrollInfo.TotalLegalDeductions = ordinaryPayrollInfo.Ir + ordinaryPayrollInfo.Inss;
 
             var deductions =
                 JsonSerializer.Deserialize<DeductionsAdditionalData>(

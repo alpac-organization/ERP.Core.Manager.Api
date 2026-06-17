@@ -11,13 +11,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class CalculatorDeductions(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : ICalculatorDeductions
     {
-       public (decimal antiquePay, int yearsOfService) CalculateAntique(decimal monthlySalary, DateOnly payrollStartDate, DateOnly collaboratorEntryDate)
+       public (decimal antiquePay, int yearsOfService) CalculateAntique(decimal monthlySalary, DateOnly payrollEnd, DateOnly collaboratorEntryDate)
         {
             _logger.LogInformation("Iniciando Proceso para calcular antiguedad✅");
 
-            int yearsOfService = payrollStartDate.Year - collaboratorEntryDate.Year;
+            int yearsOfService = payrollEnd.Year - collaboratorEntryDate.Year;
 
-            if (collaboratorEntryDate > payrollStartDate.AddYears(-yearsOfService))
+            if (collaboratorEntryDate > payrollEnd.AddYears(-yearsOfService))
             {
                 yearsOfService--;
             }
@@ -71,69 +71,127 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
 
         //Este ir se basa en la numero de quincena que se encuentra actualmente el colaborador
-        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken, bool isSudsidy = false)
+        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken, bool isSudsidy = false, decimal additionalPayment = 0.0m)
         {
             var nextFortnight = NFortnight;
-
             decimal biweeklyInss = 0.0m;
+            decimal inssAdditionalPayment = 0.0m;
 
             if (!isSudsidy)
             {
                 biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
             }
 
+            if (additionalPayment > 0)
+            {
+                inssAdditionalPayment = await CalculateInss(additionalPayment, cancellationToken);
+            }
+
             //Salario quincenal libre de inss.
             decimal netSalary = GrossSalary - biweeklyInss;
+            decimal netAdditionalPayment = additionalPayment - inssAdditionalPayment;
+        
             decimal AnnualSalary = netSalary * nextFortnight;
+            decimal AnnualAdditionalPayment = netAdditionalPayment + AnnualSalary;
 
             decimal totalAnnualSalary = AnnualSalary + AccumulatedAccrued;
+            decimal totalAnnualAdditionalPayment = AnnualAdditionalPayment + AccumulatedAccrued;
+            
             decimal AnnualIr;
+            decimal AnnualAdditionalIr;
 
             //Agregar regla del ir
             decimal BaseTax;
             decimal AnnualExpectationIR = 0.0m;
+            decimal AnnualExpectationAdditionalIr = 0.0m;
+
             decimal IrBiweekly = 0.0m;
+            decimal IrBiweeklyAdditional= 0.0m;
 
             if (totalAnnualSalary <= 100000)
             {
-                AnnualIr = 0;                
+                AnnualIr = 0;             
             }
             else if (totalAnnualSalary > 100000 && totalAnnualSalary <= 200000)
             {
                 BaseTax = 0;
                 AnnualIr = ((totalAnnualSalary - 100000) * 0.15m);
-                AnnualExpectationIR = AnnualIr + BaseTax;
+                AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 100000) * 0.15m);
 
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                AnnualExpectationIR = AnnualIr + BaseTax;
+                AnnualExpectationAdditionalIr = AnnualAdditionalIr + BaseTax;
+
+                if (additionalPayment == 0)
+                {
+                    IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                }
+                else
+                {
+                    IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                    IrBiweeklyAdditional = AnnualExpectationAdditionalIr  -  AnnualExpectationIR;
+                }
             }
             else if (totalAnnualSalary > 200000 && totalAnnualSalary <= 350000)
             {
                 BaseTax = 15000.00m;
                 AnnualIr = ((totalAnnualSalary - 200000) * 0.20m);
-                AnnualExpectationIR = AnnualIr + BaseTax;
+                AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 20000) * 0.20m);
 
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                AnnualExpectationIR = AnnualIr + BaseTax;
+                AnnualExpectationAdditionalIr = AnnualAdditionalIr + BaseTax;
+
+                if (additionalPayment == 0)
+                {
+                    IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                }
+                else
+                {
+                    IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                    IrBiweeklyAdditional = AnnualExpectationAdditionalIr  -  AnnualExpectationIR;
+                }
             }
             else if (totalAnnualSalary > 350000 && totalAnnualSalary <= 500000)
             {
                 BaseTax = 45000.00m;
                 AnnualIr = ((totalAnnualSalary - 350000) * 0.25m);
-                AnnualExpectationIR = AnnualIr + BaseTax;
+                AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 350000) *  0.25m);
 
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                AnnualExpectationIR = AnnualIr + BaseTax;
+                AnnualExpectationAdditionalIr = AnnualAdditionalIr + BaseTax;
+
+                if (additionalPayment == 0)
+                {
+                    IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                }
+                else
+                {
+                    IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                    IrBiweeklyAdditional = AnnualExpectationAdditionalIr  -  AnnualExpectationIR;
+                }
             }
             else
             {
                 BaseTax = 82500.00m;
                 AnnualIr = ((totalAnnualSalary - 500000) * 0.30m);
+                AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 500000) * 0.30m);
 
                 AnnualExpectationIR = AnnualIr + BaseTax;
-                IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                AnnualExpectationAdditionalIr = AnnualAdditionalIr + BaseTax;
+
+                if (additionalPayment == 0)
+                {
+                    IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                }
+                else
+                {
+                    IrBiweekly = (AnnualExpectationIR - AccumulatedIR) / nextFortnight;
+                    IrBiweeklyAdditional = AnnualExpectationAdditionalIr  -  AnnualExpectationIR;
+                }
             }
 
             return new IrCalculationResult(
-                biweeklyInss,
-                IrBiweekly
+                biweeklyInss + inssAdditionalPayment,
+                IrBiweekly + IrBiweeklyAdditional
             );
         }
 
@@ -196,7 +254,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
             {
-                var (antique, yearsOfService) = CalculateAntique(monthlySalary, payrollStart, entryDate);
+                var (antique, yearsOfService) = CalculateAntique(BiweeklySalary, payrollEnd, entryDate);
                 Antique = antique;
                 YearAntique = yearsOfService;
             }
