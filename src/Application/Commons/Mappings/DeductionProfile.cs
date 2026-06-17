@@ -30,7 +30,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.TotalBalanceInDollars, opt => opt.MapFrom(src => src.TotalBalanceInDollars))
                 .ForMember(dest => dest.DeductionId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount))
-                .ForMember(dest => dest.TotalAmountInDollars, opt => opt.MapFrom(src => src.TotalAmountInDollars));;
+                .ForMember(dest => dest.TotalAmountInDollars, opt => opt.MapFrom(src => src.TotalAmountInDollars));
 
 
             CreateMap<DeductionPaymentHistory, DeductionPaymentsDto>()

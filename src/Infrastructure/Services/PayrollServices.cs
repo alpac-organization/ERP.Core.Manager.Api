@@ -10,7 +10,6 @@ using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
-
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IPayrollServices
@@ -184,7 +183,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             return true;
         }
 
-        public async Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken, bool isFirstTimes)
+        public async Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken, bool isFirstTimes = false)
         {
             #region Primera Validación de apertura
 
@@ -232,7 +231,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
 
-
             int YearAntique = 0;
             decimal Bonus = 0.0m;
             decimal Antique = 0.0m;
@@ -244,7 +242,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
             {
-                var (antique, yearsOfService) = _calculatorDeductions.CalculateAntique(monthlySalary, payrollStart, entryDate);;
+                var (antique, yearsOfService) = _calculatorDeductions.CalculateAntique(BiweeklySalary, payrollEnd, entryDate);;
                 Antique = antique;
                 YearAntique = yearsOfService;
             }
@@ -253,6 +251,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             
             decimal GrossSalary = ProportionalBiweeklySalary;
             decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions + Antique;
+
+            if (collaborator.IdentificationNumber == "0011601001024W")
+            {
+                
+            }
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
@@ -437,9 +440,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Registro del inss
 
+
             #endregion
 
             #region Registro de Aguinaldo
+
             #endregion
 
             #region Registro de vacaciones
@@ -517,7 +522,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                     FlagAccumulatedIR       = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation?.FlagAccumulatedIR ?? 0.0m)  + BiweeklyIr,
                     FlagSalaryEarned        = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation?.FlagSalaryEarned  ?? 0.0m)  + (TotalIncome - BiweeklyInss),
-                    FlagNumberOfFortnights  = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 24    : (TaxInformation?.FlagNumberOfFortnights - 1),
+                    FlagNumberOfFortnights  = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 24    : (TaxInformation?.FlagNumberOfFortnights ?? 25 - 1),
 
                     PayrollId               = payrollCreated.Id,
                     CollaboratorId          = collaborator.Id,
