@@ -17,9 +17,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
-            if(!access.IsSuccess) 
+            if(!access.IsSuccess)
             {
-                return access.ErrorResponse!; 
+                return access.ErrorResponse!;
             }
 
             var permitQuery = _unitOfWork.PermitApplications.Entities
