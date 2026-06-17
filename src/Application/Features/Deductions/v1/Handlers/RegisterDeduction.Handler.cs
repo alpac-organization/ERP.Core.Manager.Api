@@ -146,6 +146,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                                 return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");   
                             }
 
+                            var deductionActive = await _unitOfWork.Deductions.Entities
+                                .Where(ded => ded.Type == request.DeductionType)
+                                .Where(ded => ded.CollaboratorId == collaboratorInformation.Id)
+                                .Where(ded => ded.Status == DeductionStatus.Progress)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (deductionActive is not null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>("Este colaborador ya cuenta con una aportación de purisima","ERP");
+                            }
+
                             _logger.LogInformation("🚩Iniciando registro de deducción por purisima, collaborador: {identificacion}", payload.IdentificationNumber);
                                 
                             await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, payload.Amount, request.PayrollId, payload.NumberFortnights);
@@ -167,6 +178,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                                 {
                                     _logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
                                     continue;   
+                                }
+
+                                var deductionActive = await _unitOfWork.Deductions.Entities
+                                    .Where(ded => ded.Type == request.DeductionType)
+                                    .Where(ded => ded.CollaboratorId == collaboratorInformation.Id)
+                                    .Where(ded => ded.Status == DeductionStatus.Progress)
+                                    .FirstOrDefaultAsync(cancellationToken);
+
+                                if (deductionActive is not null)
+                                {
+                                    _logger.LogInformation("El colaborador con cedula {identification} ya cuenta con una aporte de purisima activa", collaborator.IdentificationNumber);
+                                    continue;
                                 }
 
                                 await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, collaborator.Amount, payrollActive.Id, collaborator.NumberFortnights);
