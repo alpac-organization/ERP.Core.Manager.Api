@@ -124,236 +124,201 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             switch (request.PermitApplicationType)
             {
                 case PermitApplicationType.MedicalAppointment:
+                {
+                    _logger.LogInformation("🚀Iniciando proceso de registro de solicitud de permiso.");
+
+                    var medicalReq = request?.PermitApplicationMedicalAppointment ?? new();
+
+                    permitApplication.IsWithRangeDate = false;
+                    permitApplication.StartDate = medicalReq.StartDate;
+                    permitApplication.EndDate = medicalReq.StartDate;
+                    permitApplication.StartTime = medicalReq.StartTime;
+                    permitApplication.EndTime = medicalReq.EndTime;
+                    permitApplication.Type = PermitApplicationType.MedicalAppointment;
+
+                    MappingRecords(request?.Channel ?? Channels.PersonalPanel, permitApplication, access.Role?.RoleType ?? RoleType.Operator, user.Fullname);
+
+                    if (medicalReq.IsFullDay)
                     {
-                        _logger.LogInformation("🚀Iniciando proceso de registro de solicitud de permiso.");
+                        //Lo definimos como dia completo
+                        permitApplication.AmountDays = 1;
+                        AdditionalData.MedicalAppointmentData.IsFullDay = true;
+                    }
+                    else
+                    {
+                        var endTime = medicalReq.EndTime!.Value;
+                        var startTime = medicalReq.StartTime!.Value;
 
-                        var medicalReq = request?.PermitApplicationMedicalAppointment ?? new();
+                        int totalHours = endTime.Hour - startTime.Hour;
 
+                        decimal daysToDeduct = totalHours switch
+                        {
+                            1 => 0.1m,
+                            2 => 0.2m,
+                            3 => 0.3m,
+                            4 => 0.4m,
+                            5 => 0.5m,
+                            6 => 0.6m,
+                            7 => 0.7m,
+                            _ when totalHours >= 8 => 1.0m,
+                            _ => 0.0m
+                        };
+
+                        permitApplication.AmountDays = daysToDeduct;
                         permitApplication.IsWithRangeDate = false;
-                        permitApplication.StartDate = medicalReq.StartDate;
-                        permitApplication.EndDate = medicalReq.StartDate;
-                        permitApplication.StartTime = medicalReq.StartTime;
-                        permitApplication.EndTime = medicalReq.EndTime;
-                        permitApplication.Type = PermitApplicationType.MedicalAppointment;
 
-                        MappingRecords(request?.Channel ?? Channels.PersonalPanel, permitApplication, access.Role?.RoleType ?? RoleType.Operator, user.Fullname);
-
-                        if (medicalReq.IsFullDay)
-                        {
-                            //Lo definimos como dia completo
-                            permitApplication.AmountDays = 1;
-                            AdditionalData.MedicalAppointmentData.IsFullDay = true;
-                        }
-                        else
-                        {
-                            var endTime = medicalReq.EndTime!.Value;
-                            var startTime = medicalReq.StartTime!.Value;
-
-                            int totalHours = endTime.Hour - startTime.Hour;
-
-                            decimal daysToDeduct = totalHours switch
-                            {
-                                1 => 0.1m,
-                                2 => 0.2m,
-                                3 => 0.3m,
-                                4 => 0.4m,
-                                5 => 0.5m,
-                                6 => 0.6m,
-                                7 => 0.7m,
-                                _ when totalHours >= 8 => 1.0m,
-                                _ => 0.0m
-                            };
-
-                            permitApplication.AmountDays = daysToDeduct;
-                            permitApplication.IsWithRangeDate = false;
-
-                            AdditionalData.MedicalAppointmentData.IsFullDay = false;
-                        }
-
-                        //Evaluar las imagenes adjuntadas.
-                        AdditionalData.MedicalAppointmentData.ImagesAttached = medicalReq.Images;
-
-                        //✅Terminar de evaluar la solicitud
-                        break;
+                        AdditionalData.MedicalAppointmentData.IsFullDay = false;
                     }
+
+                    //Evaluar las imagenes adjuntadas.
+                    AdditionalData.MedicalAppointmentData.ImagesAttached = medicalReq.Images;
+
+                    //✅Terminar de evaluar la solicitud
+                    break;
+                }
                 case PermitApplicationType.DonatedVacations:
-                    {
-                        //Validamos la cedula de la persona que viene a recibir el gozo de vacaciones donadas.
-                        // if (request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive is null)
-                        // {
-                        //     return _errorManager.ThrowBadRequest<bool>("La identificación del colaborador que recibiras las vacaciones es requerido!", "ERP:02"); 
-                        // }
-
-                        // var collaboratoToReceive = await _unitOfWork.Collaborators.Entities
-                        //     .Where(col => col.IdentificationNumber == request.PermitApplicationDonatedVacations!.IdentificationCollaboratorToReceive)
-                        //     .FirstOrDefaultAsync(cancellationToken);
-
-                        // if (collaboratoToReceive is null)
-                        // {
-                        //     return _errorManager.ThrowBadRequest<bool>("El colaborador beneficiado por las vacaciones donadas no se existe!", "ERP:03");       
-                        // }
-
-                        // var vacationControl = await _unitOfWork.Vacations.Entities
-                        //     .Where(vac => vac.CollaboratorId == collaborator.Id)
-                        //     .FirstOrDefaultAsync(cancellationToken);
-
-                        // if (vacationControl is null)
-                        // {
-                        //     return _errorManager.ThrowBadRequest<bool>("No se encontro su control de vacaciones no puede generar esta solicitud", "ERP:04");       
-                        // }
-
-                        // if (vacationControl.AvailableVacations < request.PermitApplicationDonatedVacations.AmountDays)
-                        // {
-                        //      return _errorManager.ThrowBadRequest<bool>("No se cuentas con sufientes dias de vacaciones para donar", "ERP:05");       
-                        // }
-
-                        // //Mapeamos la data para crear la solicitud de permiso
-                        // MapperCaseDefaultValues(permitApplication, access.Role!.RoleType, request.Channel, request.ModuleCode);
-                        // permitApplication.Type = PermitApplicationType.DonatedVacations;
-                        // permitApplication.AmountDays = request.PermitApplicationDonatedVacations?.AmountDays ?? 0;
-                        // permitApplication.IdentificationCollaboratorToReceive = request.PermitApplicationDonatedVacations?.IdentificationCollaboratorToReceive ?? string.Empty;
-
-                        break;
-                    }
+                {
+                    return  _errorManager.ThrowBadRequest<bool>("Esta acción no se encuentra disponible", "EPR");
+                }
                 case PermitApplicationType.Vacation:
+                {
+                    //Registro de solicitud de vacaciones
+                    var vacationData = request.PermitApplicationVacation ?? new();
+
+                    permitApplication.PayrolId = request.PayrollId;
+                    permitApplication.EndDate = vacationData.EndDate;
+                    permitApplication.EndTime = vacationData.EndTime;
+                    permitApplication.StartDate = vacationData.StartDate;
+                    permitApplication.StartTime = vacationData.StartTime;
+                    permitApplication.Type = PermitApplicationType.Vacation;
+
+                    MappingRecords(request.Channel, permitApplication, access.Role?.RoleType ?? RoleType.Operator, user.Fullname);
+
+                    //Obtener control de vacaciones.
+                    var vacationControl = await _unitOfWork.Vacations.Entities
+                        .Include(vtl => vtl.Collaborator)
+                        .Where(vtl => vtl.Collaborator.IdentificationNumber == request.IdentificationNumber)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (vacationControl is null)
                     {
-                        //Registro de solicitud de vacaciones
-                        var vacationData = request.PermitApplicationVacation ?? new();
+                        return _errorManager.ThrowBadRequest<bool>("No se encontro el registro de vacaciones de este colaborador", "ERP:01");
+                    }
 
-                        permitApplication.PayrolId = request.PayrollId;
-                        permitApplication.EndDate = vacationData.EndDate;
-                        permitApplication.EndTime = vacationData.EndTime;
-                        permitApplication.StartDate = vacationData.StartDate;
-                        permitApplication.StartTime = vacationData.StartTime;
-                        permitApplication.Type = PermitApplicationType.Vacation;
-
-                        MappingRecords(request.Channel, permitApplication, access.Role?.RoleType ?? RoleType.Operator, user.Fullname);
-
-                        //Obtener control de vacaciones.
-                        var vacationControl = await _unitOfWork.Vacations.Entities
-                            .Include(vtl => vtl.Collaborator)
-                            .Where(vtl => vtl.Collaborator.IdentificationNumber == request.IdentificationNumber)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (vacationControl is null)
+                    if (request.PermitApplicationVacation?.IsFullDay ?? false)
+                    {
+                        if (vacationControl.AvailableVacations < 1.0m)
                         {
-                            return _errorManager.ThrowBadRequest<bool>("No se encontro el registro de vacaciones de este colaborador", "ERP:01");
+                            return _errorManager.ThrowBadRequest<bool>("No cuentas con dias sufientes para solicitar vacaciones", "ERP:02");
                         }
 
-                        if (request.PermitApplicationVacation?.IsFullDay ?? false)
+                        permitApplication.AmountDays = 1.0m;
+                        permitApplication.IsWithRangeDate = false;
+                    }
+                    else if (request.PermitApplicationVacation?.IsItMidday ?? false)
+                    {
+                        if (vacationControl.AvailableVacations < 0.5m)
                         {
-                            if (vacationControl.AvailableVacations < 1.0m)
-                            {
-                                return _errorManager.ThrowBadRequest<bool>("No cuentas con dias sufientes para solicitar vacaciones", "ERP:02");
-                            }
-
-                            permitApplication.AmountDays = 1.0m;
-                            permitApplication.IsWithRangeDate = false;
+                            return _errorManager.ThrowBadRequest<bool>("No cuentas con dias sufientes para solicitar vacaciones", "ERP:03");
                         }
-                        else if (request.PermitApplicationVacation?.IsItMidday ?? false)
-                        {
-                            if (vacationControl.AvailableVacations < 0.5m)
-                            {
-                                return _errorManager.ThrowBadRequest<bool>("No cuentas con dias sufientes para solicitar vacaciones", "ERP:03");
-                            }
 
-                            permitApplication.AmountDays = 0.5m;
-                            permitApplication.IsWithRangeDate = false;
+                        permitApplication.AmountDays = 0.5m;
+                        permitApplication.IsWithRangeDate = false;
+                    }
+                    else if (request.PermitApplicationVacation?.WithRangeHours ?? false)
+                    {
+                        var endTime = request.PermitApplicationVacation.EndTime!.Value;
+                        var startTime = request.PermitApplicationVacation.StartTime!.Value;
+
+                        int totalHours = endTime.Hour - startTime.Hour;
+
+                        decimal daysToDeduct = totalHours switch
+                        {
+                            1 => 0.1m,
+                            2 => 0.2m,
+                            3 => 0.3m,
+                            4 => 0.4m,
+                            5 => 0.5m,
+                            6 => 0.6m,
+                            7 => 0.7m,
+                            _ when totalHours >= 8 => 1.0m,
+                            _ => 0.0m
+                        };
+
+                        permitApplication.AmountDays = daysToDeduct;
+                        permitApplication.IsWithRangeDate = false;
+                    }
+                    else
+                    {
+                        decimal totalDays = 0;
+
+                        DateOnly endDate = vacationData.EndDate;
+                        DateOnly startDate = vacationData.StartDate;
+
+                        if (!collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Friday)
+                        {
+                            int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
+                            endDate = endDate.AddDays(daysUntilSunday);
                         }
-                        else if (request.PermitApplicationVacation?.WithRangeHours ?? false)
+                        else if (collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Saturday)
                         {
-                            var endTime = request.PermitApplicationVacation.EndTime!.Value;
-                            var startTime = request.PermitApplicationVacation.StartTime!.Value;
-
-                            int totalHours = endTime.Hour - startTime.Hour;
-
-                            decimal daysToDeduct = totalHours switch
-                            {
-                                1 => 0.1m,
-                                2 => 0.2m,
-                                3 => 0.3m,
-                                4 => 0.4m,
-                                5 => 0.5m,
-                                6 => 0.6m,
-                                7 => 0.7m,
-                                _ when totalHours >= 8 => 1.0m,
-                                _ => 0.0m
-                            };
-
-                            permitApplication.AmountDays = daysToDeduct;
-                            permitApplication.IsWithRangeDate = false;
+                            int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
+                            endDate = endDate.AddDays(daysUntilSunday);
                         }
-                        else
+
+                        //✅Cargar los dias feriados del año
+                        var holidays = await _unitOfWork.Holidays.Entities
+                            .Where(day => day.IsActive)
+                            .ToListAsync(cancellationToken);
+
+                        int totalCalendarDays = endDate.DayNumber - startDate.DayNumber + 1;
+                        int fullWeeks = totalCalendarDays / 7;
+                        int remainingDays = totalCalendarDays % 7;
+
+                        totalDays += fullWeeks * 7;
+
+                        for (int i = 0; i <= remainingDays; i++)
                         {
-                            decimal totalDays = 0;
-
-                            DateOnly endDate = vacationData.EndDate;
-                            DateOnly startDate = vacationData.StartDate;
-
-                            if (!collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Friday)
+                            DateOnly date = startDate.AddDays(fullWeeks * 7 + i);
+                            if (date.DayOfWeek == DayOfWeek.Sunday) continue;
+                            if (date.DayOfWeek == DayOfWeek.Saturday)
                             {
-                                int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
-                                endDate = endDate.AddDays(daysUntilSunday);
+                                if (collaborator.DoesWorkSaturdays) totalDays += 0.5m;
+                                continue;
                             }
-                            else if (collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Saturday)
+                            totalDays += 1;
+                        }
+                        for (DateOnly date = vacationData.StartDate; date <= vacationData.EndDate; date = date.AddDays(1))
+                        {
+                            bool isHoliday = holidays.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month && (holiday.IsGlobal || (collaborator.WorkingInformation != null && holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId)));
+                            if (isHoliday)
                             {
-                                int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
-                                endDate = endDate.AddDays(daysUntilSunday);
-                            }
-
-                            //✅Cargar los dias feriados del año
-                            var holidays = await _unitOfWork.Holidays.Entities
-                                .Where(day => day.IsActive)
-                                .ToListAsync(cancellationToken);
-
-                            int totalCalendarDays = endDate.DayNumber - startDate.DayNumber + 1;
-                            int fullWeeks = totalCalendarDays / 7;
-                            int remainingDays = totalCalendarDays % 7;
-
-                            totalDays += fullWeeks * 7;
-
-                            for (int i = 0; i <= remainingDays; i++)
-                            {
-                                DateOnly date = startDate.AddDays(fullWeeks * 7 + i);
                                 if (date.DayOfWeek == DayOfWeek.Sunday) continue;
                                 if (date.DayOfWeek == DayOfWeek.Saturday)
                                 {
-                                    if (collaborator.DoesWorkSaturdays) totalDays += 0.5m;
-                                    continue;
+                                    if (collaborator.DoesWorkSaturdays)
+                                        totalDays -= 0.5m;
                                 }
-                                totalDays += 1;
-                            }
-                            for (DateOnly date = vacationData.StartDate; date <= vacationData.EndDate; date = date.AddDays(1))
-                            {
-                                bool isHoliday = holidays.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month && (holiday.IsGlobal || (collaborator.WorkingInformation != null && holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId)));
-                                if (isHoliday)
+                                else
                                 {
-                                    if (date.DayOfWeek == DayOfWeek.Sunday) continue;
-                                    if (date.DayOfWeek == DayOfWeek.Saturday)
-                                    {
-                                        if (collaborator.DoesWorkSaturdays)
-                                            totalDays -= 0.5m;
-                                    }
-                                    else
-                                    {
-                                        totalDays -= 1m;
-                                    }
+                                    totalDays -= 1m;
                                 }
                             }
-                            if (vacationControl.AvailableVacations < totalDays)
-                            {
-                                return _errorManager.ThrowBadRequest<bool>(
-                                    "No cuenta con cantidad de dias suficiente para realizar esta solicitud",
-                                    "ERP:04"
-                                );
-                            }
-
-                            permitApplication.AmountDays = totalDays;
-                            permitApplication.IsWithRangeDate = true;
+                        }
+                        if (vacationControl.AvailableVacations < totalDays)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                "No cuenta con cantidad de dias suficiente para realizar esta solicitud",
+                                "ERP:04"
+                            );
                         }
 
-                        break;
+                        permitApplication.AmountDays = totalDays;
+                        permitApplication.IsWithRangeDate = true;
                     }
+
+                    break;
+                }
                 default:
                 {
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible de momento", "ERP:ErrorRequest");
