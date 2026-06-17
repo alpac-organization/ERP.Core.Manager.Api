@@ -104,7 +104,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     EndDate = null
                 };
 
-
+                //Rollback
                 await _unitOfWork.AssignedTravelExpenses.RegisterAssignedTravelExpenses(history);
             }
         }
@@ -124,6 +124,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             };
 
             await _unitOfWork.Vacations.RegisterVacationControl(vacation);
+
+            //Rollback
         }
         
         public async Task<bool> AssignSalary(Collaborator collaborator, SalaryInformation salaryInformation)
@@ -183,6 +185,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             return true;
         }
 
+
+        //Inicialización de nomina, al registrar colaorador. reggistro y es primera vez y cuando es inicialización y es primera vez
         public async Task RegisterCollaboratorToPayroll(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken, bool isFirstTimes = false)
         {
             #region Primera Validación de apertura
@@ -250,12 +254,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #endregion
             
             decimal GrossSalary = ProportionalBiweeklySalary;
-            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions + Antique;
-
-            if (collaborator.IdentificationNumber == "0011601001024W")
-            {
-                
-            }
+            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Commissions + Antique;
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
@@ -272,6 +271,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 TotalIncome,
                 cancellationToken
             );
+
+            TotalIncome += Bonus;
 
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
@@ -314,10 +315,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     AdditionalDeducctions.OtherDeductions += deduction.FortnightlyAmount ?? 0.0m;                
                 }
 
-                //Aqui van los embargos judiciales
-
-                //Aqui van los embargos alimenticios
-
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                 {
                     DeductionId         = deduction.Id,
@@ -332,20 +329,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
             #endregion
 
-                decimal totalDeductionsAdditionals =
-                    AdditionalDeducctions.Loans
-                    + AdditionalDeducctions.Purisima
-                    + AdditionalDeducctions.ChildSupportGarnishment
-                    + AdditionalDeducctions.SalaryAdvance
-                    + AdditionalDeducctions.ChristmasBonusAdvance
-                    + AdditionalDeducctions.JudicialSeizures
-                    + AdditionalDeducctions.UniformDeduction
-                    + AdditionalDeducctions.CashShortage
-                    + AdditionalDeducctions.OtherDeductions
-                    + AdditionalDeducctions.DeductionForLossesBulk
-                    + AdditionalDeducctions.Absences
-                    + AdditionalDeducctions.Sanction
-                    + AdditionalDeducctions.LateArrivals;
+            decimal totalDeductionsAdditionals =
+                AdditionalDeducctions.Loans
+                + AdditionalDeducctions.Purisima
+                + AdditionalDeducctions.ChildSupportGarnishment
+                + AdditionalDeducctions.SalaryAdvance
+                + AdditionalDeducctions.ChristmasBonusAdvance
+                + AdditionalDeducctions.JudicialSeizures
+                + AdditionalDeducctions.UniformDeduction
+                + AdditionalDeducctions.CashShortage
+                + AdditionalDeducctions.OtherDeductions
+                + AdditionalDeducctions.DeductionForLossesBulk
+                + AdditionalDeducctions.Absences
+                + AdditionalDeducctions.Sanction
+                + AdditionalDeducctions.LateArrivals;
 
             #region Asignación de viaticos
 
