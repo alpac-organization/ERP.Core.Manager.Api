@@ -129,7 +129,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 Status                = command.Status,
                 CollaboratorCode      = generatedCode,
                 RegisteredBy          = command.RegisteredBy ?? "Sistema ERP",
-                DoesWorkSaturdays     = command.DoesWorkSaturnday, 
+                DoesWorkSaturdays     = command.DoesWorkSaturday, 
                 PictureUrl            = null
             };
         }
