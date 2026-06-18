@@ -519,7 +519,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                     FlagAccumulatedIR       = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation?.FlagAccumulatedIR ?? 0.0m)  + BiweeklyIr,
                     FlagSalaryEarned        = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m  : (TaxInformation?.FlagSalaryEarned  ?? 0.0m)  + (TotalIncome - BiweeklyInss),
-                    FlagNumberOfFortnights  = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 24    : (TaxInformation?.FlagNumberOfFortnights ?? 25 - 1),
+                    FlagNumberOfFortnights  = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 24    : ((TaxInformation?.FlagNumberOfFortnights ?? 24) - 1),
 
                     PayrollId               = payrollCreated.Id,
                     CollaboratorId          = collaborator.Id,
