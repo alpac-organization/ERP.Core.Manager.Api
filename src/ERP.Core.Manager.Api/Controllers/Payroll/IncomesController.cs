@@ -28,5 +28,17 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             return Ok();
         }
+
+        // [Tags("Ingresos")] 
+        // [HttpGet("companies/{companie_id}/modules/{module_code}/incomes")]
+        // [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
+        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        // public async Task<IActionResult> GetIncomesControlAsync([FromRoute] Guid companie_id, [FromRoute] string module_code)
+        // {
+        //     var userIdStr = HttpContext.Items["UserId"] as string;
+
+        //     return Ok();
+        // }
     }
 }

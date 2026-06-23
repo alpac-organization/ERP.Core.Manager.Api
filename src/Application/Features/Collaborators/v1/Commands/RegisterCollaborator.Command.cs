@@ -16,6 +16,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? FirstLastname { get; set; }
         public string? IdentificationNumber { get; set; }
         public Guid CompanyId { get; set; }
+        public bool DoesWorkSaturday { get; set; } = false;
 
         public string? SecondName { get; set; }
         public string? ThirdName { get; set; }

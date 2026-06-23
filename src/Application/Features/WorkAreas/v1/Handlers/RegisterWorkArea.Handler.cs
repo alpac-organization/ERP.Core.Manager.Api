@@ -28,7 +28,8 @@ namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Handlers
                 WorkAreaCode = maxCode + 1,
                 IsActive = true,
                 WorkAreaName = request.WorkAreaName,
-                Description = request?.Description ?? "Sin Descripción"
+                Description = request?.Description ?? "Sin Descripción",
+                WorkAreaCode = 0
             });
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

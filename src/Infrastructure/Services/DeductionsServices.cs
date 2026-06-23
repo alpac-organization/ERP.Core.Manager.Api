@@ -422,7 +422,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(ded => ded.CollaboratorId == collaboratorInformation.Id)
                 .ToListAsync(default);
 
-            if (loanActive is not null)
+            if (loanActive.Count > 0)
             {
                 // Manejar el caso donde ya existe un préstamo activo
                 await _unitOfWork.Deductions.RegisterDeduction(new()

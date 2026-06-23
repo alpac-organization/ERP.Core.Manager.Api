@@ -17,6 +17,29 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             // await _unitOfWork.   
         }
 
+        public async Task ApplyVacationRegistration(Collaborator collaborator, Guid payrollId)
+        {
+            
+        }
+
+        // public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator)
+        // {
+        //     var salary = await _unitOfWork.Salaries.Entities
+        //         .Where(sal => sal.CollaboratorId == collaborator.Id)
+        //         .Where(sal => sal.SalaryType == SalaryType.Fixed)
+        //         .FirstOrDefaultAsync(default);
+
+        //     if (salary is null)
+        //     {
+                
+        //     }
+
+        //     if (period == PayrollPeriod.FirstPeriod.ToString())
+        //     {            
+        //         await
+        //     } 
+        // }
+
         public async Task ApplyVacationMovement(Collaborator collaborator, Guid payrollId)
         {
             //Obtener la mesa de cambio oficial
@@ -75,9 +98,5 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             await _unitOfWork.VacationAccruals.UpdateAsync(vacationAccruals);
         }
     
-        public async Task ApplyVacationRegistration(Collaborator collaborator, Guid payrollId)
-        {
-            
-        }
     }
 }
