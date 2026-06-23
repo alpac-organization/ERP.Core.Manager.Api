@@ -97,7 +97,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     previewRecord.InssPatronal += inssPatronalCalc;
                     previewRecord.Total = total;
 
-                    await _unitOfWork.InssAccountingInformation.UpdateAsync(previewRecord);
+                    await _unitOfWork.InssAccountingInformation.RegisterInssAccountingInformation(previewRecord);
                 }
             }
         }
