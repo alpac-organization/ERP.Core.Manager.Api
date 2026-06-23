@@ -1,12 +1,14 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Domain.Entities.Errors;
-using ERP.Core.Manager.Api.Controllers.ApiBase;
+using ERP.Core.Infrastructure.Attributes;
+
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
+using ERP.Core.Manager.Api.Controllers.ApiBase;
+
 using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
@@ -65,7 +67,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<PagedResponse<VacationAccruals>> GetVacationControl([FromRoute] Guid companie_id, [FromRoute] string module_code,
             [FromQuery] VacationReportType type,
-            [FromQuery] int? work_area_id,
+            [FromQuery] Guid? area_id,
             [FromQuery] Guid? branch_id,
             [FromQuery] string? identification_number,
             [FromQuery] int page_number = 1,
@@ -82,7 +84,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 PageNumber = page_number,
                 PageSize = page_size,
                 Type = type,
-                WorkAreaId = work_area_id,
+                AreaId = area_id,
                 BranchId  = branch_id,
                 IdentificationNumber = identification_number
             });
