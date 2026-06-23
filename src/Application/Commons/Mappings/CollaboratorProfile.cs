@@ -30,8 +30,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                  }.Where(s => !string.IsNullOrWhiteSpace(s)))))
 
              .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src =>
-                 src.WorkingInformation != null && src.WorkingInformation.WorkArea != null
-                 ? src.WorkingInformation.WorkArea.CatalogName
+                 src.WorkingInformation != null && src.WorkingInformation.Area != null
+                 ? src.WorkingInformation.Area.WorkAreaName
                  : string.Empty))
 
              .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src =>
@@ -65,7 +65,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
              .ForMember(dest => dest.PersonalPhoneNumber, opt => opt.MapFrom(src => src.PersonalPhoneNumber));
 
          CreateMap<WorkingInformation, WorkingInformationDto>()
-             .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => src.WorkArea.CatalogName))
+             .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => src.Area.WorkAreaName))
              .ForMember(dest => dest.WorkEmail, opt => opt.MapFrom(src => src.WorkEmail))
              .ForMember(dest => dest.WorkPhoneNumber, opt => opt.MapFrom(src => src.WorkPhoneNumber))
              .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(src => src.EntryDate))
@@ -157,7 +157,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
          {
             Id = Guid.NewGuid(),
             CollaboratorId = collaboratorId,
-            WorkAreaId = info.WorkAreaId,
+            AreaId = info.AreaId,
             WorkPositionId = info.WorkPositionId,
             CompanyBranchId = info.BranchId,
             BankAccountNumber = StringExtensions.FormatWithNullWhenNoHasValue(info.BankAccountNumber),
