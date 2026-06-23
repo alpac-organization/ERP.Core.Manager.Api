@@ -70,7 +70,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromQuery] CollaboratorStatus? status,
             [FromQuery] string? identification_number,
             [FromQuery] Guid? branch_id,
-            [FromQuery] int area_id = 0,
+            [FromQuery] Guid? area_id,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
         )   
@@ -79,7 +79,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery()
             {
-                AreaSubCatalogId = area_id,
+                AreaId = area_id,
                 BranchId = branch_id, 
                 UserId = Guid.Parse(userIdStr ?? ""),
                 CompanyId = companie_id,
