@@ -2,9 +2,9 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
+using ERP.Core.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers.Catalog
 {

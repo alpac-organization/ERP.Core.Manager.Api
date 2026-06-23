@@ -10,7 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Queries
     {
         public ReportsType Type { get; set; }
 
-        public int? WorkAreaId { get; set; }
+        public Guid? AreaId { get; set; }
         public string? IdentificationNumber { get; set; }
 
         

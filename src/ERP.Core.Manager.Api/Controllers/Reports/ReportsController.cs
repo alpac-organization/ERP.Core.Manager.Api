@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
-using ERP.Core.Manager.Api.Application.Features.Reports.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Reports.v1.Queries;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers.Reports
 {
@@ -27,7 +27,7 @@ namespace ERP.Core.Manager.Api.Controllers.Reports
             [FromQuery] PayrollType payroll_type, 
             [FromRoute] string module_code,
             [FromQuery] string? identification_number, 
-            [FromQuery] int? work_area_id 
+            [FromQuery] Guid? area_id 
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
@@ -40,7 +40,7 @@ namespace ERP.Core.Manager.Api.Controllers.Reports
                 Type                 = report_type,
                 UserId               = Guid.Parse(userIdStr ?? ""),
                 IdentificationNumber = identification_number,
-                WorkAreaId           = work_area_id,
+                AreaId               = area_id,
                 ModuleCode           = module_code
             });
 

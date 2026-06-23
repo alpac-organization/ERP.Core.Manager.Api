@@ -58,10 +58,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     .Where(op => op.Collaborator.IdentificationNumber == request.IdentificationNumber);
             }
 
-            if (request.WorkAreaId.HasValue)
+            if (request.AreaId.HasValue)
             {
                 payrollDetails = payrollDetails
-                    .Where(op => op.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);
+                    .Where(op => op.Collaborator.WorkingInformation.AreaId == request.AreaId);
             }
 
             if (request.WorkPositionId.HasValue)
@@ -76,7 +76,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             var records = await payrollDetails
                 .Include(x => x.Collaborator)
                     .ThenInclude(x => x.WorkingInformation)
-                        .ThenInclude(x => x.WorkArea)
+                        .ThenInclude(x => x.Area)
 
                 .Include(x => x.Collaborator)
                     .ThenInclude(x => x.WorkingInformation)
@@ -108,7 +108,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     x.Collaborator,
                     x.Collaborator.WorkingInformation,
                     x.Collaborator.WorkingInformation.WorkPosition, 
-                    x.Collaborator.WorkingInformation.WorkArea 
+                    x.Collaborator.WorkingInformation.Area 
                 ));
 
                 var mapped = _mapper.Map<List<OrdinaryPayrollDetailsDto>>(tuples);
