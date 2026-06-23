@@ -63,10 +63,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                             .Where(tax => tax.Collaborator.IdentificationNumber == request.IdentificationNumber);
                     }
 
-                    if (request.WorkAreaId.HasValue)
+                    if (request.AreaId.HasValue)
                     {
                         queryReport = queryReport
-                            .Where(tax => tax.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);   
+                            .Where(tax => tax.Collaborator.WorkingInformation.AreaId == request.AreaId);   
                     }
 
                     var TaxIncomes = await queryReport
@@ -98,10 +98,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                             .Where(tax => tax.Collaborator.IdentificationNumber == request.IdentificationNumber);
                     }
 
-                    if (request.WorkAreaId.HasValue)
+                    if (request.AreaId.HasValue)
                     {
                         queryReport = queryReport
-                            .Where(tax => tax.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);   
+                            .Where(tax => tax.Collaborator.WorkingInformation.AreaId == request.AreaId);   
                     }
 
                     var records = await queryReport
