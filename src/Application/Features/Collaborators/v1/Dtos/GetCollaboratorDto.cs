@@ -1,3 +1,5 @@
+using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
+
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
 {
     public class GetCollaboratorDto

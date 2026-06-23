@@ -6,6 +6,7 @@ using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
@@ -42,7 +43,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 return _erroManager.ThrowBadRequest<CollaboratorDetailsDto>("Este colaborador no existe", "ERP:001");
             }
 
-            return _mapper.Map<CollaboratorDetailsDto>(collaborator);;
+            var mapped = _mapper.Map<CollaboratorDetailsDto>(collaborator);
+
+            //Obtener centros de costos de la area;
+
+            var costCenters = await _unitOfWork.CostCenters.Entities
+                .Where(cos => cos.WorkAreaId == collaborator.WorkingInformation.AreaId)
+                .ToListAsync(cancellationToken);
+
+            var costCentersMapped = _mapper.Map<List<CostCenterDto>>(costCenters);
+
+            mapped.CostCenters = costCentersMapped;
+
+            return mapped;
         }
     }
 }
