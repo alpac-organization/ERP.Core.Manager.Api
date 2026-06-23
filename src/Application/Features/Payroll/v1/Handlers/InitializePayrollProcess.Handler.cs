@@ -63,16 +63,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
              .OrderByDescending(payroll => payroll.CreatedAt)
              .FirstOrDefaultAsync(cancellationToken);
 
-         var (startDate, endDate) = ManagerUtils.DefineRegularPayrollOpeningDates(lastPayroll);
+         var (startDate, endDate, period) = ManagerUtils.DefineRegularPayrollOpeningDates(lastPayroll);
 
          var newPayroll = new Database.Domain.Entities.Payrolls.Payroll()
          {
             Id = Guid.NewGuid(),
             StartDate = startDate,
             EndDate = endDate,
+            Period = period,
             PayrollType = request.Type,
             BranchId = request.BranchId,
-            Status = PayrollStatus.Progress
+            Status = PayrollStatus.Progress,
          };
 
          await _unitOfWork.Payrolls.InitializePayroll(newPayroll);
