@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries
         public PayrollType Type { get; set; }
 
         public string? IdentificationNumber { get; set; }
-        public int? WorkAreaId { get; set; }
+        public Guid? AreaId { get; set; }
         public int? WorkPositionId { get; set; }
         
         public int PageSize { get; set; }

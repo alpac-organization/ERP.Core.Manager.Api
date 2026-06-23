@@ -1,13 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
-using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Domain.Entities.Errors;
+
 using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using ERP.Core.Manager.Api.Controllers.ApiBase;
+
+using ERP.Core.Domain.Entities.Errors;
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -70,7 +72,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromQuery] CollaboratorStatus? status,
             [FromQuery] string? identification_number,
             [FromQuery] Guid? branch_id,
-            [FromQuery] int area_id = 0,
+            [FromQuery] Guid? area_id,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
         )   
@@ -79,7 +81,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery()
             {
-                AreaSubCatalogId = area_id,
+                AreaId = area_id,
                 BranchId = branch_id, 
                 UserId = Guid.Parse(userIdStr ?? ""),
                 CompanyId = companie_id,

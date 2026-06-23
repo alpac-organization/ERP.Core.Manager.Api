@@ -45,9 +45,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
                 if (request.WorkingInformation != null)
                 {
-                    if (request.WorkingInformation.WorkAreaId.HasValue)
+                    if (request.WorkingInformation.AreaId.HasValue)
                     {
-                        WorkingInformation?.WorkAreaId = request.WorkingInformation.WorkAreaId.Value;                    
+                        WorkingInformation?.AreaId = request.WorkingInformation.AreaId.Value;                    
                     }
 
                     if (request.WorkingInformation.WorkPositionId.HasValue)

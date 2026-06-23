@@ -60,10 +60,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     .Where(op => op.Collaborator.IdentificationNumber == request.IdentificationNumber);
             }
 
-            if (request.WorkAreaId.HasValue)
+            if (request.AreaId.HasValue)
             {
                 detailsQuery = detailsQuery
-                    .Where(op => op.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);
+                    .Where(op => op.Collaborator.WorkingInformation.AreaId == request.AreaId);
             }
 
             if (request.WorkPositionId.HasValue)
@@ -114,7 +114,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         IdentificationNumber = op.Collaborator.IdentificationNumber,
                         InssNumber = op.Collaborator.WorkingInformation.InssNumber,
                         JobPosition = op.Collaborator.WorkingInformation.WorkPosition.CatalogName,
-                        WorkArea = op.Collaborator.WorkingInformation.WorkArea.CatalogName,
+                        WorkArea = op.Collaborator.WorkingInformation.Area.WorkAreaName,
                         EntryDate = op.Collaborator.WorkingInformation.EntryDate,
                         BankAccount = StringExtensions.FormatWithNullWhenNoHasValue(op.Collaborator.WorkingInformation.BankAccountNumber)
                     }

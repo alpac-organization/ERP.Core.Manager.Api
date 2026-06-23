@@ -98,11 +98,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
                 .WithMessage("El número de teléfono debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)")
                 .When(x => !string.IsNullOrEmpty(x.WorkPhoneNumber));
 
-            RuleFor(x => x.WorkAreaId) 
-                .GreaterThan(0)
-                .NotEmpty()
-                .WithMessage("El area de trabajo es obligatoria");
-
             RuleFor(x => x.WorkPositionId) 
                 .GreaterThan(0)
                 .NotEmpty()

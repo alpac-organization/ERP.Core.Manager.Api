@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Commands;
+using ERP.Core.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -87,7 +87,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromQuery] PayrollType type,
             [FromQuery] Guid branch_id,
             [FromQuery] string? identification_number,
-            [FromQuery] int? work_area_id,
+            [FromQuery] Guid? area_id,
             [FromQuery] int? job_position_id,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
@@ -104,7 +104,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 PageNumber = page_number,    
                 PageSize = page_size,
                 IdentificationNumber = identification_number,
-                WorkAreaId = work_area_id,
+                AreaId = area_id,
                 WorkPositionId = job_position_id
             });
 
@@ -154,7 +154,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromRoute] Guid companie_id,
             [FromRoute] string module_code,
 
-            [FromQuery] int? work_area_id,
+            [FromQuery] Guid? area_id,
             [FromQuery] int? job_position_id,
             [FromQuery] string? identification_number,
 
@@ -172,7 +172,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 CompanyId = companie_id,
                 ModuleCode = module_code,
                 
-                WorkAreaId = work_area_id,
+                AreaId = area_id,
                 WorkPositionId = job_position_id,
                 IdentificationNumber = identification_number,
 
