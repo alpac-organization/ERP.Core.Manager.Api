@@ -24,18 +24,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
         public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal salary)
         {
-
             int countCollaborators = await _unitOfWork.Collaborators.Entities
-            .CountAsync(c => c.CompanyId == collaborator.CompanyId);
+                .Where(col => col.Status != CollaboratorStatus.Inactive)
+                .Where(col => col.DeletedAt.HasValue)
+                .CountAsync(c => c.CompanyId == collaborator.CompanyId);
 
             var validDeductions = await _unitOfWork.ValidityDeductions.Entities
-                                 .Where(v => v.Status)
-                                 .ToListAsync(default);
+                .Where(v => v.Status)
+                .ToListAsync(default);
 
             decimal inssLaborPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inss)?.Value ?? 0.07m;
-            decimal inatecPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inatec)?.Value ?? 0.02m;
+            decimal inatecPercentage    = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inatec)?.Value ?? 0.02m;
 
             decimal inssPatronalPercentage = 0m;
+
             if (countCollaborators >= 50)
             {
                 inssPatronalPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal)?.Value ?? 0.225m;
@@ -45,24 +47,24 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 inssPatronalPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal2)?.Value ?? 0.215m;
             }
 
-            decimal inssLaboralCalc = salary * inssLaborPercentage;
-            decimal inatecCalc = salary * inatecPercentage;
-            decimal inssPatronalCalc = salary * inssPatronalPercentage;
-            decimal total = inssLaboralCalc + inatecCalc + inssPatronalCalc;
+            decimal inssLaboralCalc     = salary * inssLaborPercentage;
+            decimal inatecCalc          = salary * inatecPercentage;
+            decimal inssPatronalCalc    = salary * inssPatronalPercentage;
+            decimal total               = inssLaboralCalc + inatecCalc + inssPatronalCalc;
 
 
             if (period == PayrollPeriod.FirstPeriod.ToString())
             {
                 var newInssRecord = new InssAccountingInformation()
                 {
-                    CollaboratorId = collaborator.Id,
-                    PayrollId = payrollId,
-                    InssLabor = inssLaboralCalc,
-                    Inatec = inatecCalc,
-                    InssPatronal = inssPatronalCalc,
-                    Total = total,
-                    Absence = 0,
-                    DaysAbsence = 0
+                    CollaboratorId  = collaborator.Id,
+                    PayrollId       = payrollId,
+                    InssLabor       = inssLaboralCalc,
+                    Inatec          = inatecCalc,
+                    InssPatronal    = inssPatronalCalc,
+                    Total           = total,
+                    Absence         = 0,
+                    DaysAbsence     = 0
                 };
 
                 await _unitOfWork.InssAccountingInformation.RegisterInssAccountingInformation(newInssRecord);
@@ -70,23 +72,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             else
             {
                 var previewRecord = await _unitOfWork.InssAccountingInformation.Entities
-                                    .Where(x => x.CollaboratorId == collaborator.Id)
-                                    .Where(x => x.Payroll.Period == PayrollPeriod.FirstPeriod)
-                                    .FirstOrDefaultAsync(default);
+                    .Where(x => x.CollaboratorId == collaborator.Id)
+                    .Where(x => x.Payroll.Period == PayrollPeriod.FirstPeriod)
+                    .FirstOrDefaultAsync(default);
 
                 if (previewRecord is null)
                 {
                     var newInssRecord = new InssAccountingInformation()
                     {
 
-                        CollaboratorId = collaborator.Id,
-                        PayrollId = payrollId,
-                        InssLabor = inssLaboralCalc,
-                        Inatec = inatecCalc,
-                        InssPatronal = inssPatronalCalc,
-                        Total = total,
-                        Absence = 0,
-                        DaysAbsence = 0
+                        CollaboratorId  = collaborator.Id,
+                        PayrollId       = payrollId,
+                        InssLabor       = inssLaboralCalc,
+                        Inatec          = inatecCalc,
+                        InssPatronal    = inssPatronalCalc,
+                        Total           = total,
+                        Absence         = 0,
+                        DaysAbsence     = 0
                     };
                     await _unitOfWork.InssAccountingInformation.RegisterInssAccountingInformation(newInssRecord);
                 }
