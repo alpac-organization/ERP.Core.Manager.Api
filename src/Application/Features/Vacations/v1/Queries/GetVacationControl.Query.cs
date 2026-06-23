@@ -9,8 +9,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries
     {
         public VacationReportType Type { get; set; }
         public Guid? BranchId { get; set; }
-
-        public int? WorkAreaId { get; set; }
+        public Guid? AreaId { get; set; }
+        
         public string? IdentificationNumber { get; set; }
 
         public int PageSize { get; set; }

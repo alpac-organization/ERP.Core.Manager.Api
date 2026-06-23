@@ -33,7 +33,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                         var baseQuery = _unitOfWork.Vacations.Entities
                             .Include(vac => vac.Collaborator)
                                 .ThenInclude(col => col.WorkingInformation)
-                                    .ThenInclude(col => col.WorkArea)
+                                    .ThenInclude(col => col.Area)
                             .AsNoTracking();
 
                         if (!string.IsNullOrEmpty(request.BranchId.ToString()))
@@ -42,13 +42,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                                 .Where(vac => vac.Collaborator.WorkingInformation.CompanyBranchId == request.BranchId);
                         }
 
-                        if (request.WorkAreaId.HasValue)
+                        if (request.AreaId.HasValue)
                         {
-                            baseQuery = baseQuery.Where(vac => vac.Collaborator.WorkingInformation.WorkArea.CatalogId == request.WorkAreaId);
+                            baseQuery = baseQuery.Where(vac => vac.Collaborator.WorkingInformation.Area.Id == request.AreaId);
                         }
 
                         baseQuery = baseQuery
-                            .OrderBy(vac => vac.Collaborator.WorkingInformation.WorkArea.CatalogName)
+                            .OrderBy(vac => vac.Collaborator.WorkingInformation.Area.WorkAreaName)
                             .ThenBy(vac => vac.Collaborator.FirstName);
 
                         var totalRecords = await baseQuery.CountAsync(cancellationToken);

@@ -49,7 +49,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? Daem { get; set; }
 
         //Catalogs
-        public int WorkAreaId { get; set; }
+        public Guid AreaId { get; set; }
         public int WorkPositionId { get; set; }
         public Guid BranchId { get; set; }
 

@@ -4,7 +4,8 @@ using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Commands;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
+
+using ERP.Core.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers.Catalog
 {
