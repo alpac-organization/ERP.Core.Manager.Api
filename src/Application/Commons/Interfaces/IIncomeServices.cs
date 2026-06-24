@@ -6,7 +6,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 {
     public interface IIncomeServices
     {
-        Task ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation, Payroll period, RegisterSubsidyCommmand data);
+        Task<bool> ApplyMedicalSubsidyToPregnantWomen();
+        
+        Task<bool> ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation, Payroll period, RegisterSubsidyCommmand data);
  
         Task ApplyIncomeOvertime(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalHours, Guid payrollId, Guid incomeTypeId);
         

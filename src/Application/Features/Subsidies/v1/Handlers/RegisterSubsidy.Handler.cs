@@ -72,7 +72,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
                 {
                     _logger.LogInformation("Subsidio por enfermedad común");
 
-                    await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
+                    bool isSucceded = await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
+
+                    if (!isSucceded)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidios", "ERP");
+                    }
+                   
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
                     return true;
                 }
@@ -80,7 +86,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
                 {
                     _logger.LogInformation("Subsidio por enfermedad laboral");
 
-                    await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
+                    bool isSucceded = await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
+
+                    if (!isSucceded)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidios", "ERP");
+                    }
+
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
                     return true;   
                 }
