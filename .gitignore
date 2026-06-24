@@ -3,3 +3,8 @@ nuget.config
 
 **/bin/
 **/obj/
+
+appsettings.json
+Dockerfile
+
+.vscode
