@@ -13,10 +13,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class IncomeServices(IUnitOfWork _unitOfWork,ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IIncomeServices
     {
-        public async Task ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation,Payroll period, RegisterSubsidyCommmand data)
+        public async Task<bool> ApplyMedicalSubsidyToPregnantWomen()
+        {
+            //Logica registro de subsidio de embarazada.
+
+            return true;
+        }
+
+        public async Task<bool> ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation,Payroll period, RegisterSubsidyCommmand data)
         {
             _logger.LogInformation("🚩Iniciando proceso de subsidio para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
 
+            //Control de pago de viaticos.
             var travelExpensePayments = await _unitOfWork.RecordsTravelExpensePayments.Entities
                 .Where(travel => travel.CollaboratorId == collaboratorInformation.Id)
                 .Where(travel => travel.PayrollId == period.Id)
@@ -25,9 +33,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (travelExpensePayments is null)
             {
                 _logger.LogInformation("El control de pago de viaticos del colaborador con cedula {identification} no fue encontrado", collaboratorInformation.IdentificationNumber);
-                return;
+                return false;
             }
 
+            //Control de acumulados del colaborador.
             var taxIncome = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(tax => tax.PayrollId == period.Id)
                 .Where(tax => tax.CollaboratorId == collaboratorInformation.Id)
@@ -36,22 +45,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (taxIncome is null)
             {
                 _logger.LogInformation("El control de acumulado del colaborador con cedula {identification} no fue encontrado", collaboratorInformation.IdentificationNumber);
-                return;
+                return false;
             }
 
-            decimal monthlySalary = salaryInformation.AmountInLocal;
-            decimal dailySalary = monthlySalary / 30;
+            decimal monthlySalary   = salaryInformation.AmountInLocal;
+            decimal dailySalary     = monthlySalary / 30;
 
             var informationPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
                 .Include(ord => ord.Payroll)
-                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
                 .Where(ord => ord.PayrollId == period.Id)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
                 .FirstOrDefaultAsync(default);
 
             if (informationPayroll is null)
             {
-                _logger.LogInformation("No se la información contable de la nomina");
-                return;
+                _logger.LogInformation("No se la información contable de la nomina, de este colaborador: {identification}", collaboratorInformation.IdentificationNumber);
+                return false;
             }
 
             #region Iniciar proceso de calculo de dias de subsidio dentro de la nomina
@@ -69,22 +78,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 
             if (effectiveEnd < effectiveStart)
             {
-                throw new Exception("La fecha final del subsidio es inválida.");
+                _logger.LogInformation("La fecha final del subsidio es inválida.");
+                return false;
             }
 
+            //Calcular los dias con subsidios
             int subsidizedDays = effectiveEnd.DayNumber - effectiveStart.DayNumber + 1;
             int daysWithoutSubsidy = 15 - subsidizedDays;
 
             // A: 
             decimal proportionalSalaryWithoutSubsidy = dailySalary * daysWithoutSubsidy;
-            proportionalSalaryWithoutSubsidy += informationPayroll.Antique + informationPayroll.Overtime + informationPayroll.Bonus + informationPayroll.Antique;
+            proportionalSalaryWithoutSubsidy += informationPayroll.Antique + informationPayroll.Overtime + informationPayroll.Bonus + informationPayroll.Commissions;
 
             // B:
             decimal proportionalSalaryWithSubsidy = dailySalary * subsidizedDays;
 
             decimal inssWithoutSubsidy = await _calculatorDeductions.CalculateInss(proportionalSalaryWithoutSubsidy, default);
             decimal GrossSalaryWithoutSubsidy = proportionalSalaryWithoutSubsidy - inssWithoutSubsidy;
-
 
             //Sacar el 40% del pago de salario a los dias subsidiados
             decimal GrossSalaryWithSubsidy = proportionalSalaryWithSubsidy * 0.4m;
@@ -141,7 +151,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             informationPayroll.TotalToPay = informationPayroll.TotalIncome - informationPayroll.TotalDeducctions;
 
             await _unitOfWork.IncomeTaxAccrual.UpdateAsync(taxIncome!);
-
 
             _logger.LogInformation("✅Subsidio aplicado con exito.");
 
@@ -220,22 +229,25 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             await _unitOfWork.RecordsTravelExpensePayments.UpdateAsync(travelExpensePayments!);
 
+            //Actualizar información de la nomina en progreso.
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(informationPayroll);
 
             await _unitOfWork.Subsidies.CreateSubsidy(new ()
             {
-                AmountDays = subsidizedDays,
-                CollaboratorId = collaboratorInformation.Id,
-                PayrollId = data.PayrollId,
-                StartDate = data.StartDate,
-                EndDate = data.EndDate,
-                Observations = data.Observations,
+                AmountDays      = subsidizedDays,
+                CollaboratorId  = collaboratorInformation.Id,
+                PayrollId       = data.PayrollId,
+                StartDate       = data.StartDate,
+                EndDate         = data.EndDate,
+                Observations    = data.Observations,
                 ReferenceNumber = data.ReferenceNumber,
-                TypeSubsidyId = data.TypeSubsidyId,
-                Percentage = 40,
+                TypeSubsidyId   = data.TypeSubsidyId,
+                Percentage      = 40,
             });
 
-            _logger.LogInformation("✅Deducción de viaticos realizados correctament");
+            _logger.LogInformation("✅Deducción de viaticos realizados correctamente.");
+
+            return true;
             #endregion 
         }
 

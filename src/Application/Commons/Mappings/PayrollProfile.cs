@@ -18,7 +18,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.BranchName, src => src.MapFrom(or => or.Branch.BranchName));
 
             #region Mapeo del detalles de nomina.
-            CreateMap<(OrdinaryPayroll, Collaborator, WorkingInformation, SubCatalog, SubCatalog), OrdinaryPayrollDetailsDto>()
+            CreateMap<(OrdinaryPayroll, Collaborator, WorkingInformation, SubCatalog, WorkArea), OrdinaryPayrollDetailsDto>()
                 .ForMember(dest => dest.Commissions, src => src.MapFrom(or => or.Item1.Commissions))
                 .ForMember(dest => dest.OrdinaryPayrollId, src => src.MapFrom(or => or.Item1.Id))
                 .ForMember(dest => dest.Antique, src => src.MapFrom(or => or.Item1.Antique))
@@ -58,7 +58,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForPath(dest => dest.CollaboratorInformation.EntryDate, opt => opt.MapFrom(src => src.Item3.EntryDate))
                 .ForPath(dest => dest.CollaboratorInformation.BankAccount, opt => opt.MapFrom(src => src.Item3.BankAccountNumber))
                 .ForPath(dest => dest.CollaboratorInformation.JobPosition, opt => opt.MapFrom(src => src.Item4.CatalogName))
-                .ForPath(dest => dest.CollaboratorInformation.WorkArea, opt => opt.MapFrom(src => src.Item5.CatalogName))
+                .ForPath(dest => dest.CollaboratorInformation.WorkArea, opt => opt.MapFrom(src => src.Item5.WorkAreaName))
                 .ForPath(dest => dest.CollaboratorInformation.InssNumber, opt => opt.MapFrom(src => src.Item3.InssNumber));
             #endregion
         }
