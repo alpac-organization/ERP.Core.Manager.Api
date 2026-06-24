@@ -1,4 +1,5 @@
 using ERP.Core.Database.Domain.Entities.Payrolls;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Utils
 {
@@ -6,23 +7,23 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
     {
         public static string FromSliceToCollaboratorFullname(Collaborator collaborator)
         {
-            var fullNames = new[] 
-            { 
-                collaborator.FirstName, 
-                collaborator.SecondName, 
+            var fullNames = new[]
+            {
+                collaborator.FirstName,
+                collaborator.SecondName,
                 collaborator.ThirdName,
-                collaborator.FirstLastname, 
-                collaborator.SecondLastname 
+                collaborator.FirstLastname,
+                collaborator.SecondLastname
             };
 
             return string.Join(" ", fullNames.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n?.Trim()));
         }
 
-        public static (DateOnly, DateOnly) DefineRegularPayrollOpeningDates(Payroll? payroll)
+        public static (DateOnly, DateOnly, PayrollPeriod period) DefineRegularPayrollOpeningDates(Payroll? payroll)
         {
             DateOnly startDate;
-            DateOnly endDate;            
-
+            DateOnly endDate;
+            PayrollPeriod period;
             if (payroll == null)
             {
                 DateOnly today = DateOnly.FromDateTime(DateTime.Now);
@@ -31,6 +32,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
                 {
                     startDate = new DateOnly(today.Year, today.Month, 1);
                     endDate = new DateOnly(today.Year, today.Month, 15);
+                    period = PayrollPeriod.FirstPeriod;
                 }
                 else
                 {
@@ -40,6 +42,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
                         new DateTime(today.Year, today.Month, 1)
                             .AddMonths(1)
                             .AddDays(-1));
+                    period = PayrollPeriod.SecondPeriod;
                 }
             }
             else
@@ -54,6 +57,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
                         new DateTime(lastEnd.Year, lastEnd.Month, 1)
                             .AddMonths(1)
                             .AddDays(-1));
+                    period = PayrollPeriod.SecondPeriod;
                 }
                 else
                 {
@@ -63,10 +67,11 @@ namespace ERP.Core.Manager.Api.Application.Commons.Utils
                         startDate.Year,
                         startDate.Month,
                         15);
+                    period = PayrollPeriod.FirstPeriod;
                 }
             }
 
-            return (startDate, endDate);
+            return (startDate, endDate, period);
         }
 
     }

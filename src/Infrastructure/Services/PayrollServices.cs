@@ -12,7 +12,7 @@ using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
-   public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, ILogger<CalculatorDeductions> _logger) : IPayrollServices
+   public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, IReportingServices _reportingServices, ILogger<CalculatorDeductions> _logger) : IPayrollServices
    {
       public async Task<List<Collaborator>> ObtainsCollaboratorByType(SalaryType salaryType, Guid companyId, Guid branchId)
       {
@@ -435,6 +435,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #region Registro del inss
 
+         await _reportingServices.ApplyInssReporting(payrollCreated.Period.ToString(), payrollId, collaborator, BiweeklySalary);
 
          #endregion
 
