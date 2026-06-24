@@ -5,6 +5,5 @@ nuget.config
 **/obj/
 
 appsettings.json
-Dockerfile
 
 .vscode
