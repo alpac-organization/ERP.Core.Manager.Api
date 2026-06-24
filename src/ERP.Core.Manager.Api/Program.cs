@@ -5,7 +5,6 @@ using ERP.Core.Manager.Api.Infrastructure;
 using System.Text.Json.Serialization;
 using ERP.Core.Infrastructure.Middlewares;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 var root = builder.Environment.ContentRootPath;
@@ -71,7 +70,7 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-// app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseRouting();
 
 app.UseCors("ViteLocalPolicy");
