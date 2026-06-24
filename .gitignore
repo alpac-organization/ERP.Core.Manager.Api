@@ -3,3 +3,7 @@ nuget.config
 
 **/bin/
 **/obj/
+
+appsettings.json
+
+.vscode
