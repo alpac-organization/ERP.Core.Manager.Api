@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Dtos;
 using Microsoft.EntityFrameworkCore;
