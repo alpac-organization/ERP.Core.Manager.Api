@@ -7,6 +7,10 @@ public class GetCategoryProductsTreeValidator : AbstractValidator<GetCategoryPro
 {
     public GetCategoryProductsTreeValidator()
     {
+        RuleFor(x => x.UserId)
+            .NotEmpty().WithMessage("El identificador de usuario es obligatorio.")
+            .NotEqual(Guid.Empty).WithMessage("El identificador de usuario no es válido.");
+
         RuleFor(x => x.CompanyId)
             .NotEmpty()
             .WithMessage("El id de la empresa no puede estar vacío.")

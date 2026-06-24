@@ -20,15 +20,19 @@ public class CategoryProductController(IMediator _mediator) : ApiControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<List<CategoryProductDto>> GetCategoryProductsTreeAsync(
         [FromRoute] Guid companie_id,
-        [FromRoute] string module_code)
+        [FromRoute] string module_code,
+        [FromQuery] Guid? parent_id)
     {
         var userIdStr = HttpContext.Items["UserId"] as string;
+
+        Guid userId = Guid.TryParse(userIdStr, out var parseGuid) ? parseGuid : Guid.Empty;
 
         return await _mediator.Send(new GetCategoryProductsTreeQuery
         {
             CompanyId = companie_id,
             ModuleCode = module_code,
-            UserId = Guid.Parse(userIdStr ?? Guid.Empty.ToString())
+            UserId = userId,
+            ParentId = parent_id
         });
     }
 }

@@ -6,4 +6,5 @@ namespace ERP.Core.Manager.Api.Application.Features.CategoryProducts.v1.Queries;
 
 public class GetCategoryProductsTreeQuery : BaseRequest, IRequest<List<CategoryProductDto>>
 {
+    public Guid? ParentId { get; set; }
 }

@@ -22,17 +22,14 @@ public class GetCategoryProductsTreeHandler(IUnitOfWork unitOfWork, IErrorManage
             return access.ErrorResponse!;
         }
 
-        // 2. Traemos todas las categorías activas a memoria en una sola consulta plana
-        var allCategories = await _unitOfWork.CategoryProducts.Entities
-            .Where(c => c.IsActive)
+        // 2. Filtramos directamente en la base de datos (IQueryable) antes del ToListAsync.
+        // Si request.ParentId es null, traerá solo los nodos raíz.
+        // Si contiene un Guid, traerá únicamente los hijos directos de ese nodo.\
+        var Categories = await _unitOfWork.CategoryProducts.Entities
+            .Where(c => c.IsActive && c.ParentId == request.ParentId)
             .ToListAsync(cancellationToken);
 
-        // 3. CAMBIO: Filtramos las raíces usando la propiedad real del Core 'ParentId'
-        var rootCategories = allCategories
-            .Where(c => c.ParentId == null)
-            .ToList();
-
-        // 4. Mapeamos hacia el DTO (AutoMapper se encargará de traducir la estructura recursiva)
-        return _mapper.Map<List<CategoryProductDto>>(rootCategories);
+        // 3. Mapea el listado plano obtenido
+        return _mapper.Map<List<CategoryProductDto>>(Categories);
     }
 }
