@@ -24,10 +24,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Branches.v1.Handlers
             }
 
             //Pendiente a implentar el metodo de insert al sistema.
-            // await _unitOfWork.Branches.RegisterBranch(new()
-            // {
+            await _unitOfWork.Branches.RegisterBranch(new()
+            {
+                BranchName      = request.BrachName,
+                BranchAddress   = request.Address,
+                BranchCode      = request.BranchCode,
+                PhoneNumber     = request.PhoneNumber,
+
+                CompanyId       = company.Id,
+                CompanyAlias    = company.Alias,
                 
-            // });
+                IsActive        = true,
+                HasWarehouse    = false,
+                DoesGenerateSeniority = false,
+            });
 
             _logger.LogInformation("✅Sucursal registrada con exito");
             return true;
