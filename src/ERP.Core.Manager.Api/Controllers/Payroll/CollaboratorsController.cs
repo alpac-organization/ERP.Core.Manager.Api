@@ -40,6 +40,30 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         #endregion 
 
+        #region Metodo para desactivar colaborador
+        [Tags("Colaboradores")] 
+        [HttpDelete("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}", Name = "DeactivateCollaborator")]
+        [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<NoContentResult> DeactivateCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number,
+            [FromBody] DeactivateCollaboratorCommand Payload
+        )
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            Payload.CompanyId = companie_id;
+            Payload.ModuleCode = module_code;
+            Payload.UserId = Guid.Parse(userIdStr ?? "");
+            Payload.IdentificationNumber = identification_number;
+
+            await _mediator.Send(Payload);
+
+            return NoContent();
+        }
+        #endregion
+
+
         [Tags("Colaboradores")] 
         [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details", Name = "UpdateCollaboratorInformation")]
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]

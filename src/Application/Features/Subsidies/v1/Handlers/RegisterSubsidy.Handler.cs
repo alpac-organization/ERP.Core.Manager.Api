@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
 {
-    public class RegisterSubsidyHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IIncomeServices _incomeServices, ILogger<RegisterSubsidyHandler> _logger): AlpacBaseHandler<RegisterSubsidyCommmand, bool>(_unitOfWork, _errorManager)
+    public class RegisterSubsidyHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IIncomeServices _incomeServices, ILogger<RegisterSubsidyHandler> _logger) : AlpacBaseHandler<RegisterSubsidyCommmand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterSubsidyCommmand request, CancellationToken cancellationToken)
         {
@@ -36,7 +36,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
             }
 
             var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                .Where(collaborator => collaborator.Id == request.CollaboratorId) 
+                .Where(collaborator => collaborator.Id == request.CollaboratorId)
                 .Where(collaborator => collaborator.Status != CollaboratorStatus.Inactive)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -69,37 +69,51 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
             switch (typeSubsidy.Code)
             {
                 case "COMMON_ILLNESS":
-                {
-                    _logger.LogInformation("Subsidio por enfermedad común");
-
-                    bool isSucceded = await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
-
-                    if (!isSucceded)
                     {
-                        return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidios", "ERP");
+                        _logger.LogInformation("Subsidio por enfermedad común");
+
+                        bool isSucceded = await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
+
+                        if (!isSucceded)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidios", "ERP");
+                        }
+
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        return true;
                     }
-                   
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
-                    return true;
-                }
                 case "WORK_ACCIDENT":
-                {
-                    _logger.LogInformation("Subsidio por enfermedad laboral");
-
-                    bool isSucceded = await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
-
-                    if (!isSucceded)
                     {
-                        return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidios", "ERP");
+                        _logger.LogInformation("Subsidio por enfermedad laboral");
+                        bool isSucceded = await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
+
+                        if (!isSucceded)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidios", "ERP");
+                        }
+
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        return true;
                     }
 
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
-                    return true;   
-                }
+                case "MATERNITY":
+                    {
+                        _logger.LogInformation("Subsidio por maternidad");
+
+                        bool isSucceded = await _incomeServices.ApplyMedicalSubsidyToPregnantWomen(collaboratorInformation, payrollActive, salaryInformation, request);
+
+                        if (!isSucceded)
+                        {
+
+                            return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidio", "ERP");
+                        }
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        return true;
+                    }
                 default:
-                {
-                    return _errorManager.ThrowBadRequest<bool>("Este tipo de subsidio no se encuetra en funcionamiento.", "ERP:BadRequest");   
-                }
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("Este tipo de subsidio no se encuetra en funcionamiento.", "ERP:BadRequest");
+                    }
             }
         }
     }
