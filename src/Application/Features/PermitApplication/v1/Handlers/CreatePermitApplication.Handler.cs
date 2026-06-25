@@ -129,6 +129,20 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                     var vacationPayReq = request?.PermitApplicationVacationPay ?? new();
 
+                    var vacationControl = await _unitOfWork.Vacations.Entities
+                        .Where(vac => vac.CollaboratorId == permitApplication.Collaborator.Id)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (vacationControl is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No se encontro la infomación de vacaciones", "ERP:01");
+                    }
+
+                    if (vacationControl.AvailableVacations < vacationPayReq.AmountDays)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No posees la cantidad sufientes de vacaciones para realizar esta solicitud", "ERP:01");
+                    }
+
                     permitApplication.IsWithRangeDate = false;
                     permitApplication.StartDate = vacationPayReq.RequestDate;
                     permitApplication.EndDate = vacationPayReq.RequestDate;
