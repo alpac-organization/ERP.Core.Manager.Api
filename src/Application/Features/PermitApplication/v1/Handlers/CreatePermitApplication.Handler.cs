@@ -123,6 +123,22 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             switch (request.PermitApplicationType)
             {
+                case PermitApplicationType.VacationPay:
+                {
+                    _logger.LogInformation("🚀Iniciando proceso para solicitud de pago de vacaciones.");
+
+                    var vacationPayReq = request?.PermitApplicationVacationPay ?? new();
+
+                    permitApplication.IsWithRangeDate = false;
+                    permitApplication.StartDate = vacationPayReq.RequestDate;
+                    permitApplication.EndDate = vacationPayReq.RequestDate;
+                    permitApplication.AmountDays = vacationPayReq.AmountDays;
+                    permitApplication.Type = PermitApplicationType.VacationPay;
+
+                    MappingRecords(request?.Channel ?? Channels.PersonalPanel, permitApplication, access.Role?.RoleType ?? RoleType.Operator, user.Fullname);
+
+                    break;   
+                }
                 case PermitApplicationType.MedicalAppointment:
                 {
                     _logger.LogInformation("🚀Iniciando proceso de registro de solicitud de permiso.");
@@ -330,6 +346,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             if (payrollActive is null)
             {
+                //Casos para solicitudes futuras de colaboradores.
                 await _unitOfWork.PermitApplicationsPending.CreatePermitApplicationPending(new()
                 {
                     AdditionalData = permitApplication.AdditionalData,
@@ -346,6 +363,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             }
             else
             {
+                //Creación de solicitud.
                 await _unitOfWork.PermitApplications.CreatePermitApplication(permitApplication);
             }
 
