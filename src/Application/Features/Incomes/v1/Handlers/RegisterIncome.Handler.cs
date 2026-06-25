@@ -59,8 +59,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                     if (request.BonusPayload is null)                   
                         return _errorManager.ThrowBadRequest<bool>("Los datos para registro de bonos es requerido", "ERP:02");
                     
-                    // if (request.BonusPayload.BonusAmount <= 0)     
-                    //     return _errorManager.ThrowBadRequest<bool>("El monto de los bonos no puede ser menor o igual a 0", "ERP:02");
+                    if (request.BonusPayload.BonusAmount < 0)     
+                        return _errorManager.ThrowBadRequest<bool>("El monto de los bonos no puede ser menor a 0", "ERP:02");
 
                     if (string.IsNullOrEmpty(request.BonusPayload.IdentificationNumber))     
                         return _errorManager.ThrowBadRequest<bool>("El número de identificación es requerido", "ERP:02");
