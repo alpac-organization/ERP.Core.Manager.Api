@@ -636,7 +636,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 false,
                 AdditionalPayment
             );
-            
+
             //Actualizamos el total de ingresos.
             ordinaryPayrollInfo.TotalIncome += ordinaryPayrollInfo.Vacations + ordinaryPayrollInfo.Bonus;
 
@@ -882,6 +882,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             TotalIncome += amountVacation;
             TotalIncome += ordinaryPayrollInfo.Bonus;
 
+            ordinaryPayrollInfo.Vacations = amountVacation;
+            ordinaryPayrollInfo.AmountDaysVacation = amountDays;
+
             //Actualizamos el acumulado para la siguiente quincena
             if (lastIncomeTax?.NumberOfFortnights == 1)
             {
@@ -930,6 +933,27 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             //Actualizamos el total a pagar en esta quincena actual.
             ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
 
+            //Actualizar control de vacaciones
+            var vacationControl = await _unitOfWork.Vacations.Entities
+                .Where(vac => vac.CollaboratorId == collaboratorInformation.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (vacationControl is null)
+            {
+                _logger.LogInformation("No se encontro el control de vacaciones de este colaborador");
+                return false ;
+            }
+
+            if (vacationControl.AvailableVacations < amountDays)
+            {
+                _logger.LogInformation("El colaborador con cedula: {identification} no posee la cantidad necesaria de vacaciones, para ser aprobadas", collaboratorInformation.IdentificationNumber);
+                return false;
+            }
+
+            vacationControl.EnjoyedVacation += amountDays;
+            vacationControl.AvailableVacations -= amountDays;
+
+            await _unitOfWork.Vacations.UpdateAsync(vacationControl);
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
             await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
 
