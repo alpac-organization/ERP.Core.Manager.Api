@@ -273,10 +273,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 return;
             }
             
-            int daysWorked = 15;
-            DateOnly entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
-            DateOnly payrollStart = ordinaryPayrollInfo.Payroll.StartDate;
-            DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
+            int daysWorked          = 15;
+            DateOnly entryDate      = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart   = ordinaryPayrollInfo.Payroll.StartDate;
+            DateOnly payrollEnd     = ordinaryPayrollInfo.Payroll.EndDate;
 
             if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
             else  daysWorked = 15;
@@ -289,31 +289,35 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Commissions + salaryProportional;
 
-            var bonus = amountBonus;
+            //Sumamos los pagos adicionales.
+            decimal additionalPayment = amountBonus;
 
             if (currency == Currency.USD)
             {
-                bonus = amountBonus * 36.6243m;
+                additionalPayment = amountBonus * 36.6243m;
             }
 
-            bonus += ordinaryPayrollInfo.Vacations;
-            TotalIncome += ordinaryPayrollInfo.Vacations;
-            
+            //Agregar las vacaciones como pago adicional
             ordinaryPayrollInfo.TotalIncome = TotalIncome;
-            ordinaryPayrollInfo.Bonus = bonus;
+            ordinaryPayrollInfo.Bonus       = additionalPayment;
 
+            //agregamos la cantidad de dinero de los pagos de vacaciones como pago adicional
+            additionalPayment += ordinaryPayrollInfo.Vacations;
+
+            //Calculo del ir e inss de los pagos adicionales y total de ingresos en los bonos.
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
                 lastIncomeTax.NumberOfFortnights,
                 lastIncomeTax?.SalaryEarned       ?? 0.0m,
                 lastIncomeTax?.AccumulatedIR      ?? 0.0m,
                 TotalIncome,
                 false,
-                bonus
+                additionalPayment
             );
 
-            TotalIncome += bonus;
+            TotalIncome += ordinaryPayrollInfo.Bonus;
             TotalIncome += ordinaryPayrollInfo.Vacations;
 
+            //Actualizamos los acumulados.
             lastIncomeTax?.FlagAccumulatedIR = lastIncomeTax?.AccumulatedIR + BiweeklyIr;
             lastIncomeTax?.FlagSalaryEarned  = lastIncomeTax?.SalaryEarned + (TotalIncome - BiweeklyInss);
 
@@ -321,7 +325,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.Ir                   += BiweeklyIr;
             ordinaryPayrollInfo.Inss                 += BiweeklyInss;
             ordinaryPayrollInfo.TotalLegalDeductions = ordinaryPayrollInfo.Ir + ordinaryPayrollInfo.Inss;
+            ordinaryPayrollInfo.TotalIncome          = TotalIncome;
 
+            //Suma de deducciones totales del colaborador
             var deductions =
                 JsonSerializer.Deserialize<DeductionsAdditionalData>(
                     ordinaryPayrollInfo.DeductionsAdditionalData
@@ -342,16 +348,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + deductions.Sanction
                 + deductions.LateArrivals;
 
+            //Suma total de todas las deducciones.
             ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
-
-            decimal total = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+            ordinaryPayrollInfo.TotalToPay        = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
 
             ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-            ordinaryPayrollInfo.TotalToPay = total;
-    
+            ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+
+            //Actualización de información
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
             await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
 
+            //Registro del ingreso.
             await _unitOfWork.Incomes.RegisterIncome(new()
             {
                 CollaboratorId  =  collaboratorInformation.Id,
@@ -364,6 +372,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             });
         }
 
+        //✅ Aplicar calculo de horas extras.
         public async Task ApplyIncomeOvertime(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalHours, Guid payrollId, Guid typeIncomeId)
         {
             var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
@@ -524,6 +533,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             //No tomamos en cuenta las comisiones.
             decimal TotalIncome         = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + salaryProportional;
             
+            //Realizamos el calculo de la comisión
             var comission = amountComission;
 
             if (currency == Currency.USD)
@@ -536,25 +546,33 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.TotalIncome = TotalIncome;
             ordinaryPayrollInfo.Commissions = comission;
 
-
             //Sumar todos los pagos adicionales
             decimal additionalPayment = ordinaryPayrollInfo.Vacations + ordinaryPayrollInfo.Bonus;
 
+            //Calculamos el ir e inss, de sus ingresos.
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
                 lastIncomeTax.NumberOfFortnights,
                 lastIncomeTax?.SalaryEarned       ?? 0.0m,
                 lastIncomeTax?.AccumulatedIR      ?? 0.0m,
-                TotalIncome
+                TotalIncome,
+                false,
+                additionalPayment
             );
 
+            //Actualizamos el total de ingresos.
+            TotalIncome += ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Vacations;
+            ordinaryPayrollInfo.TotalIncome = TotalIncome;
+
+            //Actualizamos el acumulado para la siguiente quincena.
             lastIncomeTax?.FlagAccumulatedIR = lastIncomeTax?.AccumulatedIR + BiweeklyIr;
-            lastIncomeTax?.FlagSalaryEarned  = TotalIncome - BiweeklyInss;
+            lastIncomeTax?.FlagSalaryEarned  = lastIncomeTax?.SalaryEarned  + (TotalIncome - BiweeklyInss);
 
             //Actualizar datos de deducciones.
             ordinaryPayrollInfo.Ir                   = BiweeklyIr;
             ordinaryPayrollInfo.Inss                 = BiweeklyInss;
             ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
 
+            //Sumamos todas sus deducciones.
             var deductions =
                 JsonSerializer.Deserialize<DeductionsAdditionalData>(
                     ordinaryPayrollInfo.DeductionsAdditionalData
@@ -576,16 +594,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + deductions.LateArrivals;
 
             ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
-
-            decimal total = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+            ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
 
             ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-            ordinaryPayrollInfo.TotalToPay = total;
-
     
+            //Actualizamos la nomina y las comisiones.
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
             await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
 
+            //Registramos el ingreso de las comisiones.
             await _unitOfWork.Incomes.RegisterIncome(new()
             {
                 CollaboratorId  =  collaboratorInformation.Id,
