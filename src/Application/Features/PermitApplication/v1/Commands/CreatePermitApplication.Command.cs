@@ -13,11 +13,16 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
         public string? Description { get; set; }
         public string? IdentificationNumber { get; set; }
         public PermitApplicationType PermitApplicationType { get; set; }
-
-
-       
+        
+               
+        public PermitApplicationVacationPay? PermitApplicationVacationPay { get; set; }
         public PermitApplicationVacation? PermitApplicationVacation { get; set; }
         public PermitApplicationMedicalAppointment? PermitApplicationMedicalAppointment { get; set; }
+    }
+    public class PermitApplicationVacationPay
+    {
+        public decimal AmountDays { get; set; }
+        public DateOnly RequestDate { get; set; }
     }
 
     public class PermitApplicationVacation
