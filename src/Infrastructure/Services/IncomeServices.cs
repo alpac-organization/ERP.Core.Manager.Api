@@ -251,7 +251,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #endregion 
         }
 
-
         public async Task ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId)
         {
             var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
@@ -298,6 +297,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 bonus = amountBonus * 36.6243m;
             }
 
+            bonus += ordinaryPayrollInfo.Vacations;
+            TotalIncome += ordinaryPayrollInfo.Vacations;
+            
             ordinaryPayrollInfo.TotalIncome = TotalIncome;
             ordinaryPayrollInfo.Bonus = bonus;
 
@@ -312,9 +314,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             );
 
             TotalIncome += bonus;
+            TotalIncome += ordinaryPayrollInfo.Vacations;
 
             lastIncomeTax?.FlagAccumulatedIR = lastIncomeTax?.AccumulatedIR + BiweeklyIr;
-            lastIncomeTax?.FlagSalaryEarned  = TotalIncome - BiweeklyInss;
+            lastIncomeTax?.FlagSalaryEarned  = lastIncomeTax?.SalaryEarned + (TotalIncome - BiweeklyInss);
 
             //Actualizar datos de deducciones.
             ordinaryPayrollInfo.Ir                   += BiweeklyIr;
@@ -429,7 +432,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
 
             lastIncomeTax?.FlagAccumulatedIR = lastIncomeTax?.AccumulatedIR + BiweeklyIr;
-            lastIncomeTax?.FlagSalaryEarned =  ordinaryPayrollInfo.TotalIncome - BiweeklyInss;
+            lastIncomeTax?.FlagSalaryEarned =  lastIncomeTax?.SalaryEarned + (ordinaryPayrollInfo.TotalIncome - BiweeklyInss);
 
             var deductions =
                 JsonSerializer.Deserialize<DeductionsAdditionalData>(
@@ -586,6 +589,122 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Description     = "Ingreso comisiones",
                 PayrollId       = payrollId,
             });
+        }
+    
+        public async Task<bool> ApplyVacationPay(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId, decimal amountDays)
+        {
+            var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Where(ord => ord.PayrollId == payrollId)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+                .Include(ord => ord.Payroll)
+                .FirstOrDefaultAsync(default);
+
+            if (ordinaryPayrollInfo is null)
+            {
+                _logger.LogInformation("No se encontro la información de nomina de este colaborador: {identification}", collaboratorInformation.IdentificationNumber);   
+                return false;
+            }
+
+            var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
+                .Where(income => income.CollaboratorId == collaboratorInformation.Id && income.PayrollId == payrollId)
+                .FirstOrDefaultAsync(default);
+
+            if (lastIncomeTax is null)
+            {
+                _logger.LogInformation("No se puedo encontrar el ultimo registro acumulados del colaborador");
+                return false;
+            }
+            
+            int daysWorked = 15;
+            DateOnly entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart = ordinaryPayrollInfo.Payroll.StartDate;
+            DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
+
+            if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
+            else  daysWorked = 15;
+
+            if (daysWorked < 0) daysWorked = 0;
+            if (daysWorked > 15) daysWorked = 15;
+
+            decimal salaryDaily = salaryInformation.AmountInLocal / 30;
+            decimal salaryProportional = salaryDaily * daysWorked;
+
+            decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Commissions + salaryProportional;
+
+            ordinaryPayrollInfo.TotalIncome = TotalIncome;
+
+            //Calculamos el total de pago de vacaciones, cualquier pago adiciona que tenga
+            decimal amountVacation      = amountDays * salaryDaily;
+            decimal additionalPayment   = ordinaryPayrollInfo.Bonus + amountVacation;
+
+            //Realizamos el calculo de inss e ir, con pago adicional.
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
+                lastIncomeTax.NumberOfFortnights,
+                lastIncomeTax?.SalaryEarned       ?? 0.0m,
+                lastIncomeTax?.AccumulatedIR      ?? 0.0m,
+                TotalIncome,
+                default,
+                false,
+                additionalPayment
+            );
+
+            //Sumamos pagos adiciones que tenga, pago de vacaciones y bonos
+            TotalIncome += amountVacation;
+            TotalIncome += ordinaryPayrollInfo.Bonus;
+
+            //Actualizamos el acumulado para la siguiente quincena
+            if (lastIncomeTax?.NumberOfFortnights == 1)
+            {
+                lastIncomeTax?.FlagAccumulatedIR = 0.0m;
+                lastIncomeTax?.FlagSalaryEarned  = 0.0m;
+
+                //Aqui va el registro para el acumulado final de año.
+            }
+            else
+            {
+                lastIncomeTax?.FlagAccumulatedIR = lastIncomeTax?.AccumulatedIR + BiweeklyIr;
+                lastIncomeTax?.FlagSalaryEarned  = lastIncomeTax?.SalaryEarned  + (TotalIncome - BiweeklyInss);   
+            }
+
+            //Actualizar datos de deducciones.  
+            ordinaryPayrollInfo.Ir                   = BiweeklyIr;
+            ordinaryPayrollInfo.Inss                 = BiweeklyInss;
+
+            //Actualizamos el total de ingresos y deducciones de ley.
+            ordinaryPayrollInfo.TotalIncome          = TotalIncome;
+            ordinaryPayrollInfo.TotalLegalDeductions = ordinaryPayrollInfo.Ir + ordinaryPayrollInfo.Inss;
+            
+            //Sumamos el total de deducciones
+            var deductions =
+                JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                    ordinaryPayrollInfo.DeductionsAdditionalData
+                ) ?? new DeductionsAdditionalData();
+
+            decimal totalDeductions =
+                deductions.Loans
+                + deductions.Purisima
+                + deductions.ChildSupportGarnishment
+                + deductions.SalaryAdvance
+                + deductions.ChristmasBonusAdvance
+                + deductions.JudicialSeizures
+                + deductions.UniformDeduction
+                + deductions.CashShortage
+                + deductions.OtherDeductions
+                + deductions.DeductionForLossesBulk
+                + deductions.Absences
+                + deductions.Sanction
+                + deductions.LateArrivals;
+
+            ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
+
+            //Actualizamos el total a pagar en esta quincena actual.
+            ordinaryPayrollInfo.TotalToPay       = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+
+            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+            await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
+
+            _logger.LogInformation("✅Pago de vacaciones procesado con exito.");
+            return true;
         }
     }
 }
