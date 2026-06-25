@@ -109,7 +109,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 taxIncome?.SalaryEarned         ?? 0,
                 taxIncome?.AccumulatedIR        ?? 0,
                 TotalGrossSalary,
-                default,
                 true
             );
 
@@ -308,7 +307,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 lastIncomeTax?.SalaryEarned       ?? 0.0m,
                 lastIncomeTax?.AccumulatedIR      ?? 0.0m,
                 TotalIncome,
-                default,
                 false,
                 bonus
             );
@@ -508,10 +506,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             int daysWorked = 15;
-            DateOnly entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
-            DateOnly payrollStart = DateOnly.FromDateTime(salaryInformation.StartDate);
 
-            DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
+            DateOnly entryDate      = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart   = ordinaryPayrollInfo.Payroll.StartDate;
+            DateOnly payrollEnd     = ordinaryPayrollInfo.Payroll.EndDate;
 
             if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
             else  daysWorked = 15;
@@ -519,7 +517,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (daysWorked < 0) daysWorked = 0;
             if (daysWorked > 15) daysWorked = 15;
 
-            decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.BiweeklySalary;
+            decimal salaryDaily         = salaryInformation.AmountInLocal / 30;
+            decimal salaryProportional  = salaryDaily * daysWorked;
+
+            //No tomamos en cuenta las comisiones.
+            decimal TotalIncome         = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + salaryProportional;
             
             var comission = amountComission;
 
@@ -528,16 +530,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 comission = amountComission * 36.6243m;
             }
 
-            TotalIncome += comission;         
+            //Actualizamos el total de ingresos
+            TotalIncome += comission;
             ordinaryPayrollInfo.TotalIncome = TotalIncome;
             ordinaryPayrollInfo.Commissions = comission;
+
+
+            //Sumar todos los pagos adicionales
+            decimal additionalPayment = ordinaryPayrollInfo.Vacations + ordinaryPayrollInfo.Bonus;
 
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
                 lastIncomeTax.NumberOfFortnights,
                 lastIncomeTax?.SalaryEarned       ?? 0.0m,
                 lastIncomeTax?.AccumulatedIR      ?? 0.0m,
-                TotalIncome,
-                default
+                TotalIncome
             );
 
             lastIncomeTax?.FlagAccumulatedIR = lastIncomeTax?.AccumulatedIR + BiweeklyIr;
@@ -591,6 +597,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             });
         }
     
+        //✅Pago de vacaciones.
         public async Task<bool> ApplyVacationPay(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId, decimal amountDays)
         {
             var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
@@ -643,7 +650,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 lastIncomeTax?.SalaryEarned       ?? 0.0m,
                 lastIncomeTax?.AccumulatedIR      ?? 0.0m,
                 TotalIncome,
-                default,
                 false,
                 additionalPayment
             );
