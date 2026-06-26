@@ -22,12 +22,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal monthSalary = salary.AmountInLocal;
             decimal daySalary = monthSalary / 30;
 
-            var validDeductions = await _unitOfWork.ValidityDeductions.Entities
-                .Where(v => v.Status)
-                .ToListAsync(default);
-
-            decimal inssLabPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inss)?.Value ?? 0.07m;
-
             var taxIncome = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(tax => tax.PayrollId == period.Id)
                 .Where(tax => tax.CollaboratorId == collaborator.Id)
@@ -60,6 +54,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             DateOnly payrollStartDate = period.StartDate;
             DateOnly payrollEndDate = period.EndDate;
+            DateOnly entryDate = collaborator.WorkingInformation.EntryDate;
+
+            int maximumWorkedDays = 15;
+            if (entryDate > payrollStartDate)
+            {
+                maximumWorkedDays = payrollEndDate.DayNumber - entryDate.DayNumber + 1;
+            }
+            if (maximumWorkedDays < 0) maximumWorkedDays = 0;
+            if (maximumWorkedDays > 15) maximumWorkedDays = 15;
 
             DateOnly subsidyStartDate = DateOnly.FromDateTime(subsidyData.StartDate.Date);
             DateOnly subsidyEndDate = DateOnly.FromDateTime(subsidyData.EndDate.Date);
@@ -74,34 +77,44 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             int subsidyDays = exactSubsidyEndDate.DayNumber - exactSubsidyStartDate.DayNumber + 1;
-            int daysWithoutSubsidy = Math.Max(15 - subsidyDays, 0);
+            int daysWithoutSubsidy = Math.Max(maximumWorkedDays - subsidyDays, 0);
+
+            var variableIncomeForWorkedDays = infPayroll.Antique
+                                              + infPayroll.Overtime
+                                              + infPayroll.Vacations
+                                              + infPayroll.Commissions;
+            //se suma el salario proporcional de dias laborados + otros ingresos.
+            decimal totalGrossIncomeInThisFortnight = (daySalary * daysWithoutSubsidy)
+                                                       + variableIncomeForWorkedDays;
 
 
-            decimal proportionalSalaryWithoutSubsidy = daySalary * daysWithoutSubsidy;
-            decimal inssWithoutSubsidy = await _calculatorDeductions.CalculateInss(proportionalSalaryWithoutSubsidy, default);
-            decimal taxableBaseWithoutSubsidy = proportionalSalaryWithoutSubsidy - inssWithoutSubsidy;//base IR
+            decimal inssWithoutSubsidy = await _calculatorDeductions.CalculateInss(totalGrossIncomeInThisFortnight, default);
+            decimal taxableBaseWithoutSubsidy = totalGrossIncomeInThisFortnight - inssWithoutSubsidy;//base IR
 
             decimal proportionalSalaryWithSubsidy = subsidyDays * daySalary;
-            decimal companySubsidyContribution = proportionalSalaryWithSubsidy * 0.4m;//empresa paga 40%
 
-            decimal inssSubsidyContribution = proportionalSalaryWithSubsidy * 0.6m;
-            infPayroll.TotalIncome -= inssSubsidyContribution;
-
-            decimal totaltaxableBaseForIr = taxableBaseWithoutSubsidy;
-
+            decimal companySubsidyContribution = proportionalSalaryWithSubsidy * 0.4m;
+            infPayroll.TotalIncome = totalGrossIncomeInThisFortnight
+                                     + infPayroll.Bonus
+                                     + companySubsidyContribution;
 
             int NumberOfFortnight = taxIncome?.NumberOfFortnights ?? 24;
             decimal SalaryEarned = taxIncome?.SalaryEarned ?? 0;
             decimal accumulatedIR = taxIncome?.AccumulatedIR ?? 0;
 
-            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(NumberOfFortnight, SalaryEarned, accumulatedIR, totaltaxableBaseForIr, true);
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(NumberOfFortnight, SalaryEarned, accumulatedIR, taxableBaseWithoutSubsidy, true, infPayroll.Bonus);
 
-            infPayroll.Inss = inssWithoutSubsidy;
+            infPayroll.Inss = inssWithoutSubsidy + BiweeklyInss;
             infPayroll.Ir = BiweeklyIr;
-            infPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyIr;
+            infPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyInss + BiweeklyIr;
 
-            taxIncome?.FlagSalaryEarned += totaltaxableBaseForIr;
-            taxIncome?.FlagAccumulatedIR += BiweeklyIr;
+            decimal netBonus = infPayroll.Bonus - (infPayroll.Bonus * 0.07m);
+
+            taxIncome?.FlagSalaryEarned = (taxIncome?.SalaryEarned ?? 0)
+                                          + taxableBaseWithoutSubsidy + netBonus;
+
+            taxIncome?.FlagAccumulatedIR = (taxIncome?.AccumulatedIR ?? 0)
+                                          + BiweeklyIr;
 
 
             var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
@@ -223,7 +236,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             _logger.LogInformation("✅ Subsidio maternal calculado y aplicado correctamente.");
             return true;
         }
-
         public async Task<bool> ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation, Payroll period, RegisterSubsidyCommmand data)
         {
             _logger.LogInformation("🚩Iniciando proceso de subsidio para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
@@ -475,11 +487,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 _logger.LogInformation("No se puedo encontrar el ultimo registro acumulados del colaborador");
                 return;
             }
-            
-            int daysWorked          = 15;
-            DateOnly entryDate      = salaryInformation.Collaborator.WorkingInformation.EntryDate;
-            DateOnly payrollStart   = ordinaryPayrollInfo.Payroll.StartDate;
-            DateOnly payrollEnd     = ordinaryPayrollInfo.Payroll.EndDate;
+
+            int daysWorked = 15;
+            DateOnly entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart = ordinaryPayrollInfo.Payroll.StartDate;
+            DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
             if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
             else daysWorked = 15;
@@ -502,7 +514,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             //Agregar las vacaciones como pago adicional
             ordinaryPayrollInfo.TotalIncome = TotalIncome;
-            ordinaryPayrollInfo.Bonus       = additionalPayment;
+            ordinaryPayrollInfo.Bonus = additionalPayment;
 
             //agregamos la cantidad de dinero de los pagos de vacaciones como pago adicional
             additionalPayment += ordinaryPayrollInfo.Vacations;
@@ -528,7 +540,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.Ir += BiweeklyIr;
             ordinaryPayrollInfo.Inss += BiweeklyInss;
             ordinaryPayrollInfo.TotalLegalDeductions = ordinaryPayrollInfo.Ir + ordinaryPayrollInfo.Inss;
-            ordinaryPayrollInfo.TotalIncome          = TotalIncome;
+            ordinaryPayrollInfo.TotalIncome = TotalIncome;
 
             //Suma de deducciones totales del colaborador
             var deductions =
@@ -553,7 +565,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             //Suma total de todas las deducciones.
             ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
-            ordinaryPayrollInfo.TotalToPay        = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+            ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
 
             ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
             ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
@@ -594,9 +606,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal HourlyWage = DailySalary / 8;
 
             int daysWorked = 15;
-            DateOnly entryDate      = salaryInformation.Collaborator.WorkingInformation.EntryDate;
-            DateOnly payrollStart   = ordinaryPayrollInfo.Payroll.StartDate;
-            DateOnly payrollEnd     = ordinaryPayrollInfo.Payroll.EndDate;
+            DateOnly entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart = ordinaryPayrollInfo.Payroll.StartDate;
+            DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
             daysWorked = entryDate > payrollStart
                 ? payrollEnd.DayNumber - entryDate.DayNumber + 1
@@ -606,15 +618,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (daysWorked > 15) daysWorked = 15;
 
             decimal ProportionalBiweeklySalary = DailySalary * daysWorked;
-            decimal AmountTotalWithHours       = HourlyWage * totalHours * 2;
+            decimal AmountTotalWithHours = HourlyWage * totalHours * 2;
 
-            ordinaryPayrollInfo.Overtime        = AmountTotalWithHours;                    
-            ordinaryPayrollInfo.NumberOvertime  = totalHours;
-            ordinaryPayrollInfo.TotalIncome     = ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary + ordinaryPayrollInfo.Antique;
+            ordinaryPayrollInfo.Overtime = AmountTotalWithHours;
+            ordinaryPayrollInfo.NumberOvertime = totalHours;
+            ordinaryPayrollInfo.TotalIncome = ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary + ordinaryPayrollInfo.Antique;
 
-            decimal GrossSalary       = ordinaryPayrollInfo.TotalIncome;
+            decimal GrossSalary = ordinaryPayrollInfo.TotalIncome;
             decimal AdditionalPayment = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Vacations;
-    
+
             //Registro de acumulado de la quincena, basandonos en los acumulado
             var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == salaryInformation.Collaborator.Id && income.PayrollId == payrollId)
@@ -671,11 +683,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + deductions.LateArrivals;
 
             ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr + totalDeductions;
-            ordinaryPayrollInfo.TotalToPay           = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+            ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
             ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-                        
-            ordinaryPayrollInfo.GrossSalary      = salaryInformation.AmountInLocal / 2;
-            ordinaryPayrollInfo.NumberOvertime   = totalHours;
+
+            ordinaryPayrollInfo.GrossSalary = salaryInformation.AmountInLocal / 2;
+            ordinaryPayrollInfo.NumberOvertime = totalHours;
 
             //Actualizamos su acumulado
             await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
@@ -723,9 +735,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             int daysWorked = 15;
 
-            DateOnly entryDate      = salaryInformation.Collaborator.WorkingInformation.EntryDate;
-            DateOnly payrollStart   = ordinaryPayrollInfo.Payroll.StartDate;
-            DateOnly payrollEnd     = ordinaryPayrollInfo.Payroll.EndDate;
+            DateOnly entryDate = salaryInformation.Collaborator.WorkingInformation.EntryDate;
+            DateOnly payrollStart = ordinaryPayrollInfo.Payroll.StartDate;
+            DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
             if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
             else daysWorked = 15;
@@ -733,12 +745,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (daysWorked < 0) daysWorked = 0;
             if (daysWorked > 15) daysWorked = 15;
 
-            decimal salaryDaily         = salaryInformation.AmountInLocal / 30;
-            decimal salaryProportional  = salaryDaily * daysWorked;
+            decimal salaryDaily = salaryInformation.AmountInLocal / 30;
+            decimal salaryProportional = salaryDaily * daysWorked;
 
             //No tomamos en cuenta las comisiones.
-            decimal TotalIncome         = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + salaryProportional;
-            
+            decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + salaryProportional;
+
             //Realizamos el calculo de la comisión
             var comission = amountComission;
 
@@ -771,7 +783,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             //Actualizamos el acumulado para la siguiente quincena.
             lastIncomeTax?.FlagAccumulatedIR = lastIncomeTax?.AccumulatedIR + BiweeklyIr;
-            lastIncomeTax?.FlagSalaryEarned  = lastIncomeTax?.SalaryEarned  + (TotalIncome - BiweeklyInss);
+            lastIncomeTax?.FlagSalaryEarned = lastIncomeTax?.SalaryEarned + (TotalIncome - BiweeklyInss);
 
             //Actualizar datos de deducciones.
             ordinaryPayrollInfo.Ir = BiweeklyIr;
@@ -803,7 +815,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
 
             ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-    
+
             //Actualizamos la nomina y las comisiones.
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
             await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
@@ -820,7 +832,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 PayrollId = payrollId,
             });
         }
-    
+
         //✅Pago de vacaciones.
         public async Task<bool> ApplyVacationPay(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId, decimal amountDays)
         {
@@ -941,7 +953,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (vacationControl is null)
             {
                 _logger.LogInformation("No se encontro el control de vacaciones de este colaborador");
-                return false ;
+                return false;
             }
 
             if (vacationControl.AvailableVacations < amountDays)
