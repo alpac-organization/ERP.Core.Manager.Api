@@ -44,6 +44,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     pay.Id == request.PayrollId && pay.Status == PayrollStatus.Progress
                 )
                 .Include(pay => pay.OrdinaryPayrolls)
+                    .ThenInclude(or => or.Collaborator)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (payroll is null)
@@ -73,6 +74,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             //Realizar todo aquel, registro de deducciones y pagos realizados del colaborador
             foreach (var collaborator in registers)
             {
+                //Verificar si el colaborador se encuentra despedido.
+
+                if (collaborator.Collaborator.HasBeenFired)
+                {
+                    //Este colaborador has sido despedido ya no continua en el progreso de nomina
+                    _logger.LogInformation("El colaborador con identification: {identification}, has sido dado de baja", collaborator.Collaborator.IdentificationNumber);
+                    continue;
+                }
+
+
                 var deductionsActive = await _unitOfWork.Deductions.Entities
                     .Where(deduction => deduction.CollaboratorId == collaborator.Id)
                     .Where(deduction => deduction.Status == DeductionStatus.Progress)
@@ -114,8 +125,25 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     await _unitOfWork.Deductions.UpdateAsync(deduction);
                 }
 
-
                 //Acumulado de vacaciones
+                const decimal valueVacations = 1.25m;
+                int daysWithSubsidy = 0;
+
+                var subsidy = await _unitOfWork.Subsidies.Entities
+                    .Where(sub => sub.CollaboratorId == collaborator.CollaboratorId)
+                    .Where(sub => sub.PayrollId == collaborator.PayrollId)
+                    .Include(sub => sub.TypesSubsidy)
+                    .Where(sub => sub.TypesSubsidy.Code != "MATERNITY")
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (subsidy is not null)
+                {
+                    daysWithSubsidy = subsidy.AmountDays;
+                }
+
+                decimal valueVacationsDay = valueVacations / 15;
+                decimal amountToDiscountBySubsidy = daysWithSubsidy * valueVacationsDay;
+
                 var vacationControl = await _unitOfWork.Vacations.Entities
                     .Where(col => col.CollaboratorId == collaborator.Id)
                     .FirstOrDefaultAsync(cancellationToken);
@@ -126,9 +154,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     continue;
                 }
 
-                vacationControl.AvailableVacations += 1.25m;
-                vacationControl.GeneredVacation += 1.25m;
-
+                vacationControl.AvailableVacations += valueVacations - amountToDiscountBySubsidy;
+                vacationControl.GeneredVacation += valueVacations - amountToDiscountBySubsidy;
 
                 await _unitOfWork.Vacations.UpdateAsync(vacationControl);
             }
