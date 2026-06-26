@@ -47,7 +47,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 {
                     if (request.WorkingInformation.AreaId.HasValue)
                     {
-                        WorkingInformation?.AreaId = request.WorkingInformation.AreaId.Value;                    
+                        WorkingInformation?.AreaId = request.WorkingInformation.AreaId.Value;
+
+                        //Agregar logica para actualizar codigo del colaborador aqui al hacer una nueva actualización de area                    
                     }
 
                     if (request.WorkingInformation.WorkPositionId.HasValue)
