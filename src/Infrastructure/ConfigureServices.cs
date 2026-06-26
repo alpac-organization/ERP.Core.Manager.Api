@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Infrastructure.Services; 
+using ERP.Core.Infrastructure.Services;
 
 using ERP.Core.Database.Infrastructure;
 
@@ -29,13 +29,13 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddTransient<ITemplateServices, TemplateServices>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<ICalculatorDeductions, CalculatorDeductions>();
-            
+
             //Servicios de deduciones e ingresos colaborador.
             services.AddScoped<IIncomeServices, IncomeServices>();
             services.AddScoped<IPayrollServices, PayrollServices>();
             services.AddScoped<IReportingServices, ReportingServices>();
             services.AddScoped<IDeductionsServices, DeductionsServices>();
-            
+
             services.AddScoped<ITemplateServices, TemplateServices>();
             services.AddScoped<IPdfGeneratorServices, PdfGeneratorServices>();
             services.AddScoped<IAuthServices, AuthServices>();
@@ -47,7 +47,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
 
             // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
-            services.AddClockDatabaseServices(configuration);
+            // services.AddClockDatabaseServices(configuration);
 
             return services;
         }

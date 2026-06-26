@@ -22,12 +22,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal monthSalary = salary.AmountInLocal;
             decimal daySalary = monthSalary / 30;
 
-            var validDeductions = await _unitOfWork.ValidityDeductions.Entities
-                .Where(v => v.Status)
-                .ToListAsync(default);
-
-            decimal inssLabPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inss)?.Value ?? 0.07m;
-
             var taxIncome = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(tax => tax.PayrollId == period.Id)
                 .Where(tax => tax.CollaboratorId == collaborator.Id)
@@ -60,6 +54,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             DateOnly payrollStartDate = period.StartDate;
             DateOnly payrollEndDate = period.EndDate;
+            DateOnly entryDate = salary.Collaborator.WorkingInformation.EntryDate;
+            int maximumWorkedDays = 15;
+            if (entryDate > payrollStartDate)
+            {
+                maximumWorkedDays = payrollEndDate.DayNumber - entryDate.DayNumber + 1;
+            }
+            if (maximumWorkedDays < 0) maximumWorkedDays = 0;
+            if (maximumWorkedDays > 15) maximumWorkedDays = 15;
 
             DateOnly subsidyStartDate = DateOnly.FromDateTime(subsidyData.StartDate.Date);
             DateOnly subsidyEndDate = DateOnly.FromDateTime(subsidyData.EndDate.Date);
@@ -74,18 +76,27 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             int subsidyDays = exactSubsidyEndDate.DayNumber - exactSubsidyStartDate.DayNumber + 1;
-            int daysWithoutSubsidy = Math.Max(15 - subsidyDays, 0);
+            int daysWithoutSubsidy = Math.Max(maximumWorkedDays - subsidyDays, 0);
+
+            var variableIncomeForWorkedDays = infPayroll.Antique
+                                              + infPayroll.Overtime
+                                              + infPayroll.Vacations
+                                              + infPayroll.Commissions;
+            //se suma el salario proporcional de dias laborados + otros ingresos.
+            decimal totalGrossIncomeInThisFortnight = (daySalary * daysWithoutSubsidy)
+                                                       + variableIncomeForWorkedDays;
 
 
-            decimal proportionalSalaryWithoutSubsidy = daySalary * daysWithoutSubsidy;
-            decimal inssWithoutSubsidy = await _calculatorDeductions.CalculateInss(proportionalSalaryWithoutSubsidy, default);
-            decimal taxableBaseWithoutSubsidy = proportionalSalaryWithoutSubsidy - inssWithoutSubsidy;//base IR
+            decimal inssWithoutSubsidy = await _calculatorDeductions.CalculateInss(totalGrossIncomeInThisFortnight, default);
+            decimal taxableBaseWithoutSubsidy = totalGrossIncomeInThisFortnight - inssWithoutSubsidy;//base IR
 
             decimal proportionalSalaryWithSubsidy = subsidyDays * daySalary;
-            decimal companySubsidyContribution = proportionalSalaryWithSubsidy * 0.4m;//empresa paga 40%
 
-            decimal inssSubsidyContribution = proportionalSalaryWithSubsidy * 0.6m;
-            infPayroll.TotalIncome -= inssSubsidyContribution;
+            decimal companySubsidyContribution = proportionalSalaryWithSubsidy * 0.4m;
+            infPayroll.TotalIncome = totalGrossIncomeInThisFortnight
+                                     + infPayroll.Bonus
+                                     + companySubsidyContribution;
+
 
             decimal totaltaxableBaseForIr = taxableBaseWithoutSubsidy;
 
@@ -94,14 +105,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal SalaryEarned = taxIncome?.SalaryEarned ?? 0;
             decimal accumulatedIR = taxIncome?.AccumulatedIR ?? 0;
 
-            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(NumberOfFortnight, SalaryEarned, accumulatedIR, totaltaxableBaseForIr, default, true);
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(NumberOfFortnight, SalaryEarned, accumulatedIR, taxableBaseWithoutSubsidy, default, true, infPayroll.Bonus);
 
-            infPayroll.Inss = inssWithoutSubsidy;
+            infPayroll.Inss = BiweeklyInss;
             infPayroll.Ir = BiweeklyIr;
-            infPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyIr;
+            infPayroll.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
 
-            taxIncome?.FlagSalaryEarned += totaltaxableBaseForIr;
-            taxIncome?.FlagAccumulatedIR += BiweeklyIr;
+            decimal netBonus = infPayroll.Bonus - (infPayroll.Bonus * 0.07m);
+
+            taxIncome?.FlagSalaryEarned = (taxIncome?.SalaryEarned ?? 0)
+                                          + taxableBaseWithoutSubsidy + netBonus;
+
+            taxIncome?.FlagAccumulatedIR = (taxIncome?.AccumulatedIR ?? 0)
+                                          + BiweeklyIr;
 
 
             var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
