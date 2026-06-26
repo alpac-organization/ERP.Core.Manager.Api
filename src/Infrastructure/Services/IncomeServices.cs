@@ -105,7 +105,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal SalaryEarned = taxIncome?.SalaryEarned ?? 0;
             decimal accumulatedIR = taxIncome?.AccumulatedIR ?? 0;
 
-            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(NumberOfFortnight, SalaryEarned, accumulatedIR, taxableBaseWithoutSubsidy, default, true, infPayroll.Bonus);
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(NumberOfFortnight, SalaryEarned, accumulatedIR, taxableBaseWithoutSubsidy, true, infPayroll.Bonus);
 
             infPayroll.Inss = BiweeklyInss;
             infPayroll.Ir = BiweeklyIr;
