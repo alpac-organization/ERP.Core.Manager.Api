@@ -125,8 +125,25 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     await _unitOfWork.Deductions.UpdateAsync(deduction);
                 }
 
-
                 //Acumulado de vacaciones
+                const decimal valueVacations = 1.25m;
+                int daysWithSubsidy = 0;
+
+                var subsidy = await _unitOfWork.Subsidies.Entities
+                    .Where(sub => sub.CollaboratorId == collaborator.CollaboratorId)
+                    .Where(sub => sub.PayrollId == collaborator.PayrollId)
+                    .Include(sub => sub.TypesSubsidy)
+                    .Where(sub => sub.TypesSubsidy.Code != "MATERNITY")
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (subsidy is not null)
+                {
+                    daysWithSubsidy = subsidy.AmountDays;
+                }
+
+                decimal valueVacationsDay = valueVacations / 15;
+                decimal amountToDiscountBySubsidy = daysWithSubsidy * valueVacationsDay;
+
                 var vacationControl = await _unitOfWork.Vacations.Entities
                     .Where(col => col.CollaboratorId == collaborator.Id)
                     .FirstOrDefaultAsync(cancellationToken);
@@ -137,9 +154,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     continue;
                 }
 
-                vacationControl.AvailableVacations += 1.25m;
-                vacationControl.GeneredVacation += 1.25m;
-
+                vacationControl.AvailableVacations += valueVacations - amountToDiscountBySubsidy;
+                vacationControl.GeneredVacation += valueVacations - amountToDiscountBySubsidy;
 
                 await _unitOfWork.Vacations.UpdateAsync(vacationControl);
             }
