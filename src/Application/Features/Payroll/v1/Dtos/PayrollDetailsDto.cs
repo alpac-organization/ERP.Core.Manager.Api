@@ -60,6 +60,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
 
 
         public decimal Vacations { get; set; }
+        public decimal AmountDaysVacation { get; set; }
         public decimal Aguinaldo { get; set; }
 
         public decimal TotalToPay { get; set; }

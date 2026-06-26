@@ -12,7 +12,7 @@ using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices, IReportingServices _reportingServices): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
+    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices, IReportingServices _reportingServices, IIncomeServices _incomeServices): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(ProcessPermitApplicationCommand request, CancellationToken cancellationToken)
         {
@@ -74,6 +74,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             var salaryInformation = await _unitOfWork.Salaries.Entities
                 .Where(sal => sal.EndDate == null)
                 .Where(sal => sal.CollaboratorId == permitApplication.Collaborator.Id)
+                .Include(sal => sal.Collaborator)
+                    .ThenInclude(sal => sal.WorkingInformation)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (salaryInformation is null)
@@ -85,6 +87,51 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             switch (permitApplication.Type)
             {
+                case PermitApplicationType.VacationPay:
+                {
+                    #region Primer proceso de aprobación
+                    var (authorized, updateFirstStep) = ProcessFirstStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
+
+                    if (authorized is false)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar o rechazar esta solicitud", "ERP:01");        
+                    }
+                    else if (authorized && updateFirstStep)
+                    {
+                        await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                        return false;
+                    }
+
+                    #endregion
+
+                    #region Segundo proceso de aprobación
+
+                    var (isAuthorized, continueProcess) = ProcessSecondStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
+
+                    if (isAuthorized is false)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No tienes permisos para realizar esta operación, no eres administrador", "ERP:03");
+                    }
+
+                    if(isAuthorized && continueProcess)
+                    {
+                        //Procesar pago de vacaciones
+                        bool IsSuccess = await _incomeServices.ApplyVacationPay(permitApplication.Collaborator, salaryInformation, permitApplication.PayrolId, permitApplication?.AmountDays ?? 0.0m);
+
+                        if (!IsSuccess)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al procesar el pago de vacaciones", "ERP:04");
+                        }
+                        
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    }
+
+                    #endregion
+
+                    return true;
+                }
                 case PermitApplicationType.MedicalAppointment:
                 {
                     #region Primero proceso de aprobación

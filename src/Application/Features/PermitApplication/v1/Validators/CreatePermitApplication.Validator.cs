@@ -52,6 +52,14 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .NotNull().WithMessage("Los datos de la solicitud de vacaciones son obligatorios")
                     .SetValidator(new PermitApplicationVacationValidator());
             });
+
+
+            When(x => x.PermitApplicationType == PermitApplicationType.VacationPay, () =>
+            {
+                RuleFor(x => x.PermitApplicationVacationPay)
+                    .NotNull().WithMessage("Los datos de la solicitud de pagos de vacaciones.")
+                    .SetValidator(new PermitApplicationVacationPayValidator());
+            });
         }
 
 
@@ -79,6 +87,31 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .GreaterThan(x => x!.StartTime)
                         .When(x => x != null && x.StartTime != null && !x.IsFullDay)
                         .WithMessage("La hora de finalización debe ser posterior a la hora de inicio.");
+            }
+        }
+
+        public class PermitApplicationVacationPayValidator: AbstractValidator<PermitApplicationVacationPay?>
+        {
+            public PermitApplicationVacationPayValidator()
+            {
+                RuleFor(x => x)
+                    .NotNull()
+                    .WithMessage("La información de la solicitud de pago de vacaciones es obligatoria.");
+
+                When(x => x != null, () =>
+                {
+                    RuleFor(x => x!.RequestDate)
+                        .NotEmpty()
+                        .WithMessage("La fecha de solicitud es obligatoria.")
+                        .Must(date => date >= DateOnly.FromDateTime(DateTime.Today))
+                        .WithMessage("La fecha de solicitud no puede ser menor a la fecha actual.");
+
+                    RuleFor(x => x!.AmountDays)
+                        .GreaterThan(0)
+                        .WithMessage("La cantidad de días a pagar debe ser mayor a cero.")
+                        .LessThanOrEqualTo(30)
+                        .WithMessage("La cantidad de días a pagar no puede ser mayor a 30.");
+                });
             }
         }
 

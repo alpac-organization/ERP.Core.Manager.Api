@@ -36,6 +36,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.GrossSalary, src => src.MapFrom(or => or.Item1.GrossSalary))
                 .ForMember(dest => dest.DeductionsAdditionalData, src => src.MapFrom(or => or.Item1.DeductionsAdditionalData))
                 .ForMember(dest => dest.TotalToPay, src => src.MapFrom(or => or.Item1.TotalToPay))
+                .ForMember(dest => dest.Vacations, src => src.MapFrom(or => or.Item1.Vacations))
+                .ForMember(dest => dest.AmountDaysVacation, src => src.MapFrom(or => or.Item1.AmountDaysVacation))
                 .ForMember(dest => dest.TotalDeducctions, src => src.MapFrom(or => or.Item1.TotalDeducctions))
                 .ForMember(dest => dest.TotalTravelExpenses, src => src.MapFrom(or => or.Item1.TotalTravelExpenses))
                 .ForPath(

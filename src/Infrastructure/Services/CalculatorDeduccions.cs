@@ -71,7 +71,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
 
         //Este ir se basa en la numero de quincena que se encuentra actualmente el colaborador
-        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, CancellationToken cancellationToken, bool isSudsidy = false, decimal additionalPayment = 0.0m)
+        public async Task<IrCalculationResult> CalculateIr(int NFortnight , decimal AccumulatedAccrued, decimal AccumulatedIR, decimal GrossSalary, bool isSudsidy = false, decimal additionalPayment = 0.0m)
         {
             var nextFortnight = NFortnight;
             decimal biweeklyInss = 0.0m;
@@ -79,12 +79,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (!isSudsidy)
             {
-                biweeklyInss = await CalculateInss(GrossSalary, cancellationToken);
+                biweeklyInss = await CalculateInss(GrossSalary, default);
             }
 
             if (additionalPayment > 0)
             {
-                inssAdditionalPayment = await CalculateInss(additionalPayment, cancellationToken);
+                inssAdditionalPayment = await CalculateInss(additionalPayment, default);
             }
 
             //Salario quincenal libre de inss.
@@ -281,8 +281,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 TaxInformation.FlagNumberOfFortnights ?? 24,
                 TaxInformation.FlagSalaryEarned       ?? 0.0m,
                 TaxInformation.FlagAccumulatedIR      ?? 0.0m,
-                TotalIncome,
-                cancellationToken
+                TotalIncome
             );
 
             var AdditionalDeducctions = new DeductionsAdditionalData()
