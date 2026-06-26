@@ -47,7 +47,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
 
             // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
-            // services.AddClockDatabaseServices(configuration);
+            services.AddClockDatabaseServices(configuration);
 
             return services;
         }

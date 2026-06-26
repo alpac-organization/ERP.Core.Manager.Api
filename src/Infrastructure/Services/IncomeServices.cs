@@ -54,7 +54,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             DateOnly payrollStartDate = period.StartDate;
             DateOnly payrollEndDate = period.EndDate;
-            DateOnly entryDate = salary.Collaborator.WorkingInformation.EntryDate;
+            DateOnly entryDate = collaborator.WorkingInformation.EntryDate;
+
             int maximumWorkedDays = 15;
             if (entryDate > payrollStartDate)
             {
@@ -97,19 +98,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                                      + infPayroll.Bonus
                                      + companySubsidyContribution;
 
-
-            decimal totaltaxableBaseForIr = taxableBaseWithoutSubsidy;
-
-
             int NumberOfFortnight = taxIncome?.NumberOfFortnights ?? 24;
             decimal SalaryEarned = taxIncome?.SalaryEarned ?? 0;
             decimal accumulatedIR = taxIncome?.AccumulatedIR ?? 0;
 
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(NumberOfFortnight, SalaryEarned, accumulatedIR, taxableBaseWithoutSubsidy, true, infPayroll.Bonus);
 
-            infPayroll.Inss = BiweeklyInss;
+            infPayroll.Inss = inssWithoutSubsidy + BiweeklyInss;
             infPayroll.Ir = BiweeklyIr;
-            infPayroll.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+            infPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyInss + BiweeklyIr;
 
             decimal netBonus = infPayroll.Bonus - (infPayroll.Bonus * 0.07m);
 
@@ -239,7 +236,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             _logger.LogInformation("✅ Subsidio maternal calculado y aplicado correctamente.");
             return true;
         }
-
         public async Task<bool> ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation, Payroll period, RegisterSubsidyCommmand data)
         {
             _logger.LogInformation("🚩Iniciando proceso de subsidio para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
