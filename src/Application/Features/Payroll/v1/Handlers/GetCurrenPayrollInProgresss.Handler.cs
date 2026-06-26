@@ -106,6 +106,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                     TotalToPay = op.TotalToPay,
                     Vacations = op.Vacations,
+                    AmountDaysVacation = op.AmountDaysVacation,
 
                     Collaborator = new CollaboratorInformationDto
                     {

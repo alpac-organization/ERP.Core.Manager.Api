@@ -147,7 +147,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [HttpGet("companies/{companie_id}/modules/{module_code}/branches/{branch_id}/payrolls/{payroll_id}/details")]      
         [ProducesResponseType(typeof(PayrollDetailsDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-            [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
         public async Task<PayrollDetailsDto> GetPayrollDetailsByIdAsync(
             [FromRoute] Guid branch_id,
             [FromRoute] Guid payroll_id,
