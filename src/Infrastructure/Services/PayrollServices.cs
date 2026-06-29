@@ -611,9 +611,5 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          //Se finaliza el proceso de registro a la nomina prestacionada.
       }
 
-      public async Task RegisterCollaboratorToAvasaTransport()
-      {
-
-      }
    }
 }
