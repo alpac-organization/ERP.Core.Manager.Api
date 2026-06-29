@@ -78,6 +78,12 @@ RUN echo "===== CHECK CHROMIUM =====" && \
     echo "========================="
 
 RUN sed -i 's/CipherString = DEFAULT@SECLEVEL=2/CipherString = DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
+
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    update-ca-certificates
+
+RUN apk add --no-cache openssl
 # =========================
 # APP COPY
 # =========================
