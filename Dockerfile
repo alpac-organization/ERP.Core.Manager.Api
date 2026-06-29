@@ -77,7 +77,7 @@ RUN echo "===== CHECK CHROMIUM =====" && \
     echo "✅ Chromium instalado correctamente" && \
     echo "========================="
 
-
+RUN sed -i 's/CipherString = DEFAULT@SECLEVEL=2/CipherString = DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
 # =========================
 # APP COPY
 # =========================
