@@ -32,15 +32,21 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.PayrollId, opt => opt.MapFrom(src => src.PayrollId))
                 .ForMember(dest => dest.Transport, opt => opt.MapFrom(src => src.Transport))
                 .ForMember(dest => dest.Lodging, opt => opt.MapFrom(src => src.Lodging))
-                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => 
-                    string.Join(" ", new[] 
-                    { 
-                        src.Collaborator.FirstName, 
-                        src.Collaborator.SecondName, 
-                        src.Collaborator.FirstLastname, 
-                        src.Collaborator.SecondLastname 
+                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src =>
+                    string.Join(" ", new[]
+                    {
+                        src.Collaborator.FirstName,
+                        src.Collaborator.SecondName,
+                        src.Collaborator.FirstLastname,
+                        src.Collaborator.SecondLastname
                     }.Where(s => !string.IsNullOrWhiteSpace(s)))
                     .ToCapitalize()));
+
+            CreateMap<IncomeTaxAccrual, IrAndSalaryEarnedReport>()
+                .ForMember(dest => dest.IrFortnightly, opt => opt.MapFrom(src => src.AccumulatedIrByFornight))
+                .ForMember(dest => dest.SalaryEarnedFortnightly, opt => opt.MapFrom(src => src.SalaryEarnedByFornight))
+                .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
+                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)));
         }
     }
 }
