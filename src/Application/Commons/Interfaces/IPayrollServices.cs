@@ -25,6 +25,5 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
       Task RegisterCollaboratorToVigemsaProfessional(Guid payrollId, Collaborator collaborator);
 
-      Task RegisterCollaboratorToAvasaTransport();
    }
 }
