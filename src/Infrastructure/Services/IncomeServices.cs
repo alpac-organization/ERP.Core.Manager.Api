@@ -972,5 +972,45 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             _logger.LogInformation("✅Pago de vacaciones procesado con exito.");
             return true;
         }
+        public async Task ApplyIncomeDepreciation(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDepreciation, Currency currency, Guid payrollId, Guid incomeTypeId)
+        {
+            var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Include(ord => ord.Payroll)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id && ord.PayrollId == payrollId)
+                .FirstOrDefaultAsync(default);
+
+            if (ordinaryPayrollInfo is null)
+            {
+                _logger.LogInformation("No se encontro registro del colaborador en la nomina");
+                return;
+            }
+            _logger.LogInformation("Agregando Ingreso de depreciación de vehículo");
+
+            // se convierte a moneda local si viene en dólares
+
+            var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
+                .Where(val => val.Status)
+                .Where(val => val.EndDate == null)
+                .Where(val => val.Type == TaxType.ExchangeRate)
+                .FirstOrDefaultAsync(default);
+
+            decimal finalAmount = amountDepreciation;
+            if (currency == Currency.USD)
+            {
+                finalAmount = amountDepreciation * exchangeRate!.Value;
+            }
+            await _unitOfWork.Incomes.RegisterIncome(new()
+            {
+                CollaboratorId = collaboratorInformation.Id,
+                AmountInDollars = currency == Currency.USD ? amountDepreciation : (amountDepreciation / exchangeRate!.Value),
+                AmountInLocal = finalAmount,
+                Currency = currency,
+                IncomeTypeId = incomeTypeId,
+                Description = "Depreciación actual",
+                PayrollId = payrollId,
+            });
+
+            _logger.LogInformation("Depreciación registrada exitosamente sin afectar la nómina.");
+        }
     }
 }
