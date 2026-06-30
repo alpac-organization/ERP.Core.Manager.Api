@@ -75,20 +75,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # =========================
-# BAJAR SECLEVEL (Solo si debes conectarte
-# a un SQL Server antiguo)
-# =========================
-RUN if grep -q "DEFAULT@SECLEVEL=2" /etc/ssl/openssl.cnf; then \
-        sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/' /etc/ssl/openssl.cnf; \
-    fi
-
-# =========================
 # VERIFICAR CHROMIUM
 # =========================
 RUN echo "===== CHECK CHROMIUM =====" && \
     (which chromium-browser || which chromium || true) && \
     (chromium-browser --version || chromium --version || true) && \
     echo "=========================="
+
+RUN sed -i 's/MinProtocol = TLSv1.2/MinProtocol = TLSv1.0/g' /etc/ssl/openssl.cnf \
+    && sed -i 's/CipherString = DEFAULT@SECLEVEL=2/CipherString = DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
 
 # =========================
 # COPIAR APLICACIÓN
