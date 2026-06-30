@@ -21,6 +21,9 @@ COPY ["src/Domain/Domain.csproj", "src/Domain/"]
 COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
 COPY ["src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj", "src/ERP.Core.Manager.Api/"]
 
+COPY openssl.cnf /etc/ssl/openssl.cnf
+ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
+
 # Restore
 RUN dotnet restore "src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj"
 
@@ -81,8 +84,6 @@ RUN echo "===== CHECK CHROMIUM =====" && \
     (which chromium-browser || which chromium || true) && \
     (chromium-browser --version || chromium --version || true) && \
     echo "=========================="
-
-RUN sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
 
 # =========================
 # COPIAR APLICACIÓN
