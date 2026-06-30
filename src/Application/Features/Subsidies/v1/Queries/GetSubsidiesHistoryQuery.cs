@@ -6,9 +6,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Queries
 {
     public class GetSubsidiesHistoryQuery : BaseRequest, IRequest<PagedResponse<SubsidyHistoryDto>>
     {
-        public Guid PayrollId { get; set; }
-
-        public int PageSize { get; set; } = 10;
-        public int PageNumber { get; set; } = 1;
+        public string? IdentificationNumber { get; set; }
+        public Guid? AreaId { get; set; }
+        public int PageSize { get; set; }
+        public Guid BranchId { get; set; }
+        public int PageNumber { get; set; }
     }
 }
