@@ -12,9 +12,9 @@ using System.Runtime.ConstrainedExecution;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-    public class DeactivateCollaboratorHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<DeactivateCollaboratorHandler> _logger): AlpacBaseHandler<UpdateCollaboratorInformationCommand, bool>(_unitOfWork, _errorManager)
+    public class DeactivateCollaboratorHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<DeactivateCollaboratorHandler> _logger): AlpacBaseHandler<DeactivateCollaboratorCommand, bool>(_unitOfWork, _errorManager)
     {
-        public override async Task<bool> Handle(UpdateCollaboratorInformationCommand request, CancellationToken cancellationToken)
+        public override async Task<bool> Handle(DeactivateCollaboratorCommand request, CancellationToken cancellationToken)
         {
             
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
@@ -35,6 +35,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             {
                 return _errorManager.ThrowBadRequest<bool>("Este colaborador no existe en nuestro sitema,", "ERP:01");
             }
+
+            if (collaborator.Status == CollaboratorStatus.Inactive)
+            {
+                return _errorManager.ThrowBadRequest<bool>("Este colaborador ya ha sido dado de baja", "ERP:02");
+            }   
 
             //Actualizar información
             collaborator.HasBeenFired = true;
@@ -81,6 +86,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 permit.Status = PermitApplicationStatus.Cancelled;
                 await _unitOfWork.PermitApplications.UpdateAsync(permit);
             }
+
+            // var deductions = await _unitOfWork.Deductions.Entities
+            //     .Where(deduction => deduction.CollaboratorId == collaborator.Id)
+            //     .Include(deduction => deduction)
+            //     .ToListAsync(cancellationToken);
+
+            // foreach(var deduction in deductions)
+            // {
+            //     if (deduction.Type == DeductionType.)
+            //     {
+                    
+            //     }
+            // }
 
             await _unitOfWork.Collaborators.UpdateAsync(collaborator);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
