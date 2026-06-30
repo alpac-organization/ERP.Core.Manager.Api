@@ -46,16 +46,17 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<NoContentResult> DeactivateCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number,
-            [FromBody] DeactivateCollaboratorCommand Payload
-        )
+        public async Task<NoContentResult> DeactivateCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            Payload.CompanyId = companie_id;
-            Payload.ModuleCode = module_code;
-            Payload.UserId = Guid.Parse(userIdStr ?? "");
-            Payload.IdentificationNumber = identification_number;
+            var Payload = new DeactivateCollaboratorCommand()
+            {
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                IdentificationNumber = identification_number
+            };
 
             await _mediator.Send(Payload);
 
