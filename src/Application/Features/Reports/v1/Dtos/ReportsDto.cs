@@ -6,6 +6,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
         public List<AccumulatedHistory> AccumulatedHistory { get; set; } = [];
         public List<VacationAccrualsHistory> VacationAccrualsHistory { get; set; } = [];
         public List<InssInformation> InssInformation { get; set; } = [];
+        public List<IrAndSalaryEarnedReport> IrAndSalaryEarned { get; set; } = [];
     }
 
     public class VacationAccrualsHistory
@@ -28,6 +29,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
         public Guid CollaboratorId { get; set; }
 
         public decimal SalaryEarned { get; set; }
+
         public decimal AccumulatedIR { get; set; }
 
         public string? CollaboratorCode { get; set; }
@@ -58,4 +60,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
         public decimal Inatec { get; set; }
         public decimal Total { get; set; }
     }
+    public class IrAndSalaryEarnedReport
+    {
+        public Guid PayrollId { get; set; }
+        public Guid CollaboratorId { get; set; }
+        public string? CollaboratorCode { get; set; }
+        public string? CollaboratorFullname { get; set; }
+        public decimal IrFortnightly { get; set; }
+        public decimal SalaryEarnedFortnightly { get; set; }
+        public decimal? IrMonthly { get; set; }
+        public decimal? SalaryEarnedMonthly { get; set; }
+    }
+
 }
