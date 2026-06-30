@@ -7,6 +7,7 @@ namespace ERP.Core.Manager.Api.Domain.Enums
         ChristmasBonusAccrual = 3,
         TravelExpenses = 4,
 
-        IrAndSalaryEarned = 5,
+        IrAndSalaryEarned = 7,
+        Depreciations = 8
     }
 }

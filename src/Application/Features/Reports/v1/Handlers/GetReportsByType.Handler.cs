@@ -189,6 +189,37 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                         reportDto.IrAndSalaryEarned = mapped;
                         return reportDto;
                     }
+
+                case ReportsType.Depreciations:
+                    {
+                        var depreciationType = await _unitOfWork.TypesIncome.Entities
+                            .Where(t => t.IncomeCode == "DEPRECIATION" && t.IsActive)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (depreciationType is null)
+                        {
+                            return _errorManager.ThrowBadRequest<ReportsDto>("No se encontró el tipo de ingreso para depreciación", "ERP:00X");
+                        }
+
+                        var queryReport = _unitOfWork.Incomes.Entities
+                            .Include(income => income.Collaborator)
+                            .Where(income => income.PayrollId == request.PayrollId)
+                            .Where(income => income.IncomeTypeId == depreciationType.Id);
+
+                        if (!string.IsNullOrEmpty(request.IdentificationNumber))
+                        {
+                            queryReport = queryReport
+                                .Where(income => income.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                        }
+
+                        var depreciations = await queryReport.ToListAsync(cancellationToken);
+
+                        var mapped = _mapper.Map<List<DepreciationReportDto>>(depreciations);
+
+                        reportDto.Depreciations = mapped;
+
+                        return reportDto;
+                    }
                 default:
                     {
                         return _errorManager.ThrowBadRequest<ReportsDto>("Este tipo de reporte no se encuentra disponible", "ERP:01");

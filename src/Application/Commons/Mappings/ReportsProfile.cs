@@ -47,6 +47,13 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.SalaryEarnedFortnightly, opt => opt.MapFrom(src => src.SalaryEarnedByFornight))
                 .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
                 .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)));
+
+            CreateMap<Income, DepreciationReportDto>()
+                .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.IdentificationNumber))
+                .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => $"{src.Collaborator.FirstName} {src.Collaborator.FirstLastname}"))
+                .ForMember(dest => dest.AmountInLocal, opt => opt.MapFrom(src => src.AmountInLocal))
+                .ForMember(dest => dest.AmountInDollars, opt => opt.MapFrom(src => src.AmountInDollars))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
         }
     }
 }
