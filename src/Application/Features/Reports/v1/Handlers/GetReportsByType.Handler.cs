@@ -127,19 +127,22 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
 
                         var queryReport = _unitOfWork.InssAccountingInformation.Entities
                             .Include(inss => inss.Collaborator)
-                            .ThenInclude(c => c.WorkingInformation)
+                                .ThenInclude(c => c.WorkingInformation)
                             .Include(col => col.Payroll)
+                            .Where(inss => inss.Payroll.Branch.CompanyId == request.CompanyId)
                             .AsQueryable();
 
-                        queryReport = queryReport.Where(inss => inss.Collaborator.CompanyId == request.CompanyId);
-
-                        if (request.Type == ReportsType.InssMonthly)
-                        {
-                            queryReport = queryReport.Where(inss => inss.Payroll.StartDate.Month == currentPayroll.StartDate.Month && inss.Payroll.StartDate.Year == currentPayroll.StartDate.Year);
-                        }
-                        else
+                        if (request.Type == ReportsType.InssFortnightly)
                         {
                             queryReport = queryReport.Where(inss => inss.PayrollId == request.PayrollId);
+                        }
+                        else if (request.Type == ReportsType.InssMonthly)
+                        {
+                            queryReport = queryReport.Where(inss =>
+                                inss.Payroll.StartDate.Month == currentPayroll.StartDate.Month &&
+                                inss.Payroll.StartDate.Year == currentPayroll.StartDate.Year &&
+                                inss.Payroll.PayrollType == currentPayroll.PayrollType &&
+                                inss.Payroll.BranchId == currentPayroll.BranchId);
                         }
 
                         if (!string.IsNullOrEmpty(request.IdentificationNumber))
@@ -162,7 +165,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                                                         {
                                                             CollaboratorCode = collaborator.WorkingInformation?.InssNumber ?? collaborator.IdentificationNumber,
                                                             CollaboratorFullname = ManagerUtils.FromSliceToCollaboratorFullname(collaborator),
-                                                            Income = g.Sum(x => x.Income > 0 ? x.Income : x.InssLabor / 0.07m),
+                                                            Income = Math.Round(g.Sum(x => x.Income > 0 ? x.Income : x.InssLabor / 0.07m),
+                                                            2,MidpointRounding.AwayFromZero),
                                                             Absences = g.Sum(x => x.Absence),
                                                             InssLab = g.Sum(x => x.InssLabor),
                                                             InssPatronal = g.Sum(x => x.InssPatronal),
