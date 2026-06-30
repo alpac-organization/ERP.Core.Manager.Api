@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
@@ -112,6 +113,64 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
 
                         reportDto.PaymentTravelExpenses = mapped;
 
+                        return reportDto;
+                    }
+                case ReportsType.InssFortnightly:
+                case ReportsType.InssMonthly:
+                    {
+                        var currentPayroll = await _unitOfWork.Payrolls.Entities
+                            .FirstOrDefaultAsync(p => p.Id == request.PayrollId, cancellationToken);
+
+                        if (currentPayroll is null)
+                        {
+                            return _errorManager.ThrowBadRequest<ReportsDto>("Nómina no encontrada", "ERP:02");
+                        }
+
+                        var queryReport = _unitOfWork.InssAccountingInformation.Entities
+                            .Include(inss => inss.Collaborator)
+                            .ThenInclude(c => c.WorkingInformation)
+                            .Include(col => col.Payroll)
+                            .AsQueryable();
+
+                        queryReport = queryReport.Where(inss => inss.Collaborator.CompanyId == request.CompanyId);
+
+                        if (request.Type == ReportsType.InssMonthly)
+                        {
+                            queryReport = queryReport.Where(inss => inss.Payroll.StartDate.Month == currentPayroll.StartDate.Month && inss.Payroll.StartDate.Year == currentPayroll.StartDate.Year);
+                        }
+                        else
+                        {
+                            queryReport = queryReport.Where(inss => inss.PayrollId == request.PayrollId);
+                        }
+
+                        if (!string.IsNullOrEmpty(request.IdentificationNumber))
+                        {
+                            queryReport = queryReport.Where(inss => inss.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                        }
+
+                        if (request.AreaId.HasValue)
+                        {
+                            queryReport = queryReport.Where(inss => inss.Collaborator.WorkingInformation.AreaId == request.AreaId);
+                        }
+
+                        var inssRecords = await queryReport.ToListAsync(cancellationToken);
+
+                        reportDto.InssInformation = [..inssRecords.GroupBy(x => x.CollaboratorId)
+                                                    .Select(g =>
+                                                    {
+                                                        var collaborator = g.First().Collaborator;
+                                                        return new InssInformation
+                                                        {
+                                                            CollaboratorCode = collaborator.WorkingInformation?.InssNumber ?? collaborator.IdentificationNumber,
+                                                            CollaboratorFullname = ManagerUtils.FromSliceToCollaboratorFullname(collaborator),
+                                                            Income = g.Sum(x => x.Income > 0 ? x.Income : x.InssLabor / 0.07m),
+                                                            Absences = g.Sum(x => x.Absence),
+                                                            InssLab = g.Sum(x => x.InssLabor),
+                                                            InssPatronal = g.Sum(x => x.InssPatronal),
+                                                            Inatec = g.Sum(x => x.Inatec),
+                                                            Total = g.Sum(x => x.Total)
+                                                        };
+                                                    })];
                         return reportDto;
                     }
                 case ReportsType.IrAndSalaryEarned:
