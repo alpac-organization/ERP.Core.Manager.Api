@@ -67,10 +67,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateOnly subsidyStartDate = DateOnly.FromDateTime(subsidyData.StartDate.Date);
             DateOnly subsidyEndDate = DateOnly.FromDateTime(subsidyData.EndDate.Date);
 
-            DateOnly exactSubsidyStartDate = subsidyStartDate < payrollStartDate ? payrollStartDate : subsidyStartDate;
-            DateOnly exactSubsidyEndDate = subsidyEndDate < payrollEndDate ? subsidyEndDate : payrollEndDate;
+            DateOnly exactSubsidyStartDate = subsidyStartDate > payrollEndDate ? payrollStartDate : subsidyStartDate < payrollStartDate ? payrollStartDate : subsidyStartDate;
 
-            if (exactSubsidyEndDate < exactSubsidyStartDate)
+            DateOnly exactSubsidyEndDate = subsidyEndDate > payrollEndDate ? payrollEndDate : subsidyEndDate < payrollStartDate ? payrollEndDate : subsidyEndDate;
+
+            if (exactSubsidyEndDate < exactSubsidyStartDate || exactSubsidyStartDate > exactSubsidyEndDate)
             {
                 _logger.LogInformation("Las fechas del subsidio no coinciden con la nomina actual");
                 return false;
@@ -287,12 +288,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateOnly subsidyStartDate = DateOnly.FromDateTime(data.StartDate.Date);
             DateOnly subsidyEndDate = DateOnly.FromDateTime(data.EndDate.Date);
 
-            DateOnly effectiveStart = subsidyStartDate;
-            DateOnly effectiveEnd = subsidyEndDate > payrollEndDate
-                ? payrollEndDate
-                : subsidyEndDate;
+            DateOnly effectiveStart = subsidyStartDate > payrollEndDate ? payrollStartDate : subsidyStartDate < payrollStartDate ? payrollStartDate : subsidyStartDate;
 
-            if (effectiveEnd < effectiveStart)
+            DateOnly effectiveEnd = subsidyEndDate > payrollEndDate ? payrollEndDate : subsidyEndDate < payrollStartDate ? payrollEndDate : subsidyEndDate;
+
+            if (effectiveEnd < effectiveStart || effectiveStart > effectiveEnd)
             {
                 _logger.LogInformation("La fecha final del subsidio es inválida.");
                 return false;

@@ -36,9 +36,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
             }
 
             var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                .Where(collaborator => collaborator.Id == request.CollaboratorId)
-                .Where(collaborator => collaborator.Status != CollaboratorStatus.Inactive)
-                .FirstOrDefaultAsync(cancellationToken);
+            .Include(collaborator => collaborator.WorkingInformation)
+            .Where(collaborator => collaborator.Id == request.CollaboratorId)
+            .Where(collaborator => collaborator.Status != CollaboratorStatus.Inactive)
+            .FirstOrDefaultAsync(cancellationToken);
 
             if (collaboratorInformation is null)
             {
