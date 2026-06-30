@@ -5,6 +5,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
         public List<PaymentTravelExpensesHistory> PaymentTravelExpenses { get; set; } = [];
         public List<AccumulatedHistory> AccumulatedHistory { get; set; } = [];
         public List<VacationAccrualsHistory> VacationAccrualsHistory { get; set; } = [];
+        public List<InssInformation> InssInformation { get; set; } = [];
     }
 
     public class VacationAccrualsHistory
@@ -33,7 +34,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
         public string? CollaboratorFullname { get; set; }
     }
 
-    public class  PaymentTravelExpensesHistory
+    public class PaymentTravelExpensesHistory
     {
         public Guid PayrollId { get; set; }
         public Guid CollaboratorId { get; set; }
@@ -45,5 +46,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
         public decimal Feeding { get; set; }
         public decimal Lodging { get; set; }
     }
+    public class InssInformation
+    {
+        public string? CollaboratorCode { get; set; }
+        public string? CollaboratorFullname { get; set; }
+        public decimal Income { get; set; }
+        public decimal Absences { get; set; }
+        public decimal InssLab { get; set; }
+        public decimal InssPatronal { get; set; }
 
+        public decimal Inatec { get; set; }
+        public decimal Total { get; set; }
+    }
 }
