@@ -52,8 +52,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal inssPatronalCalc = salary * inssPatronalPercentage;
             decimal total = inssLaboralCalc + inatecCalc + inssPatronalCalc;
 
+            var existingRecord = await _unitOfWork.InssAccountingInformation.Entities
+                .Where(x => x.PayrollId == payrollId && x.CollaboratorId == collaborator.Id)
+                .FirstOrDefaultAsync(default);
 
-            if (period == PayrollPeriod.FirstPeriod.ToString())
+            if (existingRecord is null)
             {
                 var newInssRecord = new InssAccountingInformation()
                 {
@@ -64,43 +67,21 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     InssPatronal = inssPatronalCalc,
                     Total = total,
                     Absence = 0,
-                    DaysAbsence = 0
+                    DaysAbsence = 0,
+                    Income = salary
                 };
 
                 await _unitOfWork.InssAccountingInformation.RegisterInssAccountingInformation(newInssRecord);
             }
             else
             {
-                var previewRecord = await _unitOfWork.InssAccountingInformation.Entities
-                    .Where(x => x.CollaboratorId == collaborator.Id)
-                    .Where(x => x.Payroll.Period == PayrollPeriod.FirstPeriod)
-                    .FirstOrDefaultAsync(default);
+                existingRecord.InssLabor = inssLaboralCalc;
+                existingRecord.Inatec = inatecCalc;
+                existingRecord.InssPatronal = inssPatronalCalc;
+                existingRecord.Total = total;
+                existingRecord.Income = salary;
 
-                if (previewRecord is null)
-                {
-                    var newInssRecord = new InssAccountingInformation()
-                    {
-
-                        CollaboratorId = collaborator.Id,
-                        PayrollId = payrollId,
-                        InssLabor = inssLaboralCalc,
-                        Inatec = inatecCalc,
-                        InssPatronal = inssPatronalCalc,
-                        Total = total,
-                        Absence = 0,
-                        DaysAbsence = 0
-                    };
-                    await _unitOfWork.InssAccountingInformation.RegisterInssAccountingInformation(newInssRecord);
-                }
-                else
-                {
-                    previewRecord.InssLabor += inssLaboralCalc;
-                    previewRecord.Inatec += inatecCalc;
-                    previewRecord.InssPatronal += inssPatronalCalc;
-                    previewRecord.Total = total;
-
-                    await _unitOfWork.InssAccountingInformation.RegisterInssAccountingInformation(previewRecord);
-                }
+                await _unitOfWork.InssAccountingInformation.UpdateAsync(existingRecord);
             }
         }
 

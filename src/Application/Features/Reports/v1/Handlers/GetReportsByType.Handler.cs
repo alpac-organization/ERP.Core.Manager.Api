@@ -114,7 +114,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
 
                         return reportDto;
                     }
-
                 case ReportsType.InssFortnightly:
                 case ReportsType.InssMonthly:
                     {
@@ -131,6 +130,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                             .ThenInclude(c => c.WorkingInformation)
                             .Include(col => col.Payroll)
                             .AsQueryable();
+
+                        queryReport = queryReport.Where(inss => inss.Collaborator.CompanyId == request.CompanyId);
 
                         if (request.Type == ReportsType.InssMonthly)
                         {
@@ -161,7 +162,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                                                         {
                                                             CollaboratorCode = collaborator.WorkingInformation?.InssNumber ?? collaborator.IdentificationNumber,
                                                             CollaboratorFullname = ManagerUtils.FromSliceToCollaboratorFullname(collaborator),
-                                                            Income = g.Sum(x => x.InssLabor / 0.07m),
+                                                            Income = g.Sum(x => x.Income > 0 ? x.Income : x.InssLabor / 0.07m),
                                                             Absences = g.Sum(x => x.Absence),
                                                             InssLab = g.Sum(x => x.InssLabor),
                                                             InssPatronal = g.Sum(x => x.InssPatronal),
@@ -170,7 +171,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                                                         };
                                                     })];
                         return reportDto;
-
                     }
                 default:
                     {
