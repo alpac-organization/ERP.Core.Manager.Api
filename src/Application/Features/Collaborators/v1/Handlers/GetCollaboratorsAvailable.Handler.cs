@@ -35,8 +35,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
             if (request.Status.HasValue)
                 gridQuery = gridQuery.Where(c => c.Status == request.Status.Value);
-            else
-                gridQuery = gridQuery.Where(c => c.Status != CollaboratorStatus.Inactive);
 
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
                 gridQuery = gridQuery.Where(c => c.IdentificationNumber == request.IdentificationNumber);
