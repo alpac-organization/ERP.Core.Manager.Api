@@ -21,9 +21,6 @@ COPY ["src/Domain/Domain.csproj", "src/Domain/"]
 COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
 COPY ["src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj", "src/ERP.Core.Manager.Api/"]
 
-COPY openssl.cnf /etc/ssl/openssl.cnf
-ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
-
 # Restore
 RUN dotnet restore "src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj"
 
@@ -76,6 +73,9 @@ RUN apt-get update && apt-get install -y \
     openssl \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+COPY openssl.cnf /etc/ssl/openssl.cnf
+ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
 
 # =========================
 # VERIFICAR CHROMIUM
