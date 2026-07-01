@@ -56,13 +56,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateOnly payrollEndDate = period.EndDate;
             DateOnly entryDate = collaborator.WorkingInformation.EntryDate;
 
-            int maximumWorkedDays = 15;
+            int payrollTotalDays = payrollEndDate.DayNumber - payrollStartDate.DayNumber + 1;
+            int maximumWorkedDays = payrollTotalDays;
             if (entryDate > payrollStartDate)
             {
                 maximumWorkedDays = payrollEndDate.DayNumber - entryDate.DayNumber + 1;
             }
             if (maximumWorkedDays < 0) maximumWorkedDays = 0;
-            if (maximumWorkedDays > 15) maximumWorkedDays = 15;
+            if (maximumWorkedDays > 15) maximumWorkedDays = payrollTotalDays;
 
             DateOnly subsidyStartDate = DateOnly.FromDateTime(subsidyData.StartDate.Date);
             DateOnly subsidyEndDate = DateOnly.FromDateTime(subsidyData.EndDate.Date);
@@ -202,18 +203,35 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             totalDaysToDiscount = Math.Max(totalDaysToDiscount, 0);
 
-            decimal totalDeductionTravelExpensive = (transport + feeding + lodging) * totalDaysToDiscount;
-            infPayroll.TotalTravelExpenses -= totalDeductionTravelExpensive;
-
-            if (travelExpensePayments != null)
+            if (daysWithoutSubsidy == 0)
             {
-                travelExpensePayments.PaidDays = Math.Max(travelExpensePayments.PaidDays - totalDaysToDiscount, 0);
-                travelExpensePayments.Lodging = lodging * travelExpensePayments.PaidDays;
-                travelExpensePayments.Transport = transport * travelExpensePayments.PaidDays;
-                travelExpensePayments.Feeding = feeding * travelExpensePayments.PaidDays;
+                infPayroll.TotalTravelExpenses = 0;
 
+                if (travelExpensePayments != null)
+                {
+                    travelExpensePayments.PaidDays = 0;
+                    travelExpensePayments.Lodging = 0;
+                    travelExpensePayments.Transport = 0;
+                    travelExpensePayments.Feeding = 0;
 
-                await _unitOfWork.RecordsTravelExpensePayments.UpdateAsync(travelExpensePayments);
+                    await _unitOfWork.RecordsTravelExpensePayments.UpdateAsync(travelExpensePayments);
+                }
+            }
+            else
+            {
+                decimal totalDeductionTravelExpensive = (transport + feeding + lodging) * totalDaysToDiscount;
+                totalDeductionTravelExpensive = Math.Min(totalDeductionTravelExpensive, infPayroll.TotalTravelExpenses);
+                infPayroll.TotalTravelExpenses -= totalDeductionTravelExpensive;
+
+                if (travelExpensePayments != null)
+                {
+                    travelExpensePayments.PaidDays = Math.Max(travelExpensePayments.PaidDays - totalDaysToDiscount, 0);
+                    travelExpensePayments.Lodging = lodging * travelExpensePayments.PaidDays;
+                    travelExpensePayments.Transport = transport * travelExpensePayments.PaidDays;
+                    travelExpensePayments.Feeding = feeding * travelExpensePayments.PaidDays;
+
+                    await _unitOfWork.RecordsTravelExpensePayments.UpdateAsync(travelExpensePayments);
+                }
             }
 
             infPayroll.TotalToPay = infPayroll.TotalIncome - infPayroll.TotalDeducctions + infPayroll.TotalTravelExpenses;
