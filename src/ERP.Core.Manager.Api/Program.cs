@@ -80,7 +80,7 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-// app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseRouting();
 
 app.UseCors("ViteLocalPolicy");
