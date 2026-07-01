@@ -164,7 +164,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                                                         var collaborator = g.First().Collaborator;
                                                         return new InssInformation
                                                         {
-                                                            CollaboratorCode = collaborator.WorkingInformation?.InssNumber ?? collaborator.IdentificationNumber,
+                                                            CollaboratorCode = collaborator.CollaboratorCode ?? collaborator.IdentificationNumber,
                                                             CollaboratorFullname = ManagerUtils.FromSliceToCollaboratorFullname(collaborator),
                                                             Income = Math.Round(g.Sum(x => x.Income > 0 ? x.Income : x.InssLabor / 0.07m),
                                                             2,MidpointRounding.AwayFromZero),
