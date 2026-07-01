@@ -74,6 +74,9 @@ RUN apt-get update && apt-get install -y \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+COPY openssl.cnf /etc/ssl/openssl.cnf
+ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
+
 # =========================
 # VERIFICAR CHROMIUM
 # =========================
@@ -81,8 +84,6 @@ RUN echo "===== CHECK CHROMIUM =====" && \
     (which chromium-browser || which chromium || true) && \
     (chromium-browser --version || chromium --version || true) && \
     echo "=========================="
-
-RUN sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
 
 # =========================
 # COPIAR APLICACIÓN
