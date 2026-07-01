@@ -458,16 +458,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal vacationAmountInCordobas = vacationControl.AvailableVacations * dailySalary;
          decimal vacationAmountInDollars = (vacationControl.AvailableVacations * dailySalary) / 36.6243m;
 
-         // await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
-         // {
-         //     BeginningBalance = vacationControl.AvailableVacations,
-         //     FinalBalance = vacationControl.AvailableVacations,
-         //     PayrollId = payrollCreated.Id,
-         //     CollaboratorId = collaborator.Id,
-         //     AvailableVacations  = vacationControl.AvailableVacations,
-         //     EquivalentQuantity = vacationAmountInCordobas,
-         //     EquivalentQuantityInDollars = vacationAmountInDollars
-         // });
+         await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
+         {
+            BeginningBalance = vacationControl.AvailableVacations,
+            FinalBalance = vacationControl.AvailableVacations,
+            PayrollId = payrollCreated.Id,
+            CollaboratorId = collaborator.Id,
+            AvailableVacations = vacationControl.AvailableVacations,
+            EquivalentQuantity = vacationAmountInCordobas,
+            EquivalentQuantityInDollars = vacationAmountInDollars
+         });
 
          #endregion
 
@@ -488,7 +488,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #region Iniciar proceso de acumulados
 
-         //Registrar el acumulado para la siguiente apertura de quincena
+         decimal currentFortnightSalaryEarned = TotalIncome - BiweeklyInss;
+         decimal currentFortnightIr = BiweeklyIr;
+
          if (collaborator.IsFirstTimeRegister)
          {
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
@@ -497,13 +499,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                SalaryEarned = 0.0m,
                NumberOfFortnights = 24,
 
-               FlagAccumulatedIR = BiweeklyIr,
-               FlagSalaryEarned = TotalIncome - BiweeklyInss,
+               AccumulatedIrByFornight = currentFortnightIr,
+               SalaryEarnedByFornight = currentFortnightSalaryEarned,
+
+               FlagAccumulatedIR = currentFortnightIr,
+               FlagSalaryEarned = currentFortnightSalaryEarned,
                FlagNumberOfFortnights = 23,
 
                PayrollId = payrollCreated.Id,
                CollaboratorId = collaborator.Id,
-
                AccumulatedSeniority = 0.0m,
             });
 
@@ -512,25 +516,32 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          }
          else
          {
+            int prevFortnights = TaxInformation?.FlagNumberOfFortnights ?? 24;
+            decimal prevAccumulatedIrFlag = TaxInformation?.FlagAccumulatedIR ?? 0.0m;
+            decimal prevSalaryEarnedFlag = TaxInformation?.FlagSalaryEarned ?? 0.0m;
+
+            bool isEndOfYear = prevFortnights == 1;
+
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
             {
-               AccumulatedIR = TaxInformation?.FlagAccumulatedIR ?? 0.0m,
-               SalaryEarned = TaxInformation?.FlagSalaryEarned ?? 0.0m,
-               NumberOfFortnights = TaxInformation?.FlagNumberOfFortnights ?? 24,
+               AccumulatedIR = prevAccumulatedIrFlag,
+               SalaryEarned = prevSalaryEarnedFlag,
+               NumberOfFortnights = prevFortnights,
 
-               FlagAccumulatedIR = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m : (TaxInformation?.FlagAccumulatedIR ?? 0.0m) + BiweeklyIr,
-               FlagSalaryEarned = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m : (TaxInformation?.FlagSalaryEarned ?? 0.0m) + (TotalIncome - BiweeklyInss),
-               FlagNumberOfFortnights = (TaxInformation?.FlagNumberOfFortnights ?? 24) == 1 ? 24 : ((TaxInformation?.FlagNumberOfFortnights ?? 24) - 1),
+               AccumulatedIrByFornight = currentFortnightIr,
+               SalaryEarnedByFornight = currentFortnightSalaryEarned,
+
+               FlagAccumulatedIR = isEndOfYear ? 0.0m : prevAccumulatedIrFlag + currentFortnightIr,
+               FlagSalaryEarned = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,
+               FlagNumberOfFortnights = isEndOfYear ? 24 : (prevFortnights - 1),
 
                PayrollId = payrollCreated.Id,
                CollaboratorId = collaborator.Id,
-
                AccumulatedSeniority = 0.0m,
             });
          }
          #endregion
       }
-
       public async Task RegisterCollaboratorToVigemsaProfessional(Guid payrollId, Collaborator collaborator)
       {
          var payrollCreated = await _unitOfWork.Payrolls.Entities
