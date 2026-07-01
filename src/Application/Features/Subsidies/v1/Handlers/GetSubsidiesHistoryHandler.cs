@@ -47,10 +47,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
                     s.Collaborator.WorkingInformation.CompanyBranchId == request.BranchId);
             }
 
-            if (!string.IsNullOrEmpty(request.IdentificationNumber))
+            if (!string.IsNullOrEmpty(request.CollaboradorCode))
             {
                 query = query.Where(s =>
-                    s.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                    s.Collaborator.CollaboratorCode == request.CollaboradorCode);
             }
 
             if (request.AreaId.HasValue)
