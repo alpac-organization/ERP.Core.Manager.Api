@@ -7,6 +7,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
         public List<VacationAccrualsHistory> VacationAccrualsHistory { get; set; } = [];
         public List<InssInformation> InssInformation { get; set; } = [];
         public List<IrAndSalaryEarnedReport> IrAndSalaryEarned { get; set; } = [];
+        public List<DepreciationReportDto> Depreciations { get; set; } = [];
     }
 
     public class VacationAccrualsHistory
@@ -72,4 +73,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
         public decimal? SalaryEarnedMonthly { get; set; }
     }
 
+    public class DepreciationReportDto
+    {
+        public Guid CollaboratorId { get; set; }
+        public string? CollaboratorCode { get; set; }
+        public string? CollaboratorFullname { get; set; }
+        public decimal AmountInLocal { get; set; }
+        public decimal AmountInDollars { get; set; }
+        public string? Description { get; set; }
+    }
 }
