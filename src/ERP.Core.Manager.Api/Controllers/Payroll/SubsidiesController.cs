@@ -25,7 +25,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromRoute] string module_code,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10,
-            [FromQuery] string? identification_number = null,
+            [FromQuery] string? collaborator_code = null,
             [FromQuery] Guid? area_id = null,
             [FromQuery] Guid? branch_id = null
         )
@@ -37,7 +37,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 CompanyId = companie_id,
                 ModuleCode = module_code,
                 UserId = Guid.Parse(userIdStr ?? ""),
-                IdentificationNumber = identification_number,
+                CollaboradorCode = collaborator_code,
                 AreaId = area_id,
                 BranchId = branch_id ?? Guid.Empty,
                 PageNumber = page_number,
