@@ -91,11 +91,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
 
             decimal inssWithoutSubsidy = await _calculatorDeductions.CalculateInss(totalGrossIncomeInThisFortnight, default);
-            decimal taxableBaseWithoutSubsidy = totalGrossIncomeInThisFortnight - inssWithoutSubsidy;//base IR
-
             decimal proportionalSalaryWithSubsidy = subsidyDays * daySalary;
-
             decimal companySubsidyContribution = proportionalSalaryWithSubsidy * 0.4m;
+            decimal taxableBaseWithoutSubsidy = totalGrossIncomeInThisFortnight - inssWithoutSubsidy + companySubsidyContribution;//base IR
+
+
             infPayroll.TotalIncome = totalGrossIncomeInThisFortnight
                                      + infPayroll.Bonus
                                      + companySubsidyContribution;
@@ -103,8 +103,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             int NumberOfFortnight = taxIncome?.NumberOfFortnights ?? 24;
             decimal SalaryEarned = taxIncome?.SalaryEarned ?? 0;
             decimal accumulatedIR = taxIncome?.AccumulatedIR ?? 0;
-
-            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(NumberOfFortnight, SalaryEarned, accumulatedIR, taxableBaseWithoutSubsidy, true, infPayroll.Bonus);
+            const int totalFortnights = 24;
+            int NumberOfFortnightProjections = totalFortnights - NumberOfFortnight + 1;
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(NumberOfFortnightProjections, SalaryEarned, accumulatedIR, taxableBaseWithoutSubsidy, true, infPayroll.Bonus);
 
             infPayroll.Inss = inssWithoutSubsidy + BiweeklyInss;
             infPayroll.Ir = BiweeklyIr;
