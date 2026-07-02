@@ -19,6 +19,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 
             #region Mapeo del detalles de nomina.
             CreateMap<(OrdinaryPayroll, Collaborator, WorkingInformation, SubCatalog, WorkArea), OrdinaryPayrollDetailsDto>()
+            .ForMember(dest => dest.HolidayPay, src => src.MapFrom(or => or.Item1.HolidayPay))
+                .ForMember(dest => dest.NumberOfHolidays, src => src.MapFrom(or => or.Item1.NumberOfHolidays))
                 .ForMember(dest => dest.Commissions, src => src.MapFrom(or => or.Item1.Commissions))
                 .ForMember(dest => dest.OrdinaryPayrollId, src => src.MapFrom(or => or.Item1.Id))
                 .ForMember(dest => dest.Antique, src => src.MapFrom(or => or.Item1.Antique))
