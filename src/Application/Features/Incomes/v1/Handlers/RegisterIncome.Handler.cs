@@ -230,6 +230,42 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         logger.LogInformation("Se agrego con exito el registro de depreciación");
                         return true;
                     }
+                case "HOLIDAY":
+                    {
+                        foreach (var holidayData in request.HolidayIncomeData)
+                        {
+                            var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                                .Where(col => col.IdentificationNumber == holidayData.IdentificationNumber && col.CompanyId == request.CompanyId)
+                                .Where(col => col.Status != CollaboratorStatus.Inactive)
+                                .Include(col => col.WorkingInformation)
+                                .Where(col => col.WorkingInformation.CompanyBranchId == request.BranchId)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (collaboratorInformation is null)
+                            {
+                                logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", holidayData.IdentificationNumber);
+                                continue;
+                            }
+
+                            var salaryInformation = await _unitOfWork.Salaries.Entities
+                                .Where(col => col.CollaboratorId == collaboratorInformation.Id)
+                                .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (salaryInformation is null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
+                            }
+
+                            await _incomeServices.ApplyIncomeHoliday(collaboratorInformation, salaryInformation, holidayData.AmountDays, holidayData.AmountHours, payroll.Id, request.TypeIncomeId);
+
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                            logger.LogInformation("✅ Se agrego con exito el registro de feriado.");
+                        }
+
+                        return true;
+                    }
                 default:
                     {
                         return _errorManager.ThrowBadRequest<bool>("Este tipo de ingreso no esta disponible", "ERP:04");

@@ -1030,5 +1030,73 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             _logger.LogInformation("Depreciación registrada exitosamente sin afectar la nómina.");
         }
+
+        public async Task ApplyIncomeHoliday(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, decimal amountHours, Guid payrollId, Guid typeIncomeId)
+        {
+            var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Include(ord => ord.Payroll)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id && ord.PayrollId == payrollId)
+                .FirstOrDefaultAsync(default);
+
+            if (ordinaryPayrollInfo is null)
+            {
+                _logger.LogInformation("No se encontro registro del colaborador en la nomina");
+                return;
+            }
+
+            var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
+                .Where(income => income.CollaboratorId == collaboratorInformation.Id && income.PayrollId == payrollId)
+                .FirstOrDefaultAsync(default);
+
+            if (lastIncomeTax is null)
+            {
+                _logger.LogInformation("No se pudo encontrar el ultimo registro de acumulados del colaborador");
+                return;
+            }
+
+            _logger.LogInformation("🚩 Agregando Ingreso de Feriado");
+
+            decimal monthlySalary = salaryInformation.AmountInLocal;
+            decimal dailySalary = monthlySalary / 30;
+            decimal hourlySalary = dailySalary / 8;
+
+            decimal holidayPayAmount = (amountDays * dailySalary) + (amountHours * hourlySalary);
+
+            decimal currentTotalIncome = ordinaryPayrollInfo.TotalIncome + holidayPayAmount;
+
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
+                lastIncomeTax.NumberOfFortnights,
+                lastIncomeTax.SalaryEarned,
+                lastIncomeTax.AccumulatedIR,
+                currentTotalIncome,
+                default
+            );
+
+            ordinaryPayrollInfo.TotalIncome = currentTotalIncome;
+            ordinaryPayrollInfo.Inss = BiweeklyInss;
+            ordinaryPayrollInfo.Ir = BiweeklyIr;
+            ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+
+            ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+
+            lastIncomeTax.FlagAccumulatedIR = lastIncomeTax.AccumulatedIR + BiweeklyIr;
+            lastIncomeTax.FlagSalaryEarned = lastIncomeTax.SalaryEarned + (currentTotalIncome - BiweeklyInss);
+
+            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+            await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax);
+
+            await _unitOfWork.Incomes.RegisterIncome(new()
+            {
+                CollaboratorId = collaboratorInformation.Id,
+                AmountInDollars = holidayPayAmount / 36.6243m,
+                AmountInLocal = holidayPayAmount,
+                Currency = Currency.NIO,
+                IncomeTypeId = typeIncomeId,
+                Description = $"Pago de feriado trabajado: {amountDays} días / {amountHours} horas",
+                PayrollId = payrollId,
+            });
+
+            _logger.LogInformation("✅ Feriado registrado y nómina recalculada exitosamente.");
+        }
     }
 }
