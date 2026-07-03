@@ -496,16 +496,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal vacationAmountInCordobas = vacationControl.AvailableVacations * dailySalary;
          decimal vacationAmountInDollars = (vacationControl.AvailableVacations * dailySalary) / 36.6243m;
 
-         await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
-         {
-            BeginningBalance = vacationControl.AvailableVacations,
-            FinalBalance = vacationControl.AvailableVacations,
-            PayrollId = payrollCreated.Id,
-            CollaboratorId = collaborator.Id,
-            AvailableVacations = vacationControl.AvailableVacations,
-            EquivalentQuantity = vacationAmountInCordobas,
-            EquivalentQuantityInDollars = vacationAmountInDollars
-         });
+         // await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
+         // {
+         //    BeginningBalance = vacationControl.AvailableVacations,
+         //    FinalBalance = vacationControl.AvailableVacations,
+         //    PayrollId = payrollCreated.Id,
+         //    CollaboratorId = collaborator.Id,
+         //    AvailableVacations = vacationControl.AvailableVacations,
+         //    EquivalentQuantity = vacationAmountInCordobas,
+         //    EquivalentQuantityInDollars = vacationAmountInDollars
+         // });
 
          #endregion
 
