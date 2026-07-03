@@ -27,6 +27,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Attendance.v1.Handlers
                 baseQuery = baseQuery.Where(x => x.Employee.ErpCollaboratorId == request.IdentificationNumber);
             }
 
+            if (!string.IsNullOrWhiteSpace(request.BranchId.ToString()))
+            {
+                baseQuery = baseQuery.Where(x => x.Device.BranchId == request.BranchId);
+            }
+
             var groupKeysQuery = baseQuery
                 .Select(x => new { x.UserId, Day = x.ReadTime.Date })
                 .Distinct();
