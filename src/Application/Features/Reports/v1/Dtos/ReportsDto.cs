@@ -9,6 +9,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
       public List<IrAndSalaryEarnedReport> IrAndSalaryEarned { get; set; } = [];
       public List<DepreciationReportDto> Depreciations { get; set; } = [];
       public List<SubsidyHistoryDto> SubsidiesHistory { get; set; } = [];
+      public List<JudicialSeizures> JudicialSeizures { get; set; } = [];
    }
 
    public class VacationAccrualsHistory
@@ -97,4 +98,23 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
       public decimal InssReimbursementAmount { get; set; }
    }
 
+   public class JudicialSeizures
+   {
+      public Guid PayrollId { get; set; }
+      public Guid CollaboratorId { get; set; }
+      public Guid DeductionId { get; set; }
+
+      public string? CollaboratorCode { get; set; }
+      public string? CollaboratorFullName { get; set; }
+      public string? IdentificationNumber { get; set; }
+      public string? Description { get; set; }
+      public int? Percentage { get; set; }
+      public decimal AmountDeducted { get; set; }
+      public decimal AmountDeductedInDollars { get; set; }
+      public decimal TotalDebt { get; set; }
+      public decimal TotalPaid { get; set; }
+      public decimal RemainingBalance { get; set; }
+      public string? PaymentStatus { get; set; }
+      public string? Currency { get; set; }
+   }
 }

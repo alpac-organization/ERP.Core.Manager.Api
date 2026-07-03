@@ -119,6 +119,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     {
                         deduction.Status = DeductionStatus.Completed;
                         await _unitOfWork.Deductions.UpdateAsync(deduction);
+
+                        var nextGarnishment = await _unitOfWork.Deductions.Entities
+                            .Where(d => d.CollaboratorId == deduction.CollaboratorId)
+                            .Where(d => d.Type == DeductionType.JudicialSeizures)
+                            .Where(d => d.Status == DeductionStatus.Pending)
+                            .OrderBy(d => d.CreatedAt)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (nextGarnishment is not null)
+                        {
+                            nextGarnishment.Status = DeductionStatus.Progress;
+                            await _unitOfWork.Deductions.UpdateAsync(nextGarnishment);
+                        }
                     }
 
                     payment.Status = DeductionPaymentStatus.Paid;
