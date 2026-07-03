@@ -257,8 +257,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                                 return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
                             }
 
-                            await _incomeServices.ApplyIncomeHoliday(collaboratorInformation, salaryInformation, holidayData.AmountDays, holidayData.AmountHours, payroll.Id, request.TypeIncomeId);
-
+                            await _incomeServices.ApplyIncomeHoliday(collaboratorInformation, salaryInformation, holidayData.AmountDays, payroll.Id, request.TypeIncomeId);
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                             logger.LogInformation("✅ Se agrego con exito el registro de feriado.");

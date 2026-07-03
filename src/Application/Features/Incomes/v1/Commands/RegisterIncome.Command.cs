@@ -47,6 +47,5 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands
     {
         public string? IdentificationNumber { get; set; }
         public decimal AmountDays { get; set; }
-        public decimal AmountHours { get; set; }
     }
 }

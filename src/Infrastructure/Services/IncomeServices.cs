@@ -1031,21 +1031,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             _logger.LogInformation("Depreciación registrada exitosamente sin afectar la nómina.");
         }
 
-        public async Task ApplyIncomeHoliday(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, decimal amountHours, Guid payrollId, Guid typeIncomeId)
+        public async Task ApplyIncomeHoliday(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, Guid payrollId, Guid typeIncomeId)
         {
             decimal monthlySalary = salaryInformation.AmountInLocal;
             decimal dailySalary = monthlySalary / 30;
-            decimal hourlySalary = dailySalary / 8;
 
-            decimal payByDays = amountDays * dailySalary;
-            decimal payByHours = amountHours * hourlySalary;
-            decimal totalHolidayPayAmount = payByDays + payByHours;
-
-            decimal normalizedHolidays = amountDays + (amountHours / 8);
+            // Simplificamos el cálculo sólo por días
+            decimal totalHolidayPayAmount = amountDays * dailySalary;
+            decimal normalizedHolidays = amountDays;
 
             if (salaryInformation.SalaryType == SalaryType.Fixed)
             {
-                //Bueno aqui la logica para aplicar feriado a ordinary payroll 
+                // Bueno aqui la logica para aplicar feriado a ordinary payroll 
                 var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
                     .Include(ord => ord.Payroll)
                     .Where(ord => ord.CollaboratorId == collaboratorInformation.Id && ord.PayrollId == payrollId)
@@ -1067,6 +1064,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     lastIncomeTax.NumberOfFortnights, lastIncomeTax.SalaryEarned,
                     lastIncomeTax.AccumulatedIR, currentTotalIncome, default, additionalPayments
                 );
+
                 var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
                     ordinaryPayrollInfo.DeductionsAdditionalData
                 ) ?? new DeductionsAdditionalData();
@@ -1097,7 +1095,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
             else if (salaryInformation.SalaryType == SalaryType.ProfessionalServices)
             {
-                //por aqui la logica para poder aplicar feriado a professional services
+                // Por aqui la logica para poder aplicar feriado a professional services
             }
 
             var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
@@ -1115,7 +1113,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 AmountInLocal = totalHolidayPayAmount,
                 Currency = Currency.NIO,
                 IncomeTypeId = typeIncomeId,
-                Description = $"Pago de feriado trabajado: {amountDays} días / {amountHours} horas",
+                Description = $"Pago de feriado trabajado: {amountDays} días",
                 PayrollId = payrollId,
             });
 
