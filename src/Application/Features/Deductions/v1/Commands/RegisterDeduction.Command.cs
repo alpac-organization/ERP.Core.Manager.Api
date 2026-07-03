@@ -5,16 +5,17 @@ using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
 {
-    public class RegisterDeductionCommand: BaseRequest, IRequest<bool>
+    public class RegisterDeductionCommand : BaseRequest, IRequest<bool>
     {
         //Registrar el periodo las deducciones
-        public Guid PayrollId { get; set; }     
+        public Guid PayrollId { get; set; }
         public DeductionType DeductionType { get; set; }
 
-        //✅Metodos manuales de registro de deducciones. Faltan los embargos alimenticios y judiciales.
+        //✅Metodos manuales de registro de deducciones. 
         public LoansPayload? LoansPayload { get; set; }
         public OtherDeductionsData? OtherDeductionsPayload { get; set; }
 
+        public JudicialSeizurePayload? judicialSeizurePayload { get; set; }
 
         //✅Importación de documentos aqui only(purisima, llegadas tardes).
         public PurisimaInformation PurisimaInformation { get; set; } = new();
@@ -56,7 +57,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
         public string? IdentificationNumber { get; set; }
     }
     #endregion
-    
+
     //✅Carga util para registrar otras deducciones.
     public class OtherDeductionsData
     {
@@ -74,6 +75,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
         public decimal Amount { get; set; }
         public string? Description { get; set; }
         public int NumberFortnights { get; set; }
+        public string? IdentificationNumber { get; set; }
+    }
+
+    //✅ Carga util para registrar embargos judiciales.
+    public class JudicialSeizurePayload
+    {
+        public Currency Currency { get; set; }
+        public decimal TotalAmountToPay { get; set; } // Monto total de la deuda
+        public int DeductionPercentage { get; set; }
+        public string? Description { get; set; }
         public string? IdentificationNumber { get; set; }
     }
 }

@@ -85,7 +85,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
 
                 var deductionsActive = await _unitOfWork.Deductions.Entities
-                    .Where(deduction => deduction.CollaboratorId == collaborator.Id)
+                    .Where(deduction => deduction.CollaboratorId == collaborator.CollaboratorId)
                     .Where(deduction => deduction.Status == DeductionStatus.Progress)
                     .ToListAsync(cancellationToken);
 
@@ -103,8 +103,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         continue;
                     }
 
-                    decimal amountInLocal = deduction.FortnightlyAmount ?? 0;
-                    decimal amountInDollars = deduction.FortnightlyAmountInDollars ?? 0;
+                    // decimal amountInLocal = deduction.FortnightlyAmount ?? 0;
+                    // decimal amountInDollars = deduction.FortnightlyAmountInDollars ?? 0;
+                    decimal amountInLocal = payment.AmountPaid;
+                    decimal amountInDollars = payment.AmountPaidInDollars;
 
                     deduction.AmountPaid += amountInLocal;
                     deduction.AmountPaidInDollars += amountInDollars;

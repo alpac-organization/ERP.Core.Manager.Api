@@ -313,6 +313,44 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                AdditionalDeducctions.OtherDeductions += deduction.FortnightlyAmount ?? 0.0m;
             }
 
+
+            if (deduction.Type == DeductionType.JudicialSeizures)
+            {
+               var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
+               .Where(v => v.Status)
+               .Where(v => v.EndDate == null)
+               .Where(v => v.Type == TaxType.ExchangeRate)
+               .FirstOrDefaultAsync(default);
+
+               if (exchangeRate is null)
+               {
+                  _logger.LogInformation("❌No se pudo consultar la mesa de cambio");
+                  return;
+               }
+
+               decimal percentage = deduction.Percentage ?? 1;
+               decimal baseAmount = TotalIncome - (BiweeklyInss + BiweeklyIr);
+               decimal amountToDeduct = Math.Round(baseAmount * (percentage / 100m), 2, MidpointRounding.AwayFromZero);
+
+               if (amountToDeduct > (deduction.TotalBalance ?? 0))
+               {
+                  amountToDeduct = deduction.TotalBalance ?? 0;
+               }
+               AdditionalDeducctions.JudicialSeizures += amountToDeduct;
+
+               await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+               {
+                  DeductionId = deduction.Id,
+                  AmountPaid = amountToDeduct,
+                  AmountPaidInDollars = amountToDeduct / exchangeRate.Value,
+                  Status = DeductionPaymentStatus.Pending,
+                  Origin = SourceDeductionPayment.Payroll,
+                  Currency = deduction.Currency,
+                  PayrollId = payrollCreated.Id,
+                  PaymentDate = DateTime.Now,
+               });
+               continue;
+            }
             await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
             {
                DeductionId = deduction.Id,
