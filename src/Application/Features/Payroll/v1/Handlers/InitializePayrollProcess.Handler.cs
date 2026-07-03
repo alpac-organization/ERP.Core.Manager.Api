@@ -40,13 +40,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
          }
 
          var payrollInProgress = await _unitOfWork.Payrolls.Entities
-             .Where(payroll => payroll.BranchId == request.BranchId)
-             .Include(payroll => payroll.Branch)
-                 .ThenInclude(branch => branch.Company)
-             .Where(payroll => payroll.Branch.Company.Id == request.CompanyId)
-             .Where(payroll => payroll.Status == PayrollStatus.Progress)
-             .Where(payroll => payroll.PayrollType == request.Type)
-             .AnyAsync(cancellationToken);
+            .Where(payroll => payroll.BranchId == request.BranchId)
+            .Include(payroll => payroll.Branch)
+               .ThenInclude(branch => branch.Company)
+            .Where(payroll => payroll.Branch.Company.Id == request.CompanyId)
+            .Where(payroll => payroll.Status == PayrollStatus.Progress)
+            .Where(payroll => payroll.PayrollType == request.Type)
+            .AnyAsync(cancellationToken);
 
          if (payrollInProgress)
          {
@@ -54,15 +54,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
          }
 
          var lastPayroll = await _unitOfWork.Payrolls.Entities
-             .Where(payroll => payroll.BranchId == request.BranchId)
-             .Include(payroll => payroll.Branch)
-                 .ThenInclude(branch => branch.Company)
-             .Where(payroll => payroll.Branch.Company.Id == request.CompanyId)
-             .Where(payroll => payroll.Status == PayrollStatus.Closed)
-             .Where(payroll => payroll.PayrollType == request.Type)
-             .OrderByDescending(payroll => payroll.CreatedAt)
-             .FirstOrDefaultAsync(cancellationToken);
+            .Where(payroll => payroll.BranchId == request.BranchId)
+            .Include(payroll => payroll.Branch)
+               .ThenInclude(branch => branch.Company)
+            .Where(payroll => payroll.Branch.Company.Id == request.CompanyId)
+            .Where(payroll => payroll.Status == PayrollStatus.Closed)
+            .Where(payroll => payroll.PayrollType == request.Type)
+            .OrderByDescending(payroll => payroll.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
 
+
+         //Definir las fechas de apertura de la nomina. 
          var (startDate, endDate, period) = ManagerUtils.DefineRegularPayrollOpeningDates(lastPayroll);
 
          var newPayroll = new Database.Domain.Entities.Payrolls.Payroll()
@@ -76,9 +78,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             Status = PayrollStatus.Progress,
          };
 
+         //Crear nuevo registro de nomina en progreso
          await _unitOfWork.Payrolls.InitializePayroll(newPayroll);
-
-         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
          switch (request.Type)
          {
