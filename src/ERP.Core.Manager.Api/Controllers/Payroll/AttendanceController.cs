@@ -25,7 +25,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromQuery] DateTime end_date,
             [FromQuery] string? identification_number = null,
             [FromQuery] int page_size = 10,
-            [FromQuery] int page_number = 1
+            [FromQuery] int page_number = 1,
+            [FromQuery] Guid? branch_id = null
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
@@ -37,6 +38,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 PageSize = page_size,
                 PageNumber = page_number,
                 CompanyId = company_id,
+                BranchId = branch_id,
             });
 
         }
