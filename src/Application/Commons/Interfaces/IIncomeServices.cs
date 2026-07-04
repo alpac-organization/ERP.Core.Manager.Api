@@ -20,6 +20,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
         Task ApplyIncomeDepreciation(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDepreciation, Currency currency, Guid payrollId, Guid incomeTypeId);
 
-        Task ApplyIncomeHoliday(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, Guid payrollId, Guid typeIncomeId);
+        Task<bool> ApplyIncomeHoliday(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, Guid payrollId, Guid typeIncomeId);
     }
 }
