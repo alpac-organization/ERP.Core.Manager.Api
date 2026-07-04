@@ -312,17 +312,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (deduction.Type == DeductionType.JudicialSeizures)
             {
-               var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
-               .Where(v => v.Status)
-               .Where(v => v.EndDate == null)
-               .Where(v => v.Type == TaxType.ExchangeRate)
-               .FirstOrDefaultAsync(default);
 
-               if (exchangeRate is null)
-               {
-                  _logger.LogInformation("❌No se pudo consultar la mesa de cambio");
-                  return;
-               }
 
                decimal percentage = deduction.Percentage ?? 1;
                decimal baseAmount = TotalIncome - (BiweeklyInss + BiweeklyIr);
@@ -338,11 +328,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                {
                   DeductionId = deduction.Id,
                   AmountPaid = amountToDeduct,
-                  AmountPaidInDollars = amountToDeduct / exchangeRate.Value,
+                  AmountPaidInDollars = amountToDeduct / exchangeRate!.Value,
                   Status = DeductionPaymentStatus.Pending,
                   Origin = SourceDeductionPayment.Payroll,
                   Currency = deduction.Currency,
-                  PayrollId = payrollCreated.Id,
+                  PayrollId = payroll.Id,
                   PaymentDate = DateTime.Now,
                });
                continue;
