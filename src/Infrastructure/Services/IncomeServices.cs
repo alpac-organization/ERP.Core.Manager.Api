@@ -1031,72 +1031,65 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             _logger.LogInformation("Depreciación registrada exitosamente sin afectar la nómina.");
         }
 
-        public async Task ApplyIncomeHoliday(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, Guid payrollId, Guid typeIncomeId)
+        public async Task<bool> ApplyIncomeHoliday(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, Guid payrollId, Guid typeIncomeId)
         {
             decimal monthlySalary = salaryInformation.AmountInLocal;
             decimal dailySalary = monthlySalary / 30;
-
-            // Simplificamos el cálculo sólo por días
             decimal totalHolidayPayAmount = amountDays * dailySalary;
             decimal normalizedHolidays = amountDays;
 
-            if (salaryInformation.SalaryType == SalaryType.Fixed)
+            if (salaryInformation.SalaryType != SalaryType.Fixed)
+                return false;
+            var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Include(ord => ord.Payroll)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id && ord.PayrollId == payrollId)
+                .FirstOrDefaultAsync(default);
+            if (ordinaryPayrollInfo is null)
             {
-                // Bueno aqui la logica para aplicar feriado a ordinary payroll 
-                var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
-                    .Include(ord => ord.Payroll)
-                    .Where(ord => ord.CollaboratorId == collaboratorInformation.Id && ord.PayrollId == payrollId)
-                    .FirstOrDefaultAsync(default);
-
-                if (ordinaryPayrollInfo is null) return;
-
-                var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
-                    .Where(income => income.CollaboratorId == collaboratorInformation.Id && income.PayrollId == payrollId)
-                    .FirstOrDefaultAsync(default);
-
-                if (lastIncomeTax is null) return;
-
-                decimal currentTotalIncome = ordinaryPayrollInfo.TotalIncome + totalHolidayPayAmount;
-
-                decimal additionalPayments = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Vacations;
-
-                var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
-                    lastIncomeTax.NumberOfFortnights, lastIncomeTax.SalaryEarned,
-                    lastIncomeTax.AccumulatedIR, currentTotalIncome, default, additionalPayments
-                );
-
-                var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
-                    ordinaryPayrollInfo.DeductionsAdditionalData
-                ) ?? new DeductionsAdditionalData();
-
-                decimal totalExtraDeductions =
-                    deductions.Loans + deductions.Purisima + deductions.ChildSupportGarnishment
-                    + deductions.SalaryAdvance + deductions.ChristmasBonusAdvance
-                    + deductions.JudicialSeizures + deductions.UniformDeduction
-                    + deductions.CashShortage + deductions.OtherDeductions
-                    + deductions.DeductionForLossesBulk + deductions.Absences
-                    + deductions.Sanction + deductions.LateArrivals;
-
-                ordinaryPayrollInfo.TotalIncome = currentTotalIncome;
-                ordinaryPayrollInfo.HolidayPay += totalHolidayPayAmount;
-                ordinaryPayrollInfo.NumberOfHolidays += normalizedHolidays;
-
-                ordinaryPayrollInfo.Inss = BiweeklyInss;
-                ordinaryPayrollInfo.Ir = BiweeklyIr;
-                ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
-                ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalExtraDeductions;
-                ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
-
-                lastIncomeTax.FlagAccumulatedIR = lastIncomeTax.AccumulatedIR + BiweeklyIr;
-                lastIncomeTax.FlagSalaryEarned = lastIncomeTax.SalaryEarned + (currentTotalIncome - BiweeklyInss);
-
-                await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
-                await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax);
+                _logger.LogInformation("No se encontró nómina ordinaria para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
+                return false;
             }
-            else if (salaryInformation.SalaryType == SalaryType.ProfessionalServices)
+            var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
+                .Where(income => income.CollaboratorId == collaboratorInformation.Id && income.PayrollId == payrollId)
+                .FirstOrDefaultAsync(default);
+            if (lastIncomeTax is null)
             {
-                // Por aqui la logica para poder aplicar feriado a professional services
+                _logger.LogInformation("No se encontró acumulado de IR/INSS para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
+                return false;
             }
+            decimal currentTotalIncome = ordinaryPayrollInfo.TotalIncome + totalHolidayPayAmount;
+            decimal additionalPayments = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Vacations;
+
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
+                lastIncomeTax.NumberOfFortnights, lastIncomeTax.SalaryEarned,
+                lastIncomeTax.AccumulatedIR, currentTotalIncome, default, additionalPayments
+            );
+            var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                ordinaryPayrollInfo.DeductionsAdditionalData
+            ) ?? new DeductionsAdditionalData();
+
+            decimal totalExtraDeductions =
+                deductions.Loans + deductions.Purisima + deductions.ChildSupportGarnishment
+                + deductions.SalaryAdvance + deductions.ChristmasBonusAdvance
+                + deductions.JudicialSeizures + deductions.UniformDeduction
+                + deductions.CashShortage + deductions.OtherDeductions
+                + deductions.DeductionForLossesBulk + deductions.Absences
+                + deductions.Sanction + deductions.LateArrivals;
+
+            ordinaryPayrollInfo.TotalIncome = currentTotalIncome;
+            ordinaryPayrollInfo.HolidayPay += totalHolidayPayAmount;
+            ordinaryPayrollInfo.NumberOfHolidays += normalizedHolidays;
+            ordinaryPayrollInfo.Inss = BiweeklyInss;
+            ordinaryPayrollInfo.Ir = BiweeklyIr;
+            ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+            ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalExtraDeductions;
+            ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+
+            lastIncomeTax.FlagAccumulatedIR = lastIncomeTax.AccumulatedIR + BiweeklyIr;
+            lastIncomeTax.FlagSalaryEarned = lastIncomeTax.SalaryEarned + (currentTotalIncome - BiweeklyInss);
+
+            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+            await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax);
 
             var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
                 .Where(val => val.Status)
@@ -1105,7 +1098,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .FirstOrDefaultAsync(default);
 
             decimal exchangeValue = exchangeRate?.Value ?? 36.6243m;
-
             await _unitOfWork.Incomes.RegisterIncome(new()
             {
                 CollaboratorId = collaboratorInformation.Id,
@@ -1116,8 +1108,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Description = $"Pago de feriado trabajado: {amountDays} días",
                 PayrollId = payrollId,
             });
-
             _logger.LogInformation("✅ Feriado registrado y nómina recalculada exitosamente.");
+            return true;
         }
     }
 }
