@@ -2,14 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
+using Microsoft.Extensions.Logging;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
-using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
@@ -128,7 +127,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                   }
                   else
                   {
-                     await _payrollServices.RegisterCollaboratorToPayroll(payroll.Id, collaborator);
+                     await _payrollServices.RegisterCollaboratorToPayroll(payroll, collaborator);
                      await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                      _logger.LogInformation("Colaborador ingresado correctamente a la nomina✅");

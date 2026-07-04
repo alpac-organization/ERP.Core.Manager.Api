@@ -7,11 +7,12 @@ using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using Microsoft.Extensions.Logging;
 
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-   public class InitializePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPayrollServices _payrollServices) : AlpacBaseHandler<InitializePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
+   public class InitializePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPayrollServices _payrollServices, ILogger<InitializePayrollProcessHandler> _logger) : AlpacBaseHandler<InitializePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(InitializePayrollProcessCommand request, CancellationToken cancellationToken)
       {
@@ -63,19 +64,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             .OrderByDescending(payroll => payroll.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
-
          //Definir las fechas de apertura de la nomina. 
          var (startDate, endDate, period) = ManagerUtils.DefineRegularPayrollOpeningDates(lastPayroll);
 
          var newPayroll = new Database.Domain.Entities.Payrolls.Payroll()
          {
-            Id = Guid.NewGuid(),
-            StartDate = startDate,
-            EndDate = endDate,
-            Period = period,
+            Id          = Guid.NewGuid(),
+            StartDate   = startDate,
+            EndDate     = endDate,
+            Period      = period,
             PayrollType = request.Type,
-            BranchId = request.BranchId,
-            Status = PayrollStatus.Progress,
+            BranchId    = request.BranchId,
+            Status      = PayrollStatus.Progress,
          };
 
          //Crear nuevo registro de nomina en progreso
@@ -84,19 +84,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
          switch (request.Type)
          {
             case PayrollType.Ordinary:
+            {
+               var collaborators = await _payrollServices.ObtainsCollaboratorByType(SalaryType.Fixed, request.CompanyId, request.BranchId);
+
+
+               foreach (var collaborator in collaborators)
                {
-                  var collaborators = await _payrollServices.ObtainsCollaboratorByType(SalaryType.Fixed, request.CompanyId, request.BranchId);
+                  bool isRegistered = await _payrollServices.RegisterCollaboratorToPayroll(newPayroll, collaborator);
 
-
-                  foreach (var collaborator in collaborators)
+                  if(!isRegistered)
                   {
-                     await _payrollServices.RegisterCollaboratorToPayroll(newPayroll.Id, collaborator);
+                     _logger.LogWarning("No se pudo registrar al colaborador {CollaboratorId} en la nomina {PayrollId}", collaborator.IdentificationNumber, newPayroll.Id);
                   }
-
-                  await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                  return true;
                }
+
+               await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+               return true;
+            }
 
             case PayrollType.ProfessionalServices:
                {
