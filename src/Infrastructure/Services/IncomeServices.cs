@@ -67,11 +67,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateOnly subsidyStartDate = DateOnly.FromDateTime(subsidyData.StartDate.Date);
             DateOnly subsidyEndDate = DateOnly.FromDateTime(subsidyData.EndDate.Date);
 
-            DateOnly exactSubsidyStartDate = subsidyStartDate > payrollEndDate ? payrollStartDate : subsidyStartDate < payrollStartDate ? payrollStartDate : subsidyStartDate;
+            DateOnly exactSubsidyStartDate = subsidyStartDate < payrollStartDate ? payrollStartDate : subsidyStartDate;
+            DateOnly exactSubsidyEndDate = subsidyEndDate > payrollEndDate ? payrollEndDate : subsidyEndDate;
 
-            DateOnly exactSubsidyEndDate = subsidyEndDate > payrollEndDate ? payrollEndDate : subsidyEndDate < payrollStartDate ? payrollEndDate : subsidyEndDate;
-
-            if (exactSubsidyEndDate < exactSubsidyStartDate || exactSubsidyStartDate > exactSubsidyEndDate)
+            if (exactSubsidyEndDate < exactSubsidyStartDate)
             {
                 _logger.LogInformation("Las fechas del subsidio no coinciden con la nomina actual");
                 return false;
@@ -102,10 +101,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal SalaryEarned = taxIncome?.SalaryEarned ?? 0;
             decimal accumulatedIR = taxIncome?.AccumulatedIR ?? 0;
 
-            const int totalFortnights = 24;
-            int RemainingFortnights = totalFortnights - NumberOfFortnight + 1;
+            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
+                NumberOfFortnight,
+                SalaryEarned,
+                accumulatedIR,
+                taxableBaseWithoutSubsidy,
+                true,
+                infPayroll.Bonus
+            );
 
-            var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(RemainingFortnights, SalaryEarned, accumulatedIR, taxableBaseWithoutSubsidy, true, additionalSporadicPayments);
+            // if (BiweeklyIr < 0)
+            // {
+            //     BiweeklyIr = 0;
+            // }
 
             infPayroll.Inss = inssWithoutSubsidy + BiweeklyInss;
             infPayroll.Ir = BiweeklyIr;
@@ -152,21 +160,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (totalDeductions > availableForCompanyDeductions)
             {
 
-                decimal uncollectedBalance = totalDeductions - availableForCompanyDeductions;
-                _logger.LogWarning("Las deducciones del colaborador {id} superan su ingreso neto. Se han topado a {monto}", collaborator.IdentificationNumber, availableForCompanyDeductions);
-
-
+                // decimal uncollectedBalance = totalDeductions - availableForCompanyDeductions;
+                // _logger.LogWarning("Las deducciones del colaborador {id} superan su ingreso neto. Se han topado a {monto}", collaborator.IdentificationNumber, availableForCompanyDeductions);
                 totalDeductions = availableForCompanyDeductions;
-
-
-                await _unitOfWork.PendingDeductionBalances.AddAsync(new PendingDeductionBalance
-                {
-                    CollaboratorId = collaborator.Id,
-                    OriginPayrollId = period.Id,
-                    AmountOwed = uncollectedBalance,
-                    Reason = $"Saldo no cobrado por falta de fondos durante subsidio maternal en la nómina {period.Id}",
-                    IsRecovered = false
-                });
+                // {
+                //     CollaboratorId = collaborator.Id,
+                //     OriginPayrollId = period.Id,
+                //     AmountOwed = uncollectedBalance,
+                //     Reason = $"Saldo no cobrado por falta de fondos durante subsidio maternal en la nómina {period.Id}",
+                //     IsRecovered = false
+                // });
             }
             infPayroll.TotalDeducctions = infPayroll.TotalLegalDeductions + totalDeductions;
 
@@ -334,16 +337,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateOnly subsidyStartDate = DateOnly.FromDateTime(data.StartDate.Date);
             DateOnly subsidyEndDate = DateOnly.FromDateTime(data.EndDate.Date);
 
-            DateOnly effectiveStart = subsidyStartDate > payrollEndDate ? payrollStartDate : subsidyStartDate < payrollStartDate ? payrollStartDate : subsidyStartDate;
+            DateOnly effectiveStart = subsidyStartDate < payrollStartDate ? payrollStartDate : subsidyStartDate;
+            DateOnly effectiveEnd = subsidyEndDate > payrollEndDate ? payrollEndDate : subsidyEndDate;
 
-            DateOnly effectiveEnd = subsidyEndDate > payrollEndDate ? payrollEndDate : subsidyEndDate < payrollStartDate ? payrollEndDate : subsidyEndDate;
-
-            if (effectiveEnd < effectiveStart || effectiveStart > effectiveEnd)
+            if (effectiveEnd < effectiveStart)
             {
-                _logger.LogInformation("La fecha final del subsidio es inválida.");
+                _logger.LogInformation("Las fechas del subsidio no coinciden con la nómina actual.");
                 return false;
             }
-
             //Calcular los dias con subsidios
             int subsidizedDays = effectiveEnd.DayNumber - effectiveStart.DayNumber + 1;
             int daysWithoutSubsidy = 15 - subsidizedDays;
