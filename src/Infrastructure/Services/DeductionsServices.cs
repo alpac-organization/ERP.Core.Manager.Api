@@ -11,7 +11,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
-    {   
+    {
 
         //✅Deducción de viaticos por inasistencia
         public async Task ApplyDeductionTravelExpenses(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId)
@@ -60,7 +60,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(day => day.IsGlobal)
                 .ToListAsync(default);
 
-            int totalDaysDefault = 0;            
+            int totalDaysDefault = 0;
             int totalDaysToDiscount = 0;
             decimal totalDaysResult = 0;
 
@@ -96,13 +96,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             #endregion
-    
+
             #region Calculo de dias de incosistencia. quitar a la cantidad total esos dias de viaticos y sumarlos para restarlo al disponibles
-            
-            foreach(var permit in permitApplications)   
+
+            foreach (var permit in permitApplications)
             {
                 DateOnly permitStartDate = permit.StartDate;
-                DateOnly permitEndDate   = permit.EndDate;
+                DateOnly permitEndDate = permit.EndDate;
 
                 for (DateOnly date = permitStartDate; date <= permitEndDate; date = date.AddDays(1))
                 {
@@ -129,9 +129,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     }
 
                     if (
-                        collaboratorInformation.DoesWorkSaturdays && 
+                        collaboratorInformation.DoesWorkSaturdays &&
                         date.DayOfWeek == DayOfWeek.Saturday &&
-                        permit.IsWithRangeDate is false && 
+                        permit.IsWithRangeDate is false &&
                         permit.AmountDays == 0.5m
                     )
                     {
@@ -154,9 +154,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Include(assign => assign.TypeIncome)
                 .ToListAsync(default);
 
-            decimal transport   = 0.0m;
-            decimal feeding     = 0.0m;
-            decimal lodging     = 0.0m;
+            decimal transport = 0.0m;
+            decimal feeding = 0.0m;
+            decimal lodging = 0.0m;
 
             foreach (var assigne in assignedTravelExpenses)
             {
@@ -177,18 +177,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             // //Calcular el total de viaticos que gana esta persona.
-            decimal totalFeeding   = totalDaysDefault * feeding;
+            decimal totalFeeding = totalDaysDefault * feeding;
             decimal totalTransport = totalDaysDefault * transport;
-            decimal totalLodging   = totalDaysDefault * lodging;
-            decimal totalTravels   = totalFeeding + totalTransport + totalLodging;
+            decimal totalLodging = totalDaysDefault * lodging;
+            decimal totalTravels = totalFeeding + totalTransport + totalLodging;
 
             // //Ahora que sabemos el total de recibe deduscamos los dias que no viene esa persona.
 
-            decimal totalProporcionalFeeding    = feeding * totalDaysToDiscount;
-            decimal totalProporcionalTransport  = transport * totalDaysToDiscount;
-            decimal totalProporcionalLodging    = lodging * totalDaysToDiscount;
+            decimal totalProporcionalFeeding = feeding * totalDaysToDiscount;
+            decimal totalProporcionalTransport = transport * totalDaysToDiscount;
+            decimal totalProporcionalLodging = lodging * totalDaysToDiscount;
 
-            decimal totalProporcionalTravels  = totalProporcionalFeeding + totalProporcionalTransport + totalProporcionalLodging;
+            decimal totalProporcionalTravels = totalProporcionalFeeding + totalProporcionalTransport + totalProporcionalLodging;
 
             ordinaryPayroll.Transport = totalTransport - totalProporcionalTransport;
             ordinaryPayroll.Feeding = totalFeeding - totalProporcionalFeeding;
@@ -200,7 +200,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayroll.TotalToPay = totalToPay;
 
             //Actualizar la reporteria actual de la nomina.
-            
+
             // your code here.
             var recordInformation = await _unitOfWork.RecordsTravelExpensePayments.Entities
                 .Where(history => history.CollaboratorId == collaboratorInformation.Id)
@@ -232,10 +232,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #region Iniciando calculo de deducción
 
             //Calculo de valor por horas extras.
-            decimal DailySalary   = salaryInformation.AmountInLocal / 30;
-            decimal HourlyWage    = DailySalary / 8;
+            decimal DailySalary = salaryInformation.AmountInLocal / 30;
+            decimal HourlyWage = DailySalary / 8;
             decimal PerMinuteWage = HourlyWage / 60;
-                    
+
             decimal TotalDeductionToLateArrivals = totalMinutes * PerMinuteWage;
 
             _logger.LogInformation("Actualizando nomina para colaborador con cedula: {identification}", collaboratorInformation.IdentificationNumber);
@@ -295,27 +295,27 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #region Registro de deducciones
             var deduction = await _unitOfWork.Deductions.RegisterDeduction(new()
             {
-                Id                   = Guid.NewGuid(),
-                Currency             = Currency.NIO,
-                Status               = DeductionStatus.Completed,
-                Type                 = DeductionType.LateArrivals,
-                CollaboratorId       = collaboratorInformation.Id,
-                Description          = "Llegadas tardes",
-                Amount               = totalMinutes,              
-                TotalAmount          = TotalDeductionToLateArrivals,
+                Id = Guid.NewGuid(),
+                Currency = Currency.NIO,
+                Status = DeductionStatus.Completed,
+                Type = DeductionType.LateArrivals,
+                CollaboratorId = collaboratorInformation.Id,
+                Description = "Llegadas tardes",
+                Amount = totalMinutes,
+                TotalAmount = TotalDeductionToLateArrivals,
                 TotalAmountInDollars = TotalDeductionToLateArrivals / 36.6242m
             });
 
             await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
             {
-                Currency            = Currency.NIO,
-                Status              = DeductionPaymentStatus.Paid,
-                Origin              = SourceDeductionPayment.Payroll,
-                DeductionId         = deduction.Id,
-                PayrollId           = ordinaryPayroll.PayrollId,           
-                AmountPaid          = TotalDeductionToLateArrivals,
+                Currency = Currency.NIO,
+                Status = DeductionPaymentStatus.Paid,
+                Origin = SourceDeductionPayment.Payroll,
+                DeductionId = deduction.Id,
+                PayrollId = ordinaryPayroll.PayrollId,
+                AmountPaid = TotalDeductionToLateArrivals,
                 AmountPaidInDollars = TotalDeductionToLateArrivals,
-                PaymentDate         = DateTime.Now
+                PaymentDate = DateTime.Now
             });
 
             #endregion
@@ -371,43 +371,44 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
 
             var deduction = await _unitOfWork.Deductions.RegisterDeduction(new()
-            {   Id                          = Guid.NewGuid(),
-                Currency                    = Currency.NIO,
-                Type                        = DeductionType.Purisima,
-                Status                      = DeductionStatus.Progress,
-                Description                 = "Aportación de purisima",
-                CollaboratorId              = collaboratorInformation.Id,
+            {
+                Id = Guid.NewGuid(),
+                Currency = Currency.NIO,
+                Type = DeductionType.Purisima,
+                Status = DeductionStatus.Progress,
+                Description = "Aportación de purisima",
+                CollaboratorId = collaboratorInformation.Id,
 
-                FortnightlyAmount           = fortnightlyAmount,
-                FortnightlyAmountInDollars  = fortnightlyAmount / 36.6243m,
-                
-                AmountPaid                  = 0.0m,
-                AmountPaidInDollars         = 0.0m,
+                FortnightlyAmount = fortnightlyAmount,
+                FortnightlyAmountInDollars = fortnightlyAmount / 36.6243m,
 
-                TotalBalance                = amount,   
-                TotalBalanceInDollars       = amount / 36.6243m,
+                AmountPaid = 0.0m,
+                AmountPaidInDollars = 0.0m,
 
-                NumberFortnights            = numberFortnights,
-                NumberFortnightsPaid        = 0,
+                TotalBalance = amount,
+                TotalBalanceInDollars = amount / 36.6243m,
 
-                TotalAmount                 = fortnightlyAmount,
-                TotalAmountInDollars        = fortnightlyAmount / 36.6243m,
+                NumberFortnights = numberFortnights,
+                NumberFortnightsPaid = 0,
+
+                TotalAmount = fortnightlyAmount,
+                TotalAmountInDollars = fortnightlyAmount / 36.6243m,
             });
 
             await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
             {
-                Currency            = Currency.NIO,
-                Status              = DeductionPaymentStatus.Pending,
-                Origin              = SourceDeductionPayment.Payroll,
-                PayrollId           = payrollId,
-                DeductionId         = deduction.Id,
+                Currency = Currency.NIO,
+                Status = DeductionPaymentStatus.Pending,
+                Origin = SourceDeductionPayment.Payroll,
+                PayrollId = payrollId,
+                DeductionId = deduction.Id,
 
-                AmountPaid          = fortnightlyAmount,
+                AmountPaid = fortnightlyAmount,
                 AmountPaidInDollars = fortnightlyAmount / 36.6243m,
-                PaymentDate         = DateTime.Now
+                PaymentDate = DateTime.Now
             });
         }
-    
+
         //✅Deducción por prestamos. Listo
         public async Task ApplyDeductionLoans(Collaborator collaboratorInformation, decimal amount, Guid payrollId, int numberFortnights, Currency currency, string description = "Registro de préstamo")
         {
@@ -559,7 +560,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
 
-                
+
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                 {
                     Currency = currency,
@@ -577,6 +578,105 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                         : fortnightlyAmount / exchangeRate,
 
                     PaymentDate = DateTime.UtcNow,
+                });
+            }
+        }
+
+        public async Task ApplyJudicialGarnishment(Collaborator collaboratorInformation, decimal totalAmount, int percentage, Currency currency, string description, Guid payrollId)
+        {
+            var exchangeRateEntity = await _unitOfWork.ValidityDeductions.Entities
+               .Where(val => val.Status)
+               .Where(val => val.EndDate == null)
+               .Where(val => val.Type == TaxType.ExchangeRate)
+               .FirstOrDefaultAsync(default);
+
+
+            if (exchangeRateEntity is null)
+            {
+                _logger.LogWarning("No se encontró un tipo de cambio activo en la configuración.");
+                return;
+            }
+
+            decimal exchangeRate = exchangeRateEntity.Value;
+            var deductionId = Guid.NewGuid();
+
+            var garnishmentActive = await _unitOfWork.Deductions.Entities
+                .Where(ded => ded.Type == DeductionType.JudicialSeizures)
+                .Where(ded => ded.Status == DeductionStatus.Progress)
+                .Where(ded => ded.CollaboratorId == collaboratorInformation.Id)
+                .AnyAsync(default);
+
+            var deductionStatus = garnishmentActive ? DeductionStatus.Pending : DeductionStatus.Progress;
+
+            await _unitOfWork.Deductions.RegisterDeduction(new()
+            {
+                Id = deductionId,
+                Currency = currency,
+                Type = DeductionType.JudicialSeizures,
+                Status = deductionStatus,
+                Description = description,
+                CollaboratorId = collaboratorInformation.Id,
+
+                Percentage = percentage,
+                FortnightlyAmount = 0.0m,
+                FortnightlyAmountInDollars = 0.0m,
+                AmountPaid = 0.0m,
+                AmountPaidInDollars = 0.0m,
+                TotalBalance = currency == Currency.NIO ? totalAmount : totalAmount * exchangeRate,
+                TotalBalanceInDollars = currency == Currency.USD ? totalAmount : totalAmount / exchangeRate,
+                TotalAmount = currency == Currency.NIO ? totalAmount : totalAmount * exchangeRate,
+                TotalAmountInDollars = currency == Currency.USD ? totalAmount : totalAmount / exchangeRate,
+            });
+            var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Where(ord => ord.PayrollId == payrollId && ord.CollaboratorId == collaboratorInformation.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (ordinaryPayroll is not null && deductionStatus == DeductionStatus.Progress)
+            {
+                decimal baseAmount = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions;
+                decimal amountToDeduct = Math.Round(baseAmount * (percentage / 100m), 2, MidpointRounding.AwayFromZero);
+
+                decimal maxBalance = currency == Currency.NIO ? totalAmount : totalAmount * exchangeRate;
+                if (amountToDeduct > maxBalance)
+                {
+                    amountToDeduct = maxBalance;
+                }
+
+                var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(ordinaryPayroll.DeductionsAdditionalData ?? "{}") ?? new DeductionsAdditionalData();
+                deductions.JudicialSeizures = amountToDeduct;
+
+                decimal totalDeductions =
+                    deductions.Loans
+                    + deductions.Purisima
+                    + deductions.ChildSupportGarnishment
+                    + deductions.SalaryAdvance
+                    + deductions.ChristmasBonusAdvance
+                    + deductions.JudicialSeizures
+                    + deductions.UniformDeduction
+                    + deductions.CashShortage
+                    + deductions.OtherDeductions
+                    + deductions.DeductionForLossesBulk
+                    + deductions.Absences
+                    + deductions.Sanction
+                    + deductions.LateArrivals;
+
+                decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+                ordinaryPayroll.TotalToPay = total;
+                ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
+                ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+
+                await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+
+                await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+                {
+                    DeductionId = deductionId,
+                    AmountPaid = amountToDeduct,
+                    AmountPaidInDollars = amountToDeduct / exchangeRate,
+                    Status = DeductionPaymentStatus.Pending,
+                    Origin = SourceDeductionPayment.Payroll,
+                    Currency = currency,
+                    PayrollId = payrollId,
+                    PaymentDate = DateTime.Now
                 });
             }
         }
