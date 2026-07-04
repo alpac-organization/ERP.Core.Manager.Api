@@ -6,6 +6,7 @@ using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Domain.Entities.Catalogs;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
@@ -135,7 +136,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             BaseTax = 15000.00m;
             AnnualIr = ((totalAnnualSalary - 200000) * 0.20m);
-            AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 200000) * 0.20m);
+            AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 20000) * 0.20m);
 
             AnnualExpectationIR = AnnualIr + BaseTax;
             AnnualExpectationAdditionalIr = AnnualAdditionalIr + BaseTax;
@@ -327,6 +328,44 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (deduction.Type == DeductionType.OtherDeductions)
             {
                AdditionalDeducctions.OtherDeductions += deduction.FortnightlyAmount ?? 0.0m;
+            }
+
+            if (deduction.Type == DeductionType.JudicialSeizures)
+            {
+               var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
+               .Where(v => v.Status)
+               .Where(v => v.EndDate == null)
+               .Where(v => v.Type == TaxType.ExchangeRate)
+               .FirstOrDefaultAsync(default);
+
+               if (exchangeRate is null)
+               {
+                  _logger.LogInformation("❌No se pudo consultar la mesa de cambio");
+                  return;
+               }
+
+               decimal percentage = deduction.Percentage ?? 1;
+               decimal baseAmount = TotalIncome - (BiweeklyInss + BiweeklyIr);
+               decimal amountToDeduct = Math.Round(baseAmount * (percentage / 100m), 2, MidpointRounding.AwayFromZero);
+
+               if (amountToDeduct > (deduction.TotalBalance ?? 0))
+               {
+                  amountToDeduct = deduction.TotalBalance ?? 0;
+               }
+               AdditionalDeducctions.JudicialSeizures += amountToDeduct;
+
+               await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+               {
+                  DeductionId = deduction.Id,
+                  AmountPaid = amountToDeduct,
+                  AmountPaidInDollars = amountToDeduct / exchangeRate.Value,
+                  Status = DeductionPaymentStatus.Pending,
+                  Origin = SourceDeductionPayment.Payroll,
+                  Currency = deduction.Currency,
+                  PayrollId = payrollCreated.Id,
+                  PaymentDate = DateTime.Now,
+               });
+               continue;
             }
 
             await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()

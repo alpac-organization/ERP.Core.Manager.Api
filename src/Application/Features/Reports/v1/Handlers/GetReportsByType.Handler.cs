@@ -342,6 +342,69 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                   reportDto.SubsidiesHistory = mapped;
                   return reportDto;
                }
+
+            case ReportsType.JudicialSeizures:
+               {
+                  var payroll = await _unitOfWork.Payrolls.Entities
+                      .FirstOrDefaultAsync(p => p.Id == request.PayrollId, cancellationToken);
+
+                  if (payroll is null)
+                  {
+                     return _errorManager.ThrowBadRequest<ReportsDto>("Nómina no encontrada", "ERP:PayrollNotFound");
+                  }
+
+                  var queryReport = _unitOfWork.DeductionPaymentHistories.Entities
+                      .Include(p => p.Deduction)
+                        .ThenInclude(c => c.Collaborator)
+                           .ThenInclude(w => w.WorkingInformation)
+                      .Include(p => p.Payroll)
+                        .ThenInclude(b => b.Branch)
+                     .Where(p => p.PayrollId == request.PayrollId)
+                     .Where(p => p.Deduction.Type == DeductionType.JudicialSeizures)
+                     .Where(p => p.Payroll.Branch.CompanyId == request.CompanyId)
+                     .AsQueryable();
+
+                  if (!string.IsNullOrEmpty(request.IdentificationNumber))
+                  {
+                     queryReport = queryReport.Where(p => p.Deduction.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                  }
+
+                  if (request.AreaId.HasValue)
+                  {
+                     queryReport = queryReport.Where(p => p.Deduction.Collaborator.WorkingInformation.AreaId == request.AreaId);
+                  }
+
+                  var payments = await queryReport
+                     .OrderBy(p => p.Deduction.Collaborator.FirstName)
+                     .ToListAsync(cancellationToken);
+
+
+                  reportDto.JudicialSeizures = [..payments.Select(p => new JudicialSeizures
+                  {
+                     PayrollId = p.PayrollId,
+                     CollaboratorId = p.Deduction.CollaboratorId,
+                     DeductionId = p.DeductionId,
+
+                     CollaboratorCode = p.Deduction.Collaborator.CollaboratorCode ?? p.Deduction.Collaborator.IdentificationNumber,
+                     CollaboratorFullName = ManagerUtils.FromSliceToCollaboratorFullname(p.Deduction.Collaborator),
+                     IdentificationNumber = p.Deduction.Collaborator.IdentificationNumber,
+
+                     Description = p.Deduction.Description,
+                     Percentage = p.Deduction.Percentage,
+
+                     AmountDeducted = p.AmountPaid,
+                     AmountDeductedInDollars = p.AmountPaidInDollars,
+
+                     TotalDebt = p.Deduction.TotalAmount,
+                     TotalPaid = p.Deduction.AmountPaid ?? 0,
+                     RemainingBalance = p.Deduction.TotalBalance ?? 0,
+
+                     PaymentStatus = p.Status.ToString(),
+                     Currency = p.Currency.ToString()
+                  })];
+
+                  return reportDto;
+               }
             default:
                {
                   return _errorManager.ThrowBadRequest<ReportsDto>("Este tipo de reporte no se encuentra disponible", "ERP:01");
