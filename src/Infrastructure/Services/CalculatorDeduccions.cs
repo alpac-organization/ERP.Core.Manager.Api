@@ -190,6 +190,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
          }
 
+         // El saldo a favor se liquida en el cierre anual.
+         if (IrBiweekly < 0) IrBiweekly = 0;
+         if (IrBiweeklyAdditional < 0) IrBiweeklyAdditional = 0;
+
          return new IrCalculationResult(
              biweeklyInss + inssAdditionalPayment,
              IrBiweekly + IrBiweeklyAdditional
