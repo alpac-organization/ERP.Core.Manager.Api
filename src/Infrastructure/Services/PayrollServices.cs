@@ -36,21 +36,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
       {
          int DEFAULT_TOTAL_WORK_DAYS = 0;
 
-
          var holidays = await _unitOfWork.Holidays.Entities
-             .Where(day => day.IsActive)
-             .ToListAsync(default);
+            .Where(day => day.IsActive)
+            .ToListAsync(default);
 
          //Recorremos los dias
          for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
          {
             bool isHoliday = holidays.Any(holiday =>
-                holiday.Day == date.Day &&
-                holiday.Month == date.Month &&
-                (
-                    holiday.IsGlobal ||
-                    holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
-                )
+               holiday.Day == date.Day &&
+               holiday.Month == date.Month &&
+               (
+                  holiday.IsGlobal ||
+                  holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
+               )
             );
 
             if (isHoliday)
