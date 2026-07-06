@@ -258,10 +258,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          var numberFortnights = TaxInformation?.FlagNumberOfFortnights ?? 24;
 
          var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
-             TaxInformation?.FlagNumberOfFortnights ?? 24,
-             TaxInformation?.FlagSalaryEarned ?? 0.0m,
-             TaxInformation?.FlagAccumulatedIR ?? 0.0m,
-             TotalIncome,
+            TaxInformation?.FlagNumberOfFortnights ?? 24,
+            TaxInformation?.FlagSalaryEarned ?? 0.0m,
+            TaxInformation?.FlagAccumulatedIR ?? 0.0m,
+            TotalIncome,
             default
          );
 
@@ -479,9 +479,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
 
          var indem = _calculatorDeductions.CalculateIndemnification(
-             monthlySalary,
-             entryDate,
-             payrollEnd);
+            monthlySalary,
+            entryDate,
+            payrollEnd);
 
          await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
          {
@@ -535,7 +535,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                PayrollId = payroll.Id,
                CollaboratorId = collaborator.Id,
-               AccumulatedSeniority = 0.0m,
+               AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
             });
 
             collaborator.IsFirstTimeRegister = false;
@@ -564,7 +564,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                PayrollId = payroll.Id,
                CollaboratorId = collaborator.Id,
-               AccumulatedSeniority = 0.0m,
+               AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
             });
          }
 
