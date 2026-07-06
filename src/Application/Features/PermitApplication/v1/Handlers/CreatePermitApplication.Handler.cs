@@ -289,6 +289,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         {
                             int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
                             endDate = endDate.AddDays(daysUntilSunday);
+                            totalDays += 0.5m;
                         }
                         else if (collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Saturday)
                         {
@@ -307,7 +308,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         totalDays += fullWeeks * 7;
 
-                        for (int i = 0; i <= remainingDays; i++)
+                        for (int i = 0; i < remainingDays; i++)
                         {
                             DateOnly date = startDate.AddDays(fullWeeks * 7 + i);
                             if (date.DayOfWeek == DayOfWeek.Sunday) continue;

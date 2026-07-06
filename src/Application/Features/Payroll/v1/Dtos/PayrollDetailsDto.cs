@@ -31,7 +31,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
 
 
         public decimal Lodging { get; set; }
-        public decimal Feeding { get ; set; }
+        public decimal Feeding { get; set; }
         public decimal Transport { get; set; }
         public decimal TotalTravelExpenses { get; set; }
     }
@@ -39,13 +39,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
     public class ProfessionalServicePayrollDto : BasePayroll
     {
         public Guid ProfessionalServicePayrollId { get; set; }
-        
+
     }
 
 
     public class BasePayroll
     {
         public decimal GrossSalary { get; set; }
+        public decimal HolidayPay { get; set; }
+        public decimal NumberOfHolidays { get; set; }
         public decimal TotalIncome { get; set; }
         public decimal BiweeklySalary { get; set; }
 

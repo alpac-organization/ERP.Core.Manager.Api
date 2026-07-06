@@ -81,6 +81,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          var variableIncomeForWorkedDays = infPayroll.Antique
                                            + infPayroll.Overtime
+                                           + infPayroll.Vacations
                                            + infPayroll.Commissions;
          //se suma el salario proporcional de dias laborados + otros ingresos.
          decimal totalGrossIncomeInThisFortnight = (daySalary * daysWithoutSubsidy)
@@ -544,7 +545,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal salaryDaily = salaryInformation.AmountInLocal / 30;
          decimal salaryProportional = salaryDaily * daysWorked;
 
-         decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Commissions + salaryProportional;
+         decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Commissions + salaryProportional + ordinaryPayrollInfo.HolidayPay;
 
          //Sumamos los pagos adicionales.
          decimal additionalPayment = amountBonus;
@@ -664,7 +665,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          ordinaryPayrollInfo.Overtime = AmountTotalWithHours;
          ordinaryPayrollInfo.NumberOvertime = totalHours;
-         ordinaryPayrollInfo.TotalIncome = ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary + ordinaryPayrollInfo.Antique;
+         ordinaryPayrollInfo.TotalIncome = ordinaryPayrollInfo.Commissions + AmountTotalWithHours + ProportionalBiweeklySalary + ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.HolidayPay;
 
          decimal GrossSalary = ordinaryPayrollInfo.TotalIncome;
          decimal AdditionalPayment = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Vacations;
@@ -791,7 +792,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal salaryProportional = salaryDaily * daysWorked;
 
          //No tomamos en cuenta las comisiones.
-         decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + salaryProportional;
+         decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + salaryProportional + ordinaryPayrollInfo.HolidayPay;
 
          //Realizamos el calculo de la comisión
          var comission = amountComission;
@@ -914,7 +915,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal salaryDaily = salaryInformation.AmountInLocal / 30;
          decimal salaryProportional = salaryDaily * daysWorked;
 
-         decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Commissions + salaryProportional;
+         decimal TotalIncome = ordinaryPayrollInfo.Antique + ordinaryPayrollInfo.Overtime + ordinaryPayrollInfo.Commissions + salaryProportional + ordinaryPayrollInfo.HolidayPay;
 
          ordinaryPayrollInfo.TotalIncome = TotalIncome;
 
@@ -1053,6 +1054,90 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          });
 
          _logger.LogInformation("Depreciación registrada exitosamente sin afectar la nómina.");
+      }
+      public async Task<bool> ApplyIncomeHoliday(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, Guid payrollId, Guid typeIncomeId)
+      {
+         decimal monthlySalary = salaryInformation.AmountInLocal;
+         decimal dailySalary = monthlySalary / 30;
+         decimal totalHolidayPayAmount = amountDays * dailySalary;
+         decimal normalizedHolidays = amountDays;
+
+         if (salaryInformation.SalaryType != SalaryType.Fixed)
+            return false;
+
+         var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
+             .Include(ord => ord.Payroll)
+             .Where(ord => ord.CollaboratorId == collaboratorInformation.Id && ord.PayrollId == payrollId)
+             .FirstOrDefaultAsync(default);
+
+         if (ordinaryPayrollInfo is null)
+         {
+            _logger.LogInformation("No se encontró nómina ordinaria para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
+            return false;
+         }
+
+         var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
+             .Where(income => income.CollaboratorId == collaboratorInformation.Id && income.PayrollId == payrollId)
+             .FirstOrDefaultAsync(default);
+
+         if (lastIncomeTax is null)
+         {
+            _logger.LogInformation("No se encontró acumulado de IR/INSS para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
+            return false;
+         }
+
+         decimal currentTotalIncome = ordinaryPayrollInfo.TotalIncome + totalHolidayPayAmount;
+         decimal additionalPayments = ordinaryPayrollInfo.Bonus + ordinaryPayrollInfo.Vacations;
+
+         var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
+             lastIncomeTax.NumberOfFortnights, lastIncomeTax.SalaryEarned,
+             lastIncomeTax.AccumulatedIR, currentTotalIncome, default, additionalPayments);
+
+         var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
+             ordinaryPayrollInfo.DeductionsAdditionalData) ?? new DeductionsAdditionalData();
+
+         decimal totalExtraDeductions =
+             deductions.Loans + deductions.Purisima + deductions.ChildSupportGarnishment
+             + deductions.SalaryAdvance + deductions.ChristmasBonusAdvance
+             + deductions.JudicialSeizures + deductions.UniformDeduction
+             + deductions.CashShortage + deductions.OtherDeductions
+             + deductions.DeductionForLossesBulk + deductions.Absences
+             + deductions.Sanction + deductions.LateArrivals;
+
+         ordinaryPayrollInfo.TotalIncome = currentTotalIncome;
+         ordinaryPayrollInfo.HolidayPay += totalHolidayPayAmount;
+         ordinaryPayrollInfo.NumberOfHolidays += normalizedHolidays;
+         ordinaryPayrollInfo.Inss = BiweeklyInss;
+         ordinaryPayrollInfo.Ir = BiweeklyIr;
+         ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+         ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalExtraDeductions;
+         ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
+
+         lastIncomeTax.FlagAccumulatedIR = lastIncomeTax.AccumulatedIR + BiweeklyIr;
+         lastIncomeTax.FlagSalaryEarned = lastIncomeTax.SalaryEarned + (currentTotalIncome - BiweeklyInss);
+
+         await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
+         await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax);
+
+         var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
+             .Where(val => val.Status && val.EndDate == null && val.Type == TaxType.ExchangeRate)
+             .FirstOrDefaultAsync(default);
+
+         decimal exchangeValue = exchangeRate?.Value ?? 36.6243m;
+
+         await _unitOfWork.Incomes.RegisterIncome(new()
+         {
+            CollaboratorId = collaboratorInformation.Id,
+            AmountInDollars = totalHolidayPayAmount / exchangeValue,
+            AmountInLocal = totalHolidayPayAmount,
+            Currency = Currency.NIO,
+            IncomeTypeId = typeIncomeId,
+            Description = $"Pago de feriado trabajado: {amountDays} días",
+            PayrollId = payrollId,
+         });
+
+         _logger.LogInformation("✅ Feriado registrado y nómina recalculada exitosamente.");
+         return true;
       }
    }
 }

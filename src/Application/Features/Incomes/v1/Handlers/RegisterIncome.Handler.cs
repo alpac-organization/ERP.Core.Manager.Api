@@ -230,6 +230,61 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                         logger.LogInformation("Se agrego con exito el registro de depreciación");
                         return true;
                     }
+                case "HOLIDAY":
+                    {
+                        if (request.HolidayIncomeData is null || request.HolidayIncomeData.Count == 0)
+                            return _errorManager.ThrowBadRequest<bool>(
+                                "Los datos para registro de feriados son requeridos", "ERP:02");
+
+                        foreach (var holidayData in request.HolidayIncomeData)
+                        {
+                            if (string.IsNullOrWhiteSpace(holidayData.IdentificationNumber))
+                                return _errorManager.ThrowBadRequest<bool>(
+                                    "El número de identificación es requerido", "ERP:02");
+
+                            if (holidayData.AmountDays <= 0)
+                                return _errorManager.ThrowBadRequest<bool>(
+                                    "La cantidad de días feriados debe ser mayor a 0", "ERP:02");
+
+                            var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                                .Where(col => col.IdentificationNumber == holidayData.IdentificationNumber && col.CompanyId == request.CompanyId)
+                                .Where(col => col.Status != CollaboratorStatus.Inactive)
+                                .Include(col => col.WorkingInformation)
+                                .Where(col => col.WorkingInformation.CompanyBranchId == request.BranchId)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (collaboratorInformation is null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>(
+                                    $"No se encontró al colaborador con cédula: {holidayData.IdentificationNumber}", "ERP:01");
+                            }
+
+
+                            var salaryInformation = await _unitOfWork.Salaries.Entities
+                                .Where(col => col.CollaboratorId == collaboratorInformation.Id)
+                                .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (salaryInformation is null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
+                            }
+                            var applied = await _incomeServices.ApplyIncomeHoliday(
+                                collaboratorInformation,
+                                salaryInformation,
+                                holidayData.AmountDays,
+                                payroll.Id,
+                                request.TypeIncomeId);
+
+                            if (!applied)
+                                return _errorManager.ThrowBadRequest<bool>(
+                                    $"No se pudo aplicar el feriado al colaborador {holidayData.IdentificationNumber}", "ERP:03");
+                            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                            logger.LogInformation("✅ Se agrego con exito el registro de feriado.");
+                        }
+                        return true;
+                    }
                 default:
                     {
                         return _errorManager.ThrowBadRequest<bool>("Este tipo de ingreso no esta disponible", "ERP:04");
