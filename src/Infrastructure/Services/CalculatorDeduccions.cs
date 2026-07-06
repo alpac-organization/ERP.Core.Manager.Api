@@ -6,7 +6,6 @@ using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Database.Domain.Entities.Catalogs;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
@@ -195,8 +194,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          if (IrBiweeklyAdditional < 0) IrBiweeklyAdditional = 0;
 
          return new IrCalculationResult(
-             biweeklyInss + inssAdditionalPayment,
-             IrBiweekly + IrBiweeklyAdditional
+            biweeklyInss + inssAdditionalPayment,
+            IrBiweekly + IrBiweeklyAdditional
          );
       }
 
