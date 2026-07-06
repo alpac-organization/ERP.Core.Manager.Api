@@ -289,7 +289,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         {
                             int daysUntilSunday = (7 - (int)endDate.DayOfWeek) % 7;
                             endDate = endDate.AddDays(daysUntilSunday);
-                            totalDays += 0.5m;
+                            // totalDays += 0.5m;
                         }
                         else if (collaborator.DoesWorkSaturdays && endDate.DayOfWeek == DayOfWeek.Saturday)
                         {
