@@ -479,9 +479,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
 
          var indem = _calculatorDeductions.CalculateIndemnification(
-             monthlySalary,
-             entryDate,
-             payrollEnd);
+            monthlySalary,
+            entryDate,
+            payrollEnd);
 
          await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
          {
