@@ -566,5 +566,43 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          #endregion Calcular Inatec e inss patronal
 
       }
+
+      public IndemnificationResult CalculateIndemnification(decimal monthlySalary, DateOnly entryDate, DateOnly calculationDate)
+      {
+         _logger.LogInformation("Iniciando cálculo de indemnización");
+
+         if (calculationDate < entryDate || monthlySalary <= 0)
+            return new IndemnificationResult(0, 0);
+
+         int totalMonths =
+             (calculationDate.Year - entryDate.Year) * 12
+             + (calculationDate.Month - entryDate.Month);
+
+         if (calculationDate.Day < entryDate.Day)
+            totalMonths--;
+
+         if (totalMonths < 0)
+            totalMonths = 0;
+
+         decimal totalYears = totalMonths / 12m;
+
+         decimal yearsFirstTier = Math.Min(totalYears, 3m);
+         decimal yearsSecondTier = Math.Max(totalYears - 3m, 0m);
+
+         decimal indemnificationMonths =
+             (yearsFirstTier * 1m)
+             + (yearsSecondTier * (20m / 30m));
+         if (totalMonths == 0) return new IndemnificationResult(0, 0);
+         indemnificationMonths = Math.Clamp(indemnificationMonths, 1m, 5m);
+
+         decimal value = Math.Round(
+             indemnificationMonths * monthlySalary,
+             2,
+             MidpointRounding.AwayFromZero);
+
+         return new IndemnificationResult(
+             Math.Round(totalYears, 2, MidpointRounding.AwayFromZero),
+             value);
+      }
    }
 }
