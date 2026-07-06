@@ -516,6 +516,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal vacationAmountInCordobas = vacationControl.AvailableVacations * dailySalary;
          decimal vacationAmountInDollars = (vacationControl.AvailableVacations * dailySalary) / exchangeRate?.Value ?? 0.0m;
 
+
+         var indem = _calculatorDeductions.CalculateIndemnification(
+             monthlySalary,
+             entryDate,
+             payrollEnd);
+
          await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
          {
             BeginningBalance = vacationControl.AvailableVacations,
@@ -524,7 +530,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             CollaboratorId = collaborator.Id,
             AvailableVacations = vacationControl.AvailableVacations,
             EquivalentQuantity = vacationAmountInCordobas,
-            EquivalentQuantityInDollars = vacationAmountInDollars
+            EquivalentQuantityInDollars = vacationAmountInDollars,
+            IndemnificationYears = indem.YearsOfService,
+            IndemnificationValue = indem.IndemnificationValue,
          });
 
          #endregion

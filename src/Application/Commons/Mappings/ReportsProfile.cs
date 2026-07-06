@@ -23,7 +23,8 @@ public class ReportsProfile : Profile
             .ForMember(dest => dest.EquivalesQuantity, opt => opt.MapFrom(src => src.EquivalentQuantity))
             .ForMember(dest => dest.EquivalesQuantityInDollars, opt => opt.MapFrom(src => src.EquivalentQuantityInDollars))
             .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
-
+            .ForMember(dest => dest.IndemnificationYears, opt => opt.MapFrom(src => src.IndemnificationYears))
+            .ForMember(dest => dest.IndemnificationValue, opt => opt.MapFrom(src => src.IndemnificationValue))
             .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)));
 
         CreateMap<RecordsTravelExpensePayments, PaymentTravelExpensesHistory>()
