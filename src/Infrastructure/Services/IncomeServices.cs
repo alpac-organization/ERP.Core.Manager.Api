@@ -81,7 +81,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          var variableIncomeForWorkedDays = infPayroll.Antique
                                            + infPayroll.Overtime
-                                           + infPayroll.Vacations
                                            + infPayroll.Commissions;
          //se suma el salario proporcional de dias laborados + otros ingresos.
          decimal totalGrossIncomeInThisFortnight = (daySalary * daysWithoutSubsidy)
@@ -156,16 +155,50 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          if (totalDeductions > availableForCompanyDeductions)
          {
 
-            // decimal uncollectedBalance = totalDeductions - availableForCompanyDeductions;
-            // _logger.LogWarning("Las deducciones del colaborador {id} superan su ingreso neto. Se han topado a {monto}", collaborator.IdentificationNumber, availableForCompanyDeductions);
+            decimal uncollectedBalance = totalDeductions - availableForCompanyDeductions;
+            _logger.LogWarning("Las deducciones del colaborador {id} superan su ingreso neto. Se han topado a {monto}", collaborator.IdentificationNumber, availableForCompanyDeductions);
             totalDeductions = availableForCompanyDeductions;
-            // {
-            //     CollaboratorId = collaborator.Id,
-            //     OriginPayrollId = period.Id,
-            //     AmountOwed = uncollectedBalance,
-            //     Reason = $"Saldo no cobrado por falta de fondos durante subsidio maternal en la nómina {period.Id}",
-            //     IsRecovered = false
-            // });
+
+            var existingBalances = await _unitOfWork.PendingDeductionBalances
+                .GetBalancesByOriginPayrollAsync(period.Id);
+
+            var existingPendingBalance = existingBalances
+                .FirstOrDefault(b => b.CollaboratorId == collaborator.Id && !b.IsRecovered);
+
+            if (existingPendingBalance is not null)
+            {
+               existingPendingBalance.AmountOwed = uncollectedBalance;
+               await _unitOfWork.PendingDeductionBalances.UpdateAsync(existingPendingBalance);
+            }
+            else if (uncollectedBalance > 0)
+            {
+               await _unitOfWork.PendingDeductionBalances.RegisterPendingDeductionBalance(new PendingDeductionBalance
+               {
+                  Id = Guid.NewGuid(),
+                  CollaboratorId = collaborator.Id,
+                  OriginPayrollId = period.Id,
+                  AmountOwed = uncollectedBalance,
+                  Reason = $"Saldo no cobrado por falta de fondos durante subsidio maternal en la nómina {period.Id}",
+                  IsRecovered = false,
+                  RecoveredPayrollId = null
+               });
+            }
+         }
+         else
+         {
+            var existingBalances = await _unitOfWork.PendingDeductionBalances
+                .GetBalancesByOriginPayrollAsync(period.Id);
+
+            var existingPendingBalance = existingBalances
+                .FirstOrDefault(b => b.CollaboratorId == collaborator.Id && !b.IsRecovered);
+
+            if (existingPendingBalance is not null)
+            {
+               existingPendingBalance.AmountOwed = 0;
+               existingPendingBalance.IsRecovered = true;
+               existingPendingBalance.RecoveredPayrollId = period.Id;
+               await _unitOfWork.PendingDeductionBalances.UpdateAsync(existingPendingBalance);
+            }
          }
          infPayroll.TotalDeducctions = infPayroll.TotalLegalDeductions + totalDeductions;
 
@@ -246,17 +279,29 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          }
          else
          {
-            decimal totalDeductionTravelExpensive = (transport + feeding + lodging) * totalDaysToDiscount;
-            totalDeductionTravelExpensive = Math.Min(totalDeductionTravelExpensive, infPayroll.TotalTravelExpenses);
-            infPayroll.TotalTravelExpenses -= totalDeductionTravelExpensive;
+            int quincenaWorkDays = 0;
+            for (DateOnly date = payrollStartDate; date <= payrollEndDate; date = date.AddDays(1))
+            {
+               bool isHoliday = holidays.Any(holiday =>
+                   holiday.Day == date.Day && holiday.Month == date.Month &&
+                   (holiday.IsGlobal || holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId));
+
+               if (isHoliday) continue;
+               if (date.DayOfWeek == DayOfWeek.Sunday) continue;
+               if (!collaborator.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday) continue;
+
+               quincenaWorkDays++;
+            }
+            int paidTravelDays = Math.Max(quincenaWorkDays - totalDaysToDiscount, 0);
+            decimal dailyTravelTotal = transport + feeding + lodging;
+            infPayroll.TotalTravelExpenses = dailyTravelTotal * paidTravelDays;
 
             if (travelExpensePayments != null)
             {
-               travelExpensePayments.PaidDays = Math.Max(travelExpensePayments.PaidDays - totalDaysToDiscount, 0);
-               travelExpensePayments.Lodging = lodging * travelExpensePayments.PaidDays;
-               travelExpensePayments.Transport = transport * travelExpensePayments.PaidDays;
-               travelExpensePayments.Feeding = feeding * travelExpensePayments.PaidDays;
-
+               travelExpensePayments.PaidDays = paidTravelDays;
+               travelExpensePayments.Lodging = lodging * paidTravelDays;
+               travelExpensePayments.Transport = transport * paidTravelDays;
+               travelExpensePayments.Feeding = feeding * paidTravelDays;
                await _unitOfWork.RecordsTravelExpensePayments.UpdateAsync(travelExpensePayments);
             }
          }
@@ -266,21 +311,65 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(infPayroll);
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(taxIncome!);
 
-         await _unitOfWork.Subsidies.CreateSubsidy(new()
-         {
-            AmountDays = subsidyDays,
-            CollaboratorId = collaborator.Id,
-            PayrollId = subsidyData.PayrollId,
-            StartDate = subsidyData.StartDate,
-            EndDate = subsidyData.EndDate,
-            Observations = subsidyData.Observations,
-            ReferenceNumber = subsidyData.ReferenceNumber,
-            TypeSubsidyId = subsidyData.TypeSubsidyId,
-            Percentage = 40,
-         });
+         bool subsidyAlreadyExists = await _unitOfWork.Subsidies.Entities
+         .AnyAsync(s => s.CollaboratorId == collaborator.Id && s.PayrollId == period.Id);
 
+         if (!subsidyAlreadyExists)
+         {
+            await _unitOfWork.Subsidies.CreateSubsidy(new()
+            {
+               AmountDays = subsidyDays,
+               CollaboratorId = collaborator.Id,
+               PayrollId = subsidyData.PayrollId,
+               StartDate = subsidyData.StartDate,
+               EndDate = subsidyData.EndDate,
+               Observations = subsidyData.Observations,
+               ReferenceNumber = subsidyData.ReferenceNumber,
+               TypeSubsidyId = subsidyData.TypeSubsidyId,
+               Percentage = 40,
+            });
+         }
          _logger.LogInformation("✅ Subsidio maternal calculado y aplicado correctamente.");
          return true;
+      }
+      private async Task RecalculateMaternitySubsidyIfExistsAsync(Collaborator collaborator, Salary salary, Guid payrollId)
+      {
+         var existingSubsidy = await _unitOfWork.Subsidies.Entities
+             .Include(s => s.TypesSubsidy)
+             .Where(s => s.CollaboratorId == collaborator.Id)
+             .Where(s => s.PayrollId == payrollId)
+             .Where(s => s.TypesSubsidy.Code == "MATERNITY")
+             .FirstOrDefaultAsync(default);
+
+         if (existingSubsidy is null)
+         {
+            return;
+         }
+
+         var payroll = await _unitOfWork.Payrolls.Entities
+             .Where(p => p.Id == payrollId)
+             .FirstOrDefaultAsync(default);
+
+         if (payroll is null)
+         {
+            _logger.LogInformation("No se encontró la nómina {payrollId} para recalcular subsidio maternal", payrollId);
+            return;
+         }
+
+         _logger.LogInformation(
+             "Recalculando subsidio maternal para colaborador {identification} tras actualización de ingresos",
+             collaborator.IdentificationNumber);
+
+         await ApplyMedicalSubsidyToPregnantWomen(collaborator, payroll, salary, new RegisterSubsidyCommmand
+         {
+            CollaboratorId = collaborator.Id,
+            PayrollId = payrollId,
+            TypeSubsidyId = existingSubsidy.TypeSubsidyId,
+            StartDate = existingSubsidy.StartDate,
+            EndDate = existingSubsidy.EndDate,
+            ReferenceNumber = existingSubsidy.ReferenceNumber,
+            Observations = existingSubsidy.Observations,
+         });
       }
       public async Task<bool> ApplyMedicalSubsidy(Collaborator collaboratorInformation, Salary salaryInformation, Payroll period, RegisterSubsidyCommmand data)
       {
@@ -628,6 +717,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             Description = "Ingreso de bonos",
             PayrollId = payrollId,
          });
+
+         await RecalculateMaternitySubsidyIfExistsAsync(collaboratorInformation, salaryInformation, payrollId);
       }
 
       //✅ Aplicar calculo de horas extras.
@@ -749,6 +840,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             PayrollId = payrollId,
             Description = "Horas extras",
          });
+         await RecalculateMaternitySubsidyIfExistsAsync(collaboratorInformation, salaryInformation, payrollId);
       }
 
       public async Task ApplyIncomeCommissions(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountComission, Currency currency, Guid payrollId, Guid incomeTypeId)
@@ -874,6 +966,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             Description = "Ingreso comisiones",
             PayrollId = payrollId,
          });
+         await RecalculateMaternitySubsidyIfExistsAsync(collaboratorInformation, salaryInformation, payrollId);
       }
 
       //✅Pago de vacaciones.
@@ -1135,6 +1228,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             Description = $"Pago de feriado trabajado: {amountDays} días",
             PayrollId = payrollId,
          });
+
+         await RecalculateMaternitySubsidyIfExistsAsync(collaboratorInformation, salaryInformation, payrollId);
 
          _logger.LogInformation("✅ Feriado registrado y nómina recalculada exitosamente.");
          return true;

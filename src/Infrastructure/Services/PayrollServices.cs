@@ -367,6 +367,44 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #endregion
 
+         #region Recuperación saldos pendientes
+         decimal pendingRecoveryTotal = 0m;
+
+         var pendingBalances = await _unitOfWork.PendingDeductionBalances.GetUnrecoveredBalancesByCollaboratorAsync(collaborator.Id);
+
+         decimal availableForRecovery = TotalIncome - (BiweeklyInss + BiweeklyIr) - totalDeductionsAdditionals;
+
+         if (availableForRecovery < 0) availableForRecovery = 0;
+
+         foreach (var balance in pendingBalances.OrderBy(b => b.CreatedAt))
+         {
+            if (availableForRecovery <= 0) break;
+            decimal recoveryAmount = Math.Min(balance.AmountOwed, availableForRecovery);
+
+            pendingRecoveryTotal += recoveryAmount;
+            availableForRecovery -= recoveryAmount;
+            balance.AmountOwed -= recoveryAmount;
+
+            if (balance.AmountOwed == 0)
+            {
+               balance.IsRecovered = true;
+               balance.RecoveredPayrollId = payroll.Id;
+            }
+            else
+            {
+               balance.IsRecovered = false;
+               balance.RecoveredPayrollId = null;
+            }
+            await _unitOfWork.PendingDeductionBalances.UpdateAsync(balance);
+         }
+         if (pendingRecoveryTotal > 0)
+         {
+            AdditionalDeducctions.OtherDeductions += pendingRecoveryTotal;
+
+            totalDeductionsAdditionals += pendingRecoveryTotal;
+         }
+         #endregion
+
          #region Asignación de viaticos
          //Saber cuantos dias tiene con derecho a viaticos en base al calendario del mes del colaborador.
          int totalWorkDays = await AssignTravelDays(collaborator, payrollStart, payrollEnd);
