@@ -507,7 +507,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          return true;
          #endregion
       }
-
       public async Task ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId)
       {
          var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
@@ -825,12 +824,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          //Calculamos el ir e inss, de sus ingresos.
          var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
-             lastIncomeTax.NumberOfFortnights,
-             lastIncomeTax?.SalaryEarned ?? 0.0m,
-             lastIncomeTax?.AccumulatedIR ?? 0.0m,
-             TotalIncome,
-             false,
-             additionalPayment
+            lastIncomeTax.NumberOfFortnights,
+            lastIncomeTax?.SalaryEarned ?? 0.0m,
+            lastIncomeTax?.AccumulatedIR ?? 0.0m,
+            TotalIncome,
+            false,
+            additionalPayment
          );
 
          //Actualizamos el total de ingresos.
@@ -875,11 +874,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          //Actualizamos la nomina y las comisiones.
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
+         
          await _reportingServices.ApplyInssReporting(
-             ordinaryPayrollInfo.Payroll.Period.ToString(),
-             payrollId,
-             collaboratorInformation,
-             ordinaryPayrollInfo.TotalIncome
+            ordinaryPayrollInfo.Payroll.Period.ToString(),
+            payrollId,
+            collaboratorInformation,
+            ordinaryPayrollInfo.TotalIncome
          );
 
          //Registramos el ingreso de las comisiones.

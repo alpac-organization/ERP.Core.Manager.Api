@@ -135,7 +135,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             BaseTax = 15000.00m;
             AnnualIr = ((totalAnnualSalary - 200000) * 0.20m);
-            AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 20000) * 0.20m);
+            AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 200000) * 0.20m);
 
             AnnualExpectationIR = AnnualIr + BaseTax;
             AnnualExpectationAdditionalIr = AnnualAdditionalIr + BaseTax;
