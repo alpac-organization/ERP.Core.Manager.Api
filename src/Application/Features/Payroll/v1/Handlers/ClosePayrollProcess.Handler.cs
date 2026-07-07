@@ -160,7 +160,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 decimal amountToDiscountBySubsidy = daysWithSubsidy * valueVacationsDay;
 
                 var vacationControl = await _unitOfWork.Vacations.Entities
-                    .Where(col => col.CollaboratorId == collaborator.Id)
+                    .Where(col => col.CollaboratorId == collaborator.CollaboratorId)
                     .FirstOrDefaultAsync(cancellationToken);
 
                 if (vacationControl is null)
