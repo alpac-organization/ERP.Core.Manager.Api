@@ -247,6 +247,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         decimal salaryDaily = salaryInformation.AmountInLocal / 30.0m;
                         decimal vacationAmount = salaryDaily * vacationInformationSolicitante.AvailableVacations;
 
+                        vacationAccrual.AvailableVacations = vacationInformationSolicitante.AvailableVacations;
                         vacationAccrual.FinalBalance = vacationInformationSolicitante.AvailableVacations;
                         vacationAccrual.EquivalentQuantity = vacationAmount;
                         vacationAccrual.EquivalentQuantityInDollars = vacationAmount / 36.6243m;                     
