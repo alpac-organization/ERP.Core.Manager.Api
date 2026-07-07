@@ -116,10 +116,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                if (request!.SalaryInformation.SalaryType == SalaryType.Fixed)
                {
                   var collaborator = await _unitOfWork.Collaborators.Entities
-                      .Where(col => col.IdentificationNumber == request.IdentificationNumber)
-                      .Include(col => col.WorkingInformation)
-                          .ThenInclude(col => col.BranchInfo)
-                      .FirstOrDefaultAsync(cancellationToken);
+                     .Where(col => col.IdentificationNumber == request.IdentificationNumber)
+                     .Include(col => col.WorkingInformation)
+                        .ThenInclude(col => col.BranchInfo)
+                     .FirstOrDefaultAsync(cancellationToken);
 
                   if (collaborator is null)
                   {

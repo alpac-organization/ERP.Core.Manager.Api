@@ -458,7 +458,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #region Registro del inss
 
-         await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, TotalIncome);
+         await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, TotalIncome, BiweeklyInss);
 
          #endregion
 
@@ -518,21 +518,25 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal currentFortnightSalaryEarned = TotalIncome - BiweeklyInss;
          decimal currentFortnightIr = BiweeklyIr;
 
+         var irReporting = await _reportingServices.ApplyIrReporting(payroll, collaborator.Id, currentFortnightIr, currentFortnightSalaryEarned);
+
          if (collaborator.IsFirstTimeRegister)
          {
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
             {
-               AccumulatedIR = 0.0m,
-               SalaryEarned = 0.0m,
-               NumberOfFortnights = 24,
+               AccumulatedIR           = 0.0m,
+               SalaryEarned            = 0.0m,
+               NumberOfFortnights      = 24,
 
-               AccumulatedIrByFornight = currentFortnightIr,
-               SalaryEarnedByFornight = currentFortnightSalaryEarned,
+               AccumulatedIrByFornight = irReporting.IrFortnightly,
+               SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
+               AccumulatedIrMonthly = irReporting.IrMonthly,
+               SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
 
                FlagAccumulatedIR = currentFortnightIr,
                FlagSalaryEarned = currentFortnightSalaryEarned,
-               FlagNumberOfFortnights = 23,
 
+               FlagNumberOfFortnights = 23,
                PayrollId = payroll.Id,
                CollaboratorId = collaborator.Id,
                AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
@@ -551,20 +555,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
             {
-               AccumulatedIR = prevAccumulatedIrFlag,
-               SalaryEarned = prevSalaryEarnedFlag,
-               NumberOfFortnights = prevFortnights,
+               AccumulatedIR           = prevAccumulatedIrFlag,
+               SalaryEarned            = prevSalaryEarnedFlag,
+               NumberOfFortnights      = prevFortnights,
 
-               AccumulatedIrByFornight = currentFortnightIr,
-               SalaryEarnedByFornight = currentFortnightSalaryEarned,
+               AccumulatedIrByFornight = irReporting.IrFortnightly,
+               SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
+               AccumulatedIrMonthly = irReporting.IrMonthly,
+               SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
 
                FlagAccumulatedIR = isEndOfYear ? 0.0m : prevAccumulatedIrFlag + currentFortnightIr,
                FlagSalaryEarned = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,
                FlagNumberOfFortnights = isEndOfYear ? 24 : (prevFortnights - 1),
 
-               PayrollId = payroll.Id,
-               CollaboratorId = collaborator.Id,
-               AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
+               PayrollId               = payroll.Id,
+               CollaboratorId          = collaborator.Id,
+               AccumulatedSeniority    = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
             });
          }
 

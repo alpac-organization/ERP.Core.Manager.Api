@@ -1,6 +1,5 @@
 using AutoMapper;
 using ERP.Core.Database.Domain.Entities.Payrolls;
-using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings;
 
@@ -34,11 +33,6 @@ public class ReportsProfile : Profile
             .ForMember(dest => dest.Lodging, opt => opt.MapFrom(src => src.Lodging))
             .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator).ToCapitalize()));
 
-        CreateMap<IncomeTaxAccrual, IrAndSalaryEarnedReport>()
-            .ForMember(dest => dest.IrFortnightly, opt => opt.MapFrom(src => src.AccumulatedIrByFornight))
-            .ForMember(dest => dest.SalaryEarnedFortnightly, opt => opt.MapFrom(src => src.SalaryEarnedByFornight))
-            .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.CollaboratorCode))
-            .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)));
 
         CreateMap<Income, DepreciationReportDto>()
                .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.Collaborator.IdentificationNumber))

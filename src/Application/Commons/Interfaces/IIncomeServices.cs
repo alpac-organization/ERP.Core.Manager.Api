@@ -12,9 +12,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
         Task<bool> ApplyVacationPay(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId, decimal amountDays);
 
-        Task ApplyIncomeOvertime(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalHours, Guid payrollId, Guid incomeTypeId);
+        Task<bool> ApplyIncomeOvertime(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalHours, Guid payrollId, Guid incomeTypeId);
 
-        Task ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId);
+        Task<bool> ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId);
 
         Task ApplyIncomeCommissions(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountComission, Currency currency, Guid payrollId, Guid incomeTypeId);
 
