@@ -67,6 +67,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No se puede iniciar el proceso de subsidio si no se encuentrea una nomina activa", "ERP:BadRequest");
             }
 
+            var existingSubsidy = await _unitOfWork.Subsidies.Entities
+                                 .Where(sub => sub.CollaboratorId == request.CollaboratorId)
+                                 .Where(sub => sub.PayrollId == request.PayrollId)
+                                 .AnyAsync(cancellationToken);
+
+            if (existingSubsidy)
+            {
+                return _errorManager.ThrowBadRequest<bool>("El colaborador ya tiene un subsidio registrado en esta nómina", "ERP:BadRequest");
+            }
+
             switch (typeSubsidy.Code)
             {
                 case "COMMON_ILLNESS":

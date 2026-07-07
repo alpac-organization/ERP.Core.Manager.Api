@@ -9,7 +9,8 @@ namespace ERP.Core.Manager.Api.Domain.Enums
                 InssFortnightly = 5,
                 InssMonthly = 6,
                 IrAndSalaryEarned = 7,
-
-                Depreciations = 8
+                Depreciations = 8,
+                Subsidies = 9,
+                JudicialSeizures = 10
         }
 }

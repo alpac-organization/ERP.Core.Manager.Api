@@ -11,5 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
         public (decimal antiquePay, int yearsOfService) CalculateAntique(decimal monthlySalary, DateOnly payrollStartDate, DateOnly collaboratorEntryDate);
 
         Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken);
+
+        IndemnificationResult CalculateIndemnification(decimal monthlySalaryWithSeniority, DateOnly entryDate, DateOnly calculationDate);
     }
 }
