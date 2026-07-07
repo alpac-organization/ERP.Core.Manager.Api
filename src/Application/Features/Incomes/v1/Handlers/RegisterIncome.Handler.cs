@@ -53,242 +53,241 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
             switch (Income.IncomeCode)
             {
                 case "BONUS":
+                {
+                    logger.LogInformation("🚩Iniciando proceso de registro de bono");
+
+                    if (request.BonusPayload is null)
+                        return _errorManager.ThrowBadRequest<bool>("Los datos para registro de bonos es requerido", "ERP:02");
+
+                    if (request.BonusPayload.BonusAmount < 0)
+                        return _errorManager.ThrowBadRequest<bool>("El monto de los bonos no puede ser menor a 0", "ERP:02");
+
+                    if (string.IsNullOrEmpty(request.BonusPayload.IdentificationNumber))
+                        return _errorManager.ThrowBadRequest<bool>("El número de identificación es requerido", "ERP:02");
+
+                    if (!Enum.IsDefined(request.BonusPayload.Currency))
+                        return _errorManager.ThrowBadRequest<bool>("La moneda es requerida", "ERP:02");
+
+                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                        .Include(col => col.WorkingInformation)
+                        .Where(col => col.IdentificationNumber == request.BonusPayload.IdentificationNumber
+                            && col.CompanyId == request.CompanyId
+                            && col.Status != CollaboratorStatus.Inactive
+                            && col.Status != CollaboratorStatus.Subsidy)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (collaboratorInformation is null)
                     {
-                        logger.LogInformation("🚩Iniciando proceso de registro de bono");
-
-                        if (request.BonusPayload is null)
-                            return _errorManager.ThrowBadRequest<bool>("Los datos para registro de bonos es requerido", "ERP:02");
-
-                        if (request.BonusPayload.BonusAmount < 0)
-                            return _errorManager.ThrowBadRequest<bool>("El monto de los bonos no puede ser menor a 0", "ERP:02");
-
-                        if (string.IsNullOrEmpty(request.BonusPayload.IdentificationNumber))
-                            return _errorManager.ThrowBadRequest<bool>("El número de identificación es requerido", "ERP:02");
-
-                        if (!Enum.IsDefined(request.BonusPayload.Currency))
-                            return _errorManager.ThrowBadRequest<bool>("La moneda es requerida", "ERP:02");
-
-                        var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                            .Include(col => col.WorkingInformation)
-                            .Where(col => col.IdentificationNumber == request.BonusPayload.IdentificationNumber
-                                && col.CompanyId == request.CompanyId
-                                && col.Status != CollaboratorStatus.Inactive
-                                && col.Status != CollaboratorStatus.Subsidy)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (collaboratorInformation is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("Este collaborador no existe", "ERP:01");
-                        }
-
-                        var salaryInformation = await _unitOfWork.Salaries.Entities
-
-                            .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
-                            .Include(sal => sal.Collaborator)
-                                .ThenInclude(sal => sal.WorkingInformation)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (salaryInformation is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
-                        }
-
-                        await _incomeServices.ApplyIncomeBonus(collaboratorInformation, salaryInformation, request.BonusPayload.BonusAmount, request.BonusPayload.Currency, payroll.Id, request.TypeIncomeId);
-
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                        logger.LogInformation("Se agrego con exito el registro de comisiones");
-
-                        return true;
+                        return _errorManager.ThrowBadRequest<bool>("Este collaborador no existe", "ERP:01");
                     }
 
+                    var salaryInformation = await _unitOfWork.Salaries.Entities
+
+                        .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
+                        .Include(sal => sal.Collaborator)
+                            .ThenInclude(sal => sal.WorkingInformation)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (salaryInformation is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
+                    }
+
+                    await _incomeServices.ApplyIncomeBonus(collaboratorInformation, salaryInformation, request.BonusPayload.BonusAmount, request.BonusPayload.Currency, payroll.Id, request.TypeIncomeId);
+
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    logger.LogInformation("Se agrego con exito el registro de comisiones");
+
+                    return true;
+                }
                 case "OVERTIME":
+                {
+                    foreach (var collaborator in request.OvertimeIncomeData)
                     {
-                        foreach (var collaborator in request.OvertimeIncomeData)
+                        var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                            .Where(col => col.IdentificationNumber == collaborator.IdentificationNumber && col.CompanyId == request.CompanyId)
+                            .Where(col => col.Status != CollaboratorStatus.Inactive)
+                            .Include(col => col.WorkingInformation)
+                            .Where(col => col.WorkingInformation.CompanyBranchId == request.BranchId)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (collaboratorInformation is null)
                         {
-                            var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                                .Where(col => col.IdentificationNumber == collaborator.IdentificationNumber && col.CompanyId == request.CompanyId)
-                                .Where(col => col.Status != CollaboratorStatus.Inactive)
-                                .Include(col => col.WorkingInformation)
-                                .Where(col => col.WorkingInformation.CompanyBranchId == request.BranchId)
-                                .FirstOrDefaultAsync(cancellationToken);
-
-                            if (collaboratorInformation is null)
-                            {
-                                logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
-                                continue;
-                            }
-
-                            var salaryInformation = await _unitOfWork.Salaries.Entities
-                                .Where(col => col.CollaboratorId == collaboratorInformation.Id)
-                                .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
-                                .FirstOrDefaultAsync(cancellationToken);
-
-                            if (salaryInformation is null)
-                            {
-                                return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
-                            }
-
-                            await _incomeServices.ApplyIncomeOvertime(collaboratorInformation, salaryInformation, collaborator.AmountHours, payroll.Id, request.TypeIncomeId);
-
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                            logger.LogInformation("✅Se agrego con exito el registro de horas extras.");
+                            logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
+                            continue;
                         }
 
-                        return true;
+                        var salaryInformation = await _unitOfWork.Salaries.Entities
+                            .Where(col => col.CollaboratorId == collaboratorInformation.Id)
+                            .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (salaryInformation is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
+                        }
+
+                        await _incomeServices.ApplyIncomeOvertime(collaboratorInformation, salaryInformation, collaborator.AmountHours, payroll.Id, request.TypeIncomeId);
+
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                        logger.LogInformation("✅Se agrego con exito el registro de horas extras.");
                     }
+
+                    return true;
+                }
                 case "COMMISSION":
+                {
+                    if (request.CommissionsPayload is null)
+                        return _errorManager.ThrowBadRequest<bool>("Los datos para registro de comisiones es requerido", "ERP:02");
+
+                    if (request.CommissionsPayload.CommissionAmount <= 0)
+                        return _errorManager.ThrowBadRequest<bool>("El monto de las comisiones no puede ser menor o igual a 0", "ERP:02");
+
+                    if (string.IsNullOrEmpty(request.CommissionsPayload.IdentificationNumber))
+                        return _errorManager.ThrowBadRequest<bool>("El número de identificación es requerido", "ERP:02");
+
+                    if (!Enum.IsDefined(request.CommissionsPayload.Currency))
+                        return _errorManager.ThrowBadRequest<bool>("La moneda es requerida", "ERP:02");
+
+                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                        .Include(col => col.WorkingInformation)
+                        .Where(col => col.IdentificationNumber == request.CommissionsPayload.IdentificationNumber
+                            && col.CompanyId == request.CompanyId
+                            && col.Status != CollaboratorStatus.Inactive
+                            && col.Status != CollaboratorStatus.Subsidy)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (collaboratorInformation is null)
                     {
-                        if (request.CommissionsPayload is null)
-                            return _errorManager.ThrowBadRequest<bool>("Los datos para registro de comisiones es requerido", "ERP:02");
-
-                        if (request.CommissionsPayload.CommissionAmount <= 0)
-                            return _errorManager.ThrowBadRequest<bool>("El monto de las comisiones no puede ser menor o igual a 0", "ERP:02");
-
-                        if (string.IsNullOrEmpty(request.CommissionsPayload.IdentificationNumber))
-                            return _errorManager.ThrowBadRequest<bool>("El número de identificación es requerido", "ERP:02");
-
-                        if (!Enum.IsDefined(request.CommissionsPayload.Currency))
-                            return _errorManager.ThrowBadRequest<bool>("La moneda es requerida", "ERP:02");
-
-                        var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                            .Include(col => col.WorkingInformation)
-                            .Where(col => col.IdentificationNumber == request.CommissionsPayload.IdentificationNumber
-                                && col.CompanyId == request.CompanyId
-                                && col.Status != CollaboratorStatus.Inactive
-                                && col.Status != CollaboratorStatus.Subsidy)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (collaboratorInformation is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("Este collaborador no existe", "ERP:01");
-                        }
-
-                        var salaryInformation = await _unitOfWork.Salaries.Entities
-
-                            .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
-                            .Include(sal => sal.Collaborator)
-                                .ThenInclude(sal => sal.WorkingInformation)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (salaryInformation is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
-                        }
-
-                        await _incomeServices.ApplyIncomeCommissions(collaboratorInformation, salaryInformation, request.CommissionsPayload.CommissionAmount, request.CommissionsPayload.Currency, payroll.Id, request.TypeIncomeId);
-
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                        logger.LogInformation("Se agrego con exito el registro de comisiones");
-                        return true;
+                        return _errorManager.ThrowBadRequest<bool>("Este collaborador no existe", "ERP:01");
                     }
+
+                    var salaryInformation = await _unitOfWork.Salaries.Entities
+
+                        .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
+                        .Include(sal => sal.Collaborator)
+                            .ThenInclude(sal => sal.WorkingInformation)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (salaryInformation is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
+                    }
+
+                    await _incomeServices.ApplyIncomeCommissions(collaboratorInformation, salaryInformation, request.CommissionsPayload.CommissionAmount, request.CommissionsPayload.Currency, payroll.Id, request.TypeIncomeId);
+
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    logger.LogInformation("Se agrego con exito el registro de comisiones");
+                    return true;
+                }
                 case "DEPRECIATION":
+                {
+                    logger.LogInformation("🚩Iniciando proceso de registro de depreciación");
+
+                    if (request.DepreciationPayload is null)
+                        return _errorManager.ThrowBadRequest<bool>("Los datos para registro de depreciación son requeridos", "ERP:02");
+
+                    if (request.DepreciationPayload.DepreciationAmount <= 0)
+                        return _errorManager.ThrowBadRequest<bool>("El monto de la depreciación no puede ser menor o igual a 0", "ERP:02");
+
+                    if (string.IsNullOrEmpty(request.DepreciationPayload.IdentificationNumber))
+                        return _errorManager.ThrowBadRequest<bool>("El número de identificación es requerido", "ERP:02");
+
+                    if (!Enum.IsDefined(request.DepreciationPayload.Currency))
+                        return _errorManager.ThrowBadRequest<bool>("La moneda es requerida", "ERP:02");
+
+                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                        .Include(col => col.WorkingInformation)
+                        .Where(col => col.IdentificationNumber == request.DepreciationPayload.IdentificationNumber
+                            && col.CompanyId == request.CompanyId
+                            && col.Status != CollaboratorStatus.Inactive
+                            && col.Status != CollaboratorStatus.Subsidy)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (collaboratorInformation is null)
                     {
-                        logger.LogInformation("🚩Iniciando proceso de registro de depreciación");
+                        return _errorManager.ThrowBadRequest<bool>("Este collaborador no existe", "ERP:01");
+                    }
+                    var salaryInformation = await _unitOfWork.Salaries.Entities
+                        .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
+                        .Include(sal => sal.Collaborator)
+                            .ThenInclude(sal => sal.WorkingInformation)
+                        .FirstOrDefaultAsync(cancellationToken);
 
-                        if (request.DepreciationPayload is null)
-                            return _errorManager.ThrowBadRequest<bool>("Los datos para registro de depreciación son requeridos", "ERP:02");
+                    if (salaryInformation is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
+                    }
 
-                        if (request.DepreciationPayload.DepreciationAmount <= 0)
-                            return _errorManager.ThrowBadRequest<bool>("El monto de la depreciación no puede ser menor o igual a 0", "ERP:02");
+                    await _incomeServices.ApplyIncomeDepreciation(collaboratorInformation, salaryInformation, request.DepreciationPayload.DepreciationAmount, request.DepreciationPayload.Currency, payroll.Id, request.TypeIncomeId);
 
-                        if (string.IsNullOrEmpty(request.DepreciationPayload.IdentificationNumber))
-                            return _errorManager.ThrowBadRequest<bool>("El número de identificación es requerido", "ERP:02");
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                        if (!Enum.IsDefined(request.DepreciationPayload.Currency))
-                            return _errorManager.ThrowBadRequest<bool>("La moneda es requerida", "ERP:02");
+                    logger.LogInformation("Se agrego con exito el registro de depreciación");
+                    return true;
+                }
+                case "HOLIDAY":
+                {
+                    if (request.HolidayIncomeData is null || request.HolidayIncomeData.Count == 0)
+                        return _errorManager.ThrowBadRequest<bool>(
+                            "Los datos para registro de feriados son requeridos", "ERP:02");
+
+                    foreach (var holidayData in request.HolidayIncomeData)
+                    {
+                        if (string.IsNullOrWhiteSpace(holidayData.IdentificationNumber))
+                            return _errorManager.ThrowBadRequest<bool>(
+                                "El número de identificación es requerido", "ERP:02");
+
+                        if (holidayData.AmountDays <= 0)
+                            return _errorManager.ThrowBadRequest<bool>(
+                                "La cantidad de días feriados debe ser mayor a 0", "ERP:02");
 
                         var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                            .Where(col => col.IdentificationNumber == holidayData.IdentificationNumber && col.CompanyId == request.CompanyId)
+                            .Where(col => col.Status != CollaboratorStatus.Inactive)
                             .Include(col => col.WorkingInformation)
-                            .Where(col => col.IdentificationNumber == request.DepreciationPayload.IdentificationNumber
-                                && col.CompanyId == request.CompanyId
-                                && col.Status != CollaboratorStatus.Inactive
-                                && col.Status != CollaboratorStatus.Subsidy)
+                            .Where(col => col.WorkingInformation.CompanyBranchId == request.BranchId)
                             .FirstOrDefaultAsync(cancellationToken);
 
                         if (collaboratorInformation is null)
                         {
-                            return _errorManager.ThrowBadRequest<bool>("Este collaborador no existe", "ERP:01");
+                            return _errorManager.ThrowBadRequest<bool>(
+                                $"No se encontró al colaborador con cédula: {holidayData.IdentificationNumber}", "ERP:01");
                         }
+
+
                         var salaryInformation = await _unitOfWork.Salaries.Entities
-                            .Where(sal => sal.EndDate == null && sal.CollaboratorId == collaboratorInformation.Id)
-                            .Include(sal => sal.Collaborator)
-                                .ThenInclude(sal => sal.WorkingInformation)
+                            .Where(col => col.CollaboratorId == collaboratorInformation.Id)
+                            .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
                             .FirstOrDefaultAsync(cancellationToken);
 
                         if (salaryInformation is null)
                         {
-                            return _errorManager.ThrowBadRequest<bool>("No se encontro la información salarial de este colaborador", "ERP:SalaryNotFound");
+                            return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
                         }
+                        var applied = await _incomeServices.ApplyIncomeHoliday(
+                            collaboratorInformation,
+                            salaryInformation,
+                            holidayData.AmountDays,
+                            payroll.Id,
+                            request.TypeIncomeId);
 
-                        await _incomeServices.ApplyIncomeDepreciation(collaboratorInformation, salaryInformation, request.DepreciationPayload.DepreciationAmount, request.DepreciationPayload.Currency, payroll.Id, request.TypeIncomeId);
-
+                        if (!applied)
+                            return _errorManager.ThrowBadRequest<bool>(
+                                $"No se pudo aplicar el feriado al colaborador {holidayData.IdentificationNumber}", "ERP:03");
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                        logger.LogInformation("Se agrego con exito el registro de depreciación");
-                        return true;
+                        logger.LogInformation("✅ Se agrego con exito el registro de feriado.");
                     }
-                case "HOLIDAY":
-                    {
-                        if (request.HolidayIncomeData is null || request.HolidayIncomeData.Count == 0)
-                            return _errorManager.ThrowBadRequest<bool>(
-                                "Los datos para registro de feriados son requeridos", "ERP:02");
-
-                        foreach (var holidayData in request.HolidayIncomeData)
-                        {
-                            if (string.IsNullOrWhiteSpace(holidayData.IdentificationNumber))
-                                return _errorManager.ThrowBadRequest<bool>(
-                                    "El número de identificación es requerido", "ERP:02");
-
-                            if (holidayData.AmountDays <= 0)
-                                return _errorManager.ThrowBadRequest<bool>(
-                                    "La cantidad de días feriados debe ser mayor a 0", "ERP:02");
-
-                            var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                                .Where(col => col.IdentificationNumber == holidayData.IdentificationNumber && col.CompanyId == request.CompanyId)
-                                .Where(col => col.Status != CollaboratorStatus.Inactive)
-                                .Include(col => col.WorkingInformation)
-                                .Where(col => col.WorkingInformation.CompanyBranchId == request.BranchId)
-                                .FirstOrDefaultAsync(cancellationToken);
-
-                            if (collaboratorInformation is null)
-                            {
-                                return _errorManager.ThrowBadRequest<bool>(
-                                    $"No se encontró al colaborador con cédula: {holidayData.IdentificationNumber}", "ERP:01");
-                            }
-
-
-                            var salaryInformation = await _unitOfWork.Salaries.Entities
-                                .Where(col => col.CollaboratorId == collaboratorInformation.Id)
-                                .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
-                                .FirstOrDefaultAsync(cancellationToken);
-
-                            if (salaryInformation is null)
-                            {
-                                return _errorManager.ThrowBadRequest<bool>("No se pudo obtener la información salarial", "ERP:03");
-                            }
-                            var applied = await _incomeServices.ApplyIncomeHoliday(
-                                collaboratorInformation,
-                                salaryInformation,
-                                holidayData.AmountDays,
-                                payroll.Id,
-                                request.TypeIncomeId);
-
-                            if (!applied)
-                                return _errorManager.ThrowBadRequest<bool>(
-                                    $"No se pudo aplicar el feriado al colaborador {holidayData.IdentificationNumber}", "ERP:03");
-                            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                            logger.LogInformation("✅ Se agrego con exito el registro de feriado.");
-                        }
-                        return true;
-                    }
+                    return true;
+                }
                 default:
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("Este tipo de ingreso no esta disponible", "ERP:04");
-                    }
+                {
+                    return _errorManager.ThrowBadRequest<bool>("Este tipo de ingreso no esta disponible", "ERP:04");
+                }
             }
         }
     }
