@@ -267,6 +267,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(infPayroll);
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(taxIncome!);
 
+         await _reportingServices.ApplyUpdateIrReporting(collaborator, BiweeklyIr, infPayroll.TotalIncome - infPayroll.Inss, period);
+
+
          //sincronizar el reporte de inss cuando hay subsidio en caso de que trabaje algunos dias
          await _reportingServices.ApplyInssReporting(
          period.Period.ToString(),
@@ -502,7 +505,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          //Actualizar información de la nomina en progreso.
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(informationPayroll);
 
-
+         await _reportingServices.ApplyUpdateIrReporting(collaboratorInformation, BiweeklyIr, informationPayroll.TotalIncome - informationPayroll.Inss, period);
          //sincronizar el reporte de inss cuando hay subsidio en caso de que trabaje algunos dias
          await _reportingServices.ApplyInssReporting(
          period.Period.ToString(),
@@ -528,7 +531,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          return true;
          #endregion
       }
-      
+
 
       //✅ Aplicar calculo de bono.
       public async Task<bool> ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId)
@@ -642,27 +645,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
 
 
+
          #region Actualización de reportes de IR
 
-         var lastClosedPayroll = await _unitOfWork.Payrolls.Entities
-            .Where(payroll => payroll.Status == PayrollStatus.Closed)
-            .OrderByDescending(payroll => payroll.CreatedAt)
-            .FirstOrDefaultAsync(default);
-
-
-         if (lastClosedPayroll is null)
-         {
-            _logger.LogInformation("No se pudo encontrar la ultima nomina cerrada para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
-            return false;
-         }
-
-         var isUpdated = await _reportingServices.ApplyUpdateIrReporting(collaboratorInformation, BiweeklyIr, TotalIncome - BiweeklyInss, ordinaryPayrollInfo.Payroll, lastClosedPayroll);
+         var isUpdated = await _reportingServices.ApplyUpdateIrReporting(
+             collaboratorInformation,
+             BiweeklyIr,
+             ordinaryPayrollInfo.TotalIncome - BiweeklyInss,
+             ordinaryPayrollInfo.Payroll);
 
          if (!isUpdated)
-         {
-            _logger.LogInformation("No se pudo actualizar el reporte de IR para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
-            return false;
-         }
+            _logger.LogWarning(
+                "No se pudo actualizar el reporte de IR para {identification}",
+                collaboratorInformation.IdentificationNumber);
 
          #endregion
 
@@ -795,27 +790,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          //Actualizamos su acumulado
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
 
+
          #region Actualización de reportes de IR
 
-         var lastClosedPayroll = await _unitOfWork.Payrolls.Entities
-            .Where(payroll => payroll.Status == PayrollStatus.Closed)
-            .OrderByDescending(payroll => payroll.CreatedAt)
-            .FirstOrDefaultAsync(default);
-
-
-         if (lastClosedPayroll is null)
-         {
-            _logger.LogInformation("No se pudo encontrar la ultima nomina cerrada para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
-            return false;
-         }
-
-         var isUpdated = await _reportingServices.ApplyUpdateIrReporting(collaboratorInformation, BiweeklyIr, ordinaryPayrollInfo.TotalIncome - BiweeklyInss, ordinaryPayrollInfo.Payroll, lastClosedPayroll);
+         var isUpdated = await _reportingServices.ApplyUpdateIrReporting(
+             collaboratorInformation,
+             BiweeklyIr,
+             ordinaryPayrollInfo.TotalIncome - BiweeklyInss,
+             ordinaryPayrollInfo.Payroll);
 
          if (!isUpdated)
-         {
-            _logger.LogInformation("No se pudo actualizar el reporte de IR para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
-            return false;
-         }
+            _logger.LogWarning(
+                "No se pudo actualizar el reporte de IR para {identification}",
+                collaboratorInformation.IdentificationNumber);
 
          #endregion
 
@@ -956,6 +943,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          //Actualizamos la nomina y las comisiones.
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
+
+         await _reportingServices.ApplyUpdateIrReporting(collaboratorInformation, BiweeklyIr, ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.Inss, ordinaryPayrollInfo.Payroll);
 
          await _reportingServices.ApplyInssReporting(
             ordinaryPayrollInfo.Payroll.Period.ToString(),
@@ -1114,6 +1103,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
 
+         await _reportingServices.ApplyUpdateIrReporting(collaboratorInformation, BiweeklyIr, ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.Inss, ordinaryPayrollInfo.Payroll);
+
          await _reportingServices.ApplyInssReporting(
              ordinaryPayrollInfo.Payroll.Period.ToString(),
              payrollId,
@@ -1229,6 +1220,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax);
+
+         await _reportingServices.ApplyUpdateIrReporting(collaboratorInformation, BiweeklyIr, ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.Inss, ordinaryPayrollInfo.Payroll);
 
          await _reportingServices.ApplyInssReporting(
              ordinaryPayrollInfo.Payroll.Period.ToString(),
