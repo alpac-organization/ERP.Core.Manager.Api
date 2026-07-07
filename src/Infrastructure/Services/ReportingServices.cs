@@ -134,5 +134,44 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             await _unitOfWork.VacationAccruals.UpdateAsync(vacationAccruals);
         }
 
+        public async Task<bool> ApplyUpdateIrReporting(Collaborator collaborator, decimal newIR, decimal newSalaryEarned, Payroll payroll, Payroll previousPayroll)
+        {
+            var taxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
+                .Where(tax => tax.PayrollId == payroll.Id)
+                .Where(tax => tax.CollaboratorId == collaborator.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (taxInformation is null)
+            {
+                _logger.LogInformation("No se encontro registro del control de reporte de acumulados: {identfication}", collaborator.IdentificationNumber);
+                return false;
+            }
+
+            if (payroll.Period == PayrollPeriod.FirstPeriod)
+            {
+                taxInformation.AccumulatedIrByFornight = newIR;
+                taxInformation.SalaryEarnedByFornight  = newSalaryEarned;
+            }
+            else
+            {
+                var previousTaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
+                    .Where(tax => tax.PayrollId == previousPayroll.Id)
+                    .Where(tax => tax.CollaboratorId == collaborator.Id)
+                    .FirstOrDefaultAsync(default);
+
+                if (previousTaxInformation is null)
+                {
+                    _logger.LogInformation("No se encontro registro del control de reporte de acumulados para la nomina anterior: {identfication}", collaborator.IdentificationNumber);
+                    return false;
+                }
+
+                taxInformation.AccumulatedIrMonthly = previousTaxInformation.AccumulatedIrMonthly + newIR;
+                taxInformation.SalaryEarnedMonthly  = previousTaxInformation.SalaryEarnedMonthly  + newSalaryEarned;
+            }
+
+            await _unitOfWork.IncomeTaxAccrual.UpdateAsync(taxInformation);
+
+            return true;
+        }
     }
 }

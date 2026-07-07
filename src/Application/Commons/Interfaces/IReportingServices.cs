@@ -13,6 +13,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
         Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal income, decimal inssLabor);
 
+        Task<bool> ApplyUpdateIrReporting(Collaborator collaborator, decimal newIR, decimal newSalaryEarned, Payroll payroll, Payroll previousPayroll);
+
         //Your code here!
     }
 }
