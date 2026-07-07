@@ -24,6 +24,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos
       public decimal VacationBalance { get; set; }
       public decimal EquivalesQuantity { get; set; }
       public decimal EquivalesQuantityInDollars { get; set; }
+
+      public decimal IndemnificationYears { get; set; }
+      public decimal IndemnificationValue { get; set; }
    }
 
    public class AccumulatedHistory

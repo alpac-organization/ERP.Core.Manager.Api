@@ -34,10 +34,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .ToListAsync(default);
 
             decimal inssLaborPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inss)?.Value ?? 0.07m;
-            decimal inatecPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inatec)?.Value ?? 0.02m;
+            decimal inatecPercentage    = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inatec)?.Value ?? 0.02m;
 
             decimal inssPatronalPercentage = 0m;
 
+            //Definir el porcentaje de INSS patronal según la cantidad de colaboradores activos en la compañía
             if (countCollaborators >= 50)
             {
                 inssPatronalPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal)?.Value ?? 0.225m;

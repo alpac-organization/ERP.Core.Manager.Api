@@ -206,18 +206,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                   if (payroll.Period == PayrollPeriod.SecondPeriod)
                   {
                      var firstPayroll = await _unitOfWork.Payrolls.Entities
-                         .Where(p => p.BranchId == payroll.BranchId)
-                         .Where(p => p.PayrollType == payroll.PayrollType)
-                         .Where(p => p.Period == PayrollPeriod.FirstPeriod)
-                         .Where(p => p.StartDate.Year == payroll.StartDate.Year
-                                  && p.StartDate.Month == payroll.StartDate.Month)
+                        .Where(p => p.BranchId == payroll.BranchId)
+                        .Where(p => p.PayrollType == payroll.PayrollType)
+                        .Where(p => p.Period == PayrollPeriod.FirstPeriod)
+                        .Where(p => p.StartDate.Year == payroll.StartDate.Year
+                                 && p.StartDate.Month == payroll.StartDate.Month)
                          .FirstOrDefaultAsync(cancellationToken);
 
                      if (firstPayroll is not null)
                      {
                         var firstRecords = await _unitOfWork.IncomeTaxAccrual.Entities
-                            .Where(x => x.PayrollId == firstPayroll.Id)
-                            .ToListAsync(cancellationToken);
+                           .Where(x => x.PayrollId == firstPayroll.Id)
+                           .ToListAsync(cancellationToken);
 
                         firstFortnightByCollaborator = firstRecords.ToDictionary(x => x.CollaboratorId);
                      }
@@ -342,7 +342,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                   reportDto.SubsidiesHistory = mapped;
                   return reportDto;
                }
-
             case ReportsType.JudicialSeizures:
                {
                   var payroll = await _unitOfWork.Payrolls.Entities
@@ -406,9 +405,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                   return reportDto;
                }
             default:
-               {
-                  return _errorManager.ThrowBadRequest<ReportsDto>("Este tipo de reporte no se encuentra disponible", "ERP:01");
-               }
+            {
+               return _errorManager.ThrowBadRequest<ReportsDto>("Este tipo de reporte no se encuentra disponible", "ERP:01");
+            }
          }
 
          return reportDto;

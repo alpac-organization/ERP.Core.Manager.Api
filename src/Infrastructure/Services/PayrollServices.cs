@@ -36,21 +36,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
       {
          int DEFAULT_TOTAL_WORK_DAYS = 0;
 
-
          var holidays = await _unitOfWork.Holidays.Entities
-             .Where(day => day.IsActive)
-             .ToListAsync(default);
+            .Where(day => day.IsActive)
+            .ToListAsync(default);
 
          //Recorremos los dias
          for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
          {
             bool isHoliday = holidays.Any(holiday =>
-                holiday.Day == date.Day &&
-                holiday.Month == date.Month &&
-                (
-                    holiday.IsGlobal ||
-                    holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
-                )
+               holiday.Day == date.Day &&
+               holiday.Month == date.Month &&
+               (
+                  holiday.IsGlobal ||
+                  holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
+               )
             );
 
             if (isHoliday)
@@ -259,10 +258,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          var numberFortnights = TaxInformation?.FlagNumberOfFortnights ?? 24;
 
          var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
-             TaxInformation?.FlagNumberOfFortnights ?? 24,
-             TaxInformation?.FlagSalaryEarned ?? 0.0m,
-             TaxInformation?.FlagAccumulatedIR ?? 0.0m,
-             TotalIncome,
+            TaxInformation?.FlagNumberOfFortnights ?? 24,
+            TaxInformation?.FlagSalaryEarned ?? 0.0m,
+            TaxInformation?.FlagAccumulatedIR ?? 0.0m,
+            TotalIncome,
             default
          );
 
@@ -459,7 +458,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #region Registro del inss
 
-         await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, BiweeklySalary);
+         await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, TotalIncome);
 
          #endregion
 
@@ -478,6 +477,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal vacationAmountInCordobas = vacationControl.AvailableVacations * dailySalary;
          decimal vacationAmountInDollars = (vacationControl.AvailableVacations * dailySalary) / exchangeRate?.Value ?? 0.0m;
 
+
+         var indem = _calculatorDeductions.CalculateIndemnification(
+            monthlySalary,
+            entryDate,
+            payrollEnd);
+
          await _unitOfWork.VacationAccruals.RegisterVacationAccrual(new()
          {
             BeginningBalance = vacationControl.AvailableVacations,
@@ -486,7 +491,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             CollaboratorId = collaborator.Id,
             AvailableVacations = vacationControl.AvailableVacations,
             EquivalentQuantity = vacationAmountInCordobas,
-            EquivalentQuantityInDollars = vacationAmountInDollars
+            EquivalentQuantityInDollars = vacationAmountInDollars,
+            IndemnificationYears = indem.YearsOfService,
+            IndemnificationValue = indem.IndemnificationValue,
          });
 
          #endregion
@@ -528,7 +535,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                PayrollId = payroll.Id,
                CollaboratorId = collaborator.Id,
-               AccumulatedSeniority = 0.0m,
+               AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
             });
 
             collaborator.IsFirstTimeRegister = false;
@@ -557,7 +564,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                PayrollId = payroll.Id,
                CollaboratorId = collaborator.Id,
-               AccumulatedSeniority = 0.0m,
+               AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
             });
          }
 

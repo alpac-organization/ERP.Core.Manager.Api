@@ -6,7 +6,6 @@ using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Database.Domain.Entities.Catalogs;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
@@ -136,7 +135,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             BaseTax = 15000.00m;
             AnnualIr = ((totalAnnualSalary - 200000) * 0.20m);
-            AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 20000) * 0.20m);
+            AnnualAdditionalIr = ((totalAnnualAdditionalPayment - 200000) * 0.20m);
 
             AnnualExpectationIR = AnnualIr + BaseTax;
             AnnualExpectationAdditionalIr = AnnualAdditionalIr + BaseTax;
@@ -195,8 +194,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          if (IrBiweeklyAdditional < 0) IrBiweeklyAdditional = 0;
 
          return new IrCalculationResult(
-             biweeklyInss + inssAdditionalPayment,
-             IrBiweekly + IrBiweeklyAdditional
+            biweeklyInss + inssAdditionalPayment,
+            IrBiweekly + IrBiweeklyAdditional
          );
       }
 
@@ -565,6 +564,44 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #endregion Calcular Inatec e inss patronal
 
+      }
+
+      public IndemnificationResult CalculateIndemnification(decimal monthlySalary, DateOnly entryDate, DateOnly calculationDate)
+      {
+         _logger.LogInformation("Iniciando cálculo de indemnización");
+
+         if (calculationDate < entryDate || monthlySalary <= 0)
+            return new IndemnificationResult(0, 0);
+
+         int totalMonths =
+             (calculationDate.Year - entryDate.Year) * 12
+             + (calculationDate.Month - entryDate.Month);
+
+         if (calculationDate.Day < entryDate.Day)
+            totalMonths--;
+
+         if (totalMonths < 0)
+            totalMonths = 0;
+
+         decimal totalYears = totalMonths / 12m;
+
+         decimal yearsFirstTier = Math.Min(totalYears, 3m);
+         decimal yearsSecondTier = Math.Max(totalYears - 3m, 0m);
+
+         decimal indemnificationMonths =
+             (yearsFirstTier * 1m)
+             + (yearsSecondTier * (20m / 30m));
+         if (totalMonths == 0) return new IndemnificationResult(0, 0);
+         indemnificationMonths = Math.Clamp(indemnificationMonths, 1m, 5m);
+
+         decimal value = Math.Round(
+             indemnificationMonths * monthlySalary,
+             2,
+             MidpointRounding.AwayFromZero);
+
+         return new IndemnificationResult(
+             Math.Round(totalYears, 2, MidpointRounding.AwayFromZero),
+             value);
       }
    }
 }
