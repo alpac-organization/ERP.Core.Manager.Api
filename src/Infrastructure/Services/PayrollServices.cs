@@ -518,6 +518,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal currentFortnightSalaryEarned = TotalIncome - BiweeklyInss;
          decimal currentFortnightIr = BiweeklyIr;
 
+         var irReporting = await _reportingServices.ApplyIrReporting(payroll, collaborator.Id, currentFortnightIr, currentFortnightSalaryEarned);
+
          if (collaborator.IsFirstTimeRegister)
          {
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
@@ -526,13 +528,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                SalaryEarned = 0.0m,
                NumberOfFortnights = 24,
 
-               AccumulatedIrByFornight = currentFortnightIr,
-               SalaryEarnedByFornight = currentFortnightSalaryEarned,
+               AccumulatedIrByFornight = irReporting.IrFortnightly,
+               SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
+               AccumulatedIrMonthly = irReporting.IrMonthly,
+               SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
 
                FlagAccumulatedIR = currentFortnightIr,
                FlagSalaryEarned = currentFortnightSalaryEarned,
-               FlagNumberOfFortnights = 23,
 
+               FlagNumberOfFortnights = 23,
                PayrollId = payroll.Id,
                CollaboratorId = collaborator.Id,
                AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
@@ -555,8 +559,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                SalaryEarned = prevSalaryEarnedFlag,
                NumberOfFortnights = prevFortnights,
 
-               AccumulatedIrByFornight = currentFortnightIr,
-               SalaryEarnedByFornight = currentFortnightSalaryEarned,
+               AccumulatedIrByFornight = irReporting.IrFortnightly,
+               SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
+               AccumulatedIrMonthly = irReporting.IrMonthly,
+               SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
 
                FlagAccumulatedIR = isEndOfYear ? 0.0m : prevAccumulatedIrFlag + currentFortnightIr,
                FlagSalaryEarned = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,

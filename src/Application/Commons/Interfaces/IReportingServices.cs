@@ -1,6 +1,6 @@
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Domain.Enums;
-
+using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
 namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 {
     public interface IReportingServices
@@ -13,6 +13,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
         Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal income, decimal inssLabor);
 
-        //Your code here!
+        Task<IrAndSalaryEarnedReport> ApplyIrReporting(Payroll payroll, Guid collaboratorId, decimal irFortnightly, decimal salaryEarnedFortnightly,
+        CancellationToken cancellationToken = default);
+
+        Task<List<IrAndSalaryEarnedReport>> GetIrAndSalaryEarnedReport(Guid payrollId, Guid companyId, PayrollType payrollType, string? identificationNumber, Guid? areaId, CancellationToken cancellationToken = default);
     }
 }

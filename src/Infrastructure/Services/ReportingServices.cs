@@ -6,6 +6,8 @@ using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     //Administrador de reportes de nomina.
@@ -134,5 +136,104 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             await _unitOfWork.VacationAccruals.UpdateAsync(vacationAccruals);
         }
 
+        public async Task<IrAndSalaryEarnedReport> ApplyIrReporting(Payroll payroll, Guid collaboratorId, decimal irFortnightly, decimal salaryEarnedFortnightly, CancellationToken cancellationToken = default)
+        {
+            var ir = Math.Round(irFortnightly, 2, MidpointRounding.AwayFromZero);
+            var salary = Math.Round(salaryEarnedFortnightly, 2, MidpointRounding.AwayFromZero);
+
+            decimal? irMonthly = null;
+            decimal? salaryMonthly = null;
+
+
+            //verificamos si es el segundo periodo de payroll
+            if (payroll.Period == PayrollPeriod.SecondPeriod)
+            {
+                //obtenemos el registro del primer periodo
+                var firstPayroll = await _unitOfWork.Payrolls.Entities
+                    .Where(p => p.BranchId == payroll.BranchId)
+                    .Where(p => p.PayrollType == payroll.PayrollType)
+                    .Where(p => p.Period == PayrollPeriod.FirstPeriod)
+                    .Where(p => p.StartDate.Year == payroll.StartDate.Year
+                             && p.StartDate.Month == payroll.StartDate.Month)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (firstPayroll is not null)
+                {
+                    //caso de que exista entonces recuperamos los taxAccrual de dicho periodo
+                    var firstAccrual = await _unitOfWork.IncomeTaxAccrual.Entities
+                        .Where(x => x.PayrollId == firstPayroll.Id)
+                        .Where(x => x.CollaboratorId == collaboratorId)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+
+                    //Ir primer periodo
+                    decimal firstIr = firstAccrual?.AccumulatedIrByFornight ?? 0m;
+                    //salarioDevengado primer periodo
+                    decimal firstSalary = firstAccrual?.SalaryEarnedByFornight ?? 0m;
+
+                    //registramos en la columna IrMonthly la suma de el actual periodo con el periodo pasado.
+                    irMonthly = Math.Round(firstIr + ir, 2, MidpointRounding.AwayFromZero);
+                    salaryMonthly = Math.Round(firstSalary + salary, 2, MidpointRounding.AwayFromZero);
+                }
+                else
+                {
+                    // Sin 1ra quincena: mensual = solo la actual
+                    irMonthly = ir;
+                    salaryMonthly = salary;
+                }
+            }
+            return new IrAndSalaryEarnedReport
+            {
+                IrFortnightly = ir,
+                SalaryEarnedFortnightly = salary,
+                IrMonthly = irMonthly,
+                SalaryEarnedMonthly = salaryMonthly,
+            };
+        }
+
+        public async Task<List<IrAndSalaryEarnedReport>> GetIrAndSalaryEarnedReport(Guid payrollId, Guid companyId, PayrollType payrollType, string? identificationNumber, Guid? areaId, CancellationToken cancellationToken)
+        {
+
+            //obtenemos el payroll que se solicita 
+            var payroll = await _unitOfWork.Payrolls.Entities.Include(p => p.Branch)
+                        .Where(p => p.Id == payrollId)
+                        .Where(p => p.PayrollType == payrollType)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+            if (payroll is null)
+                return [];
+
+            if (payroll.Branch.CompanyId != companyId)
+                return [];
+
+            var query = _unitOfWork.IncomeTaxAccrual.Entities
+                .Include(x => x.Collaborator)
+                    .ThenInclude(c => c.WorkingInformation)
+                .Where(x => x.PayrollId == payrollId);
+
+            //filtramos por identification
+            if (!string.IsNullOrEmpty(identificationNumber))
+                query = query.Where(x => x.Collaborator.IdentificationNumber == identificationNumber);
+
+            //filtramos por area
+            if (areaId.HasValue)
+                query = query.Where(x => x.Collaborator.WorkingInformation.AreaId == areaId);
+
+            var records = await query.ToListAsync(cancellationToken);
+
+            // se Proyecta los registros al reporte de IR y salario devengado por colaborador en este select.
+            return [..records.Select(x => new IrAndSalaryEarnedReport
+            {
+                PayrollId = x.PayrollId,
+                CollaboratorId = x.CollaboratorId,
+                CollaboratorCode = x.Collaborator.CollaboratorCode,
+                CollaboratorFullname = ManagerUtils.FromSliceToCollaboratorFullname(x.Collaborator),
+                IrFortnightly = x.AccumulatedIrByFornight,
+                SalaryEarnedFortnightly = x.SalaryEarnedByFornight,
+                IrMonthly = x.AccumulatedIrMonthly,
+                SalaryEarnedMonthly = x.SalaryEarnedMonthly,
+            })];
+
+        }
     }
 }
