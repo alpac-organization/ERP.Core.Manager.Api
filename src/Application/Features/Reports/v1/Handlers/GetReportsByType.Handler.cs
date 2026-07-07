@@ -119,12 +119,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
             case ReportsType.InssMonthly:
                {
                   var currentPayroll = await _unitOfWork.Payrolls.Entities
+                      .Include(p => p.Branch)
                       .FirstOrDefaultAsync(p => p.Id == request.PayrollId, cancellationToken);
 
                   if (currentPayroll is null)
                   {
                      return _errorManager.ThrowBadRequest<ReportsDto>("Nómina no encontrada", "ERP:02");
                   }
+                  if (currentPayroll.Branch.CompanyId != request.CompanyId)
+                     return _errorManager.ThrowBadRequest<ReportsDto>(
+                         "La nómina no pertenece a esta empresa", "ERP:PayrollCompanyMismatch");
 
                   var queryReport = _unitOfWork.InssAccountingInformation.Entities
                       .Include(inss => inss.Collaborator)
@@ -180,17 +184,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
             case ReportsType.IrAndSalaryEarned:
                {
                   var payroll = await _unitOfWork.Payrolls.Entities
+                      .Include(p => p.Branch)
                       .FirstOrDefaultAsync(p => p.Id == request.PayrollId, cancellationToken);
 
                   if (payroll is null)
                      return _errorManager.ThrowBadRequest<ReportsDto>("Nómina no encontrada", "ERP:PayrollNotFound");
 
+                  if (payroll.Branch.CompanyId != request.CompanyId)
+                     return _errorManager.ThrowBadRequest<ReportsDto>(
+                         "La nómina no pertenece a esta empresa", "ERP:PayrollCompanyMismatch");
 
-                  var queryReport = _unitOfWork.IncomeTaxAccrual.Entities
-                      .Include(tax => tax.Payroll)
-                      .Include(income => income.Collaborator)
-                          .ThenInclude(income => income.WorkingInformation)
-                      .Where(income => income.PayrollId == request.PayrollId);
+                  var queryReport = _unitOfWork.OrdinaryPayrolls.Entities
+                  .Include(op => op.Collaborator)
+                     .ThenInclude(c => c.WorkingInformation)
+                  .Where(op => op.PayrollId == request.PayrollId);
 
                   if (!string.IsNullOrEmpty(request.IdentificationNumber))
                      queryReport = queryReport.Where(x => x.Collaborator.IdentificationNumber == request.IdentificationNumber);
@@ -201,7 +208,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                   var currentRecords = await queryReport.ToListAsync(cancellationToken);
 
                   //En el segundo periodo preparamos el dicc, para guardar lo de la primera quincena.
-                  Dictionary<Guid, IncomeTaxAccrual> firstFortnightByCollaborator = [];
+                  Dictionary<Guid, OrdinaryPayroll> firstFortnightByCollaborator = [];
 
                   if (payroll.Period == PayrollPeriod.SecondPeriod)
                   {
@@ -215,7 +222,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
 
                      if (firstPayroll is not null)
                      {
-                        var firstRecords = await _unitOfWork.IncomeTaxAccrual.Entities
+                        var firstRecords = await _unitOfWork.OrdinaryPayrolls.Entities
                            .Where(x => x.PayrollId == firstPayroll.Id)
                            .ToListAsync(cancellationToken);
 
@@ -224,30 +231,46 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                   }
 
                   var mapped = currentRecords.Select(record =>
-                  {
-                     var item = _mapper.Map<IrAndSalaryEarnedReport>(record);
+                          {
+                             var irFortnightly = Math.Round(record.Ir, 2, MidpointRounding.AwayFromZero);
+                             var salaryEarnedFortnightly = Math.Round(
+                                 record.TotalIncome - record.Inss, 2, MidpointRounding.AwayFromZero);
 
-                     if (payroll.Period == PayrollPeriod.FirstPeriod)
-                     {
-                        item.IrMonthly = null;
-                        item.SalaryEarnedMonthly = null;
-                     }
-                     else
-                     {
-                        decimal firstPeriodIr = 0m;
-                        decimal firstPeriodSalaryEarned = 0m;
+                             var item = new IrAndSalaryEarnedReport
+                             {
+                                PayrollId = record.PayrollId,
+                                CollaboratorId = record.CollaboratorId,
+                                CollaboratorCode = record.Collaborator.CollaboratorCode,
+                                CollaboratorFullname = ManagerUtils.FromSliceToCollaboratorFullname(record.Collaborator),
+                                IrFortnightly = irFortnightly,
+                                SalaryEarnedFortnightly = salaryEarnedFortnightly,
+                             };
 
-                        if (firstFortnightByCollaborator.TryGetValue(record.CollaboratorId, out var firstRecord))
-                        {
-                           firstPeriodIr = firstRecord.AccumulatedIrByFornight;
-                           firstPeriodSalaryEarned = firstRecord.SalaryEarnedByFornight;
-                        }
-                        item.IrMonthly = firstPeriodIr + item.IrFortnightly;
-                        item.SalaryEarnedMonthly = firstPeriodSalaryEarned + item.SalaryEarnedFortnightly;
-                     }
-                     return item;
+                             if (payroll.Period == PayrollPeriod.FirstPeriod)
+                             {
+                                item.IrMonthly = null;
+                                item.SalaryEarnedMonthly = null;
+                             }
+                             else
+                             {
+                                decimal firstPeriodIr = 0m;
+                                decimal firstPeriodSalaryEarned = 0m;
 
-                  }).ToList();
+                                if (firstFortnightByCollaborator.TryGetValue(record.CollaboratorId, out var firstRecord))
+                                {
+                                   firstPeriodIr = Math.Round(firstRecord.Ir, 2, MidpointRounding.AwayFromZero);
+                                   firstPeriodSalaryEarned = Math.Round(
+                                       firstRecord.TotalIncome - firstRecord.Inss, 2, MidpointRounding.AwayFromZero);
+                                }
+
+                                item.IrMonthly = Math.Round(
+                                    firstPeriodIr + irFortnightly, 2, MidpointRounding.AwayFromZero);
+                                item.SalaryEarnedMonthly = Math.Round(
+                                    firstPeriodSalaryEarned + salaryEarnedFortnightly, 2, MidpointRounding.AwayFromZero);
+                             }
+
+                             return item;
+                          }).ToList();
 
                   reportDto.IrAndSalaryEarned = mapped;
                   return reportDto;

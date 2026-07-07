@@ -11,6 +11,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
         Task ApplyVacationRegistration(Collaborator collaborator, Guid payrollId);
 
-        Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal salary);
+        Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal income, decimal inssLabor);
     }
 }

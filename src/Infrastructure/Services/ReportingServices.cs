@@ -22,7 +22,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
         }
 
-        public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal salary)
+        public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal income, decimal inssLabor)
         {
             int countCollaborators = await _unitOfWork.Collaborators.Entities
                 .Where(col => col.Status != CollaboratorStatus.Inactive)
@@ -33,25 +33,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(v => v.Status)
                 .ToListAsync(default);
 
-            decimal inssLaborPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inss)?.Value ?? 0.07m;
-            decimal inatecPercentage    = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inatec)?.Value ?? 0.02m;
+            decimal inatecPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inatec)?.Value ?? 0.02m;
 
-            decimal inssPatronalPercentage = 0m;
+            decimal inssPatronalPercentage = countCollaborators >= 50
+                ? validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal)?.Value ?? 0.225m
+                : validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal2)?.Value ?? 0.215m;
 
-            //Definir el porcentaje de INSS patronal según la cantidad de colaboradores activos en la compañía
-            if (countCollaborators >= 50)
-            {
-                inssPatronalPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal)?.Value ?? 0.225m;
-            }
-            else
-            {
-                inssPatronalPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal2)?.Value ?? 0.215m;
-            }
+            decimal inssLaboralCalc = Math.Round(inssLabor, 2, MidpointRounding.AwayFromZero);
+            decimal inatecCalc = Math.Round(income * inatecPercentage, 2, MidpointRounding.AwayFromZero);
+            decimal inssPatronalCalc = Math.Round(income * inssPatronalPercentage, 2, MidpointRounding.AwayFromZero);
 
-            decimal inssLaboralCalc = salary * inssLaborPercentage;
-            decimal inatecCalc = salary * inatecPercentage;
-            decimal inssPatronalCalc = salary * inssPatronalPercentage;
             decimal total = inssLaboralCalc + inatecCalc + inssPatronalCalc;
+            decimal incomeRounded = Math.Round(income, 2, MidpointRounding.AwayFromZero);
 
             var existingRecord = await _unitOfWork.InssAccountingInformation.Entities
                 .Where(x => x.PayrollId == payrollId && x.CollaboratorId == collaborator.Id)
@@ -59,7 +52,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (existingRecord is null)
             {
-                var newInssRecord = new InssAccountingInformation()
+                await _unitOfWork.InssAccountingInformation.RegisterInssAccountingInformation(new InssAccountingInformation()
                 {
                     CollaboratorId = collaborator.Id,
                     PayrollId = payrollId,
@@ -69,10 +62,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     Total = total,
                     Absence = 0,
                     DaysAbsence = 0,
-                    Income = salary
-                };
-
-                await _unitOfWork.InssAccountingInformation.RegisterInssAccountingInformation(newInssRecord);
+                    Income = incomeRounded
+                });
             }
             else
             {
@@ -80,12 +71,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 existingRecord.Inatec = inatecCalc;
                 existingRecord.InssPatronal = inssPatronalCalc;
                 existingRecord.Total = total;
-                existingRecord.Income = salary;
+                existingRecord.Income = incomeRounded;
 
                 await _unitOfWork.InssAccountingInformation.UpdateAsync(existingRecord);
             }
         }
-
         public async Task ApplyVacationMovement(Collaborator collaborator, Guid payrollId)
         {
             //Obtener la mesa de cambio oficial

@@ -458,7 +458,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #region Registro del inss
 
-         await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, TotalIncome);
+         await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, TotalIncome, BiweeklyInss);
 
          #endregion
 
