@@ -518,24 +518,36 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal currentFortnightSalaryEarned = TotalIncome - BiweeklyInss;
          decimal currentFortnightIr = BiweeklyIr;
 
+
+         //Obtener la nomina cerrada mas reciente para el colaborador
+         // await _unitOfWork.Payrolls.Entities
+         //    .Where(pay => pay.Id == payroll.Id)
+         //    .FirstOrDefaultAsync(default);
+
+
+
          if (collaborator.IsFirstTimeRegister)
          {
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
             {
-               AccumulatedIR = 0.0m,
-               SalaryEarned = 0.0m,
-               NumberOfFortnights = 24,
+               AccumulatedIR           = 0.0m,
+               SalaryEarned            = 0.0m,
+               NumberOfFortnights      = 24,
 
-               AccumulatedIrByFornight = currentFortnightIr,
-               SalaryEarnedByFornight = currentFortnightSalaryEarned,
 
-               FlagAccumulatedIR = currentFortnightIr,
-               FlagSalaryEarned = currentFortnightSalaryEarned,
-               FlagNumberOfFortnights = 23,
+               //your code here!
+               AccumulatedIrByFornight = payroll.Period == PayrollPeriod.FirstPeriod ? currentFortnightIr            : 0.0m,
+               SalaryEarnedByFornight  = payroll.Period == PayrollPeriod.FirstPeriod ? currentFortnightSalaryEarned  : 0.0m,
+               AccumulatedIrMonthly    = payroll.Period == PayrollPeriod.FirstPeriod ? null : 0.0m,
+               SalaryEarnedMonthly     = payroll.Period == PayrollPeriod.FirstPeriod ? null : 0.0m,
 
-               PayrollId = payroll.Id,
-               CollaboratorId = collaborator.Id,
-               AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
+               FlagAccumulatedIR       = currentFortnightIr,
+               FlagSalaryEarned        = currentFortnightSalaryEarned,
+               FlagNumberOfFortnights  = 23,
+
+               PayrollId               = payroll.Id,
+               CollaboratorId          = collaborator.Id,
+               AccumulatedSeniority    = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
             });
 
             collaborator.IsFirstTimeRegister = false;
@@ -551,20 +563,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
             {
-               AccumulatedIR = prevAccumulatedIrFlag,
-               SalaryEarned = prevSalaryEarnedFlag,
-               NumberOfFortnights = prevFortnights,
+               AccumulatedIR           = prevAccumulatedIrFlag,
+               SalaryEarned            = prevSalaryEarnedFlag,
+               NumberOfFortnights      = prevFortnights,
 
-               AccumulatedIrByFornight = currentFortnightIr,
-               SalaryEarnedByFornight = currentFortnightSalaryEarned,
+               //your code here!
+               AccumulatedIrByFornight = payroll.Period == PayrollPeriod.FirstPeriod ? currentFortnightIr            : 0.0m,
+               SalaryEarnedByFornight  = payroll.Period == PayrollPeriod.FirstPeriod ? currentFortnightSalaryEarned  : 0.0m,
+               AccumulatedIrMonthly    = payroll.Period == PayrollPeriod.FirstPeriod ? null : 0.0m,
+               SalaryEarnedMonthly     = payroll.Period == PayrollPeriod.FirstPeriod ? null : 0.0m,
 
-               FlagAccumulatedIR = isEndOfYear ? 0.0m : prevAccumulatedIrFlag + currentFortnightIr,
-               FlagSalaryEarned = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,
-               FlagNumberOfFortnights = isEndOfYear ? 24 : (prevFortnights - 1),
+               FlagAccumulatedIR       = isEndOfYear ? 0.0m : prevAccumulatedIrFlag + currentFortnightIr,
+               FlagSalaryEarned        = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,
+               FlagNumberOfFortnights  = isEndOfYear ? 24 : (prevFortnights - 1),
 
-               PayrollId = payroll.Id,
-               CollaboratorId = collaborator.Id,
-               AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
+               PayrollId               = payroll.Id,
+               CollaboratorId          = collaborator.Id,
+               AccumulatedSeniority    = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
             });
          }
 
