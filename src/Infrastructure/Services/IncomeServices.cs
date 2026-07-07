@@ -81,7 +81,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          var variableIncomeForWorkedDays = infPayroll.Antique
                                            + infPayroll.Overtime
-                                           + infPayroll.Vacations
                                            + infPayroll.Commissions
                                            + infPayroll.HolidayPay;
          //se suma el salario proporcional de dias laborados + otros ingresos.
@@ -277,8 +276,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(infPayroll);
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(taxIncome!);
 
-         await _reportingServices.ApplyUpdateIrReporting(collaborator, BiweeklyIr, infPayroll.TotalIncome - infPayroll.Inss, period);
-
 
          //sincronizar el reporte de inss cuando hay subsidio en caso de que trabaje algunos dias
          await _reportingServices.ApplyInssReporting(
@@ -288,14 +285,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          infPayroll.TotalIncome, infPayroll.Inss);
 
          await _reportingServices.ApplyUpdateIrReporting(collaborator, BiweeklyIr, infPayroll.TotalIncome - infPayroll.Inss, period);
-
-
-         //sincronizar el reporte de inss cuando hay subsidio en caso de que trabaje algunos dias
-         await _reportingServices.ApplyInssReporting(
-         period.Period.ToString(),
-         period.Id,
-         collaborator,
-         infPayroll.TotalIncome, infPayroll.Inss);
 
          bool subsidyAlreadyExists = await _unitOfWork.Subsidies.Entities
          .AnyAsync(s => s.CollaboratorId == collaborator.Id && s.PayrollId == period.Id);
@@ -1178,6 +1167,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              ordinaryPayrollInfo.Inss
          );
 
+         await RecalculateMaternitySubsidyIfExistsAsync(collaboratorInformation, salaryInformation, payrollId);
 
          _logger.LogInformation("✅Pago de vacaciones procesado con exito.");
          return true;
