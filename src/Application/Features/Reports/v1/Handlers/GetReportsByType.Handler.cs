@@ -183,96 +183,101 @@ namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
                }
             case ReportsType.IrAndSalaryEarned:
                {
+                  // var payroll = await _unitOfWork.Payrolls.Entities
+                  //     .Include(p => p.Branch)
+                  //     .FirstOrDefaultAsync(p => p.Id == request.PayrollId, cancellationToken);
+
                   var payroll = await _unitOfWork.Payrolls.Entities
-                      .Include(p => p.Branch)
-                      .FirstOrDefaultAsync(p => p.Id == request.PayrollId, cancellationToken);
+                     .Where(pay => pay.Id == request.PayrollId)
+                     .Where(pay => pay.PayrollType == request.PayrollType)
+                     .FirstOrDefaultAsync(cancellationToken);
 
                   if (payroll is null)
                      return _errorManager.ThrowBadRequest<ReportsDto>("Nómina no encontrada", "ERP:PayrollNotFound");
 
-                  if (payroll.Branch.CompanyId != request.CompanyId)
-                     return _errorManager.ThrowBadRequest<ReportsDto>(
-                         "La nómina no pertenece a esta empresa", "ERP:PayrollCompanyMismatch");
+                  // if (payroll.Branch.CompanyId != request.CompanyId)
+                  //    return _errorManager.ThrowBadRequest<ReportsDto>(
+                  //        "La nómina no pertenece a esta empresa", "ERP:PayrollCompanyMismatch");
 
-                  var queryReport = _unitOfWork.OrdinaryPayrolls.Entities
+                  var ordinaryPayrollInfo = _unitOfWork.OrdinaryPayrolls.Entities
                   .Include(op => op.Collaborator)
                      .ThenInclude(c => c.WorkingInformation)
                   .Where(op => op.PayrollId == request.PayrollId);
 
                   if (!string.IsNullOrEmpty(request.IdentificationNumber))
-                     queryReport = queryReport.Where(x => x.Collaborator.IdentificationNumber == request.IdentificationNumber);
+                     ordinaryPayrollInfo = ordinaryPayrollInfo.Where(x => x.Collaborator.IdentificationNumber == request.IdentificationNumber);
 
                   if (request.AreaId.HasValue)
-                     queryReport = queryReport.Where(x => x.Collaborator.WorkingInformation.AreaId == request.AreaId);
+                     ordinaryPayrollInfo = ordinaryPayrollInfo.Where(x => x.Collaborator.WorkingInformation.AreaId == request.AreaId);
 
-                  var currentRecords = await queryReport.ToListAsync(cancellationToken);
+                  var ordPayrollRecords = await ordinaryPayrollInfo.ToListAsync(cancellationToken);
 
-                  //En el segundo periodo preparamos el dicc, para guardar lo de la primera quincena.
-                  Dictionary<Guid, OrdinaryPayroll> firstFortnightByCollaborator = [];
+                  // //En el segundo periodo preparamos el dicc, para guardar lo de la primera quincena.
+                  // Dictionary<Guid, OrdinaryPayroll> firstFortnightByCollaborator = [];
 
-                  if (payroll.Period == PayrollPeriod.SecondPeriod)
-                  {
-                     var firstPayroll = await _unitOfWork.Payrolls.Entities
-                        .Where(p => p.BranchId == payroll.BranchId)
-                        .Where(p => p.PayrollType == payroll.PayrollType)
-                        .Where(p => p.Period == PayrollPeriod.FirstPeriod)
-                        .Where(p => p.StartDate.Year == payroll.StartDate.Year
-                                 && p.StartDate.Month == payroll.StartDate.Month)
-                         .FirstOrDefaultAsync(cancellationToken);
+                  // if (payroll.Period == PayrollPeriod.SecondPeriod)
+                  // {
+                  //    var firstPayroll = await _unitOfWork.Payrolls.Entities
+                  //       .Where(p => p.BranchId == payroll.BranchId)
+                  //       .Where(p => p.PayrollType == payroll.PayrollType)
+                  //       .Where(p => p.Period == PayrollPeriod.FirstPeriod)
+                  //       .Where(p => p.StartDate.Year == payroll.StartDate.Year
+                  //                && p.StartDate.Month == payroll.StartDate.Month)
+                  //        .FirstOrDefaultAsync(cancellationToken);
 
-                     if (firstPayroll is not null)
-                     {
-                        var firstRecords = await _unitOfWork.OrdinaryPayrolls.Entities
-                           .Where(x => x.PayrollId == firstPayroll.Id)
-                           .ToListAsync(cancellationToken);
+                  //    if (firstPayroll is not null)
+                  //    {
+                  //       var firstRecords = await _unitOfWork.OrdinaryPayrolls.Entities
+                  //          .Where(x => x.PayrollId == firstPayroll.Id)
+                  //          .ToListAsync(cancellationToken);
 
-                        firstFortnightByCollaborator = firstRecords.ToDictionary(x => x.CollaboratorId);
-                     }
-                  }
+                  //       firstFortnightByCollaborator = firstRecords.ToDictionary(x => x.CollaboratorId);
+                  //    }
+                  // }
 
-                  var mapped = currentRecords.Select(record =>
-                          {
-                             var irFortnightly = Math.Round(record.Ir, 2, MidpointRounding.AwayFromZero);
-                             var salaryEarnedFortnightly = Math.Round(
-                                 record.TotalIncome - record.Inss, 2, MidpointRounding.AwayFromZero);
+                  // var mapped = currentRecords.Select(record =>
+                  //         {
+                  //            var irFortnightly = Math.Round(record.Ir, 2, MidpointRounding.AwayFromZero);
+                  //            var salaryEarnedFortnightly = Math.Round(
+                  //                record.TotalIncome - record.Inss, 2, MidpointRounding.AwayFromZero);
 
-                             var item = new IrAndSalaryEarnedReport
-                             {
-                                PayrollId = record.PayrollId,
-                                CollaboratorId = record.CollaboratorId,
-                                CollaboratorCode = record.Collaborator.CollaboratorCode,
-                                CollaboratorFullname = ManagerUtils.FromSliceToCollaboratorFullname(record.Collaborator),
-                                IrFortnightly = irFortnightly,
-                                SalaryEarnedFortnightly = salaryEarnedFortnightly,
-                             };
+                  //            var item = new IrAndSalaryEarnedReport
+                  //            {
+                  //               PayrollId = record.PayrollId,
+                  //               CollaboratorId = record.CollaboratorId,
+                  //               CollaboratorCode = record.Collaborator.CollaboratorCode,
+                  //               CollaboratorFullname = ManagerUtils.FromSliceToCollaboratorFullname(record.Collaborator),
+                  //               IrFortnightly = irFortnightly,
+                  //               SalaryEarnedFortnightly = salaryEarnedFortnightly,
+                  //            };
 
-                             if (payroll.Period == PayrollPeriod.FirstPeriod)
-                             {
-                                item.IrMonthly = null;
-                                item.SalaryEarnedMonthly = null;
-                             }
-                             else
-                             {
-                                decimal firstPeriodIr = 0m;
-                                decimal firstPeriodSalaryEarned = 0m;
+                  //            if (payroll.Period == PayrollPeriod.FirstPeriod)
+                  //            {
+                  //               item.IrMonthly = null;
+                  //               item.SalaryEarnedMonthly = null;
+                  //            }
+                  //            else
+                  //            {
+                  //               decimal firstPeriodIr = 0m;
+                  //               decimal firstPeriodSalaryEarned = 0m;
 
-                                if (firstFortnightByCollaborator.TryGetValue(record.CollaboratorId, out var firstRecord))
-                                {
-                                   firstPeriodIr = Math.Round(firstRecord.Ir, 2, MidpointRounding.AwayFromZero);
-                                   firstPeriodSalaryEarned = Math.Round(
-                                       firstRecord.TotalIncome - firstRecord.Inss, 2, MidpointRounding.AwayFromZero);
-                                }
+                  //               if (firstFortnightByCollaborator.TryGetValue(record.CollaboratorId, out var firstRecord))
+                  //               {
+                  //                  firstPeriodIr = Math.Round(firstRecord.Ir, 2, MidpointRounding.AwayFromZero);
+                  //                  firstPeriodSalaryEarned = Math.Round(
+                  //                      firstRecord.TotalIncome - firstRecord.Inss, 2, MidpointRounding.AwayFromZero);
+                  //               }
 
-                                item.IrMonthly = Math.Round(
-                                    firstPeriodIr + irFortnightly, 2, MidpointRounding.AwayFromZero);
-                                item.SalaryEarnedMonthly = Math.Round(
-                                    firstPeriodSalaryEarned + salaryEarnedFortnightly, 2, MidpointRounding.AwayFromZero);
-                             }
+                  //               item.IrMonthly = Math.Round(
+                  //                   firstPeriodIr + irFortnightly, 2, MidpointRounding.AwayFromZero);
+                  //               item.SalaryEarnedMonthly = Math.Round(
+                  //                   firstPeriodSalaryEarned + salaryEarnedFortnightly, 2, MidpointRounding.AwayFromZero);
+                  //            }
 
-                             return item;
-                          }).ToList();
+                  //            return item;
+                  //         }).ToList();
 
-                  reportDto.IrAndSalaryEarned = mapped;
+                  // reportDto.IrAndSalaryEarned = mapped;
                   return reportDto;
                }
 
