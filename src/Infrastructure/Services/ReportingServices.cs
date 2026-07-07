@@ -138,8 +138,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
         public async Task<IrAndSalaryEarnedReport> ApplyIrReporting(Payroll payroll, Guid collaboratorId, decimal irFortnightly, decimal salaryEarnedFortnightly, CancellationToken cancellationToken = default)
         {
-            var ir = Math.Round(irFortnightly, 2, MidpointRounding.AwayFromZero);
-            var salary = Math.Round(salaryEarnedFortnightly, 2, MidpointRounding.AwayFromZero);
+            var ir = irFortnightly;
+            var salary = salaryEarnedFortnightly;
 
             decimal? irMonthly = null;
             decimal? salaryMonthly = null;
@@ -172,8 +172,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     decimal firstSalary = firstAccrual?.SalaryEarnedByFornight ?? 0m;
 
                     //registramos en la columna IrMonthly la suma de el actual periodo con el periodo pasado.
-                    irMonthly = Math.Round(firstIr + ir, 2, MidpointRounding.AwayFromZero);
-                    salaryMonthly = Math.Round(firstSalary + salary, 2, MidpointRounding.AwayFromZero);
+                    irMonthly = firstIr + ir;
+                    salaryMonthly = firstSalary + salary;
                 }
                 else
                 {
