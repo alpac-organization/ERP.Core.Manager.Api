@@ -41,9 +41,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 ? validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal)?.Value ?? 0.225m
                 : validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal2)?.Value ?? 0.215m;
 
-            decimal inssLaboralCalc = Math.Round(inssLabor, 2, MidpointRounding.AwayFromZero);
-            decimal inatecCalc = Math.Round(income * inatecPercentage, 2, MidpointRounding.AwayFromZero);
-            decimal inssPatronalCalc = Math.Round(income * inssPatronalPercentage, 2, MidpointRounding.AwayFromZero);
+            decimal inssLaboralCalc     = Math.Round(inssLabor, 2, MidpointRounding.AwayFromZero);
+            decimal inatecCalc          = Math.Round(income * inatecPercentage, 2, MidpointRounding.AwayFromZero);
+            decimal inssPatronalCalc    = Math.Round(income * inssPatronalPercentage, 2, MidpointRounding.AwayFromZero);
 
             decimal total = inssLaboralCalc + inatecCalc + inssPatronalCalc;
             decimal incomeRounded = Math.Round(income, 2, MidpointRounding.AwayFromZero);
@@ -78,6 +78,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 await _unitOfWork.InssAccountingInformation.UpdateAsync(existingRecord);
             }
         }
+        
         public async Task ApplyVacationMovement(Collaborator collaborator, Guid payrollId)
         {
             //Obtener la mesa de cambio oficial
