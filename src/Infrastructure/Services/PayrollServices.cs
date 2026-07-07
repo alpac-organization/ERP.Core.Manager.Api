@@ -518,13 +518,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal currentFortnightSalaryEarned = TotalIncome - BiweeklyInss;
          decimal currentFortnightIr = BiweeklyIr;
 
-
-         //Obtener la nomina cerrada mas reciente para el colaborador
-         // await _unitOfWork.Payrolls.Entities
-         //    .Where(pay => pay.Id == payroll.Id)
-         //    .FirstOrDefaultAsync(default);
-
-
+         var irReporting = await _reportingServices.ApplyIrReporting(payroll, collaborator.Id, currentFortnightIr, currentFortnightSalaryEarned);
 
          if (collaborator.IsFirstTimeRegister)
          {
@@ -534,20 +528,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                SalaryEarned            = 0.0m,
                NumberOfFortnights      = 24,
 
+               AccumulatedIrByFornight = irReporting.IrFortnightly,
+               SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
+               AccumulatedIrMonthly = irReporting.IrMonthly,
+               SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
 
-               //your code here!
-               AccumulatedIrByFornight = payroll.Period == PayrollPeriod.FirstPeriod ? currentFortnightIr            : 0.0m,
-               SalaryEarnedByFornight  = payroll.Period == PayrollPeriod.FirstPeriod ? currentFortnightSalaryEarned  : 0.0m,
-               AccumulatedIrMonthly    = payroll.Period == PayrollPeriod.FirstPeriod ? null : 0.0m,
-               SalaryEarnedMonthly     = payroll.Period == PayrollPeriod.FirstPeriod ? null : 0.0m,
+               FlagAccumulatedIR = currentFortnightIr,
+               FlagSalaryEarned = currentFortnightSalaryEarned,
 
-               FlagAccumulatedIR       = currentFortnightIr,
-               FlagSalaryEarned        = currentFortnightSalaryEarned,
-               FlagNumberOfFortnights  = 23,
-
-               PayrollId               = payroll.Id,
-               CollaboratorId          = collaborator.Id,
-               AccumulatedSeniority    = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
+               FlagNumberOfFortnights = 23,
+               PayrollId = payroll.Id,
+               CollaboratorId = collaborator.Id,
+               AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
             });
 
             collaborator.IsFirstTimeRegister = false;
@@ -567,15 +559,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                SalaryEarned            = prevSalaryEarnedFlag,
                NumberOfFortnights      = prevFortnights,
 
-               //your code here!
-               AccumulatedIrByFornight = payroll.Period == PayrollPeriod.FirstPeriod ? currentFortnightIr            : 0.0m,
-               SalaryEarnedByFornight  = payroll.Period == PayrollPeriod.FirstPeriod ? currentFortnightSalaryEarned  : 0.0m,
-               AccumulatedIrMonthly    = payroll.Period == PayrollPeriod.FirstPeriod ? null : 0.0m,
-               SalaryEarnedMonthly     = payroll.Period == PayrollPeriod.FirstPeriod ? null : 0.0m,
+               AccumulatedIrByFornight = irReporting.IrFortnightly,
+               SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
+               AccumulatedIrMonthly = irReporting.IrMonthly,
+               SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
 
-               FlagAccumulatedIR       = isEndOfYear ? 0.0m : prevAccumulatedIrFlag + currentFortnightIr,
-               FlagSalaryEarned        = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,
-               FlagNumberOfFortnights  = isEndOfYear ? 24 : (prevFortnights - 1),
+               FlagAccumulatedIR = isEndOfYear ? 0.0m : prevAccumulatedIrFlag + currentFortnightIr,
+               FlagSalaryEarned = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,
+               FlagNumberOfFortnights = isEndOfYear ? 24 : (prevFortnights - 1),
 
                PayrollId               = payroll.Id,
                CollaboratorId          = collaborator.Id,
