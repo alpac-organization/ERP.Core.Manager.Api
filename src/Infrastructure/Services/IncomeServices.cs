@@ -528,18 +528,21 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          return true;
          #endregion
       }
-      public async Task ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId)
+      
+
+      //✅ Aplicar calculo de bono.
+      public async Task<bool> ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId)
       {
          var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
-             .Include(ord => ord.Payroll)
-             .Where(ord => ord.PayrollId == payrollId)
-             .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
-             .FirstOrDefaultAsync(default);
+            .Include(ord => ord.Payroll)
+            .Where(ord => ord.PayrollId == payrollId)
+            .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+            .FirstOrDefaultAsync(default);
 
          if (ordinaryPayrollInfo is null)
          {
             _logger.LogInformation("No se encontro registro del colaborador con identificación {identification} en la nomina", collaboratorInformation.IdentificationNumber);
-            return;
+            return false;
          }
 
          var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
@@ -549,7 +552,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          if (lastIncomeTax is null)
          {
             _logger.LogInformation("No se puedo encontrar el ultimo registro acumulados del colaborador");
-            return;
+            return false;
          }
 
          int daysWorked = 15;
@@ -585,12 +588,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          //Calculo del ir e inss de los pagos adicionales y total de ingresos en los bonos.
          var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
-             lastIncomeTax.NumberOfFortnights,
-             lastIncomeTax?.SalaryEarned ?? 0.0m,
-             lastIncomeTax?.AccumulatedIR ?? 0.0m,
-             TotalIncome,
-             false,
-             additionalPayment
+            lastIncomeTax.NumberOfFortnights,
+            lastIncomeTax?.SalaryEarned ?? 0.0m,
+            lastIncomeTax?.AccumulatedIR ?? 0.0m,
+            TotalIncome,
+            false,
+            additionalPayment
          );
 
          TotalIncome += ordinaryPayrollInfo.Bonus;
@@ -601,9 +604,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          lastIncomeTax?.FlagSalaryEarned = lastIncomeTax?.SalaryEarned + (TotalIncome - BiweeklyInss);
 
          //Actualizar datos de deducciones.
-
-         // ordinaryPayrollInfo.Ir += BiweeklyIr;
-         // ordinaryPayrollInfo.Inss += BiweeklyInss;
          ordinaryPayrollInfo.Ir = BiweeklyIr;
          ordinaryPayrollInfo.Inss = BiweeklyInss;
          ordinaryPayrollInfo.TotalLegalDeductions = ordinaryPayrollInfo.Ir + ordinaryPayrollInfo.Inss;
@@ -631,7 +631,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + deductions.LateArrivals;
 
          //Suma total de todas las deducciones.
-         // ordinaryPayrollInfo.TotalDeducctions = BiweeklyIr + BiweeklyInss + totalDeductions;
          ordinaryPayrollInfo.TotalDeducctions = ordinaryPayrollInfo.Ir + ordinaryPayrollInfo.Inss + totalDeductions;
          ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
 
@@ -641,13 +640,39 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          //Actualización de información
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
+
+
+         #region Actualización de reportes de IR
+
+         var lastClosedPayroll = await _unitOfWork.Payrolls.Entities
+            .Where(payroll => payroll.Status == PayrollStatus.Closed)
+            .OrderByDescending(payroll => payroll.CreatedAt)
+            .FirstOrDefaultAsync(default);
+
+
+         if (lastClosedPayroll is null)
+         {
+            _logger.LogInformation("No se pudo encontrar la ultima nomina cerrada para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
+            return false;
+         }
+
+         var isUpdated = await _reportingServices.ApplyUpdateIrReporting(collaboratorInformation, BiweeklyIr, TotalIncome - BiweeklyInss, ordinaryPayrollInfo.Payroll, lastClosedPayroll);
+
+         if (!isUpdated)
+         {
+            _logger.LogInformation("No se pudo actualizar el reporte de IR para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
+            return false;
+         }
+
+         #endregion
+
          await _reportingServices.ApplyInssReporting(
             ordinaryPayrollInfo.Payroll.Period.ToString(),
             payrollId,
             collaboratorInformation,
             ordinaryPayrollInfo.TotalIncome,
             ordinaryPayrollInfo.Inss
-        );
+         );
 
          //Registro del ingreso.
          await _unitOfWork.Incomes.RegisterIncome(new()
@@ -660,21 +685,24 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             Description = "Ingreso de bonos",
             PayrollId = payrollId,
          });
+
+         //Registro de bono registrado con exito.
+         return true;
       }
 
       //✅ Aplicar calculo de horas extras.
-      public async Task ApplyIncomeOvertime(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalHours, Guid payrollId, Guid typeIncomeId)
+      public async Task<bool> ApplyIncomeOvertime(Collaborator collaboratorInformation, Salary salaryInformation, decimal totalHours, Guid payrollId, Guid typeIncomeId)
       {
          var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
-             .Include(ord => ord.Payroll)
-             .Where(ord => ord.PayrollId == payrollId)
-             .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
-             .FirstOrDefaultAsync(default);
+            .Include(ord => ord.Payroll)
+            .Where(ord => ord.PayrollId == payrollId)
+            .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+            .FirstOrDefaultAsync(default);
 
          if (ordinaryPayrollInfo is null)
          {
             _logger.LogInformation("No se encontro registro del colaborador con identificación {identification} en la nomina", collaboratorInformation.IdentificationNumber);
-            return;
+            return false;
          }
 
          decimal DailySalary = salaryInformation.AmountInLocal / 30;
@@ -710,18 +738,18 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          if (lastIncomeTax is null)
          {
             _logger.LogInformation("No se puedo encontrar el ultimo registro acumulados del colaborador {identification}", collaboratorInformation.IdentificationNumber);
-            return;
+            return false;
          }
 
          _logger.LogInformation("Calculando inss e ir");
 
          var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
-             lastIncomeTax?.NumberOfFortnights ?? 24,
-             lastIncomeTax?.SalaryEarned ?? 0.0m,
-             lastIncomeTax?.AccumulatedIR ?? 0.0m,
-             GrossSalary,
-             false,
-             AdditionalPayment
+            lastIncomeTax?.NumberOfFortnights ?? 24,
+            lastIncomeTax?.SalaryEarned ?? 0.0m,
+            lastIncomeTax?.AccumulatedIR ?? 0.0m,
+            GrossSalary,
+            false,
+            AdditionalPayment
          );
 
          //Actualizamos el total de ingresos.
@@ -743,19 +771,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              ) ?? new DeductionsAdditionalData();
 
          decimal totalDeductions =
-             deductions.Loans
-             + deductions.Purisima
-             + deductions.ChildSupportGarnishment
-             + deductions.SalaryAdvance
-             + deductions.ChristmasBonusAdvance
-             + deductions.JudicialSeizures
-             + deductions.UniformDeduction
-             + deductions.CashShortage
-             + deductions.OtherDeductions
-             + deductions.DeductionForLossesBulk
-             + deductions.Absences
-             + deductions.Sanction
-             + deductions.LateArrivals;
+            deductions.Loans
+            + deductions.Purisima
+            + deductions.ChildSupportGarnishment
+            + deductions.SalaryAdvance
+            + deductions.ChristmasBonusAdvance
+            + deductions.JudicialSeizures
+            + deductions.UniformDeduction
+            + deductions.CashShortage
+            + deductions.OtherDeductions
+            + deductions.DeductionForLossesBulk
+            + deductions.Absences
+            + deductions.Sanction
+            + deductions.LateArrivals;
 
          ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr + totalDeductions;
          ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
@@ -766,6 +794,30 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          //Actualizamos su acumulado
          await _unitOfWork.IncomeTaxAccrual.UpdateAsync(lastIncomeTax!);
+
+         #region Actualización de reportes de IR
+
+         var lastClosedPayroll = await _unitOfWork.Payrolls.Entities
+            .Where(payroll => payroll.Status == PayrollStatus.Closed)
+            .OrderByDescending(payroll => payroll.CreatedAt)
+            .FirstOrDefaultAsync(default);
+
+
+         if (lastClosedPayroll is null)
+         {
+            _logger.LogInformation("No se pudo encontrar la ultima nomina cerrada para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
+            return false;
+         }
+
+         var isUpdated = await _reportingServices.ApplyUpdateIrReporting(collaboratorInformation, BiweeklyIr, ordinaryPayrollInfo.TotalIncome - BiweeklyInss, ordinaryPayrollInfo.Payroll, lastClosedPayroll);
+
+         if (!isUpdated)
+         {
+            _logger.LogInformation("No se pudo actualizar el reporte de IR para el colaborador {identification}", collaboratorInformation.IdentificationNumber);
+            return false;
+         }
+
+         #endregion
 
          //Actualizamos la nomina
          await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayrollInfo);
@@ -789,6 +841,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             PayrollId = payrollId,
             Description = "Horas extras",
          });
+
+         return true;
       }
 
       public async Task ApplyIncomeCommissions(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountComission, Currency currency, Guid payrollId, Guid incomeTypeId)
