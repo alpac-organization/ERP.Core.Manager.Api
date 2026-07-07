@@ -149,58 +149,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + deductions.Sanction
              + deductions.LateArrivals;
 
+
          decimal availableForCompanyDeductions = infPayroll.TotalIncome - infPayroll.TotalLegalDeductions;
          if (availableForCompanyDeductions < 0) availableForCompanyDeductions = 0;
 
          if (totalDeductions > availableForCompanyDeductions)
          {
+            _logger.LogWarning(
+                "Las deducciones del colaborador {id} superan su ingreso neto. Se han topado a {monto}",
+                collaborator.IdentificationNumber,
+                availableForCompanyDeductions);
 
-            decimal uncollectedBalance = totalDeductions - availableForCompanyDeductions;
-            _logger.LogWarning("Las deducciones del colaborador {id} superan su ingreso neto. Se han topado a {monto}", collaborator.IdentificationNumber, availableForCompanyDeductions);
             totalDeductions = availableForCompanyDeductions;
-
-            var existingBalances = await _unitOfWork.PendingDeductionBalances
-                .GetBalancesByOriginPayrollAsync(period.Id);
-
-            var existingPendingBalance = existingBalances
-                .FirstOrDefault(b => b.CollaboratorId == collaborator.Id && !b.IsRecovered);
-
-            if (existingPendingBalance is not null)
-            {
-               existingPendingBalance.AmountOwed = uncollectedBalance;
-               await _unitOfWork.PendingDeductionBalances.UpdateAsync(existingPendingBalance);
-            }
-            else if (uncollectedBalance > 0)
-            {
-               await _unitOfWork.PendingDeductionBalances.RegisterPendingDeductionBalance(new PendingDeductionBalance
-               {
-                  Id = Guid.NewGuid(),
-                  CollaboratorId = collaborator.Id,
-                  OriginPayrollId = period.Id,
-                  AmountOwed = uncollectedBalance,
-                  Reason = $"Saldo no cobrado por falta de fondos durante subsidio maternal en la nómina {period.Id}",
-                  IsRecovered = false,
-                  RecoveredPayrollId = null
-               });
-            }
          }
-         else
-         {
-            var existingBalances = await _unitOfWork.PendingDeductionBalances
-                .GetBalancesByOriginPayrollAsync(period.Id);
 
-            var existingPendingBalance = existingBalances
-                .FirstOrDefault(b => b.CollaboratorId == collaborator.Id && !b.IsRecovered);
-
-            if (existingPendingBalance is not null)
-            {
-               existingPendingBalance.AmountOwed = 0;
-               existingPendingBalance.IsRecovered = true;
-               existingPendingBalance.RecoveredPayrollId = period.Id;
-               await _unitOfWork.PendingDeductionBalances.UpdateAsync(existingPendingBalance);
-            }
-         }
          infPayroll.TotalDeducctions = infPayroll.TotalLegalDeductions + totalDeductions;
+
 
          infPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
 
