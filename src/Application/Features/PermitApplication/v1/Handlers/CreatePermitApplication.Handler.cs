@@ -130,7 +130,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     var vacationPayReq = request?.PermitApplicationVacationPay ?? new();
 
                     var vacationControl = await _unitOfWork.Vacations.Entities
-                        .Where(vac => vac.CollaboratorId == permitApplication.Collaborator.Id)
+                        .Include(vac => vac.Collaborator)
+                        .Where(vac => vac.CollaboratorId == collaborator.Id)
                         .FirstOrDefaultAsync(cancellationToken);
 
                     if (vacationControl is null)
