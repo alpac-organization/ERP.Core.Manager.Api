@@ -325,10 +325,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal dailySalary = monthlySalary / 30;
 
          var informationPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
-             .Include(ord => ord.Payroll)
-             .Where(ord => ord.PayrollId == period.Id)
-             .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
-             .FirstOrDefaultAsync(default);
+            .Include(ord => ord.Payroll)
+            .Where(ord => ord.PayrollId == period.Id)
+            .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+            .FirstOrDefaultAsync(default);
 
          if (informationPayroll is null)
          {
@@ -338,11 +338,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #region Iniciar proceso de calculo de dias de subsidio dentro de la nomina
 
-         DateOnly payrollStartDate = period.StartDate;
-         DateOnly payrollEndDate = period.EndDate;
+         DateOnly payrollStartDate  = period.StartDate;
+         DateOnly payrollEndDate    = period.EndDate;
 
-         DateOnly subsidyStartDate = DateOnly.FromDateTime(data.StartDate.Date);
-         DateOnly subsidyEndDate = DateOnly.FromDateTime(data.EndDate.Date);
+         DateOnly subsidyStartDate  = DateOnly.FromDateTime(data.StartDate.Date);
+         DateOnly subsidyEndDate    = DateOnly.FromDateTime(data.EndDate.Date);
 
          DateOnly effectiveStart = subsidyStartDate < payrollStartDate ? payrollStartDate : subsidyStartDate;
          DateOnly effectiveEnd = subsidyEndDate > payrollEndDate ? payrollEndDate : subsidyEndDate;
@@ -375,11 +375,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          //Aplicamos inss.
          var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
-             taxIncome?.NumberOfFortnights ?? 24,
-             taxIncome?.SalaryEarned ?? 0,
-             taxIncome?.AccumulatedIR ?? 0,
-             TotalGrossSalary,
-             true
+            taxIncome?.NumberOfFortnights ?? 24,
+            taxIncome?.SalaryEarned ?? 0,
+            taxIncome?.AccumulatedIR ?? 0,
+            TotalGrossSalary,
+            true
          );
 
          informationPayroll.Inss = inssWithoutSubsidy;
@@ -388,14 +388,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          informationPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyIr;
 
          informationPayroll.TotalIncome = proportionalSalaryWithoutSubsidy
-                     + proportionalSalaryWithSubsidy
-                     + informationPayroll.Vacations
-                     + informationPayroll.HolidayPay;
+            + proportionalSalaryWithSubsidy
+            + informationPayroll.Vacations
+            + informationPayroll.HolidayPay;
 
          taxIncome?.FlagSalaryEarned += TotalGrossSalary;
          taxIncome?.FlagAccumulatedIR += BiweeklyIr;
-
-
 
          var deductions =
              JsonSerializer.Deserialize<DeductionsAdditionalData>(
@@ -403,19 +401,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              ) ?? new DeductionsAdditionalData();
 
          decimal totalDeductions =
-             deductions.Loans
-             + deductions.Purisima
-             + deductions.ChildSupportGarnishment
-             + deductions.SalaryAdvance
-             + deductions.ChristmasBonusAdvance
-             + deductions.JudicialSeizures
-             + deductions.UniformDeduction
-             + deductions.CashShortage
-             + deductions.OtherDeductions
-             + deductions.DeductionForLossesBulk
-             + deductions.Absences
-             + deductions.Sanction
-             + deductions.LateArrivals;
+            deductions.Loans
+            + deductions.Purisima
+            + deductions.ChildSupportGarnishment
+            + deductions.SalaryAdvance
+            + deductions.ChristmasBonusAdvance
+            + deductions.JudicialSeizures
+            + deductions.UniformDeduction
+            + deductions.CashShortage
+            + deductions.OtherDeductions
+            + deductions.DeductionForLossesBulk
+            + deductions.Absences
+            + deductions.Sanction
+            + deductions.LateArrivals;
 
 
          informationPayroll.TotalDeducctions = informationPayroll.TotalLegalDeductions + totalDeductions;
@@ -430,10 +428,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          _logger.LogInformation("🚩Empezando proceso para disminución de viaticos por dias no laborados por subsidios");
 
          var assignedTravelExpensive = await _unitOfWork.AssignedTravelExpenses.Entities
-             .Where(assig => assig.CollaboratorId == collaboratorInformation.Id)
-             .Where(assig => assig.EndDate == null)
-             .Include(assig => assig.TypeIncome)
-             .ToListAsync(default);
+            .Where(assig => assig.CollaboratorId == collaboratorInformation.Id)
+            .Where(assig => assig.EndDate == null)
+            .Include(assig => assig.TypeIncome)
+            .ToListAsync(default);
 
          decimal transport = 0.0m;
          decimal feeding = 0.0m;
@@ -508,10 +506,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          await _reportingServices.ApplyUpdateIrReporting(collaboratorInformation, BiweeklyIr, informationPayroll.TotalIncome - informationPayroll.Inss, period);
          //sincronizar el reporte de inss cuando hay subsidio en caso de que trabaje algunos dias
          await _reportingServices.ApplyInssReporting(
-         period.Period.ToString(),
-         period.Id,
-         collaboratorInformation,
-         informationPayroll.TotalIncome, informationPayroll.Inss);
+            period.Period.ToString(),
+            period.Id,
+            collaboratorInformation,
+            informationPayroll.TotalIncome,
+            informationPayroll.Inss
+         );
 
          await _unitOfWork.Subsidies.CreateSubsidy(new()
          {

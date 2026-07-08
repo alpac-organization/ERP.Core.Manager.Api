@@ -74,6 +74,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 return false;
             }
 
+            //Calcular los dias de asistencia del colaborador y restarlos a la cantidad de dias que se le va a descontar.
+            int daysWorked = 0;
+            
+            DateOnly entryDate      = collaboratorInformation.WorkingInformation.EntryDate;
+            DateOnly payrollStart   = ordinaryPayroll.Payroll.StartDate;
+            DateOnly payrollEnd     = ordinaryPayroll.Payroll.EndDate;
+
+            if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
+            else daysWorked = 15;
+
+            if (daysWorked < 0)  daysWorked = 0;
+            if (daysWorked > 15) daysWorked = 15;
+           
+
+           
+
 
             #region Actualizar reportes de ir y nomina
 

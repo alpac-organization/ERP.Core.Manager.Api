@@ -41,9 +41,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 ? validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal)?.Value ?? 0.225m
                 : validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal2)?.Value ?? 0.215m;
 
-            decimal inssLaboralCalc     = Math.Round(inssLabor, 2, MidpointRounding.AwayFromZero);
-            decimal inatecCalc          = Math.Round(income * inatecPercentage, 2, MidpointRounding.AwayFromZero);
-            decimal inssPatronalCalc    = Math.Round(income * inssPatronalPercentage, 2, MidpointRounding.AwayFromZero);
+            decimal inssLaboralCalc     = inssLabor;
+            decimal inatecCalc          = income * inatecPercentage;
+            decimal inssPatronalCalc    = income * inssPatronalPercentage;
 
             decimal total = inssLaboralCalc + inatecCalc + inssPatronalCalc;
             decimal incomeRounded = Math.Round(income, 2, MidpointRounding.AwayFromZero);
@@ -238,7 +238,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
         public async Task<bool> ApplyUpdateIrReporting(Collaborator collaborator, decimal newIR, decimal newSalaryEarned, Payroll payroll, CancellationToken cancellationToken = default)
         {
-
             var taxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
             .Where(tax => tax.PayrollId == payroll.Id)
             .Where(tax => tax.CollaboratorId == collaborator.Id)
