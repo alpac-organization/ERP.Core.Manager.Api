@@ -780,7 +780,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             + deductions.Sanction
             + deductions.LateArrivals;
 
-         ordinaryPayrollInfo.TotalLegalDeductions = BiweeklyInss + BiweeklyIr + totalDeductions;
+         ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
          ordinaryPayrollInfo.TotalToPay = ordinaryPayrollInfo.TotalIncome - ordinaryPayrollInfo.TotalDeducctions + ordinaryPayrollInfo.TotalTravelExpenses;
          ordinaryPayrollInfo.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
 
