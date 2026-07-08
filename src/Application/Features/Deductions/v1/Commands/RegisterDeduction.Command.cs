@@ -90,6 +90,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
 
     public class SansionPayload
     {
-        public decimal AmountDays { get; set; }
+        public int AmountDays { get; set; }
+        public string? IdentificationNumber { get; set; }
     }
 }

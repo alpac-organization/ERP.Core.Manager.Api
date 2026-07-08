@@ -270,11 +270,29 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                 {
                     _logger.LogInformation("🚩Iniciando proceso de registro de deducción por sanción");
 
+                    var payload = request.SansionPayload ?? new();
 
+                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                        .Where(col =>col.CompanyId == request.CompanyId)
+                        .Where(col => col.Status != CollaboratorStatus.Inactive)
+                        .Where(col => col.IdentificationNumber == payload.IdentificationNumber)
+                        .Include(col => col.WorkingInformation)
+                        .FirstOrDefaultAsync(cancellationToken);
 
+                    if (collaboratorInformation is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
+                    }
 
+                    var isApplied = await _deductionServices.ApplySansion(collaboratorInformation, payload.AmountDays, request.PayrollId);
+
+                    if (!isApplied)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No se pudo aplicar la sanción", "ERP:01");
+                    }
 
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    
                     _logger.LogInformation("✅ Se finaliza el proceso de registro por sanción");
                     return true;
                 }

@@ -13,17 +13,75 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
     {
 
-        public async Task<bool> ApplySansion(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, Guid payrollId)
+        public async Task<bool> ApplySansion(Collaborator collaboratorInformation, int amountDays, Guid payrollId)
         {
+            var deductionPayload = new Deduction()
+            {
+                Id              = Guid.NewGuid(),
+                CollaboratorId  = collaboratorInformation.Id,
+                Description     = "Sanción por inasistencia",
+                Currency        = Currency.NIO,
+                Type            = DeductionType.Sanction,
+                Status          = DeductionStatus.Progress,
+                Amount          = amountDays,
+            };
+
+            var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
+                .Where(val => val.Status)
+                .Where(val => val.EndDate == null)
+                .Where(val => val.Type == TaxType.ExchangeRate)
+                .FirstOrDefaultAsync(default);
+
+            if (exchangeRate is null)
+            {
+                _logger.LogWarning("No se encontró un tipo de cambio activo en la configuración.");
+                return false;
+            }
+
+            var salaryInformation = await _unitOfWork.Salaries.Entities
+                .Where(salary => salary.EndDate == null)
+                .Where(salary => salary.SalaryType == SalaryType.Fixed)
+                .Where(salary => salary.CollaboratorId == collaboratorInformation.Id)
+                .FirstOrDefaultAsync(default);
+
+            if (salaryInformation is null)
+            {
+                _logger.LogWarning("No se pudo obtener la información salarial del colaborador con cedula: {identification}", collaboratorInformation.IdentificationNumber);
+                return false;
+            }
+
             var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
                 .Where(ord => ord.PayrollId == payrollId)
+                .Include(or => or.Payroll)
                 .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
                 .Include(or => or.Payroll)
                 .FirstOrDefaultAsync(default);
-            
-             
+
+            if (ordinaryPayroll is null)
+            {
+                _logger.LogInformation("No se encontro registro de nomina de este colaborador => {identificacion}", collaboratorInformation.IdentificationNumber);
+                return false;
+            }
+
+            var inssAccountingInformation = await _unitOfWork.InssAccountingInformation.Entities
+                .Where(acc => acc.CollaboratorId == collaboratorInformation.Id)
+                .Where(acc => acc.PayrollId == payrollId)
+                .FirstOrDefaultAsync(default);
+
+            if (inssAccountingInformation is null)
+            {
+                _logger.LogWarning("No se encontró información contable del INSS para el colaborador: {identification}", collaboratorInformation.IdentificationNumber);
+                return false;
+            }
 
 
+            #region Actualizar reportes de ir y nomina
+
+
+            #endregion
+
+            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+            await _unitOfWork.Deductions.RegisterDeduction(deductionPayload);
             return true;
         }
 
