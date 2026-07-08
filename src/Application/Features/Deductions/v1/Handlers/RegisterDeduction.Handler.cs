@@ -39,237 +39,249 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
             switch (request.DeductionType)
             {
                 case DeductionType.LateArrivals:
+                {
+                    _logger.LogInformation("🚩Iniciando proceso de deducción de llegadas tardes");
+
+                    switch (request.LateArrivalsInformation.ProcedureMethod)
                     {
-                        _logger.LogInformation("🚩Iniciando proceso de deducción de llegadas tardes");
-
-                        switch (request.LateArrivalsInformation.ProcedureMethod)
+                        case ProcedureMethod.Manual:
                         {
-                            case ProcedureMethod.Manual:
-                                {
-                                    _logger.LogInformation("El proceso de deducción por llegadas tardes se realizara de forma manual");
+                            _logger.LogInformation("El proceso de deducción por llegadas tardes se realizara de forma manual");
 
-                                    var payload = request.LateArrivalsInformation.LateArrivalsPayload;
+                            var payload = request.LateArrivalsInformation.LateArrivalsPayload;
 
-                                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                                        .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
-                                        .Include(col => col.WorkingInformation)
-                                        .FirstOrDefaultAsync(cancellationToken);
+                            var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                                .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
+                                .Include(col => col.WorkingInformation)
+                                .FirstOrDefaultAsync(cancellationToken);
 
-                                    if (collaboratorInformation is null)
-                                    {
-                                        return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
-                                    }
+                            if (collaboratorInformation is null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
+                            }
 
-                                    _logger.LogInformation("🚩Iniciando registro de llegadas tardes, collaborador: {identificacion}", payload.IdentificationNumber);
+                            _logger.LogInformation("🚩Iniciando registro de llegadas tardes, collaborador: {identificacion}", payload.IdentificationNumber);
 
-                                    var salaryInformation = await _unitOfWork.Salaries.Entities
-                                        .Where(col => col.CollaboratorId == collaboratorInformation.Id)
-                                        .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
-                                        .FirstOrDefaultAsync(cancellationToken);
+                            var salaryInformation = await _unitOfWork.Salaries.Entities
+                                .Where(col => col.CollaboratorId == collaboratorInformation.Id)
+                                .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
+                                .FirstOrDefaultAsync(cancellationToken);
 
-                                    if (salaryInformation is null)
-                                    {
-                                        return _errorManager.ThrowBadRequest<bool>($"No se pudo obtener la información salarial del colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
-                                    }
+                            if (salaryInformation is null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>($"No se pudo obtener la información salarial del colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
+                            }
 
-                                    await _deductionServices.ApplyDeductionLateArrivals(collaboratorInformation, salaryInformation, payload.TotalMinutes, request.PayrollId);
+                            await _deductionServices.ApplyDeductionLateArrivals(collaboratorInformation, salaryInformation, payload.TotalMinutes, request.PayrollId);
 
-                                    break;
-                                }
-                            case ProcedureMethod.Import:
-                                {
-                                    _logger.LogInformation("El proceso de deducción por llegadas tardes se realizara mediante importación de datos");
-
-                                    foreach (var collaborator in request.LateArrivalsInformation.LateArrivalsData)
-                                    {
-                                        var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                                            .Where(col => col.IdentificationNumber == collaborator.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
-                                            .Include(col => col.WorkingInformation)
-                                            .FirstOrDefaultAsync(cancellationToken);
-
-                                        if (collaboratorInformation is null)
-                                        {
-                                            _logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
-                                            continue;
-                                        }
-
-                                        //Iniciamos el proceso de deducciones de llegadas tardes.
-                                        _logger.LogInformation("🚩Iniciando registro de llegadas tardes, collaborador: {identificacion}", collaborator.IdentificationNumber);
-
-                                        var salaryInformation = await _unitOfWork.Salaries.Entities
-                                            .Where(col => col.CollaboratorId == collaboratorInformation.Id)
-                                            .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
-                                            .FirstOrDefaultAsync(cancellationToken);
-
-                                        if (salaryInformation is null)
-                                        {
-                                            _logger.LogInformation("No se pudo obtener la información salarial del colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
-                                            continue;
-                                        }
-
-                                        await _deductionServices.ApplyDeductionLateArrivals(collaboratorInformation, salaryInformation, collaborator.TotalMinutes, request.PayrollId);
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    _logger.LogInformation("No se ha seleccionado un metodo valido para el registro de llegadas tardes");
-                                    return _errorManager.ThrowBadRequest<bool>("No se ha seleccionado un metodo valido para el registro de llegadas tardes", "ERP:01");
-                                }
+                            break;
                         }
+                        case ProcedureMethod.Import:
+                        {
+                            _logger.LogInformation("El proceso de deducción por llegadas tardes se realizara mediante importación de datos");
 
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                            foreach (var collaborator in request.LateArrivalsInformation.LateArrivalsData)
+                            {
+                                var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                                    .Where(col => col.IdentificationNumber == collaborator.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
+                                    .Include(col => col.WorkingInformation)
+                                    .FirstOrDefaultAsync(cancellationToken);
 
-                        _logger.LogInformation("✅Se finaliza el proceso de deducción por horas extras");
+                                if (collaboratorInformation is null)
+                                {
+                                    _logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
+                                    continue;
+                                }
 
-                        return true;
+                                //Iniciamos el proceso de deducciones de llegadas tardes.
+                                _logger.LogInformation("🚩Iniciando registro de llegadas tardes, collaborador: {identificacion}", collaborator.IdentificationNumber);
+
+                                var salaryInformation = await _unitOfWork.Salaries.Entities
+                                    .Where(col => col.CollaboratorId == collaboratorInformation.Id)
+                                    .Where(col => col.EndDate == null && col.SalaryType == SalaryType.Fixed)
+                                    .FirstOrDefaultAsync(cancellationToken);
+
+                                if (salaryInformation is null)
+                                {
+                                    _logger.LogInformation("No se pudo obtener la información salarial del colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
+                                    continue;
+                                }
+
+                                await _deductionServices.ApplyDeductionLateArrivals(collaboratorInformation, salaryInformation, collaborator.TotalMinutes, request.PayrollId);
+                            }
+                            break;
+                        }
+                        default:
+                        {
+                            _logger.LogInformation("No se ha seleccionado un metodo valido para el registro de llegadas tardes");
+                            return _errorManager.ThrowBadRequest<bool>("No se ha seleccionado un metodo valido para el registro de llegadas tardes", "ERP:01");
+                        }
                     }
+
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    _logger.LogInformation("✅Se finaliza el proceso de deducción por horas extras");
+
+                    return true;
+                }
                 case DeductionType.Purisima:
+                {
+                    _logger.LogInformation("🚩Iniciando proceso de deducción por el dia de la purisima");
+
+                    switch (request.PurisimaInformation.ProcedureMethod)
                     {
-                        _logger.LogInformation("🚩Iniciando proceso de deducción por el dia de la purisima");
-
-                        switch (request.PurisimaInformation.ProcedureMethod)
+                        case ProcedureMethod.Manual:
                         {
-                            case ProcedureMethod.Manual:
-                                {
-                                    _logger.LogInformation("El proceso de deducción por purisima se realizara de forma manual");
+                            _logger.LogInformation("El proceso de deducción por purisima se realizara de forma manual");
 
-                                    var payload = request.PurisimaInformation.PurisimaPayload;
+                            var payload = request.PurisimaInformation.PurisimaPayload;
 
-                                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                                        .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
-                                        .Include(col => col.WorkingInformation)
-                                        .FirstOrDefaultAsync(cancellationToken);
+                            var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                                .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
+                                .Include(col => col.WorkingInformation)
+                                .FirstOrDefaultAsync(cancellationToken);
 
-                                    if (collaboratorInformation is null)
-                                    {
-                                        return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
-                                    }
+                            if (collaboratorInformation is null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
+                            }
 
-                                    var deductionActive = await _unitOfWork.Deductions.Entities
-                                        .Where(ded => ded.Type == request.DeductionType)
-                                        .Where(ded => ded.CollaboratorId == collaboratorInformation.Id)
-                                        .Where(ded => ded.Status == DeductionStatus.Progress)
-                                        .FirstOrDefaultAsync(cancellationToken);
+                            var deductionActive = await _unitOfWork.Deductions.Entities
+                                .Where(ded => ded.Type == request.DeductionType)
+                                .Where(ded => ded.CollaboratorId == collaboratorInformation.Id)
+                                .Where(ded => ded.Status == DeductionStatus.Progress)
+                                .FirstOrDefaultAsync(cancellationToken);
 
-                                    if (deductionActive is not null)
-                                    {
-                                        return _errorManager.ThrowBadRequest<bool>("Este colaborador ya cuenta con una aportación de purisima", "ERP");
-                                    }
+                            if (deductionActive is not null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>("Este colaborador ya cuenta con una aportación de purisima", "ERP");
+                            }
 
-                                    _logger.LogInformation("🚩Iniciando registro de deducción por purisima, collaborador: {identificacion}", payload.IdentificationNumber);
+                            _logger.LogInformation("🚩Iniciando registro de deducción por purisima, collaborador: {identificacion}", payload.IdentificationNumber);
 
-                                    await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, payload.Amount, request.PayrollId, payload.NumberFortnights);
+                            await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, payload.Amount, request.PayrollId, payload.NumberFortnights);
 
-                                    break;
-                                }
-                            case ProcedureMethod.Import:
-                                {
-                                    var payload = request.PurisimaInformation;
-
-                                    foreach (var collaborator in payload.PurisimaData)
-                                    {
-                                        var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                                            .Where(col => col.IdentificationNumber == collaborator.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
-                                            .Include(col => col.WorkingInformation)
-                                            .FirstOrDefaultAsync(cancellationToken);
-
-                                        if (collaboratorInformation is null)
-                                        {
-                                            _logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
-                                            continue;
-                                        }
-
-                                        var deductionActive = await _unitOfWork.Deductions.Entities
-                                            .Where(ded => ded.Type == request.DeductionType)
-                                            .Where(ded => ded.CollaboratorId == collaboratorInformation.Id)
-                                            .Where(ded => ded.Status == DeductionStatus.Progress)
-                                            .FirstOrDefaultAsync(cancellationToken);
-
-                                        if (deductionActive is not null)
-                                        {
-                                            _logger.LogInformation("El colaborador con cedula {identification} ya cuenta con una aporte de purisima activa", collaborator.IdentificationNumber);
-                                            continue;
-                                        }
-
-                                        await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, collaborator.Amount, payrollActive.Id, collaborator.NumberFortnights);
-                                    }
-
-                                    break;
-                                }
-                            default:
-                                {
-                                    _logger.LogInformation("No se ha seleccionado un metodo valido para el registro para la aportación de la purisima");
-                                    return _errorManager.ThrowBadRequest<bool>("No se ha seleccionado un metodo valido para el registro para la aportación de la purisima", "ERP:01");
-                                }
+                            break;
                         }
+                        case ProcedureMethod.Import:
+                        {
+                            var payload = request.PurisimaInformation;
 
-                        //✅Finalizar Proceso y registrar deducción de forma activa como si fuera un prestamo.
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                            foreach (var collaborator in payload.PurisimaData)
+                            {
+                                var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                                    .Where(col => col.IdentificationNumber == collaborator.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
+                                    .Include(col => col.WorkingInformation)
+                                    .FirstOrDefaultAsync(cancellationToken);
 
-                        _logger.LogInformation("✅Se finaliza el proceso de deducción para la purisima🎆");
+                                if (collaboratorInformation is null)
+                                {
+                                    _logger.LogInformation("No se encontro al colaborador con cedula: {identificacion}", collaborator.IdentificationNumber);
+                                    continue;
+                                }
 
-                        return true;
+                                var deductionActive = await _unitOfWork.Deductions.Entities
+                                    .Where(ded => ded.Type == request.DeductionType)
+                                    .Where(ded => ded.CollaboratorId == collaboratorInformation.Id)
+                                    .Where(ded => ded.Status == DeductionStatus.Progress)
+                                    .FirstOrDefaultAsync(cancellationToken);
+
+                                if (deductionActive is not null)
+                                {
+                                    _logger.LogInformation("El colaborador con cedula {identification} ya cuenta con una aporte de purisima activa", collaborator.IdentificationNumber);
+                                    continue;
+                                }
+
+                                await _deductionServices.ApplyDeductionPurisima(collaboratorInformation, collaborator.Amount, payrollActive.Id, collaborator.NumberFortnights);
+                            }
+
+                            break;
+                        }
+                        default:
+                        {
+                            _logger.LogInformation("No se ha seleccionado un metodo valido para el registro para la aportación de la purisima");
+                            return _errorManager.ThrowBadRequest<bool>("No se ha seleccionado un metodo valido para el registro para la aportación de la purisima", "ERP:01");
+                        }
                     }
+
+                    //✅Finalizar Proceso y registrar deducción de forma activa como si fuera un prestamo.
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    _logger.LogInformation("✅Se finaliza el proceso de deducción para la purisima🎆");
+
+                    return true;
+                }
                 case DeductionType.Loans:
+                {
+
+                    _logger.LogInformation("🚩Iniciando proceso de deducción por prestamos");
+
+                    var payload = request.LoansPayload ?? new();
+
+                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                        .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
+                        .Include(col => col.WorkingInformation)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (collaboratorInformation is null)
                     {
-
-                        _logger.LogInformation("🚩Iniciando proceso de deducción por prestamos");
-
-                        var payload = request.LoansPayload ?? new();
-
-                        var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                            .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
-                            .Include(col => col.WorkingInformation)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (collaboratorInformation is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
-                        }
-
-                        _logger.LogInformation("🚩Iniciando registro de deducción por prestamos, collaborador: {identificacion}, data: {@data}", payload.IdentificationNumber, payload);
-
-                        await _deductionServices.ApplyDeductionLoans(collaboratorInformation, payload.Amount, request.PayrollId, payload.NumberFortnights, payload.Currency, payload?.Description ?? "Registro de préstamo");
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                        _logger.LogInformation("✅Se finaliza el proceso de deducción por prestamos");
-                        return true;
+                        return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
                     }
+
+                    _logger.LogInformation("🚩Iniciando registro de deducción por prestamos, collaborador: {identificacion}, data: {@data}", payload.IdentificationNumber, payload);
+
+                    await _deductionServices.ApplyDeductionLoans(collaboratorInformation, payload.Amount, request.PayrollId, payload.NumberFortnights, payload.Currency, payload?.Description ?? "Registro de préstamo");
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    _logger.LogInformation("✅Se finaliza el proceso de deducción por prestamos");
+                    return true;
+                }
                 case DeductionType.JudicialSeizures:
+                {
+                    _logger.LogInformation("🚩Iniciando proceso de registro de deducción por embargo judicial");
+
+                    var payload = request.judicialSeizurePayload ?? new();
+
+                    var collaboratorInformation = await _unitOfWork.Collaborators.Entities
+                        .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
+                        .Include(col => col.WorkingInformation)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (collaboratorInformation is null)
                     {
-                        _logger.LogInformation("🚩Iniciando proceso de registro de deducción por embargo judicial");
-
-                        var payload = request.judicialSeizurePayload ?? new();
-
-                        var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                            .Where(col => col.IdentificationNumber == payload.IdentificationNumber && col.CompanyId == request.CompanyId && col.Status != CollaboratorStatus.Inactive)
-                            .Include(col => col.WorkingInformation)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (collaboratorInformation is null)
-                        {
-                            return _errorManager.ThrowBadRequest<bool>($"No se encontró al colaborador con cédula: {payload.IdentificationNumber}", "ERP:01");
-                        }
-
-                        await _deductionServices.ApplyJudicialGarnishment(
-                            collaboratorInformation,
-                            payload.TotalAmountToPay,
-                            payload.DeductionPercentage,
-                            payload.Currency,
-                            payload.Description ?? "Embargo judicial",
-                            request.PayrollId
-                        );
-
-                        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                        _logger.LogInformation("✅Se finaliza el proceso de registro por embargo judicial");
-                        return true;
+                        return _errorManager.ThrowBadRequest<bool>($"No se encontró al colaborador con cédula: {payload.IdentificationNumber}", "ERP:01");
                     }
+
+                    await _deductionServices.ApplyJudicialGarnishment(
+                        collaboratorInformation,
+                        payload.TotalAmountToPay,
+                        payload.DeductionPercentage,
+                        payload.Currency,
+                        payload.Description ?? "Embargo judicial",
+                        request.PayrollId
+                    );
+
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    _logger.LogInformation("✅Se finaliza el proceso de registro por embargo judicial");
+                    return true;
+                }
+                case DeductionType.Sanction :
+                {
+                    _logger.LogInformation("🚩Iniciando proceso de registro de deducción por sanción");
+
+
+
+
+
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    _logger.LogInformation("✅ Se finaliza el proceso de registro por sanción");
+                    return true;
+                }
                 default:
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("Este tipo de deduccion no se encuentra disponible", "ERP:01");
-                    }
+                {
+                    return _errorManager.ThrowBadRequest<bool>("Este tipo de deduccion no se encuentra disponible", "ERP:01");
+                }
             }
         }
     }

@@ -13,6 +13,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
     public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
     {
 
+        public async Task<bool> ApplySansion(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountDays, Guid payrollId)
+        {
+            var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                .Where(ord => ord.PayrollId == payrollId)
+                .Where(ord => ord.CollaboratorId == collaboratorInformation.Id)
+                .Include(or => or.Payroll)
+                .FirstOrDefaultAsync(default);
+            
+             
+
+
+            return true;
+        }
+
+
+
         //✅Deducción de viaticos por inasistencia
         public async Task ApplyDeductionTravelExpenses(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId)
         {
