@@ -458,7 +458,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
 
          #region Registro del inss
-
+      
          await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, TotalIncome, BiweeklyInss);
 
          #endregion
@@ -477,7 +477,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          decimal vacationAmountInCordobas = vacationControl.AvailableVacations * dailySalary;
          decimal vacationAmountInDollars = (vacationControl.AvailableVacations * dailySalary) / exchangeRate?.Value ?? 0.0m;
-
 
          var indem = _calculatorDeductions.CalculateIndemnification(
             monthlySalary,

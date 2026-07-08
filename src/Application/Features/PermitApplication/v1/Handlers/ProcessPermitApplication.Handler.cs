@@ -231,6 +231,28 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         vacationInformationSolicitante.EnjoyedVacation    += permitApplication.AmountDays ?? 0.0m;
 
                         await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
+
+                        //Agregar que actualize la tabla vacations Accrual
+
+                        var vacationAccrual = await _unitOfWork.VacationAccruals.Entities
+                            .Where(va => va.PayrollId == permitApplication.PayrolId)
+                            .Where(va => va.CollaboratorId == permitApplication.CollaboratorId)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (vacationAccrual is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No se encontro el registro de vacaciones en la nomina", "ERP:01");
+                        }
+
+                        decimal salaryDaily = salaryInformation.AmountInLocal / 30.0m;
+                        decimal vacationAmount = salaryDaily * vacationInformationSolicitante.AvailableVacations;
+
+                        vacationAccrual.AvailableVacations = vacationInformationSolicitante.AvailableVacations;
+                        vacationAccrual.FinalBalance = vacationInformationSolicitante.AvailableVacations;
+                        vacationAccrual.EquivalentQuantity = vacationAmount;
+                        vacationAccrual.EquivalentQuantityInDollars = vacationAmount / 36.6243m;                     
+
+                        await _unitOfWork.VacationAccruals.UpdateAsync(vacationAccrual);
                     }
                     
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
