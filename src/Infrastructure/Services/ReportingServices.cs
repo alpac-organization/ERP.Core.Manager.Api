@@ -47,7 +47,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal inssPatronalCalc = Math.Round(employerContribution * inssPatronalPercentage, 2, MidpointRounding.AwayFromZero);
 
             decimal total = inssLaboralCalc + inatecCalc + inssPatronalCalc;
-            decimal incomeRounded = Math.Round(employerContribution, 2, MidpointRounding.AwayFromZero);
+            decimal incomeRounded = Math.Round(income, 2, MidpointRounding.AwayFromZero);
 
             var existingRecord = await _unitOfWork.InssAccountingInformation.Entities
                 .Where(x => x.PayrollId == payrollId && x.CollaboratorId == collaborator.Id)
