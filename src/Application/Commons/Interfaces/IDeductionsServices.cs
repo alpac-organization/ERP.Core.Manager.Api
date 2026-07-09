@@ -10,5 +10,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
         Task ApplyDeductionPurisima(Collaborator collaboratorInformation, decimal fortnightlyAmount, Guid payrollId, int numberFortnights);
         Task ApplyDeductionLoans(Collaborator collaboratorInformation, decimal amount, Guid payrollId, int numberFortnights, Currency currency, string description = "Registro de préstamo");
         Task ApplyJudicialGarnishment(Collaborator collaborator, decimal totalAmount, int percentage, Currency currency, string description, Guid payrollId);
+        Task<bool> ApplySansion(Collaborator collaboratorInformation, int amountDays, Guid payrollId);
     }
 }

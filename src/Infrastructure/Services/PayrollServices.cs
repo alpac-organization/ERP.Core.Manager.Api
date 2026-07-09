@@ -18,7 +18,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
       {
          var collabotators = await _unitOfWork.Collaborators.Entities
              .Where(col => col.CompanyId == companyId)
-             .Where(col => col.Status != CollaboratorStatus.Inactive)
+             .Where(col => col.Status != CollaboratorStatus.Inactive)   
              .Include(col => col.WorkingInformation)
              .Where(col => col.WorkingInformation.CompanyBranchId == branchId)
              .Include(c => c.Salaries
@@ -136,10 +136,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          //Consultando mesa de cambio actual
          var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
-             .Where(val => val.Status)
-             .Where(val => val.EndDate == null)
-             .Where(val => val.Type == TaxType.ExchangeRate)
-             .FirstOrDefaultAsync(default);
+            .Where(val => val.Status)
+            .Where(val => val.EndDate == null)
+            .Where(val => val.Type == TaxType.ExchangeRate)
+            .FirstOrDefaultAsync(default);
 
          if (exchangeRate is null)
          {

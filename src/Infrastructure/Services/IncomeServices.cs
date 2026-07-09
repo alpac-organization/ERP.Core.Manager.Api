@@ -442,12 +442,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          int daysWithoutSubsidy = Math.Max(maximumWorkedDays - subsidyDays, 0);
 
          var variableIncomeForWorkedDays = infPayroll.Antique
-                                           + infPayroll.Overtime
-                                           + infPayroll.Commissions
-                                           + infPayroll.HolidayPay;
+            + infPayroll.Overtime
+            + infPayroll.Commissions
+            + infPayroll.HolidayPay;
 
-         decimal totalGrossIncomeInThisFortnight = (daySalary * daysWithoutSubsidy)
-                                                    + variableIncomeForWorkedDays;
+         decimal totalGrossIncomeInThisFortnight = (daySalary * daysWithoutSubsidy) + variableIncomeForWorkedDays;
 
          decimal inssWithoutSubsidy = await _calculatorDeductions.CalculateInss(totalGrossIncomeInThisFortnight, default);
          decimal proportionalSalaryWithSubsidy = subsidyDays * daySalary;
@@ -458,20 +457,20 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal patronalInatecBase = totalGrossIncomeInThisFortnight + additionalSporadicPayments;
 
          infPayroll.TotalIncome = totalGrossIncomeInThisFortnight
-                                  + additionalSporadicPayments
-                                  + companySubsidyContribution;
+            + additionalSporadicPayments
+            + companySubsidyContribution;
 
          int numberOfFortnight = taxIncome.NumberOfFortnights;
          decimal salaryEarned = taxIncome.SalaryEarned;
          decimal accumulatedIR = taxIncome.AccumulatedIR;
 
          var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
-             numberOfFortnight,
-             salaryEarned,
-             accumulatedIR,
-             taxableBaseWithoutSubsidy,
-             true,
-             additionalSporadicPayments
+            numberOfFortnight,
+            salaryEarned,
+            accumulatedIR,
+            taxableBaseWithoutSubsidy,
+            true,
+            additionalSporadicPayments
          );
 
          infPayroll.Inss = inssWithoutSubsidy + BiweeklyInss;

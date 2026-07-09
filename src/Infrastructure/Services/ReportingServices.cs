@@ -239,7 +239,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
         public async Task<bool> ApplyUpdateIrReporting(Collaborator collaborator, decimal newIR, decimal newSalaryEarned, Payroll payroll, CancellationToken cancellationToken = default)
         {
-
             var taxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
             .Where(tax => tax.PayrollId == payroll.Id)
             .Where(tax => tax.CollaboratorId == collaborator.Id)
