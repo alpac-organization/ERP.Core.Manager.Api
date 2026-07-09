@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
         Task ApplyVacationRegistration(Collaborator collaborator, Guid payrollId);
 
-        Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal income, decimal inssLabor);
+        Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal income, decimal inssLabor, decimal? patronalInatecBase = null);
 
         Task<bool> ApplyUpdateIrReporting(Collaborator collaborator, decimal newIR, decimal newSalaryEarned, Payroll payroll, CancellationToken cancellationToken = default);
 

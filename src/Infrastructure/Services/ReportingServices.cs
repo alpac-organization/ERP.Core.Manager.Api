@@ -24,7 +24,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
         }
 
-        public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal income, decimal inssLabor)
+        public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal income, decimal inssLabor, decimal? patronalInatecBase = null)
         {
             int countCollaborators = await _unitOfWork.Collaborators.Entities
                 .Where(col => col.Status != CollaboratorStatus.Inactive)
@@ -35,18 +35,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(v => v.Status)
                 .ToListAsync(default);
 
+            decimal employerContribution = patronalInatecBase ?? income;
             decimal inatecPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inatec)?.Value ?? 0.02m;
 
             decimal inssPatronalPercentage = countCollaborators >= 50
                 ? validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal)?.Value ?? 0.225m
                 : validDeductions.FirstOrDefault(d => d.Type == TaxType.InssPatronal2)?.Value ?? 0.215m;
 
-            decimal inssLaboralCalc     = inssLabor;
-            decimal inatecCalc          = income * inatecPercentage;
-            decimal inssPatronalCalc    = income * inssPatronalPercentage;
+            decimal inssLaboralCalc = Math.Round(inssLabor, 2, MidpointRounding.AwayFromZero);
+            decimal inatecCalc = Math.Round(employerContribution * inatecPercentage, 2, MidpointRounding.AwayFromZero);
+            decimal inssPatronalCalc = Math.Round(employerContribution * inssPatronalPercentage, 2, MidpointRounding.AwayFromZero);
 
             decimal total = inssLaboralCalc + inatecCalc + inssPatronalCalc;
-            decimal incomeRounded = Math.Round(income, 2, MidpointRounding.AwayFromZero);
+            decimal incomeRounded = Math.Round(employerContribution, 2, MidpointRounding.AwayFromZero);
 
             var existingRecord = await _unitOfWork.InssAccountingInformation.Entities
                 .Where(x => x.PayrollId == payrollId && x.CollaboratorId == collaborator.Id)
@@ -78,7 +79,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 await _unitOfWork.InssAccountingInformation.UpdateAsync(existingRecord);
             }
         }
-        
+
         public async Task ApplyVacationMovement(Collaborator collaborator, Guid payrollId)
         {
             //Obtener la mesa de cambio oficial

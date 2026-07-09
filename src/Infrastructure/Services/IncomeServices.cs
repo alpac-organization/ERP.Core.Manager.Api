@@ -93,6 +93,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal taxableBaseWithoutSubsidy = totalGrossIncomeInThisFortnight - inssWithoutSubsidy + companySubsidyContribution;//base IR
 
          decimal additionalSporadicPayments = infPayroll.Bonus + infPayroll.Vacations;
+         decimal patronalInatecBase = totalGrossIncomeInThisFortnight + additionalSporadicPayments;
 
          infPayroll.TotalIncome = totalGrossIncomeInThisFortnight
                                   + additionalSporadicPayments
@@ -282,7 +283,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          period.Period.ToString(),
          period.Id,
          collaborator,
-         infPayroll.TotalIncome, infPayroll.Inss);
+         infPayroll.TotalIncome, infPayroll.Inss, patronalInatecBase);
 
          await _reportingServices.ApplyUpdateIrReporting(collaborator, BiweeklyIr, infPayroll.TotalIncome - infPayroll.Inss, period);
 
@@ -453,6 +454,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal taxableBaseWithoutSubsidy = totalGrossIncomeInThisFortnight - inssWithoutSubsidy + companySubsidyContribution;
 
          decimal additionalSporadicPayments = infPayroll.Bonus + infPayroll.Vacations;
+         decimal patronalInatecBase = totalGrossIncomeInThisFortnight + additionalSporadicPayments;
 
          infPayroll.TotalIncome = totalGrossIncomeInThisFortnight
             + additionalSporadicPayments
@@ -639,7 +641,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              period.Id,
              collaborator,
              infPayroll.TotalIncome,
-             infPayroll.Inss);
+             infPayroll.Inss, patronalInatecBase);
 
          await _reportingServices.ApplyUpdateIrReporting(
              collaborator,
