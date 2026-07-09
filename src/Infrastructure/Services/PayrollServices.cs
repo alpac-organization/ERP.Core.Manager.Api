@@ -366,6 +366,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #endregion
 
+
          #region Asignación de viaticos
          //Saber cuantos dias tiene con derecho a viaticos en base al calendario del mes del colaborador.
          int totalWorkDays = await AssignTravelDays(collaborator, payrollStart, payrollEnd);
