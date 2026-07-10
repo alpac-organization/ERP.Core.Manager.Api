@@ -287,7 +287,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          infPayroll.Inss,
          patronalInatecBase);
 
-         await _reportingServices.ApplyUpdateIrReporting(collaborator, BiweeklyIr, infPayroll.TotalIncome - infPayroll.Inss, period);
+         decimal salaryEarnedForIrReport = infPayroll.TotalIncome + proportionalSalaryWithSubsidy * 0.6m - infPayroll.Inss;
+
+         await _reportingServices.ApplyUpdateIrReporting(collaborator, BiweeklyIr, salaryEarnedForIrReport, period);
 
          bool subsidyAlreadyExists = await _unitOfWork.Subsidies.Entities
          .AnyAsync(s => s.CollaboratorId == collaborator.Id && s.PayrollId == period.Id);
@@ -646,10 +648,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              infPayroll.Inss,
              patronalInatecBase);
 
+         decimal salaryEarnedForIrReport =
+             infPayroll.TotalIncome + (proportionalSalaryWithSubsidy * (1m - employerPercentage))
+             - infPayroll.Inss;
+
          await _reportingServices.ApplyUpdateIrReporting(
              collaborator,
              BiweeklyIr,
-             infPayroll.TotalIncome - infPayroll.Inss,
+             salaryEarnedForIrReport,
              period);
 
          bool subsidyAlreadyExists = await _unitOfWork.Subsidies.Entities
