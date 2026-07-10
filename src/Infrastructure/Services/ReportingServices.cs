@@ -24,7 +24,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
         }
 
-        public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal income, decimal inssLabor, decimal? patronalInatecBase = null)
+        public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal biweeklySalary, decimal inssLabor, decimal? patronalInatecBase = null)
         {
             int countCollaborators = await _unitOfWork.Collaborators.Entities
                 .Where(col => col.Status != CollaboratorStatus.Inactive)
@@ -35,7 +35,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(v => v.Status)
                 .ToListAsync(default);
 
-            decimal employerContribution = patronalInatecBase ?? income;
+            decimal employerContribution = patronalInatecBase ?? biweeklySalary;
             decimal inatecPercentage = validDeductions.FirstOrDefault(d => d.Type == TaxType.Inatec)?.Value ?? 0.02m;
 
             decimal inssPatronalPercentage = countCollaborators >= 50
@@ -47,7 +47,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal inssPatronalCalc = Math.Round(employerContribution * inssPatronalPercentage, 2, MidpointRounding.AwayFromZero);
 
             decimal total = inssLaboralCalc + inatecCalc + inssPatronalCalc;
-            decimal incomeRounded = Math.Round(income, 2, MidpointRounding.AwayFromZero);
+            decimal incomeRounded = Math.Round(biweeklySalary, 2, MidpointRounding.AwayFromZero);
 
             var existingRecord = await _unitOfWork.InssAccountingInformation.Entities
                 .Where(x => x.PayrollId == payrollId && x.CollaboratorId == collaborator.Id)

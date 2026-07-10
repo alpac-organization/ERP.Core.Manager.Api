@@ -18,7 +18,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
       {
          var collabotators = await _unitOfWork.Collaborators.Entities
              .Where(col => col.CompanyId == companyId)
-             .Where(col => col.Status != CollaboratorStatus.Inactive)   
+             .Where(col => col.Status != CollaboratorStatus.Inactive)
              .Include(col => col.WorkingInformation)
              .Where(col => col.WorkingInformation.CompanyBranchId == branchId)
              .Include(c => c.Salaries
@@ -458,8 +458,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
 
          #region Registro del inss
-      
-         await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, TotalIncome, BiweeklyInss);
+
+         await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, BiweeklySalary, BiweeklyInss, TotalIncome);
 
          #endregion
 
@@ -524,9 +524,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
             {
-               AccumulatedIR           = 0.0m,
-               SalaryEarned            = 0.0m,
-               NumberOfFortnights      = 24,
+               AccumulatedIR = 0.0m,
+               SalaryEarned = 0.0m,
+               NumberOfFortnights = 24,
 
                AccumulatedIrByFornight = irReporting.IrFortnightly,
                SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
@@ -555,9 +555,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
             {
-               AccumulatedIR           = prevAccumulatedIrFlag,
-               SalaryEarned            = prevSalaryEarnedFlag,
-               NumberOfFortnights      = prevFortnights,
+               AccumulatedIR = prevAccumulatedIrFlag,
+               SalaryEarned = prevSalaryEarnedFlag,
+               NumberOfFortnights = prevFortnights,
 
                AccumulatedIrByFornight = irReporting.IrFortnightly,
                SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
@@ -568,9 +568,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                FlagSalaryEarned = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,
                FlagNumberOfFortnights = isEndOfYear ? 24 : (prevFortnights - 1),
 
-               PayrollId               = payroll.Id,
-               CollaboratorId          = collaborator.Id,
-               AccumulatedSeniority    = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
+               PayrollId = payroll.Id,
+               CollaboratorId = collaborator.Id,
+               AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
             });
          }
 

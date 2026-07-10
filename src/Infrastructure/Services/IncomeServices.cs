@@ -283,7 +283,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          period.Period.ToString(),
          period.Id,
          collaborator,
-         infPayroll.TotalIncome, infPayroll.Inss, patronalInatecBase);
+         monthSalary / 2, infPayroll.Inss, patronalInatecBase);
 
          await _reportingServices.ApplyUpdateIrReporting(collaborator, BiweeklyIr, infPayroll.TotalIncome - infPayroll.Inss, period);
 
@@ -640,7 +640,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              period.Period.ToString(),
              period.Id,
              collaborator,
-             infPayroll.TotalIncome,
+             monthSalary / 2,
              infPayroll.Inss, patronalInatecBase);
 
          await _reportingServices.ApplyUpdateIrReporting(
@@ -803,8 +803,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.Payroll.Period.ToString(),
             payrollId,
             collaboratorInformation,
-            ordinaryPayrollInfo.TotalIncome,
-            ordinaryPayrollInfo.Inss
+            ordinaryPayrollInfo.BiweeklySalary,
+            ordinaryPayrollInfo.Inss,
+            ordinaryPayrollInfo.TotalIncome
          );
 
          //Registro del ingreso.
@@ -951,8 +952,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              ordinaryPayrollInfo.Payroll.Period.ToString(),
              payrollId,
              collaboratorInformation,
-             ordinaryPayrollInfo.TotalIncome,
-             ordinaryPayrollInfo.Inss
+             ordinaryPayrollInfo.BiweeklySalary,
+             ordinaryPayrollInfo.Inss,
+             ordinaryPayrollInfo.TotalIncome
          );
 
          //Registro de horas extras
@@ -1088,8 +1090,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.Payroll.Period.ToString(),
             payrollId,
             collaboratorInformation,
-            ordinaryPayrollInfo.TotalIncome,
-            ordinaryPayrollInfo.Inss
+            ordinaryPayrollInfo.BiweeklySalary,
+            ordinaryPayrollInfo.Inss,
+            ordinaryPayrollInfo.TotalIncome
          );
 
          //Registramos el ingreso de las comisiones.
@@ -1248,8 +1251,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              ordinaryPayrollInfo.Payroll.Period.ToString(),
              payrollId,
              collaboratorInformation,
-             ordinaryPayrollInfo.TotalIncome,
-             ordinaryPayrollInfo.Inss
+             ordinaryPayrollInfo.BiweeklySalary,
+             ordinaryPayrollInfo.Inss,
+             ordinaryPayrollInfo.TotalIncome
          );
 
          await RecalculateSubsidyIfExists(collaboratorInformation, salaryInformation, payrollId);
@@ -1366,8 +1370,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              ordinaryPayrollInfo.Payroll.Period.ToString(),
              payrollId,
              collaboratorInformation,
-             ordinaryPayrollInfo.TotalIncome,
-             ordinaryPayrollInfo.Inss
+             ordinaryPayrollInfo.BiweeklySalary,
+             ordinaryPayrollInfo.Inss,
+             ordinaryPayrollInfo.TotalIncome
          );
          var exchangeRate = await _unitOfWork.ValidityDeductions.Entities
              .Where(val => val.Status && val.EndDate == null && val.Type == TaxType.ExchangeRate)
