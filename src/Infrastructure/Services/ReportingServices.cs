@@ -156,8 +156,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     .Where(p => p.PayrollType == payroll.PayrollType)
                     .Where(p => p.Period == PayrollPeriod.FirstPeriod)
                     .Where(p => p.StartDate.Year == payroll.StartDate.Year
-                             && p.StartDate.Month == payroll.StartDate.Month)
-                    .FirstOrDefaultAsync(cancellationToken);
+                             && p.StartDate.Month == payroll.StartDate.Month).FirstOrDefaultAsync(cancellationToken);
 
                 if (firstPayroll is not null)
                 {
