@@ -112,10 +112,26 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             additionalSporadicPayments
          );
 
-         infPayroll.Inss = inssWithoutSubsidy + BiweeklyInss;
-         infPayroll.Ir = BiweeklyIr;
-         infPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyInss + BiweeklyIr;
-
+         if (daysWithoutSubsidy == 0 && additionalSporadicPayments == 0)
+         {
+            infPayroll.Inss = 0m;
+            infPayroll.Ir = 0m;
+            infPayroll.TotalLegalDeductions = 0m;
+         }
+         else if (daysWithoutSubsidy == 0)
+         {
+            // Subsidio total, pero ingresos adicionales 
+            infPayroll.Inss = BiweeklyInss;
+            infPayroll.Ir = BiweeklyIr;
+            infPayroll.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+         }
+         else
+         {
+            // Subsidio parcial (hay días laborados)
+            infPayroll.Inss = inssWithoutSubsidy + BiweeklyInss;
+            infPayroll.Ir = BiweeklyIr;
+            infPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyInss + BiweeklyIr;
+         }
          decimal netAdditionalPayment = additionalSporadicPayments - (additionalSporadicPayments * 0.07m);
 
          taxIncome?.FlagSalaryEarned = (taxIncome?.SalaryEarned ?? 0)
@@ -477,9 +493,27 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             additionalSporadicPayments
          );
 
-         infPayroll.Inss = inssWithoutSubsidy + BiweeklyInss;
-         infPayroll.Ir = BiweeklyIr;
-         infPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyInss + BiweeklyIr;
+         if (daysWithoutSubsidy == 0 && additionalSporadicPayments == 0)
+         {
+            //libre de deducciones
+            infPayroll.Inss = 0m;
+            infPayroll.Ir = 0m;
+            infPayroll.TotalLegalDeductions = 0m;
+         }
+         else if (daysWithoutSubsidy == 0)
+         {
+            // Subsidio total, pero hubo ingresos adicionales se toma en cuenta el inss y ir de esos 
+            infPayroll.Inss = BiweeklyInss;
+            infPayroll.Ir = BiweeklyIr;
+            infPayroll.TotalLegalDeductions = BiweeklyInss + BiweeklyIr;
+         }
+         else
+         {
+            // Subsidio parcial (hay días laborados)
+            infPayroll.Inss = inssWithoutSubsidy + BiweeklyInss;
+            infPayroll.Ir = BiweeklyIr;
+            infPayroll.TotalLegalDeductions = inssWithoutSubsidy + BiweeklyInss + BiweeklyIr;
+         }
 
          decimal netAdditionalPayment = additionalSporadicPayments - (additionalSporadicPayments * 0.07m);
 
