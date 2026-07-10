@@ -459,7 +459,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #region Registro del inss
 
-         await _reportingServices.ApplyInssReporting(payroll.Period.ToString(), payroll.Id, collaborator, BiweeklySalary, BiweeklyInss, TotalIncome);
+         await _reportingServices.ApplyInssReporting(
+            payroll.Period.ToString(),
+            payroll.Id,
+            collaborator,
+            GetReportIncome(BiweeklySalary, Overtime, Commissions, Bonus, 0, 0),
+            BiweeklyInss,
+            TotalIncome);
 
          #endregion
 
@@ -644,6 +650,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
 
          //Se finaliza el proceso de registro a la nomina prestacionada.
+      }
+
+      private static decimal GetReportIncome(decimal biweeklySalary, decimal overtime, decimal commissions, decimal bonus, decimal vacations, decimal holidayPay)
+      {
+         decimal extras = overtime + commissions + bonus + vacations + holidayPay;
+         return extras > 0 ? biweeklySalary + extras : biweeklySalary;
       }
 
    }

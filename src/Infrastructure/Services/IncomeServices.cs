@@ -283,7 +283,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          period.Period.ToString(),
          period.Id,
          collaborator,
-         monthSalary / 2, infPayroll.Inss, patronalInatecBase);
+         GetReportIncome(monthSalary / 2, infPayroll.Overtime, infPayroll.Commissions, infPayroll.Bonus, infPayroll.Vacations, infPayroll.HolidayPay),
+         infPayroll.Inss,
+         patronalInatecBase);
 
          await _reportingServices.ApplyUpdateIrReporting(collaborator, BiweeklyIr, infPayroll.TotalIncome - infPayroll.Inss, period);
 
@@ -640,8 +642,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              period.Period.ToString(),
              period.Id,
              collaborator,
-             monthSalary / 2,
-             infPayroll.Inss, patronalInatecBase);
+             GetReportIncome(monthSalary / 2, infPayroll.Overtime, infPayroll.Commissions, infPayroll.Bonus, infPayroll.Vacations, infPayroll.HolidayPay),
+             infPayroll.Inss,
+             patronalInatecBase);
 
          await _reportingServices.ApplyUpdateIrReporting(
              collaborator,
@@ -803,7 +806,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.Payroll.Period.ToString(),
             payrollId,
             collaboratorInformation,
-            ordinaryPayrollInfo.BiweeklySalary,
+            GetReportIncome(ordinaryPayrollInfo.BiweeklySalary, ordinaryPayrollInfo.Overtime, ordinaryPayrollInfo.Commissions, ordinaryPayrollInfo.Bonus, ordinaryPayrollInfo.Vacations, ordinaryPayrollInfo.HolidayPay),
             ordinaryPayrollInfo.Inss,
             ordinaryPayrollInfo.TotalIncome
          );
@@ -952,7 +955,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              ordinaryPayrollInfo.Payroll.Period.ToString(),
              payrollId,
              collaboratorInformation,
-             ordinaryPayrollInfo.BiweeklySalary,
+             GetReportIncome(ordinaryPayrollInfo.BiweeklySalary, ordinaryPayrollInfo.Overtime, ordinaryPayrollInfo.Commissions, ordinaryPayrollInfo.Bonus, ordinaryPayrollInfo.Vacations, ordinaryPayrollInfo.HolidayPay),
              ordinaryPayrollInfo.Inss,
              ordinaryPayrollInfo.TotalIncome
          );
@@ -1090,7 +1093,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             ordinaryPayrollInfo.Payroll.Period.ToString(),
             payrollId,
             collaboratorInformation,
-            ordinaryPayrollInfo.BiweeklySalary,
+            GetReportIncome(ordinaryPayrollInfo.BiweeklySalary, ordinaryPayrollInfo.Overtime, ordinaryPayrollInfo.Commissions, ordinaryPayrollInfo.Bonus, ordinaryPayrollInfo.Vacations, ordinaryPayrollInfo.HolidayPay),
             ordinaryPayrollInfo.Inss,
             ordinaryPayrollInfo.TotalIncome
          );
@@ -1251,7 +1254,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              ordinaryPayrollInfo.Payroll.Period.ToString(),
              payrollId,
              collaboratorInformation,
-             ordinaryPayrollInfo.BiweeklySalary,
+             GetReportIncome(ordinaryPayrollInfo.BiweeklySalary, ordinaryPayrollInfo.Overtime, ordinaryPayrollInfo.Commissions, ordinaryPayrollInfo.Bonus, ordinaryPayrollInfo.Vacations, ordinaryPayrollInfo.HolidayPay),
              ordinaryPayrollInfo.Inss,
              ordinaryPayrollInfo.TotalIncome
          );
@@ -1370,7 +1373,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              ordinaryPayrollInfo.Payroll.Period.ToString(),
              payrollId,
              collaboratorInformation,
-             ordinaryPayrollInfo.BiweeklySalary,
+             GetReportIncome(ordinaryPayrollInfo.BiweeklySalary, ordinaryPayrollInfo.Overtime, ordinaryPayrollInfo.Commissions, ordinaryPayrollInfo.Bonus, ordinaryPayrollInfo.Vacations, ordinaryPayrollInfo.HolidayPay),
              ordinaryPayrollInfo.Inss,
              ordinaryPayrollInfo.TotalIncome
          );
@@ -1394,6 +1397,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          await RecalculateSubsidyIfExists(collaboratorInformation, salaryInformation, payrollId);
          _logger.LogInformation("✅ Feriado registrado y nómina recalculada exitosamente.");
          return true;
+      }
+      private static decimal GetReportIncome(decimal biweeklySalary, decimal overtime, decimal commissions, decimal bonus, decimal vacations,
+      decimal holidayPay)
+      {
+         decimal extras = overtime + commissions + bonus + vacations + holidayPay;
+         return extras > 0 ? biweeklySalary + extras : biweeklySalary;
       }
    }
 }
