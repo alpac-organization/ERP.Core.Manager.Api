@@ -93,7 +93,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal taxableBaseWithoutSubsidy = totalGrossIncomeInThisFortnight - inssWithoutSubsidy + companySubsidyContribution;//base IR
 
          decimal additionalSporadicPayments = infPayroll.Bonus + infPayroll.Vacations;
-         decimal patronalInatecBase = totalGrossIncomeInThisFortnight + additionalSporadicPayments;
+
+         // Subsidio completo → Patronal/INATEC en 0.
+         // Subsidio parcial → días laborados + antigüedad + variables + extras.
+         decimal patronalInatecBase = daysWithoutSubsidy == 0
+             ? 0m
+             : (daySalary * daysWithoutSubsidy)
+               + infPayroll.Antique
+               + infPayroll.Overtime
+               + infPayroll.Commissions
+               + infPayroll.HolidayPay
+               + additionalSporadicPayments;
 
          infPayroll.TotalIncome = totalGrossIncomeInThisFortnight
                                   + additionalSporadicPayments
@@ -474,7 +484,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal taxableBaseWithoutSubsidy = totalGrossIncomeInThisFortnight - inssWithoutSubsidy + companySubsidyContribution;
 
          decimal additionalSporadicPayments = infPayroll.Bonus + infPayroll.Vacations;
-         decimal patronalInatecBase = totalGrossIncomeInThisFortnight + additionalSporadicPayments;
+
+         // Subsidio completo → Patronal/INATEC en 0.
+         // Subsidio parcial → días laborados + antigüedad + variables + extras.
+         decimal patronalInatecBase = daysWithoutSubsidy == 0
+             ? 0m
+             : (daySalary * daysWithoutSubsidy)
+               + infPayroll.Antique
+               + infPayroll.Overtime
+               + infPayroll.Commissions
+               + infPayroll.HolidayPay
+               + additionalSporadicPayments;
 
          infPayroll.TotalIncome = totalGrossIncomeInThisFortnight
             + additionalSporadicPayments
