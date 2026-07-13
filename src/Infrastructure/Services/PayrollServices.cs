@@ -484,8 +484,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal vacationAmountInCordobas = vacationControl.AvailableVacations * dailySalary;
          decimal vacationAmountInDollars = (vacationControl.AvailableVacations * dailySalary) / exchangeRate?.Value ?? 0.0m;
 
+         var (monthlyTotals, hasCommissions) = await GetMonthlyIncomeForIndemnification(collaborator.Id, entryDate, payrollEnd);
+
          var indem = _calculatorDeductions.CalculateIndemnification(
             monthlySalary,
+            monthlyTotals,
+            hasCommissions,
             entryDate,
             payrollEnd);
 
@@ -583,6 +587,40 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          return true;
          #endregion
       }
+      #region Indemnification
+      private async Task<(List<decimal> monthlyTotals, bool hasCommissions)> GetMonthlyIncomeForIndemnification(Guid collaboratorId, DateOnly entryDate, DateOnly calculationDate, int monthsToLookBack = 6)
+      {
+         //Ultimos 6 meses o desde ingreso si es menor.
+         DateOnly windowStart = calculationDate.AddMonths(-monthsToLookBack);
+         if (entryDate > windowStart) windowStart = entryDate;
+
+         var rows = await _unitOfWork.OrdinaryPayrolls.Entities
+                    .Where(p => p.CollaboratorId == collaboratorId)
+                    .Where(p => p.Payroll.Status == PayrollStatus.Closed)
+                    .Where(p => p.Payroll.EndDate >= windowStart && p.Payroll.EndDate < calculationDate)
+                    .Select(p => new
+                    {
+                       p.Payroll.EndDate.Year,
+                       p.Payroll.EndDate.Month,
+                       p.BiweeklySalary,
+                       p.Commissions
+                    }).ToListAsync();
+
+         bool hasCommissions = rows.Any(r => r.Commissions > 0);
+
+         var monthlyTotals = rows
+                    .GroupBy(r => new { r.Year, r.Month })
+                    .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                    .Select(g => g.Sum(x => x.BiweeklySalary)// Q1 + Q2 => es mensual de ese mes
+                     + g.Sum(x => x.Commissions))//Las posibles comisiones de ese mes
+                    .Where(total => total > 0)
+                    .TakeLast(monthsToLookBack)//Toma unicamente los 6 meses para promediar luego 
+                    .ToList();
+
+         return (monthlyTotals, hasCommissions);
+      }
+
+      #endregion
       public async Task RegisterCollaboratorToVigemsaProfessional(Guid payrollId, Collaborator collaborator)
       {
          var payrollCreated = await _unitOfWork.Payrolls.Entities
