@@ -12,8 +12,11 @@ namespace ERP.Core.Manager.Api.Application.Features.TypesCustomer.v1.Handlers
     {
         public async Task<List<TypeCustomerDto>> Handle(GetTypesCustomerQuery request, CancellationToken cancellationToken)
         {
+            var typesCustomer = await _unitOfWork.CustomerType.Entities
+                .Where(cut => cut.IsActive)
+                .ToListAsync(cancellationToken);
 
-            return [];
+            return _mapper.Map<List<TypeCustomerDto>>(typesCustomer);
         }
     }
 }

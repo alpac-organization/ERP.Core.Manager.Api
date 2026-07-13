@@ -8,7 +8,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Handlers
 {
-    public class GetCustomersAvailableHandler(IUnitOfWork _unitOfWork /*, IErrorManager _errorManager */, IMapper _mapper) : IRequestHandler<GetCustomersAvailableQuery, List<CustomerDto>>
+    public class GetCustomersAvailableHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<GetCustomersAvailableQuery, List<CustomerDto>>
     {
         public async Task<List<CustomerDto>> Handle(GetCustomersAvailableQuery request, CancellationToken cancellationToken)
         {
@@ -24,7 +24,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Handlers
                     .Where(cus => cus.CustomerTypeId == request.CustomerTypeId);
             }
 
-            var customers = customersQuery
+            var customers = await customersQuery
                 .ToListAsync(cancellationToken);
 
             return _mapper.Map<List<CustomerDto>>(customers);
