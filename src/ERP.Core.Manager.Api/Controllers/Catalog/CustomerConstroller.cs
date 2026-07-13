@@ -2,9 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
-using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries;
-using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.Customers.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Customers.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Controllers.Catalog
 {
@@ -13,31 +12,33 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
     public class CustomerController(IMediator _mediator) : ApiControllerBase
     {
         [Tags("Clientes")]  
-        [HttpPost("companies/{company_id}/customers")]   
-        [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status201Created)]
+        [HttpGet("companies/{company_id}/customers")]   
+        [ProducesResponseType(typeof(List<CustomerDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<CreatedResult> RegisterCustomerAsync([FromRoute] Guid company_id /*Body here*/)
+        public async Task<List<CustomerDto>> RegisterCustomerAsync([FromRoute] Guid company_id, 
+            [FromQuery] bool? status = true, 
+            [FromQuery] Guid? customer_type_id = null        
+        )
         {
-            
-            /*Pendiente a realizar*/
-
-
-            return Created();
+            return await _mediator.Send(new GetCustomersAvailableQuery()
+            {
+                Status = status,
+                CompanyId = company_id,
+                CustomerTypeId = customer_type_id,
+            });
         }
 
         [Tags("Clientes")]  
-        [HttpGet("companies/{company_id}/customers")]   
-        [ProducesResponseType(typeof(List<CostCenterDto>), StatusCodes.Status200OK)]
+        [HttpGet("companies/{company_id}/customers/{customer_id}/details")]   
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<List<CostCenterDto>> GetCostCenterByAreaAsync([FromRoute] Guid company_id, [FromRoute] Guid area_id)
+        public async Task<OkResult> GetCustomerDetailsAsync([FromRoute] Guid company_id,  [FromRoute] Guid customer_id)
         {
-            return await _mediator.Send(new GetCostCentersByAreaQuery()
-            {
-                CompanyId = company_id,
-                AreaId = area_id
-            });
+            /*Pendiente a realizar*/
+
+            return Ok();
         }
     }
 }
