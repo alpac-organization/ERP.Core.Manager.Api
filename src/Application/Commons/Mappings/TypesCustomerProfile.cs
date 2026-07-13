@@ -1,8 +1,6 @@
 using AutoMapper;
 using ERP.Core.Database.Domain.Entities.Catalogs;
-using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Features.TypesCustomer.v1.Dtos;
-using ERP.Core.Manager.Api.Application.Features.TypesSubsidy.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 {
