@@ -1,13 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
-using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Domain.Entities.Errors;
+
 using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using ERP.Core.Manager.Api.Controllers.ApiBase;
+
+using ERP.Core.Domain.Entities.Errors;
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -37,6 +39,31 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
         #endregion 
+
+        #region Metodo para desactivar colaborador
+        [Tags("Colaboradores")] 
+        [HttpDelete("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}", Name = "DeactivateCollaborator")]
+        [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        public async Task<NoContentResult> DeactivateCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            var Payload = new DeactivateCollaboratorCommand()
+            {
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                IdentificationNumber = identification_number
+            };
+
+            await _mediator.Send(Payload);
+
+            return NoContent();
+        }
+        #endregion
+
 
         [Tags("Colaboradores")] 
         [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details", Name = "UpdateCollaboratorInformation")]
@@ -70,7 +97,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromQuery] CollaboratorStatus? status,
             [FromQuery] string? identification_number,
             [FromQuery] Guid? branch_id,
-            [FromQuery] int area_id = 0,
+            [FromQuery] Guid? area_id,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
         )   
@@ -79,7 +106,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery()
             {
-                AreaSubCatalogId = area_id,
+                AreaId = area_id,
                 BranchId = branch_id, 
                 UserId = Guid.Parse(userIdStr ?? ""),
                 CompanyId = companie_id,

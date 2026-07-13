@@ -4,8 +4,8 @@ using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Domain.Entities.Errors;
+using ERP.Core.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers.Auth
 {

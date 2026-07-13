@@ -9,15 +9,15 @@ using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class ClosePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<ClosePayrollProcessHandler> _logger): AlpacBaseHandler<ClosePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
+    public class ClosePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<ClosePayrollProcessHandler> _logger) : AlpacBaseHandler<ClosePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(ClosePayrollProcessCommand request, CancellationToken cancellationToken)
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
-            if (!access.IsSuccess) 
+            if (!access.IsSuccess)
             {
-                return access.ErrorResponse!; 
+                return access.ErrorResponse!;
             }
 
             if (access.Role!.RoleType != RoleType.Administrator)
@@ -36,19 +36,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
             #region Verificar estado de la nomina
 
-            var payroll = await _unitOfWork.Payrolls.Entities 
-                .Where(pay => 
+            var payroll = await _unitOfWork.Payrolls.Entities
+                .Where(pay =>
                     pay.BranchId == request.BranchId && pay.PayrollType == request.PayrollType
                 )
                 .Where(pay =>
                     pay.Id == request.PayrollId && pay.Status == PayrollStatus.Progress
                 )
                 .Include(pay => pay.OrdinaryPayrolls)
+                    .ThenInclude(or => or.Collaborator)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (payroll is null)
             {
-                return  _errorManager.ThrowBadRequest<bool>("Esta nomina no se encuentra en curso o no existe", "ERP:02");
+                return _errorManager.ThrowBadRequest<bool>("Esta nomina no se encuentra en curso o no existe", "ERP:02");
             }
 
             #endregion
@@ -56,18 +57,39 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             payroll.Status = PayrollStatus.Closed;
             await _unitOfWork.Payrolls.UpdateAsync(payroll);
 
-            //Guardamos procesos de historiales
-            var registers = payroll.OrdinaryPayrolls;
 
-            //Realizar todo aquel, registro de deducciones y pagos realizados del colaborador
-            foreach(var collaborator in registers)
+            //permisos colgados de una payroll cerrada.
+            var pendingPermits = await _unitOfWork.PermitApplications.Entities
+                .Where(permit => permit.PayrolId == request.PayrollId && permit.Status == PermitApplicationStatus.Pending)
+                .ToListAsync(cancellationToken);
+
+            foreach (var permit in pendingPermits)
             {
+                //actualizando su estado a cancelled
+                permit.Status = PermitApplicationStatus.Cancelled;
+                await _unitOfWork.PermitApplications.UpdateAsync(permit);
+            }
+
+            var registers = payroll.OrdinaryPayrolls;
+            //Realizar todo aquel, registro de deducciones y pagos realizados del colaborador
+            foreach (var collaborator in registers)
+            {
+                //Verificar si el colaborador se encuentra despedido.
+
+                if (collaborator.Collaborator.HasBeenFired)
+                {
+                    //Este colaborador has sido despedido ya no continua en el progreso de nomina
+                    _logger.LogInformation("El colaborador con identification: {identification}, has sido dado de baja", collaborator.Collaborator.IdentificationNumber);
+                    continue;
+                }
+
+
                 var deductionsActive = await _unitOfWork.Deductions.Entities
-                    .Where(deduction => deduction.CollaboratorId == collaborator.Id)
+                    .Where(deduction => deduction.CollaboratorId == collaborator.CollaboratorId)
                     .Where(deduction => deduction.Status == DeductionStatus.Progress)
                     .ToListAsync(cancellationToken);
 
-                foreach(var deduction in deductionsActive)
+                foreach (var deduction in deductionsActive)
                 {
                     var payment = await _unitOfWork.DeductionPaymentHistories.Entities
                         .Where(paid => paid.DeductionId == deduction.Id)
@@ -75,62 +97,70 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         .Include(paid => paid.Deduction)
                         .FirstOrDefaultAsync(cancellationToken);
 
-                    if(payment is null)
+                    if (payment is null)
                     {
-                        _logger.LogInformation("");
+                        _logger.LogInformation("No cuenta con pagos pendientes, ha cancelado!");
                         continue;
                     }
-                    
-                    decimal amountInLocal   = deduction.FortnightlyAmount ?? 0;
-                    decimal amountInDollars = deduction.FortnightlyAmountInDollars ?? 0;
+
+                    // decimal amountInLocal = deduction.FortnightlyAmount ?? 0;
+                    // decimal amountInDollars = deduction.FortnightlyAmountInDollars ?? 0;
+                    decimal amountInLocal = payment.AmountPaid;
+                    decimal amountInDollars = payment.AmountPaidInDollars;
 
                     deduction.AmountPaid += amountInLocal;
                     deduction.AmountPaidInDollars += amountInDollars;
                     deduction.NumberFortnightsPaid += 1;
 
-                    if (deduction.Type == DeductionType.Loans)
-                    {
-                        deduction.TotalBalance -= amountInLocal;
-                        deduction.TotalBalanceInDollars -= amountInDollars;
+                    deduction.TotalBalance -= amountInLocal;
+                    deduction.TotalBalanceInDollars -= amountInDollars;
 
-                        if (deduction.TotalBalance <= 0 && deduction.TotalBalanceInDollars <= 0)
+                    if (deduction.TotalBalance <= 0 && deduction.TotalBalanceInDollars <= 0)
+                    {
+                        deduction.Status = DeductionStatus.Completed;
+                        await _unitOfWork.Deductions.UpdateAsync(deduction);
+
+                        var nextGarnishment = await _unitOfWork.Deductions.Entities
+                            .Where(d => d.CollaboratorId == deduction.CollaboratorId)
+                            .Where(d => d.Type == DeductionType.JudicialSeizures)
+                            .Where(d => d.Status == DeductionStatus.Pending)
+                            .OrderBy(d => d.CreatedAt)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (nextGarnishment is not null)
                         {
-                            deduction.Status = DeductionStatus.Completed;
-                            await _unitOfWork.Deductions.UpdateAsync(deduction);
+                            nextGarnishment.Status = DeductionStatus.Progress;
+                            await _unitOfWork.Deductions.UpdateAsync(nextGarnishment);
                         }
-
-                        payment.Status = DeductionPaymentStatus.Paid;
-                        await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
                     }
 
-                    if (deduction.Type == DeductionType.Purisima)
-                    {
-                        payment.Status = DeductionPaymentStatus.Paid;
-                        await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
-                    }
-
-                    if (deduction.Type == DeductionType.OtherDeductions)
-                    {
-                        deduction.TotalBalance -= amountInLocal;
-                        deduction.TotalBalanceInDollars -= amountInDollars;
-
-                        if (deduction.TotalBalance <= 0 && deduction.TotalBalanceInDollars <= 0)
-                        {
-                            deduction.Status = DeductionStatus.Completed;
-                            await _unitOfWork.Deductions.UpdateAsync(deduction);
-                        }
-
-                        payment.Status = DeductionPaymentStatus.Paid;
-                        await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
-                    }
+                    payment.Status = DeductionPaymentStatus.Paid;
+                    await _unitOfWork.DeductionPaymentHistories.UpdateAsync(payment);
 
                     await _unitOfWork.Deductions.UpdateAsync(deduction);
                 }
 
-
                 //Acumulado de vacaciones
+                const decimal valueVacations = 1.25m;
+                int daysWithSubsidy = 0;
+
+                var subsidy = await _unitOfWork.Subsidies.Entities
+                    .Where(sub => sub.CollaboratorId == collaborator.CollaboratorId)
+                    .Where(sub => sub.PayrollId == collaborator.PayrollId)
+                    .Include(sub => sub.TypesSubsidy)
+                    .Where(sub => sub.TypesSubsidy.Code != "MATERNITY")
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (subsidy is not null)
+                {
+                    daysWithSubsidy = subsidy.AmountDays;
+                }
+
+                decimal valueVacationsDay = valueVacations / 15;
+                decimal amountToDiscountBySubsidy = daysWithSubsidy * valueVacationsDay;
+
                 var vacationControl = await _unitOfWork.Vacations.Entities
-                    .Where(col => col.CollaboratorId == collaborator.Id)
+                    .Where(col => col.CollaboratorId == collaborator.CollaboratorId)
                     .FirstOrDefaultAsync(cancellationToken);
 
                 if (vacationControl is null)
@@ -139,13 +169,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     continue;
                 }
 
-                vacationControl.AvailableVacations += 1.25m;
-                vacationControl.GeneredVacation+= 1.25m;
+                vacationControl.AvailableVacations += valueVacations - amountToDiscountBySubsidy;
+                vacationControl.GeneredVacation += valueVacations - amountToDiscountBySubsidy;
+
+                await _unitOfWork.Vacations.UpdateAsync(vacationControl);
             }
-            
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return true;
         }
     }
-}   
+}

@@ -18,13 +18,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 .Where(c => c.CompanyId == request.CompanyId);
 
             var totalCollaborators = await baseQuery.CountAsync(cancellationToken);
+            
             var totalActive = await baseQuery.CountAsync(c => c.Status == CollaboratorStatus.Active, cancellationToken);
             var totalOnVacation = await baseQuery.CountAsync(c => c.Status == CollaboratorStatus.Vacation, cancellationToken);
             var totalOnSubsidy = await baseQuery.CountAsync(c => c.Status == CollaboratorStatus.Subsidy, cancellationToken);
 
             var gridQuery = baseQuery
                 .Include(c => c.WorkingInformation)
-                    .ThenInclude(w => w.WorkArea)
+                    .ThenInclude(w => w.Area)
                 .Include(c => c.WorkingInformation)
                     .ThenInclude(w => w.WorkPosition)
                 .Include(c => c.WorkingInformation)
@@ -34,8 +35,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
             if (request.Status.HasValue)
                 gridQuery = gridQuery.Where(c => c.Status == request.Status.Value);
-            else
-                gridQuery = gridQuery.Where(c => c.Status != CollaboratorStatus.Inactive);
 
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
                 gridQuery = gridQuery.Where(c => c.IdentificationNumber == request.IdentificationNumber);
@@ -43,8 +42,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             if (!string.IsNullOrEmpty(request.BranchId.ToString()))
                 gridQuery = gridQuery.Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId);
 
-            if (request.AreaSubCatalogId > 0)
-                gridQuery = gridQuery.Where(c => c.WorkingInformation.WorkAreaId == request.AreaSubCatalogId);
+            if (!string.IsNullOrEmpty(request.AreaId.ToString()))
+                gridQuery = gridQuery.Where(c => c.WorkingInformation.AreaId == request.AreaId);
 
             var filteredRecordsCount = await gridQuery.CountAsync(cancellationToken);
 

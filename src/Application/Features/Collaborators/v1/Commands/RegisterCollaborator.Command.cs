@@ -16,6 +16,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? FirstLastname { get; set; }
         public string? IdentificationNumber { get; set; }
         public Guid CompanyId { get; set; }
+        public bool DoesWorkSaturday { get; set; } = false;
 
         public string? SecondName { get; set; }
         public string? ThirdName { get; set; }
@@ -29,7 +30,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         
         public WorkingInformation? WorkingInformation { get; set; }
         public PersonalInformation? PersonalInformation { get; set; }
-        public SalaryInformation? SalaryInformation { get; set; }
+        required public SalaryInformation SalaryInformation { get; set; }
         public List<TravelExpenses> TravelExpenses { get; set; } = [];
     }
 
@@ -48,7 +49,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? Daem { get; set; }
 
         //Catalogs
-        public int WorkAreaId { get; set; }
+        public Guid AreaId { get; set; }
         public int WorkPositionId { get; set; }
         public Guid BranchId { get; set; }
 

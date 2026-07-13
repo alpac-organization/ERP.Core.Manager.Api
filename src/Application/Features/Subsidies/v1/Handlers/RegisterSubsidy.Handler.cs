@@ -7,13 +7,17 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
+using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
 {
-    public class RegisterSubsidyHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IIncomeServices _incomeServices): AlpacBaseHandler<RegisterSubsidyCommmand, bool>(_unitOfWork, _errorManager)
+    public class RegisterSubsidyHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IIncomeServices _incomeServices, ILogger<RegisterSubsidyHandler> _logger) : AlpacBaseHandler<RegisterSubsidyCommmand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterSubsidyCommmand request, CancellationToken cancellationToken)
         {
+
+            _logger.LogInformation("Iniciando registro de subsidio");
+
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess)
@@ -32,9 +36,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
             }
 
             var collaboratorInformation = await _unitOfWork.Collaborators.Entities
-                .Where(collaborator => collaborator.Id == request.CollaboratorId) 
-                .Where(collaborator => collaborator.Status != CollaboratorStatus.Inactive)
-                .FirstOrDefaultAsync(cancellationToken);
+            .Include(collaborator => collaborator.WorkingInformation)
+            .Where(collaborator => collaborator.Id == request.CollaboratorId)
+            .Where(collaborator => collaborator.Status != CollaboratorStatus.Inactive)
+            .FirstOrDefaultAsync(cancellationToken);
 
             if (collaboratorInformation is null)
             {
@@ -62,23 +67,64 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No se puede iniciar el proceso de subsidio si no se encuentrea una nomina activa", "ERP:BadRequest");
             }
 
+            var existingSubsidy = await _unitOfWork.Subsidies.Entities
+                                 .Where(sub => sub.CollaboratorId == request.CollaboratorId)
+                                 .Where(sub => sub.PayrollId == request.PayrollId)
+                                 .AnyAsync(cancellationToken);
+
+            if (existingSubsidy)
+            {
+                return _errorManager.ThrowBadRequest<bool>("El colaborador ya tiene un subsidio registrado en esta nómina", "ERP:BadRequest");
+            }
+
             switch (typeSubsidy.Code)
             {
                 case "COMMON_ILLNESS":
-                {
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
-                    return true;
-                }
+                    {
+                        _logger.LogInformation("Subsidio por enfermedad común");
+
+                        bool isSucceded = await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
+
+                        if (!isSucceded)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidios", "ERP");
+                        }
+
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        return true;
+                    }
                 case "WORK_ACCIDENT":
-                {
-                    await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
-                    return true;   
-                }
+                    {
+                        _logger.LogInformation("Subsidio por enfermedad laboral");
+                        bool isSucceded = await _incomeServices.ApplyMedicalSubsidy(collaboratorInformation, salaryInformation, payrollActive, request);
+
+                        if (!isSucceded)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidios", "ERP");
+                        }
+
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        return true;
+                    }
+
+                case "MATERNITY":
+                    {
+                        _logger.LogInformation("Subsidio por maternidad");
+
+                        bool isSucceded = await _incomeServices.ApplyMedicalSubsidyToPregnantWomen(collaboratorInformation, payrollActive, salaryInformation, request);
+
+                        if (!isSucceded)
+                        {
+
+                            return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al registrar el subsidio", "ERP");
+                        }
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        return true;
+                    }
                 default:
-                {
-                    return _errorManager.ThrowBadRequest<bool>("Este tipo de subsidio no se encuetra en funcionamiento.", "ERP:BadRequest");   
-                }
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("Este tipo de subsidio no se encuetra en funcionamiento.", "ERP:BadRequest");
+                    }
             }
         }
     }

@@ -8,26 +8,29 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
 {
     public class CreatePermitApplicationCommand : BaseRequest, IRequest<bool>
     {
-        public string? Description { get; set; }
-        public PermitApplicationType PermitApplicationType { get; set; }
-        public Channels Channel { get; set; }
         public Guid PayrollId { get; set; }
-        
-        public PermitApplicationVacation? PermitApplicationVacation { get; set; }
-        public PermitApplicationDonatedVacations? PermitApplicationDonatedVacations { get; set; }
-        public PermitApplicationMedicalAppointment? PermitApplicationMedicalAppointment { get; set; }
-
-
-        [JsonIgnore]
+        public Channels Channel { get; set; }
+        public string? Description { get; set; }
         public string? IdentificationNumber { get; set; }
+        public PermitApplicationType PermitApplicationType { get; set; }
+        
+               
+        public PermitApplicationVacationPay? PermitApplicationVacationPay { get; set; }
+        public PermitApplicationVacation? PermitApplicationVacation { get; set; }
+        public PermitApplicationMedicalAppointment? PermitApplicationMedicalAppointment { get; set; }
+    }
+    public class PermitApplicationVacationPay
+    {
+        public decimal AmountDays { get; set; }
+        public DateOnly RequestDate { get; set; }
     }
 
     public class PermitApplicationVacation
     {
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
-        public TimeOnly? StartTime { get; set; }
         public TimeOnly? EndTime { get; set; }
+        public TimeOnly? StartTime { get; set; }
 
         public bool IsFullDay { get; set; } = false;
         public bool IsItMidday { get; set; } = false;
@@ -44,13 +47,17 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
 
         //Hora de entrada
         public TimeOnly? EndTime { get; set; }
-        
+
+        //Verificar si es un dia completo o solo horas.
         public bool IsFullDay { get; set; } = false;
+
+        //Imagenes abjuntadas
+        public List<ImageData> Images { get; set; } = [];
     }
 
-    public class PermitApplicationDonatedVacations
+    public class ImageData
     {
-        public decimal AmountDays { get; set; }
-        public string? IdentificationCollaboratorToReceive { get; set; }
+        public string? ImageBase64 { get; set; }
+        public string? ContentType { get; set; }
     }
 }

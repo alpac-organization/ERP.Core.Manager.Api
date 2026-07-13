@@ -47,8 +47,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
                 .When(x => x.WorkingInformation != null);
 
             RuleFor(x => x.SalaryInformation)
-                .SetValidator(new SalaryInformationValidator()!)
-                .When(x => x.SalaryInformation != null);
+                .SetValidator(new SalaryInformationValidator());
         }
     }
 
@@ -98,11 +97,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
                 .Matches(@"^[2|5|7|8]\d{7}$")
                 .WithMessage("El número de teléfono debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)")
                 .When(x => !string.IsNullOrEmpty(x.WorkPhoneNumber));
-
-            RuleFor(x => x.WorkAreaId) 
-                .GreaterThan(0)
-                .NotEmpty()
-                .WithMessage("El area de trabajo es obligatoria");
 
             RuleFor(x => x.WorkPositionId) 
                 .GreaterThan(0)

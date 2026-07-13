@@ -45,12 +45,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos
 
 
         public decimal Transport { get; set; }
-        public decimal Feeding { get ; set; }
+        public decimal Feeding { get; set; }
         public decimal Lodging { get; set; }
         public decimal TotalTravelExpenses { get; set; }
 
 
         public decimal Vacations { get; set; }
+        public decimal HolidayPay { get; set; }
+        public decimal NumberOfHolidays { get; set; }
+        public decimal AmountDaysVacation { get; set; }
         public decimal TotalToPay { get; set; }
 
 

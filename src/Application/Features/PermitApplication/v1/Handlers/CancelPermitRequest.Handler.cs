@@ -6,6 +6,8 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
+
+//✅Cancelar solicitud de permisos.
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
     public class CancelPermitRequestHandler(IUnitOfWork _unitOfWork,  IErrorManager _errorManager) : AlpacBaseHandler<CancelPermitRequestQuery, bool>(_unitOfWork, _errorManager)
@@ -37,10 +39,16 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 }
                 
                 requestApplication.Status = PermitApplicationStatus.Cancelled;
+                requestApplication.FirtsStepApproved = null;
+                requestApplication.SecondStepApproved = null;
             }
             if (access.Role!.RoleType == RoleType.Manager || access.Role.RoleType == RoleType.Administrator)
             {
                 requestApplication.Status = PermitApplicationStatus.Cancelled;
+                requestApplication.FirtsStepApproved = null;
+                requestApplication.ManagerFullname = null;
+                requestApplication.SecondStepApproved = null;
+                requestApplication.AdministratorFullName = null;
             }
 
             await _unitOfWork.PermitApplications.UpdateAsync(requestApplication);

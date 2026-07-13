@@ -21,6 +21,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
             var collaborator = await _unitOfWork.Collaborators.Entities
                 .Where(col => col.IdentificationNumber == request.IdentificationNumber)
+                .Where(col => col.CompanyId == request.CompanyId)
                 .Include(col => col.PersonalInformation)
                 .Include(col => col.WorkingInformation)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -40,12 +41,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 collaborator.ThirdName = request.ThirdName ?? collaborator.ThirdName;
                 collaborator.FirstLastname = request.FirstSurname ?? collaborator.FirstLastname;
                 collaborator.SecondLastname = request.SecondSurname ?? collaborator.SecondLastname;
+                collaborator.CollaboratorCode = request.CodeCollaborator ?? collaborator.CollaboratorCode;
 
                 if (request.WorkingInformation != null)
                 {
-                    if (request.WorkingInformation.WorkAreaId.HasValue)
+                    if (request.WorkingInformation.AreaId.HasValue)
                     {
-                        WorkingInformation?.WorkAreaId = request.WorkingInformation.WorkAreaId.Value;                    
+                        WorkingInformation?.AreaId = request.WorkingInformation.AreaId.Value;
+
+                        //Agregar logica para actualizar codigo del colaborador aqui al hacer una nueva actualización de area                    
                     }
 
                     if (request.WorkingInformation.WorkPositionId.HasValue)

@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
     [Route("api/v1/")]
     public class BranchesController(IMediator _mediator) : ApiControllerBase
     {
-        [Tags("Catologos")]
+        [Tags("Catalogos")]
         [HttpGet("companies/{companie_id}/branches")]
         [ProducesResponseType(typeof(List<BranchesDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -26,5 +26,15 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             return result;
         }
 
+        [Tags("Catalogos")]
+        [HttpPost("companies/{companie_id}/branches")]
+        [ProducesResponseType(typeof(List<BranchesDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<CreatedResult> RegisterBranchAsync([FromRoute] Guid companie_id)
+        {
+
+            return Created();
+        }
     }
 }

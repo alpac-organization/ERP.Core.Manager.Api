@@ -1,4 +1,5 @@
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
 {
@@ -11,6 +12,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public string?  Status { get; set; }
         public string? ProfilePictureUrl { get; set; }
 
+        public List<CostCenterDto> CostCenters { get; set; } = [];
         public PersonalInformationDto PersonalInformation { get; set; } = new();
         public WorkingInformationDto WorkingInformation { get; set; } = new();
         public SalaryInformationDto SalaryInformation { get; set; } = new(); 

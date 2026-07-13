@@ -32,32 +32,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Validators
                 .NotNull()
                     .WithMessage("El id del periodo de nomina para registrar deducción es obligatorio");
 
-            When(x => x.DeductionType == DeductionType.LateArrivals, () =>
-            {
-                RuleFor(x => x.LateArrivalsData)
-                    .NotNull().WithMessage("La lista de tardanzas no puede ser nula")
-                    .NotEmpty().WithMessage("La lista de tardanzas no puede estar vacía");
-            });
-
-            When(x => x.DeductionType == DeductionType.Purisima, () =>
-            {
-                RuleFor(x => x.PurisimaData)
-                    .NotNull().WithMessage("La lista de purisima no puede ser nula")
-                    .NotEmpty().WithMessage("La lista de purisima no puede estar vacía");
-            });
-        }
-    }
-
-    public class  AdvanceSalaryPayloadValidator: AbstractValidator<AdvanceSalaryPayload?>
-    {
-        public AdvanceSalaryPayloadValidator()
-        {
-            RuleFor(x => x!.Amount)
-                .NotEmpty().WithMessage("La cantidad de salario a adelantar es obligatoria")
-                .GreaterThan(0).WithMessage("La cantidad de salario a adelatar debe ser mayor a 0.");
-
-            RuleFor(x => x!.Currency)
-                .NotEmpty().WithMessage("La moneda es obligatoria");
+            RuleFor(x => x.DeductionType)
+                .NotEmpty()
+                    .WithMessage("El tipo de deducción es obligatorio")
+                .NotNull()
+                    .WithMessage("El tipo de deducción es obligatorio");
         }
     }
 }

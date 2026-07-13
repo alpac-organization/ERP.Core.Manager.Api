@@ -23,12 +23,19 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
             {
                 _errorManager.ThrowBadRequest("Esta area no se encuentra registrada", "ERP:AreaNotFound");
             }
+
+            var lastCostCenterCode = await _unitOfWork.CostCenters.Entities
+                .OrderByDescending(cc => cc.CostCenterCode)
+                .Select(cc => cc.CostCenterCode)
+                .FirstOrDefaultAsync(cancellationToken);
             
             await _unitOfWork.CostCenters.RegisterCostCenter(new()
             {
                 WorkAreaId = request.AreaId,
                 CostCenterName = request.CostCenterName,
+                CoilCode = request.CoilCode,
                 Description = request?.Description ?? "Sin Descripción",
+                IsActive = true
             });
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

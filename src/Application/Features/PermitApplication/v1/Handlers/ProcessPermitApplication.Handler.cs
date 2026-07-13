@@ -12,7 +12,7 @@ using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
+    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices, IReportingServices _reportingServices, IIncomeServices _incomeServices): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(ProcessPermitApplicationCommand request, CancellationToken cancellationToken)
         {
@@ -74,6 +74,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             var salaryInformation = await _unitOfWork.Salaries.Entities
                 .Where(sal => sal.EndDate == null)
                 .Where(sal => sal.CollaboratorId == permitApplication.Collaborator.Id)
+                .Include(sal => sal.Collaborator)
+                    .ThenInclude(sal => sal.WorkingInformation)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (salaryInformation is null)
@@ -85,6 +87,51 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             switch (permitApplication.Type)
             {
+                case PermitApplicationType.VacationPay:
+                {
+                    #region Primer proceso de aprobación
+                    var (authorized, updateFirstStep) = ProcessFirstStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
+
+                    if (authorized is false)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No tienes permiso para aprobar o rechazar esta solicitud", "ERP:01");        
+                    }
+                    else if (authorized && updateFirstStep)
+                    {
+                        await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                        return false;
+                    }
+
+                    #endregion
+
+                    #region Segundo proceso de aprobación
+
+                    var (isAuthorized, continueProcess) = ProcessSecondStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
+
+                    if (isAuthorized is false)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("No tienes permisos para realizar esta operación, no eres administrador", "ERP:03");
+                    }
+
+                    if(isAuthorized && continueProcess)
+                    {
+                        //Procesar pago de vacaciones
+                        bool IsSuccess = await _incomeServices.ApplyVacationPay(permitApplication.Collaborator, salaryInformation, permitApplication.PayrolId, permitApplication?.AmountDays ?? 0.0m);
+
+                        if (!IsSuccess)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Ocurrio un error al procesar el pago de vacaciones", "ERP:04");
+                        }
+                        
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    }
+
+                    #endregion
+
+                    return true;
+                }
                 case PermitApplicationType.MedicalAppointment:
                 {
                     #region Primero proceso de aprobación
@@ -114,20 +161,28 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         return _errorManager.ThrowBadRequest<bool>("No tienes permisos para realizar esta operación, no eres administrador", "ERP:03");
                     }
                     
+                    var additionalInformation = JsonSerializer.Deserialize<AdditionalDataPermitApplication>(permitApplication.AdditionalData);
+
                     if(isAuthorized && continueProcess)
                     {
-                        var additionalInformation = JsonSerializer.Deserialize<AdditionalDataPermitApplication>(permitApplication.AdditionalData);
 
                         if (additionalInformation!.MedicalAppointmentData.IsFullDay)
                         {
                             vacationInformationSolicitante.AvailableVacations -= 0.5m;
                             vacationInformationSolicitante.EnjoyedVacation += 0.5m;
 
-                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);  
+                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
+                            await _reportingServices.ApplyVacationMovement(permitApplication.Collaborator, permitApplication.PayrolId);
                             await _unitOfWork.SaveChangesAsync(cancellationToken);
                         }
 
                         await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+
+                        if (permitApplication.Status == PermitApplicationStatus.Approved && additionalInformation!.MedicalAppointmentData.IsFullDay)
+                        {
+                            await _deductionServices.ApplyDeductionTravelExpenses(permitApplication.Collaborator, salaryInformation, permitApplication.PayrolId);   
+                        }
+
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                         return true;
@@ -135,7 +190,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
-                
+
                     return true;
 
                     #endregion                
@@ -176,6 +231,28 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         vacationInformationSolicitante.EnjoyedVacation    += permitApplication.AmountDays ?? 0.0m;
 
                         await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
+
+                        //Agregar que actualize la tabla vacations Accrual
+
+                        var vacationAccrual = await _unitOfWork.VacationAccruals.Entities
+                            .Where(va => va.PayrollId == permitApplication.PayrolId)
+                            .Where(va => va.CollaboratorId == permitApplication.CollaboratorId)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (vacationAccrual is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No se encontro el registro de vacaciones en la nomina", "ERP:01");
+                        }
+
+                        decimal salaryDaily = salaryInformation.AmountInLocal / 30.0m;
+                        decimal vacationAmount = salaryDaily * vacationInformationSolicitante.AvailableVacations;
+
+                        vacationAccrual.AvailableVacations = vacationInformationSolicitante.AvailableVacations;
+                        vacationAccrual.FinalBalance = vacationInformationSolicitante.AvailableVacations;
+                        vacationAccrual.EquivalentQuantity = vacationAmount;
+                        vacationAccrual.EquivalentQuantityInDollars = vacationAmount / 36.6243m;                     
+
+                        await _unitOfWork.VacationAccruals.UpdateAsync(vacationAccrual);
                     }
                     
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
@@ -184,6 +261,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     if (permitApplication.Status is PermitApplicationStatus.Approved)
                     {
                         await _deductionServices.ApplyDeductionTravelExpenses(permitApplication.Collaborator, salaryInformation, permitApplication.PayrolId);
+                        await _reportingServices.ApplyVacationMovement(permitApplication.Collaborator, permitApplication.PayrolId);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
                     }
 
@@ -258,9 +336,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             //No importa si el jefe directo rechazo la solicitud, puede reaprobar la solicitud
             if ((permitApplication.FirtsStepApproved is true || permitApplication.FirtsStepApproved is false) && isApproved)
             {
-                //Caso de que el administrado haya aprobado la solicitud
-                permitApplication.FirtsStepApproved = true;
-                permitApplication.ManagerFullname = userFullname;
                 permitApplication.SecondStepApproved = true;
                 permitApplication.AdministratorFullName = userFullname;
 
@@ -274,6 +349,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 //Caso de que el administrado haya rechazado la solictud
                 permitApplication.SecondStepApproved = false;
                 permitApplication.AdministratorFullName = userFullname;
+                permitApplication.ManagerFullname = string.IsNullOrEmpty(permitApplication.ManagerFullname) ?  userFullname : permitApplication.ManagerFullname;
 
                 permitApplication.Status = PermitApplicationStatus.Rejected;
 

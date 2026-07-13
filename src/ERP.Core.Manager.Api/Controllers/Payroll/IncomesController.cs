@@ -2,8 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands;
+using ERP.Core.Infrastructure.Attributes;
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
     [HasToken]
@@ -28,5 +28,17 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             return Ok();
         }
+
+        // [Tags("Ingresos")] 
+        // [HttpGet("companies/{companie_id}/modules/{module_code}/incomes")]
+        // [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
+        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        // [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        // public async Task<IActionResult> GetIncomesControlAsync([FromRoute] Guid companie_id, [FromRoute] string module_code)
+        // {
+        //     var userIdStr = HttpContext.Items["UserId"] as string;
+
+        //     return Ok();
+        // }
     }
 }

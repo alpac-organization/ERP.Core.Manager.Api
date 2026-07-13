@@ -46,33 +46,22 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .SetValidator(new PermitApplicationMedicalAppointmentValidator());
             });
 
-            When(x => x.PermitApplicationType == PermitApplicationType.DonatedVacations, () =>
-            {
-                RuleFor(x => x.PermitApplicationDonatedVacations)
-                    .NotNull().WithMessage("Los datos de la solicitud de donación son obligatorios.")
-                    .SetValidator(new PermitApplicationDonatedVacationsValidator());
-            });
-
             When(x => x.PermitApplicationType == PermitApplicationType.Vacation, () =>
             {
                 RuleFor(x => x.PermitApplicationVacation)
                     .NotNull().WithMessage("Los datos de la solicitud de vacaciones son obligatorios")
                     .SetValidator(new PermitApplicationVacationValidator());
             });
-        }
 
-        public class PermitApplicationDonatedVacationsValidator : AbstractValidator<PermitApplicationDonatedVacations?>
-        {
-            public PermitApplicationDonatedVacationsValidator()
+
+            When(x => x.PermitApplicationType == PermitApplicationType.VacationPay, () =>
             {
-                RuleFor(x => x!.AmountDays)
-                    .NotEmpty().WithMessage("La cantidad de días a donar es requerida.")
-                    .GreaterThan(0).WithMessage("La cantidad de días a donar debe ser mayor a 0.");
-
-                RuleFor(x => x!.IdentificationCollaboratorToReceive)
-                    .NotEmpty().WithMessage("La identificación del colaborador que recibirá las vacaciones es requerida.");
-            }
+                RuleFor(x => x.PermitApplicationVacationPay)
+                    .NotNull().WithMessage("Los datos de la solicitud de pagos de vacaciones.")
+                    .SetValidator(new PermitApplicationVacationPayValidator());
+            });
         }
+
 
         public class PermitApplicationMedicalAppointmentValidator : AbstractValidator<PermitApplicationMedicalAppointment?>
         {
@@ -98,6 +87,31 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .GreaterThan(x => x!.StartTime)
                         .When(x => x != null && x.StartTime != null && !x.IsFullDay)
                         .WithMessage("La hora de finalización debe ser posterior a la hora de inicio.");
+            }
+        }
+
+        public class PermitApplicationVacationPayValidator: AbstractValidator<PermitApplicationVacationPay?>
+        {
+            public PermitApplicationVacationPayValidator()
+            {
+                RuleFor(x => x)
+                    .NotNull()
+                    .WithMessage("La información de la solicitud de pago de vacaciones es obligatoria.");
+
+                When(x => x != null, () =>
+                {
+                    RuleFor(x => x!.RequestDate)
+                        .NotEmpty()
+                        .WithMessage("La fecha de solicitud es obligatoria.")
+                        .Must(date => date >= DateOnly.FromDateTime(DateTime.Today))
+                        .WithMessage("La fecha de solicitud no puede ser menor a la fecha actual.");
+
+                    RuleFor(x => x!.AmountDays)
+                        .GreaterThan(0)
+                        .WithMessage("La cantidad de días a pagar debe ser mayor a cero.")
+                        .LessThanOrEqualTo(30)
+                        .WithMessage("La cantidad de días a pagar no puede ser mayor a 30.");
+                });
             }
         }
 

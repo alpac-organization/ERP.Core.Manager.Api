@@ -3,40 +3,41 @@ using ERP.Core.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
+
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Commons.Utils;
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class GetCurrenPayrollInProgresssHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<GetCurrenPayrollInProgresssQuery, PayrollDto>(_unitOfWork, _errorManager)
+    public class GetCurrenPayrollInProgresssHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager) : AlpacBaseHandler<GetCurrenPayrollInProgresssQuery, PayrollDto>(_unitOfWork, _errorManager)
     {
         public override async Task<PayrollDto> Handle(GetCurrenPayrollInProgresssQuery request, CancellationToken cancellationToken)
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
-            if (!access.IsSuccess) 
+            if (!access.IsSuccess)
             {
-                return access.ErrorResponse!; 
+                return access.ErrorResponse!;
             }
 
             var payroll = await _unitOfWork.Payrolls.Entities
                 .AsNoTracking()
                 .Include(p => p.Branch)
                     .ThenInclude(branch => branch.Company)
-                .Where( 
-                    p => p.Branch.Company.Id == request.CompanyId && 
-                    p.PayrollType == request.Type && 
+                .Where(
+                    p => p.Branch.Company.Id == request.CompanyId &&
+                    p.PayrollType == request.Type &&
                     p.Status == PayrollStatus.Progress &&
                     p.Branch.Id == request.BranchId
                 )
                 .Select(p => new PayrollDto
                 {
-                    PayrollId  = p.Id,
-                    StartDate  = p.StartDate,
-                    EndDate    = p.EndDate,
-                    Type       = p.PayrollType,
+                    PayrollId = p.Id,
+                    StartDate = p.StartDate,
+                    EndDate = p.EndDate,
+                    Type = p.PayrollType,
                     BranchName = p.Branch.BranchName
                 })
                 .FirstOrDefaultAsync(cancellationToken);
@@ -59,10 +60,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     .Where(op => op.Collaborator.IdentificationNumber == request.IdentificationNumber);
             }
 
-            if (request.WorkAreaId.HasValue)
+            if (request.AreaId.HasValue)
             {
                 detailsQuery = detailsQuery
-                    .Where(op => op.Collaborator.WorkingInformation.WorkAreaId == request.WorkAreaId);
+                    .Where(op => op.Collaborator.WorkingInformation.AreaId == request.AreaId);
             }
 
             if (request.WorkPositionId.HasValue)
@@ -84,7 +85,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     Antique = op.Antique,
                     Commissions = op.Commissions,
                     TotalIncome = op.TotalIncome,
-                    
+
                     NumberOvertime = op.NumberOvertime,
                     Overtime = op.Overtime,
                     Bonus = op.Bonus,
@@ -96,15 +97,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                     DeductionsAdditionalData = op.DeductionsAdditionalData,
                     TotalDeducctions = op.TotalDeducctions,
-                    
+
                     Transport = op.Transport,
                     Feeding = op.Feeding,
                     Lodging = op.Lodging,
                     TotalTravelExpenses = op.TotalTravelExpenses,
-                    
+
 
                     TotalToPay = op.TotalToPay,
                     Vacations = op.Vacations,
+                    AmountDaysVacation = op.AmountDaysVacation,
+                    HolidayPay = op.HolidayPay,
+                    NumberOfHolidays = op.NumberOfHolidays,
 
                     Collaborator = new CollaboratorInformationDto
                     {
@@ -113,7 +117,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         IdentificationNumber = op.Collaborator.IdentificationNumber,
                         InssNumber = op.Collaborator.WorkingInformation.InssNumber,
                         JobPosition = op.Collaborator.WorkingInformation.WorkPosition.CatalogName,
-                        WorkArea = op.Collaborator.WorkingInformation.WorkArea.CatalogName,
+                        WorkArea = op.Collaborator.WorkingInformation.Area.WorkAreaName,
                         EntryDate = op.Collaborator.WorkingInformation.EntryDate,
                         BankAccount = StringExtensions.FormatWithNullWhenNoHasValue(op.Collaborator.WorkingInformation.BankAccountNumber)
                     }
@@ -131,4 +135,4 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
             return payroll;
         }
     }
-}   
+}
