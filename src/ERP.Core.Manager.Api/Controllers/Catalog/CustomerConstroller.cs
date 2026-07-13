@@ -12,7 +12,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
     public class CustomerController(IMediator _mediator) : ApiControllerBase
     {
         [Tags("Clientes")]  
-        [HttpGet("companies/{company_id}/customers")]   
+        [HttpGet("companies/{company_id}/customers")]
         [ProducesResponseType(typeof(List<CustomerDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -30,7 +30,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         }
 
         [Tags("Clientes")]  
-        [HttpGet("companies/{company_id}/customers/{customer_id}/details")]   
+        [HttpGet("companies/{company_id}/customers/{customer_id}/details")]
         [ProducesResponseType(typeof(OkResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
