@@ -12,6 +12,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
         Task RegisterOrdinaryPayrollForCollaborator(Guid payrollId, Collaborator collaborator, CancellationToken cancellationToken);
 
-        IndemnificationResult CalculateIndemnification(decimal monthlySalaryWithSeniority, DateOnly entryDate, DateOnly calculationDate);
+        IndemnificationResult CalculateIndemnification(decimal lastFixedSalary, IReadOnlyList<decimal> monthlyTotalsWithCommissions, bool hasCommissions, DateOnly entryDate, DateOnly calculationDate);
     }
 }

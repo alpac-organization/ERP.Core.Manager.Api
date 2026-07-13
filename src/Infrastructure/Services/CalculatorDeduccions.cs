@@ -558,50 +558,56 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #endregion
 
-
-         #region Calcular Inatec e inss patronal
-
-
-         #endregion Calcular Inatec e inss patronal
-
       }
-
-      public IndemnificationResult CalculateIndemnification(decimal monthlySalary, DateOnly entryDate, DateOnly calculationDate)
+      #region Calculo de indemnización
+      public IndemnificationResult CalculateIndemnification(decimal lastFixedSalary, IReadOnlyList<decimal> monthlyTotalsWithCommissions, bool hasCommissions, DateOnly entryDate, DateOnly calculationDate)
       {
+
          _logger.LogInformation("Iniciando cálculo de indemnización");
 
-         if (calculationDate < entryDate || monthlySalary <= 0)
+         if (calculationDate <= entryDate)
             return new IndemnificationResult(0, 0);
 
-         int totalMonths =
-             (calculationDate.Year - entryDate.Year) * 12
-             + (calculationDate.Month - entryDate.Month);
+         decimal salaryForIndemnification = hasCommissions
+             && monthlyTotalsWithCommissions is { Count: > 0 }
+                 ? monthlyTotalsWithCommissions.Average()//se promedia los ultimos 6 meses
+                 : lastFixedSalary; //si no, se obtiene el salario fijo
 
-         if (calculationDate.Day < entryDate.Day)
-            totalMonths--;
+         if (salaryForIndemnification <= 0)
+            return new IndemnificationResult(0, 0);
 
-         if (totalMonths < 0)
-            totalMonths = 0;
-
-         decimal totalYears = totalMonths / 12m;
+         decimal totalYears = CalculateYearsOfServiceCommercial(entryDate, calculationDate);
 
          decimal yearsFirstTier = Math.Min(totalYears, 3m);
          decimal yearsSecondTier = Math.Max(totalYears - 3m, 0m);
+         decimal indemnificationMonths = yearsFirstTier + (yearsSecondTier * (20m / 30m));
+         indemnificationMonths = Math.Min(indemnificationMonths, 5m);
 
-         decimal indemnificationMonths =
-             (yearsFirstTier * 1m)
-             + (yearsSecondTier * (20m / 30m));
-         if (totalMonths == 0) return new IndemnificationResult(0, 0);
-         indemnificationMonths = Math.Clamp(indemnificationMonths, 1m, 5m);
-
-         decimal value = Math.Round(
-             indemnificationMonths * monthlySalary,
-             2,
-             MidpointRounding.AwayFromZero);
-
-         return new IndemnificationResult(
-             Math.Round(totalYears, 2, MidpointRounding.AwayFromZero),
-             value);
+         return new IndemnificationResult(totalYears, indemnificationMonths * salaryForIndemnification);
       }
+      private static decimal CalculateYearsOfServiceCommercial(DateOnly entryDate, DateOnly calculationDate)
+      {
+         // Año, mes y dia de ingreso del colaborador
+         int year1 = entryDate.Year;
+         int month1 = entryDate.Month;
+         int day1 = entryDate.Day;
+
+         ///Año, mes y dia de la fecha de cálculo (fin de payroll) 
+         int year2 = calculationDate.Year;
+         int month2 = calculationDate.Month;
+         int day2 = calculationDate.Day;
+
+         //Convención 30/360: días 31 → 30
+         if (day1 > 30) day1 = 30;
+         if (day2 > 30) day2 = 30;
+
+         //Incluimos el dia de corte de payroll
+         int commercialDays = 360 * (year2 - year1) + 30 * (month2 - month1) + day2 - day1 + 1;
+
+         if (commercialDays < 0) return 0m;
+
+         return commercialDays / 360m;
+      }
+      #endregion
    }
 }
