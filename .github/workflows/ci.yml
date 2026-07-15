@@ -1,4 +1,4 @@
-name: Validate ERP API (Puppeteer + Chromium)
+name: Docker Build & Startup Validation
 
 on:
   push:
