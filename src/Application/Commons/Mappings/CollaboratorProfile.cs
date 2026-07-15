@@ -15,96 +15,96 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 
          #region Mapeo de listado de colaboradores
 
-         CreateMap<Collaborator, GetCollaboratorDto>()
-             .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
-             .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
-             .ForMember(dest => dest.FirstLastname, opt => opt.MapFrom(src => src.FirstLastname))
-             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src =>
-                 string.Join(" ", new[]
-                 {
-                        src.FirstName.ToCapitalize(),
-                        src.SecondName.ToCapitalize(),
-                        src.FirstLastname.ToCapitalize(),
-                        src.SecondLastname.ToCapitalize()
-                 }.Where(s => !string.IsNullOrWhiteSpace(s)))))
-
-             .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src =>
-                 src.WorkingInformation != null && src.WorkingInformation.Area != null
-                 ? src.WorkingInformation.Area.WorkAreaName
-                 : string.Empty))
-
-             .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src =>
-                 src.WorkingInformation != null && src.WorkingInformation.WorkPosition != null
-                 ? src.WorkingInformation.WorkPosition.CatalogName
-                 : string.Empty))
-
-             .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src =>
-                 src.WorkingInformation != null && src.WorkingInformation.BranchInfo != null
-                 ? src.WorkingInformation.BranchInfo.BranchName
-                 : string.Empty))
-
-             .ForMember(dest => dest.Vacations, opt => opt.MapFrom(src =>
-                 src.WorkingInformation != null && src.Vacation != null
-                 ? src.Vacation.AvailableVacations
-                 : 0))
-
-             .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
-
-             .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.IdentificationNumber));
-
-         #endregion
-
-         #region Mapeo de detalles de colaborador
-
-         CreateMap<PersonalInformation, PersonalInformationDto>()
-             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-             .ForMember(dest => dest.PersonalEmail, opt => opt.MapFrom(src => src.PersonalEmail))
-             .ForMember(dest => dest.Birthdate, opt => opt.MapFrom(src => src.Birthdate))
-             .ForMember(dest => dest.Departament, opt => opt.MapFrom(src => src.Departament != null ? src.Departament.CatalogName : null))
-             .ForMember(dest => dest.PersonalPhoneNumber, opt => opt.MapFrom(src => src.PersonalPhoneNumber));
-
-         CreateMap<WorkingInformation, WorkingInformationDto>()
-             .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => src.Area.WorkAreaName))
-             .ForMember(dest => dest.WorkEmail, opt => opt.MapFrom(src => src.WorkEmail))
-             .ForMember(dest => dest.WorkPhoneNumber, opt => opt.MapFrom(src => src.WorkPhoneNumber))
-             .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(src => src.EntryDate))
-             .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkPosition.CatalogName))
-             .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.BranchInfo.BranchName));
-
-         CreateMap<Salary, SalaryInformationDto>()
-             .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.AmountSalary))
-             .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency.ToString()))
-             .ForMember(dest => dest.SalaryType, opt => opt.MapFrom(src => src.SalaryType.ToString()));
-
-         CreateMap<Vacation, VacationInformationDto>()
-             .ForMember(dest => dest.AvailableVacations, opt => opt.MapFrom(src => src.AvailableVacations));
-
-         CreateMap<Collaborator, CollaboratorDetailsDto>()
-             .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
-             .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkingInformation.WorkPosition.CatalogName))
-             .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
-             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src =>
-                 string.Join(" ", new[]
-                 {
-                        src.FirstName, src.SecondName, src.FirstLastname, src.SecondLastname
-                 }.Where(s => !string.IsNullOrWhiteSpace(s))
-                 .Select(s => s.ToCapitalize()))))
-
-             .ForMember(dest => dest.PersonalInformation, opt => opt.MapFrom(src => src.PersonalInformation))
-             .ForMember(dest => dest.WorkingInformation, opt => opt.MapFrom(src => src.WorkingInformation))
-             .ForMember(dest => dest.VacationInformation, opt => opt.MapFrom(src => src.Vacation))
-             .ForMember(dest => dest.SalaryInformation, opt => opt.MapFrom(src => src.Salaries != null ? src.Salaries.FirstOrDefault() : null))
-
-             .AfterMap((src, dest) =>
-             {
-                if (dest.PersonalInformation != null)
+        CreateMap<Collaborator, GetCollaboratorDto>()
+            .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
+            .ForMember(dest => dest.FirstLastname, opt => opt.MapFrom(src => src.FirstLastname))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src =>
+                string.Join(" ", new[]
                 {
-                   dest.PersonalInformation.Gender = src.Gender;
-                   dest.PersonalInformation.IdentificationNumber = src.IdentificationNumber;
-                   dest.PersonalInformation.PersonalEmail = src.PersonalInformation.PersonalEmail;
-                }
-             });
+                    src.FirstName.ToCapitalize(),
+                    src.SecondName.ToCapitalize(),
+                    src.FirstLastname.ToCapitalize(),
+                    src.SecondLastname.ToCapitalize()
+                }.Where(s => !string.IsNullOrWhiteSpace(s)))))
+
+            .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src =>
+                src.WorkingInformation != null && src.WorkingInformation.Area != null
+                ? src.WorkingInformation.Area.WorkAreaName
+                : string.Empty))
+
+            .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src =>
+                src.WorkingInformation != null && src.WorkingInformation.WorkPosition != null
+                ? src.WorkingInformation.WorkPosition.CatalogName
+                : string.Empty))
+
+            .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src =>
+                src.WorkingInformation != null && src.WorkingInformation.BranchInfo != null
+                ? src.WorkingInformation.BranchInfo.BranchName
+                : string.Empty))
+
+            .ForMember(dest => dest.Vacations, opt => opt.MapFrom(src =>
+                src.WorkingInformation != null && src.Vacation != null
+                ? src.Vacation.AvailableVacations
+                : 0))
+
+            .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
+
+            .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.IdentificationNumber));
+
+        #endregion
+
+        #region Mapeo de detalles de colaborador
+
+        CreateMap<PersonalInformation, PersonalInformationDto>()
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.PersonalEmail, opt => opt.MapFrom(src => src.PersonalEmail))
+            .ForMember(dest => dest.Birthdate, opt => opt.MapFrom(src => src.Birthdate))
+            .ForMember(dest => dest.Departament, opt => opt.MapFrom(src => src.Departament != null ? src.Departament.CatalogName : null))
+            .ForMember(dest => dest.PersonalPhoneNumber, opt => opt.MapFrom(src => src.PersonalPhoneNumber));
+
+        CreateMap<WorkingInformation, WorkingInformationDto>()
+            .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => src.Area.WorkAreaName))
+            .ForMember(dest => dest.WorkEmail, opt => opt.MapFrom(src => src.WorkEmail))
+            .ForMember(dest => dest.WorkPhoneNumber, opt => opt.MapFrom(src => src.WorkPhoneNumber))
+            .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(src => src.EntryDate))
+            .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkPosition.CatalogName))
+            .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.BranchInfo.BranchName));
+
+        CreateMap<Salary, SalaryInformationDto>()
+            .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.AmountSalary))
+            .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency.ToString()))
+            .ForMember(dest => dest.SalaryType, opt => opt.MapFrom(src => src.SalaryType.ToString()));
+
+        CreateMap<Vacation, VacationInformationDto>()
+            .ForMember(dest => dest.AvailableVacations, opt => opt.MapFrom(src => src.AvailableVacations));
+
+        CreateMap<Collaborator, CollaboratorDetailsDto>()
+            .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkingInformation.WorkPosition.CatalogName))
+            .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src =>
+                string.Join(" ", new[]
+                {
+                    src.FirstName, src.SecondName, src.FirstLastname, src.SecondLastname
+                }.Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.ToCapitalize()))))
+
+            .ForMember(dest => dest.PersonalInformation, opt => opt.MapFrom(src => src.PersonalInformation))
+            .ForMember(dest => dest.WorkingInformation, opt => opt.MapFrom(src => src.WorkingInformation))
+            .ForMember(dest => dest.VacationInformation, opt => opt.MapFrom(src => src.Vacation))
+            .ForMember(dest => dest.SalaryInformation, opt => opt.MapFrom(src => src.Salaries != null ? src.Salaries.FirstOrDefault() : null))
+
+            .AfterMap((src, dest) =>
+            {
+            if (dest.PersonalInformation != null)
+            {
+                dest.PersonalInformation.Gender = src.Gender;
+                dest.PersonalInformation.IdentificationNumber = src.IdentificationNumber;
+                dest.PersonalInformation.PersonalEmail = src.PersonalInformation.PersonalEmail;
+            }
+            });
 
          #endregion
       }
