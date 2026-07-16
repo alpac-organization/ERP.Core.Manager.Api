@@ -68,6 +68,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             payload.CompanyId = companie_id;
             payload.ModuleCode = module_code;
             payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.SupplierId = supplier_id;
 
             await _mediator.Send(payload);
 
