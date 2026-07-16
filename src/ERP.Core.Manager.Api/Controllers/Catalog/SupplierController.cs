@@ -57,21 +57,22 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
 
 
         [Tags("Proveedores")]
-        [HttpPut("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}")]
-        [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status200OK)]
+        [HttpPatch("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}")]
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<CreatedResult> UpdaterSupplierInformationAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid supplier_id, [FromBody] RegisterSupplierCommand payload)
+        public async Task<OkResult> UpdaterSupplierInformationAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid supplier_id, [FromBody] UpdateSupplierInformationCommand payload)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
             payload.CompanyId = companie_id;
             payload.ModuleCode = module_code;
             payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.SupplierId = supplier_id;
 
             await _mediator.Send(payload);
 
-            return Created();
+            return Ok();
         }
 
     }
