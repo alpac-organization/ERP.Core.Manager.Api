@@ -31,7 +31,7 @@ public class ReportsProfile : Profile
             .ForMember(dest => dest.PayrollId, opt => opt.MapFrom(src => src.PayrollId))
             .ForMember(dest => dest.Transport, opt => opt.MapFrom(src => src.Transport))
             .ForMember(dest => dest.Lodging, opt => opt.MapFrom(src => src.Lodging))
-            .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator).ToCapitalize()));
+            .ForMember(dest => dest.CollaboratorFullname, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)));
 
 
         CreateMap<Income, DepreciationReportDto>()
