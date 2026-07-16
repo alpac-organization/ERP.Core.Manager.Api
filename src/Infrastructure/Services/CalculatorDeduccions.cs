@@ -571,7 +571,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal salaryForIndemnification = hasCommissions
              && monthlyTotalsWithCommissions is { Count: > 0 }
                  ? monthlyTotalsWithCommissions.Average()//se promedia los ultimos 6 meses
-                 : lastFixedSalary; //si no, se obtiene el salario fijo
+                 : lastFixedSalary; //si no, se obtiene el salario fijo + antiguedad
 
          if (salaryForIndemnification <= 0)
             return new IndemnificationResult(0, 0);

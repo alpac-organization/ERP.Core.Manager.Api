@@ -484,10 +484,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal vacationAmountInCordobas = vacationControl.AvailableVacations * dailySalary;
          decimal vacationAmountInDollars = (vacationControl.AvailableVacations * dailySalary) / exchangeRate?.Value ?? 0.0m;
 
+         decimal monthlyAntique = Antique * 2m;
+         decimal salaryPlusAntique = monthlySalary + monthlyAntique;
+
          var (monthlyTotals, hasCommissions) = await GetMonthlyIncomeForIndemnification(collaborator.Id, entryDate, payrollEnd);
 
          var indem = _calculatorDeductions.CalculateIndemnification(
-            monthlySalary,
+            salaryPlusAntique,
             monthlyTotals,
             hasCommissions,
             entryDate,
@@ -603,7 +606,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                        p.Payroll.EndDate.Year,
                        p.Payroll.EndDate.Month,
                        p.BiweeklySalary,
-                       p.Commissions
+                       p.Commissions,
+                       p.Antique
                     }).ToListAsync();
 
          bool hasCommissions = rows.Any(r => r.Commissions > 0);
@@ -612,7 +616,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     .GroupBy(r => new { r.Year, r.Month })
                     .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
                     .Select(g => g.Sum(x => x.BiweeklySalary)// Q1 + Q2 => es mensual de ese mes
-                     + g.Sum(x => x.Commissions))//Las posibles comisiones de ese mes
+                     + g.Sum(x => x.Commissions)
+                     + g.Sum(x => x.Antique))//Las posibles comisiones de ese mes
                     .Where(total => total > 0)
                     .TakeLast(monthsToLookBack)//Toma unicamente los 6 meses para promediar luego 
                     .ToList();
