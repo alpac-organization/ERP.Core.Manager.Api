@@ -14,6 +14,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
     {
         public override async Task<CollaboratorDetailsDto> Handle(GetCollaboratorDetailsQuery request, CancellationToken cancellationToken)
         {
+
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess) 
+            {
+                return access.ErrorResponse!; 
+            }
+
             var collaborator = await _unitOfWork.Collaborators.Entities
                 .AsNoTracking()
                 
