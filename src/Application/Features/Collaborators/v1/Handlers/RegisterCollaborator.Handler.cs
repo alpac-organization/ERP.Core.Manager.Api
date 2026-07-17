@@ -37,13 +37,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
          bool isSuccess = true;
 
-         var user = await _unitOfWork.Users.FirstOrDefaultAsync(user => user.Id == request.UserId, cancellationToken);
-
          if (access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Operator)
          {
             #region Mapeo de campos.
             var code = _codeGenerator.GenerateModuleCode(request.IdentificationNumber!);
-            request.RegisteredBy = user!.UserName;
+            request.RegisteredBy = access.User.UserName;
 
             var collaboratorEntity = CollaboratorMapper.ToCollaboratorEntity(request, code);
             await _unitOfWork.Collaborators.RegisterCollaborator(collaboratorEntity);
