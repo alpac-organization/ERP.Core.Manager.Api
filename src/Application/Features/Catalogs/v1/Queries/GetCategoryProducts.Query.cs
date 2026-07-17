@@ -1,6 +1,6 @@
 using MediatR;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
-using ERP.Core.Manager.Api.Application.Features.CategoryProducts.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 
