@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-    public class UpdateCollaboratorInformationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<UpdateCollaboratorInformationCommand, bool>(_unitOfWork, _errorManager)
+    public class UpdateCollaboratorInformationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): BaseValidatorHandler<UpdateCollaboratorInformationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(UpdateCollaboratorInformationCommand request, CancellationToken cancellationToken)
         {
