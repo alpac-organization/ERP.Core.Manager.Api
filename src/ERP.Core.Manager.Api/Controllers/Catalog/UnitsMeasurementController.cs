@@ -17,7 +17,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
     public class UnitsMeasurementController(IMediator _mediator) : ApiControllerBase
     {
         [Tags("Unidades De Medida")]
-        [HttpGet("companies/{companie_id}/module/{module_code}/units-measurement")]
+        [HttpGet("companies/{companie_id}/modules/{module_code}/units-measurement")]
         [ProducesResponseType(typeof(List<UnitMeasureDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
