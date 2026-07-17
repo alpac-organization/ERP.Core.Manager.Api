@@ -5,6 +5,7 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 {
@@ -37,6 +38,21 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             if (user is null)
             {
                 return _errorManager.ThrowBadRequest<LoginDto>("El usuario no se encuentra registrado.", "ERP:IdentityError");
+            }
+
+            if (user.UserStatus != UserStatus.Active)
+            {
+                switch (user.UserStatus)
+                {
+                    case UserStatus.Locked :
+                    {
+                        return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente bloqueado, comunicar con el area de informatica", "ERP:USER_BLOCKED");  
+                    }
+                    case UserStatus.Inactive :
+                    {
+                        return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente inactivo, comunicar con el area de informatica", "ERP:USER_UNACTIVE");   
+                    }
+                }                
             }
 
             //Verificamos el perfil al que quiere, ingresar

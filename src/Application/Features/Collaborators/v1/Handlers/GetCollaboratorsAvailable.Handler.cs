@@ -1,4 +1,3 @@
-using MediatR;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
@@ -6,13 +5,22 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
+using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-    public class GetCollaboratorsAvailableHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<GetCollaboratorsAvailableQuery, PagedResponse<GetCollaboratorDto>>
+    public class GetCollaboratorsAvailableHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) : BaseValidatorHandler<GetCollaboratorsAvailableQuery, PagedResponse<GetCollaboratorDto>>(_unitOfWork, _errorManager)
     {
-        public async Task<PagedResponse<GetCollaboratorDto>> Handle(GetCollaboratorsAvailableQuery request, CancellationToken cancellationToken)
+        public override async Task<PagedResponse<GetCollaboratorDto>> Handle(GetCollaboratorsAvailableQuery request, CancellationToken cancellationToken)
         {
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess) 
+            {
+                return access.ErrorResponse!; 
+            }
+
             var baseQuery = _unitOfWork.Collaborators.Entities
                 .AsNoTracking()
                 .Where(c => c.CompanyId == request.CompanyId);
