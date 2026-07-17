@@ -51,15 +51,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para actualizar este proveedor", "ERP:01");
             }
 
-            supplier.ContactName        = request.ContactName ?? supplier.ContactName;
-            supplier.ContactEmail       = request.ContactEmail ?? supplier.ContactEmail;
-            supplier.SuppliersLegalName = request.SuppliersLegalName ?? supplier.SuppliersLegalName;
-            supplier.ContactPhoneNumber = request.ContactPhoneNumber ?? supplier.ContactPhoneNumber;
-            supplier.EmailSupport       = request.EmailSupport ?? supplier.EmailSupport;
-            supplier.Address            = request.Address ?? supplier.Address;
-
-            supplier.ConstitutionType   = request.ConstitutionType ?? supplier.ConstitutionType;
-            supplier.IdentificationType = request.IdentificationType ?? supplier.IdentificationType;
+            supplier.ContactName          = request.ContactName          ?? supplier.ContactName;
+            supplier.ContactEmail         = request.ContactEmail         ?? supplier.ContactEmail;
+            supplier.SuppliersLegalName   = request.SuppliersLegalName   ?? supplier.SuppliersLegalName;
+            supplier.ContactPhoneNumber   = request.ContactPhoneNumber   ?? supplier.ContactPhoneNumber;
+            supplier.EmailSupport         = request.EmailSupport         ?? supplier.EmailSupport;
+            supplier.Address              = request.Address              ?? supplier.Address;
+            supplier.IdentificationNumber = request.IdentificationNumber ?? supplier.IdentificationNumber;
+            supplier.ConstitutionType     = request.ConstitutionType     ?? supplier.ConstitutionType;
+            supplier.IdentificationType   = request.IdentificationType   ?? supplier.IdentificationType;
 
             await _unitOfWork.Suppliers.UpdateAsync(supplier);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
