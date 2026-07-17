@@ -1,18 +1,18 @@
-using MediatR;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-    public class GetCollaboratorDetailsHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IErrorManager _erroManager) : IRequestHandler<GetCollaboratorDetailsQuery, CollaboratorDetailsDto>
+    public class GetCollaboratorDetailsHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IErrorManager _errorManager) : BaseValidatorHandler<GetCollaboratorDetailsQuery, CollaboratorDetailsDto>(_unitOfWork, _errorManager)
     {
-        public async Task<CollaboratorDetailsDto> Handle(GetCollaboratorDetailsQuery request, CancellationToken cancellationToken)
+        public override async Task<CollaboratorDetailsDto> Handle(GetCollaboratorDetailsQuery request, CancellationToken cancellationToken)
         {
             var collaborator = await _unitOfWork.Collaborators.Entities
                 .AsNoTracking()
@@ -40,7 +40,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
             if(collaborator is null)
             {
-                return _erroManager.ThrowBadRequest<CollaboratorDetailsDto>("Este colaborador no existe", "ERP:001");
+                return _errorManager.ThrowBadRequest<CollaboratorDetailsDto>("Este colaborador no existe", "ERP:001");
             }
 
             var mapped = _mapper.Map<CollaboratorDetailsDto>(collaborator);

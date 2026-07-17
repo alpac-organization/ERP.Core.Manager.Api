@@ -2,14 +2,14 @@ using MediatR;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-    public class GetCollaboratorsAvailableHandler(IUnitOfWork _unitOfWork, IMapper _mapper) 
-    : IRequestHandler<GetCollaboratorsAvailableQuery, PagedResponse<GetCollaboratorDto>>
+    public class GetCollaboratorsAvailableHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<GetCollaboratorsAvailableQuery, PagedResponse<GetCollaboratorDto>>
     {
         public async Task<PagedResponse<GetCollaboratorDto>> Handle(GetCollaboratorsAvailableQuery request, CancellationToken cancellationToken)
         {

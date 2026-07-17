@@ -1,17 +1,19 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
-using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
+
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
-using ERP.Core.Manager.Api.Domain.Enums;
-using System.Globalization;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
+
+using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-    public class GenerateDocumentToCollaboratorHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPdfGeneratorServices pdfGeneratorServices): AlpacBaseHandler<GenerateDocumentToCollaboratorQuery, byte[]>(_unitOfWork, _errorManager)
+    public class GenerateDocumentToCollaboratorHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPdfGeneratorServices pdfGeneratorServices): BaseValidatorHandler<GenerateDocumentToCollaboratorQuery, byte[]>(_unitOfWork, _errorManager)
     {
         public override async Task<byte[]> Handle(GenerateDocumentToCollaboratorQuery request, CancellationToken cancellationToken)
         {
