@@ -9,10 +9,11 @@ using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-   public class RegisterCollaboratorHandler(IUnitOfWork _unitOfWork, ILogger<RegisterCollaboratorHandler> _logger, IErrorManager _errorManager, ICodeGenerator _codeGenerator, IPayrollServices _payrollServices) : AlpacBaseHandler<RegisterCollaboratorCommand, bool>(_unitOfWork, _errorManager)
+   public class RegisterCollaboratorHandler(IUnitOfWork _unitOfWork, ILogger<RegisterCollaboratorHandler> _logger, IErrorManager _errorManager, ICodeGenerator _codeGenerator, IPayrollServices _payrollServices) : BaseValidatorHandler<RegisterCollaboratorCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(RegisterCollaboratorCommand request, CancellationToken cancellationToken)
       {
@@ -24,25 +25,23 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
          }
 
          var existsInCompany = await _unitOfWork.Collaborators.Entities
-             .AnyAsync(c => c.IdentificationNumber == request.IdentificationNumber && c.CompanyId == request.CompanyId, cancellationToken);
+            .AnyAsync(c => c.IdentificationNumber == request.IdentificationNumber && c.CompanyId == request.CompanyId, cancellationToken);
 
          if (existsInCompany)
          {
             return _errorManager.ThrowBadRequest<bool>(
-                $"El número de identificación {request.IdentificationNumber} ya está registrado en esta empresa.",
-                "ERP:001"
+               $"El número de identificación {request.IdentificationNumber} ya está registrado en esta empresa.",
+               "ERP:001"
             );
          }
 
          bool isSuccess = true;
 
-         var user = await _unitOfWork.Users.FirstOrDefaultAsync(user => user.Id == request.UserId, cancellationToken);
-
          if (access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Operator)
          {
             #region Mapeo de campos.
             var code = _codeGenerator.GenerateModuleCode(request.IdentificationNumber!);
-            request.RegisteredBy = user!.UserName;
+            request.RegisteredBy = access.User.UserName;
 
             var collaboratorEntity = CollaboratorMapper.ToCollaboratorEntity(request, code);
             await _unitOfWork.Collaborators.RegisterCollaborator(collaboratorEntity);

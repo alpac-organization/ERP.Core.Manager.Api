@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
@@ -28,33 +27,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para registrar un proveedor", "ERP:01");
             }
 
-            var user = await _unitOfWork.Users.Entities
-                .Where(user => user.Id == request.UserId)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (user is null)
-            {
-                return _errorManager.ThrowBadRequest<bool>("Usuario desconocido!", "ERP:01");
-            }
-
-            if (user.UserStatus != UserStatus.Active)
-            {
-                switch (user.UserStatus)
-                {
-                    case UserStatus.Locked :
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("Usuario se encuentra temporalmente bloquedado, comunicar con el area de informatica", "ERP:02");   
-                    }
-                    case UserStatus.Inactive :
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("Usuario se encuentra inactivo, comunicar con el area de informatica", "ERP:03");   
-                    }
-                }
-            }
-
             _logger.LogInformation("🚀Iniciando proceso de registro de proveedor");
 
-            var supplierEntity = SupplierMapper.ToSupplierEntity(request, user?.Fullname ?? "unknow user");
+            var supplierEntity = SupplierMapper.ToSupplierEntity(request, access.User.Fullname ?? "unknow user");
 
             await _unitOfWork.Suppliers.RegisterSupplier(supplierEntity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
