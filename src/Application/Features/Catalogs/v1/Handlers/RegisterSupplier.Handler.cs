@@ -37,21 +37,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("Usuario desconocido!", "ERP:01");
             }
 
-            if (user.UserStatus != UserStatus.Active)
-            {
-                switch (user.UserStatus)
-                {
-                    case UserStatus.Locked :
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("Usuario se encuentra temporalmente bloquedado, comunicar con el area de informatica", "ERP:02");   
-                    }
-                    case UserStatus.Inactive :
-                    {
-                        return _errorManager.ThrowBadRequest<bool>("Usuario se encuentra inactivo, comunicar con el area de informatica", "ERP:03");   
-                    }
-                }
-            }
-
             _logger.LogInformation("🚀Iniciando proceso de registro de proveedor");
 
             var supplierEntity = SupplierMapper.ToSupplierEntity(request, user?.Fullname ?? "unknow user");
