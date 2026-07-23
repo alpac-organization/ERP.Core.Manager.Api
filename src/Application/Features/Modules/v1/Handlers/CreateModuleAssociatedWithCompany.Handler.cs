@@ -2,7 +2,7 @@ using MediatR;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Modules.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-
+using ERP.Core.Database.Application.Commons.Interfaces.Services;
 namespace ERP.Core.Manager.Api.Application.Features.Modules.v1.Handlers
 {
     public class CreateModuleAssociatedWithCompanyHandler(IUnitOfWork _unitOfWork, ICodeGenerator _codeGenerator, IErrorManager _errorManager) : IRequestHandler<CreateModuleAssociatedWithCompanyCommand, bool>
