@@ -3,7 +3,6 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Entities.Warehouse;
-using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,8 +12,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 public class RegisterProductHandler(
     IUnitOfWork _unitOfWork,
     ILogger<RegisterProductHandler> _logger,
-    IErrorManager _errorManager,
-    IMapper _mapper) 
+    IErrorManager _errorManager) 
     : BaseValidatorHandler<RegisterProductCommand, bool>(_unitOfWork, _errorManager)
 {
     public override async Task<bool> Handle(RegisterProductCommand request, CancellationToken cancellationToken)
@@ -42,7 +40,13 @@ public class RegisterProductHandler(
         
         _logger.LogInformation("🚀 Iniciando registro de producto: {ProductName}", request.ProductName);
 
-        var productEntity = _mapper.Map<Product>(request);
+        var productEntity = new Product
+        {
+            ProductName     = request.ProductName,
+            Description     = request.Description,
+            UsageType       = request.UsageType,
+            CategoryId      = request.CategoryId
+        };
 
         await _unitOfWork.Products.InsertProduct(productEntity);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
