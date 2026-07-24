@@ -1,11 +1,11 @@
-using ERP.Core.Manager.Api.Controllers.ApiBase;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Infrastructure.Attributes;
+using ERP.Core.Manager.Api.Controllers.ApiBase;
+namespace ERP.Core.Manager.Api.Controllers.Catalog;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
-namespace ERP.Core.Manager.Api.Controllers.Catalog;
 
 [HasToken]
 [ApiVersion("1.0")]
