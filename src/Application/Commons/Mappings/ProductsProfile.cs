@@ -1,6 +1,7 @@
 
 using AutoMapper;
 using ERP.Core.Database.Domain.Entities.Warehouse;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings;
