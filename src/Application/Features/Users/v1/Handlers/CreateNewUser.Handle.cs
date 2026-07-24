@@ -8,7 +8,7 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-
+using ERP.Core.Database.Application.Commons.Interfaces.Services;
 namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
 {
     public class CreateNewUserHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPasswordHasher _passwordHasher, ICodeGenerator _codeGenerator) : IRequestHandler<CreateNewUserCommand, CreateUserDto>
@@ -21,7 +21,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
             {
                 user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
 
-                if(user is not null)
+                if (user is not null)
                 {
                     return _errorManager.ThrowBadRequest<CreateUserDto>("Ya existe un usuario con este correo asociado", "ERP:01");
                 }
@@ -32,7 +32,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
             if (request.ModulesWithAccess == null || request.ModulesWithAccess.Count == 0)
             {
                 return _errorManager.ThrowBadRequest<CreateUserDto>(
-                    "El usuario debe tener al menos un módulo de acceso asignado", 
+                    "El usuario debe tener al menos un módulo de acceso asignado",
                     "CreateUserNoModules"
                 );
             }
@@ -77,8 +77,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
 
             var roles = request.ModulesWithAccess.Select(role => role.RoleId);
             var modulesCode = request.ModulesWithAccess.Select(module => module.ModuleCode);
-            
-            foreach(var module in request.ModulesWithAccess)
+
+            foreach (var module in request.ModulesWithAccess)
             {
                 var moduleExist = await _unitOfWork.Modules
                     .FirstOrDefaultAsync(m => m.Code == module.ModuleCode && m.IsActive, cancellationToken);
@@ -109,7 +109,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new ()
+            return new()
             {
                 UserName = userCreated.UserName,
                 FullName = userCreated.Fullname,

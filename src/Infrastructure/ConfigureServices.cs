@@ -8,6 +8,8 @@ using ERP.Core.Database.Infrastructure;
 
 using ERP.Core.Manager.Api.Infrastructure.Services;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Database.Infrastructure.Services;
+using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Clock.Database.Infrastructure;
 
 namespace ERP.Core.Manager.Api.Infrastructure
@@ -18,7 +20,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
         {
             //Configuracion de la cadena de conexión de base de datos.
             //Other Services del paquete de la empresa.
-            services.AddSingleton<ICodeGenerator, CodeGenerator>();
+            services.AddScoped<ICodeGenerator, CodeGenerator>();
             services.AddTransient<IErrorManager, ErrorManager>();
 
             services.AddTransient<ITemplateServices, TemplateServices>();
