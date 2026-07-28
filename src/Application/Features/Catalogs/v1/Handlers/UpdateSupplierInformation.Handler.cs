@@ -50,13 +50,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 _logger.LogWarning("Usuario {UserId} con rol {RoleType} intentó actualizar proveedor {SupplierId} sin permiso", request.UserId, access.Role.RoleType, request.SupplierId);
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para actualizar este proveedor", "ERP:01");
             }
-
-            supplier.ContactName          = request.ContactName          ?? supplier.ContactName;
-            supplier.ContactEmail         = request.ContactEmail         ?? supplier.ContactEmail;
+            
             supplier.SuppliersLegalName   = request.SuppliersLegalName   ?? supplier.SuppliersLegalName;
-            supplier.ContactPhoneNumber   = request.ContactPhoneNumber   ?? supplier.ContactPhoneNumber;
-            supplier.EmailSupport         = request.EmailSupport         ?? supplier.EmailSupport;
-            supplier.Address              = request.Address              ?? supplier.Address;
             supplier.IdentificationNumber = request.IdentificationNumber ?? supplier.IdentificationNumber;
             supplier.ConstitutionType     = request.ConstitutionType     ?? supplier.ConstitutionType;
             supplier.IdentificationType   = request.IdentificationType   ?? supplier.IdentificationType;

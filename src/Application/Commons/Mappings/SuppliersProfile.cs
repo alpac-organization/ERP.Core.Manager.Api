@@ -15,10 +15,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.SupplierLegalName, src => src.MapFrom(su => su.SuppliersLegalName))
                 .ForMember(dest => dest.IdentificationType, src => src.MapFrom(su => su.IdentificationType))
                 .ForMember(dest => dest.IdentificationNumber, src => src.MapFrom(su => su.IdentificationNumber))
-                .ForMember(dest => dest.ContactEmail, src => src.MapFrom(su => su.ContactEmail))
-                .ForMember(dest => dest.ContactName, src => src.MapFrom(su => su.ContactName))
-                .ForMember(dest => dest.ContactPhoneNumber, src => src.MapFrom(su => su.ContactPhoneNumber))
-                .ForMember(dest => dest.Address, src => src.MapFrom(su => su.Address));
+                .ForMember(dest => dest.ConstitutionType, src => src.MapFrom(su => su.ConstitutionType));
         }
     }
 
@@ -30,14 +27,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             {
                 IsActive             = true,
                 RegisterBy           = registerBy,
-                Address              = command.Address,
-                ContactName          = command.ContactName,
                 ConstitutionType     = command.ConstitutionType,
                 IdentificationType   = command.IdentificationType,
                 IdentificationNumber = command.IdentificationNumber,
-                ContactEmail         = command.ContactEmail,
-                ContactPhoneNumber   = command.ContactPhoneNumber,
-                EmailSupport         = command.EmailSupport,
                 SuppliersLegalName   = command.SuppliersLegalName,
             };
         }

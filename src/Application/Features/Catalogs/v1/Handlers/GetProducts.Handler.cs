@@ -6,32 +6,32 @@ using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 
-public class GetProductsHandler(IUnitOfWork unitOfWork, IErrorManager errorManager, IMapper _mapper) 
-    : BaseValidatorHandler<GetProductsQuery, List<ProductDto>>(unitOfWork, errorManager)
+namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
-    public override async Task<List<ProductDto>> 
-        Handle(GetProductsQuery request, CancellationToken cancellationToken)
+    public class GetProductsHandler(IUnitOfWork unitOfWork, IErrorManager errorManager, IMapper _mapper) : BaseValidatorHandler<GetProductsQuery, List<ProductDto>>(unitOfWork, errorManager)
     {
-        var access = await ValidateAccessAsync(
-            request.UserId,
-            request.CompanyId,
-            request.ModuleCode,
-            cancellationToken);
-
-        if (!access.IsSuccess)
+        public override async Task<List<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
         {
-            return access.ErrorResponse!;
+            var access = await ValidateAccessAsync(
+                request.UserId,
+                request.CompanyId,
+                request.ModuleCode,
+                cancellationToken);
+
+            if (!access.IsSuccess)
+            {
+                return access.ErrorResponse!;
+            }
+            var query = _unitOfWork.Products.Entities
+                .AsNoTracking()
+                .Include(p => p.Category)
+                .Where(c => !c.DeletedAt.HasValue);
+
+            if (request.ProductId.HasValue)
+                query = query.Where(c => c.Id == request.ProductId.Value);
+
+            var products = await query.ToListAsync(cancellationToken);
+            return _mapper.Map<List<ProductDto>>(products);
         }
-        var query = _unitOfWork.Products.Entities
-            .AsNoTracking()
-            .Include(p => p.Category)   
-            .Include(p => p.QuoteDetails)
-            .Where(c => !c.DeletedAt.HasValue);
-
-        if (request.ProductId.HasValue)
-            query = query.Where(c => c.Id == request.ProductId.Value);
-
-        var products = await query.ToListAsync(cancellationToken);
-        return _mapper.Map<List<ProductDto>>(products);
     }
 }
