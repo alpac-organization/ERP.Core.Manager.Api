@@ -13,12 +13,28 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
     {
         public async Task<PagedResponse<SupplierDto>> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)
         {
-            var suppliers = await _unitOfWork.Suppliers.Entities
+            var suppliersQuery = _unitOfWork.Suppliers.Entities
                 .Where(sup => sup.IsActive)
+                .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(request.IdentificationNumber))
+            {
+                suppliersQuery = suppliersQuery
+                    .Where(sup => sup.IdentificationNumber == request.IdentificationNumber);
+            }
+
+            if (request.ConstitutionType.HasValue)
+            {
+                suppliersQuery = suppliersQuery
+                    .Where(sup => sup.ConstitutionType == request.ConstitutionType);
+            }
+
+            var suppliers = await suppliersQuery
                 .OrderByDescending(sup => sup.CreatedAt) 
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
+
 
             var totalCount = await _unitOfWork.Suppliers.Entities
                 .CountAsync(cancellationToken);
