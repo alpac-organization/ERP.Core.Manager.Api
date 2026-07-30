@@ -1,4 +1,3 @@
-using AutoMapper;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
@@ -13,9 +12,9 @@ public class RegisterProductHandler(
     IUnitOfWork _unitOfWork,
     ILogger<RegisterProductHandler> _logger,
     IErrorManager _errorManager)
-    : BaseValidatorHandler<RegisterProductCommand, bool>(_unitOfWork, _errorManager)
+    : BaseValidatorHandler<RegisterProductCommand, Guid>(_unitOfWork, _errorManager)
 {
-   public override async Task<bool> Handle(RegisterProductCommand request, CancellationToken cancellationToken)
+   public override async Task<Guid> Handle(RegisterProductCommand request, CancellationToken cancellationToken)
    {
       var access = await ValidateAccessAsync(
           request.UserId,
@@ -33,7 +32,7 @@ public class RegisterProductHandler(
 
       if (!categoryExists)
       {
-         return _errorManager.ThrowBadRequest<bool>(
+         return _errorManager.ThrowBadRequest<Guid>(
              "La categoría seleccionada no existe o no está activa.",
              "ERP:002");
       }
@@ -52,6 +51,6 @@ public class RegisterProductHandler(
 
       _logger.LogInformation("✅ Producto {ProductId} registrado exitosamente", productEntity.Id);
 
-      return true;
+      return productEntity.Id;
    }
 }

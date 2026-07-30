@@ -37,7 +37,7 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
 
     [Tags("Productos")]
     [HttpPost("companies/{companie_id}/modules/{module_code}/products")]
-    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -53,7 +53,7 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
         command.CompanyId = companie_id;
         command.ModuleCode = module_code;
 
-        var result = await _mediator.Send(command);
-        return Ok(new { success = result });
+        var productId = await _mediator.Send(command);
+        return Ok(new { productId });
     }
 }
