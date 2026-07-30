@@ -1,10 +1,11 @@
 using MediatR;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
 {
-    public class RegisterSupplierCommand : BaseRequest, IRequest<bool>
+    public class RegisterSupplierCommand : BaseRequest, IRequest<RegisterSupplierDto>
     {
         public string SuppliersLegalName { get; set; } = null!;
         public string IdentificationNumber { get; set; } = null!;
