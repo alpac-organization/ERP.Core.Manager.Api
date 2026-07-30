@@ -33,6 +33,20 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 SuppliersLegalName   = command.SuppliersLegalName,
             };
         }
+
+        public static SupplierDetails ToSupplierDetails(this Commands.SupplierDetails command, Guid supplierId)
+        {
+            return new()
+            {
+                SupplierId = supplierId,
+                Address = command.Address,
+                ContactEmail = command.ContactEmail,
+                ContactName = command.ContactName,
+                ContactPhoneNumber = command.ContactPhoneNumber,
+                CreditDays = command.CreditDays,
+                EmailSupport = command.EmailSupport,
+                HasCredit = command.HasCredit,               
+            };
+        }
     }
-    
 }

@@ -12,6 +12,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public ConstitutionType ConstitutionType { get; set; }
         public IdentificationType IdentificationType { get; set; }
 
+        public SupplierDetails SupplierDetails { get; set; } = new ();
+    }
+
+    public class SupplierDetails
+    {
+        public int CreditDays { get; set; }
+        public bool HasCredit { get; set; }
         public string? Address { get; set; }
         public string? EmailSupport { get; set; }
         public string? ContactName { get; set; }

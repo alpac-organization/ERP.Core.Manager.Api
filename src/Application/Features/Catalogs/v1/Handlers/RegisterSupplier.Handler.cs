@@ -32,6 +32,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             var supplierEntity = SupplierMapper.ToSupplierEntity(request, access.User.Fullname ?? "unknow user");
 
             await _unitOfWork.Suppliers.RegisterSupplier(supplierEntity);
+
+            var supplierDetailsEntity = SupplierMapper.ToSupplierDetails(request.SupplierDetails, supplierEntity.Id);
+
+            await _unitOfWork.SuppliersDetails.RegisterSupplierDetails(supplierDetailsEntity);
+            
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("✅Registro finalizado con exito");
