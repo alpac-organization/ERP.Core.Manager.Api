@@ -35,8 +35,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             var supplierDetailsEntity = SupplierMapper.ToSupplierDetails(request.SupplierDetails, supplierEntity.Id);
 
+            if (request.SupplierDetails.HasCredit && request.SupplierDetails.CreditDays < 1)
+            {
+                return _errorManager.ThrowBadRequest<bool>("Los dias de creditos deben contener almenos un dia", "ERP:ERROR_REGISTER");
+            }
+
             await _unitOfWork.SuppliersDetails.RegisterSupplierDetails(supplierDetailsEntity);
-            
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("✅Registro finalizado con exito");

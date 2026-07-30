@@ -50,11 +50,30 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 _logger.LogWarning("Usuario {UserId} con rol {RoleType} intentó actualizar proveedor {SupplierId} sin permiso", request.UserId, access.Role.RoleType, request.SupplierId);
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para actualizar este proveedor", "ERP:01");
             }
-            
+
             supplier.SuppliersLegalName   = request.SuppliersLegalName   ?? supplier.SuppliersLegalName;
             supplier.IdentificationNumber = request.IdentificationNumber ?? supplier.IdentificationNumber;
             supplier.ConstitutionType     = request.ConstitutionType     ?? supplier.ConstitutionType;
             supplier.IdentificationType   = request.IdentificationType   ?? supplier.IdentificationType;
+
+            if (request.SupplierDetails is not null)
+            {
+
+                var supplierDetails = await _unitOfWork.SuppliersDetails.Entities
+                    .Where(supl => supl.SupplierId == supplier.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (supplierDetails is not null)
+                {
+                    supplierDetails.HasCredit           = request.SupplierDetails.HasCredit;
+                    supplierDetails.CreditDays          = request.SupplierDetails.CreditDays;
+                    supplierDetails.Address             = request.SupplierDetails.Address             ?? supplierDetails.Address;
+                    supplierDetails.EmailSupport        = request.SupplierDetails.EmailSupport        ?? supplierDetails.EmailSupport;
+                    supplierDetails.ContactName         = request.SupplierDetails.ContactName         ?? supplierDetails.ContactName;
+                    supplierDetails.ContactEmail        = request.SupplierDetails.ContactEmail        ?? supplierDetails.ContactEmail;
+                    supplierDetails.ContactPhoneNumber  = request.SupplierDetails.ContactPhoneNumber  ?? supplierDetails.ContactPhoneNumber;
+                }
+            }
 
             await _unitOfWork.Suppliers.UpdateAsync(supplier);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
