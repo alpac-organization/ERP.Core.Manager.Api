@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
@@ -22,18 +23,22 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<PagedResponse<SupplierDto>> GetSuppliersAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
             [FromQuery] int page_size = 10,
-            [FromQuery] int page_number = 1
+            [FromQuery] int page_number = 1,
+            [FromQuery] ConstitutionType? constitution_type = null,
+            [FromQuery] string? identification_number = null
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
             return await _mediator.Send(new GetSuppliersQuery()
             {
-                CompanyId = companie_id,
-                ModuleCode = module_code,
-                PageSize = page_size,
-                PageNumber = page_number,
-                UserId = Guid.Parse(userIdStr ?? "")
+                CompanyId            = companie_id,
+                ModuleCode           = module_code,
+                PageSize             = page_size,
+                PageNumber           = page_number,
+                ConstitutionType     = constitution_type,
+                IdentificationNumber = identification_number,
+                UserId               = Guid.Parse(userIdStr ?? "")
             });
         }
 
