@@ -8,18 +8,18 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
-
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 [HasToken]
 [ApiVersion("1.0")]
 [Route("api/v1/")]
 public class ProductsController(IMediator _mediator) : ApiControllerBase
 {
     [Tags("Productos")]
-    [HttpGet("companies/{companie_id}/modules/{module_code}/products")]
-    [ProducesResponseType(typeof(List<ProductDto>), StatusCodes.Status200OK)]
+    [HttpGet("companies/{companie_id}/modules/{module_code}/products", Name = "GetProducts")]
+    [ProducesResponseType(typeof(PagedResponse<ProductDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<List<ProductDto>> GetProductsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromQuery] Guid? product_id)
+    public async Task<PagedResponse<ProductDto>> GetProductsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromQuery] Guid? category_product_id, [FromQuery] int page_number = 1, [FromQuery] int page_size = 10)
     {
         var userIdStr = HttpContext.Items["UserId"] as string;
         Guid userId = Guid.TryParse(userIdStr, out var parseGuid) ? parseGuid : Guid.Empty;
@@ -29,7 +29,9 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
             CompanyId = companie_id,
             ModuleCode = module_code,
             UserId = userId,
-            ProductId = product_id
+            CategoryProductId = category_product_id,
+            PageNumber = page_number,
+            PageSize = page_size
         });
     }
 
