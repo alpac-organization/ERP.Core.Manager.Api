@@ -4,7 +4,7 @@ using MediatR;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries
 {
-    public class GenerateDocumentToCollaboratorQuery: BaseRequest, IRequest<byte[]>
+    public class GenerateDocumentToCollaboratorQuery : BaseRequest, IRequest<byte[]>
     {
         public DocumentType DocumentType { get; set; }
         public string? IdentificationNumber { get; set; }
