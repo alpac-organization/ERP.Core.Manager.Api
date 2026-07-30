@@ -1,4 +1,3 @@
-using AutoMapper;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
@@ -12,47 +11,46 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 public class RegisterProductHandler(
     IUnitOfWork _unitOfWork,
     ILogger<RegisterProductHandler> _logger,
-    IErrorManager _errorManager) 
-    : BaseValidatorHandler<RegisterProductCommand, bool>(_unitOfWork, _errorManager)
+    IErrorManager _errorManager)
+    : BaseValidatorHandler<RegisterProductCommand, Guid>(_unitOfWork, _errorManager)
 {
-    public override async Task<bool> Handle(RegisterProductCommand request, CancellationToken cancellationToken)
-    {
-        var access = await ValidateAccessAsync(
-            request.UserId,
-            request.CompanyId,
-            request.ModuleCode!,
-            cancellationToken);
+   public override async Task<Guid> Handle(RegisterProductCommand request, CancellationToken cancellationToken)
+   {
+      var access = await ValidateAccessAsync(
+          request.UserId,
+          request.CompanyId,
+          request.ModuleCode!,
+          cancellationToken);
 
-        if (!access.IsSuccess)
-        {
-            return access.ErrorResponse;
-        }   
+      if (!access.IsSuccess)
+      {
+         return access.ErrorResponse;
+      }
 
-        var categoryExists = await _unitOfWork.CategoryProducts.Entities
-            .AnyAsync(c => c.Id == request.CategoryId && c.IsActive, cancellationToken);
-        
-        if (!categoryExists)
-        {
-            return _errorManager.ThrowBadRequest<bool>(
-                "La categoría seleccionada no existe o no está activa.",
-                "ERP:002");
-        }
-        
-        _logger.LogInformation("🚀 Iniciando registro de producto: {ProductName}", request.ProductName);
+      var categoryExists = await _unitOfWork.CategoryProducts.Entities
+          .AnyAsync(c => c.Id == request.CategoryId && c.IsActive, cancellationToken);
 
-        var productEntity = new Product
-        {
-            ProductName     = request.ProductName,
-            Description     = request.Description,
-            UsageType       = request.UsageType,
-            CategoryId      = request.CategoryId
-        };
+      if (!categoryExists)
+      {
+         return _errorManager.ThrowBadRequest<Guid>(
+             "La categoría seleccionada no existe o no está activa.",
+             "ERP:002");
+      }
 
-        await _unitOfWork.Products.InsertProduct(productEntity);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+      _logger.LogInformation("🚀 Iniciando registro de producto: {ProductName}", request.ProductName);
 
-        _logger.LogInformation("✅ Producto {ProductId} registrado exitosamente", productEntity.Id);
+      var productEntity = new Product
+      {
+         ProductName = request.ProductName,
+         Description = request.Description,
+         CategoryId = request.CategoryId
+      };
 
-        return true;
-    }
+      await _unitOfWork.Products.InsertProduct(productEntity);
+      await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+      _logger.LogInformation("✅ Producto {ProductId} registrado exitosamente", productEntity.Id);
+
+      return productEntity.Id;
+   }
 }

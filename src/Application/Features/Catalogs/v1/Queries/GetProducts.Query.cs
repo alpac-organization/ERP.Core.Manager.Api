@@ -5,8 +5,11 @@ using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries
 {
 
-    public class GetProductsQuery : BaseRequest, IRequest<List<ProductDto>>
+    public class GetProductsQuery : BaseRequest, IRequest<PagedResponse<ProductDto>>
     {
-        public Guid? ProductId { get; set; }
+
+        public Guid? CategoryProductId { get; set; }
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
     }
 }

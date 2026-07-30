@@ -23,11 +23,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("El codigo del módulo no puede estar vacío.")
                 .NotEmpty()
                 .WithMessage("El código del módulo es requerido.");
-
-            RuleFor(x => x.ProductId)
-                .NotEqual(Guid.Empty)
-                .When(x => x.ProductId.HasValue)
-                .WithMessage("El id del producto no es válido."); ;
         }
     }
 }
