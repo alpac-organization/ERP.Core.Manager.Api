@@ -39,10 +39,10 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
 
         [Tags("Proveedores")]
         [HttpPost("companies/{companie_id}/modules/{module_code}/suppliers")]
-        [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RegisterSupplierDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<CreatedResult> RegisterSupplierAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromBody] RegisterSupplierCommand payload)
+        public async Task<RegisterSupplierDto> RegisterSupplierAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromBody] RegisterSupplierCommand payload)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
@@ -50,9 +50,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             payload.ModuleCode = module_code;
             payload.UserId = Guid.Parse(userIdStr ?? "");
 
-            await _mediator.Send(payload);
-
-            return Created();
+            return await _mediator.Send(payload);
         }
 
 

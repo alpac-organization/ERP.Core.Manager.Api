@@ -37,27 +37,36 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .IsInEnum()
                 .WithMessage("El tipo de identificación es inválido.");
 
-            RuleFor(x => x.Address)
+            RuleFor(x => x.SupplierDetails)
+                .NotNull()
+                .WithMessage("Los detalles del proveedor son obligatorios.");
+
+            RuleFor(x => x.SupplierDetails.CreditDays)
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("Los días de crédito no pueden ser negativos.");
+
+            RuleFor(x => x.SupplierDetails.Address)
                 .MaximumLength(500)
-                .When(x => !string.IsNullOrWhiteSpace(x.Address));
+                .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.Address));
 
-            RuleFor(x => x.EmailSupport)
+            RuleFor(x => x.SupplierDetails.EmailSupport)
                 .EmailAddress()
-                .When(x => !string.IsNullOrWhiteSpace(x.EmailSupport))
-                .WithMessage("El correo de soporte no es válido.");
+                .WithMessage("El correo de soporte no es válido.")
+                .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.EmailSupport));
 
-            RuleFor(x => x.ContactName)
+            RuleFor(x => x.SupplierDetails.ContactName)
                 .MaximumLength(200)
-                .When(x => !string.IsNullOrWhiteSpace(x.ContactName));
+                .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.ContactName));
 
-            RuleFor(x => x.ContactEmail)
+            RuleFor(x => x.SupplierDetails.ContactEmail)
                 .EmailAddress()
-                .When(x => !string.IsNullOrWhiteSpace(x.ContactEmail))
-                .WithMessage("El correo del contacto no es válido.");
+                .WithMessage("El correo del contacto no es válido.")
+                .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.ContactEmail));
 
-            RuleFor(x => x.ContactPhoneNumber)
-                .MaximumLength(20)
-                .When(x => !string.IsNullOrWhiteSpace(x.ContactPhoneNumber));
+            RuleFor(x => x.SupplierDetails.ContactPhoneNumber)
+                .Matches(@"^(\+505[\s-]?)?\d{4}[\s-]?\d{4}$")
+                .WithMessage("El número de teléfono debe tener 8 dígitos, opcionalmente con +505")
+                .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.ContactPhoneNumber));
         }
     }
 }

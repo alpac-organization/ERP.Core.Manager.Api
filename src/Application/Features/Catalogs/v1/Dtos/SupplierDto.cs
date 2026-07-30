@@ -10,4 +10,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public IdentificationType? IdentificationType { get; set; }
         public ConstitutionType ConstitutionType { get; set; }        
     }
+
+    public class  RegisterSupplierDto
+    {
+        public Guid SupplierId { get; set; }   
+    }
 }
