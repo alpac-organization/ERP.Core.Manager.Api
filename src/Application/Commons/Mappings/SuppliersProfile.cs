@@ -25,6 +25,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         {
             return new()
             {
+                Id                   = Guid.NewGuid(),
                 IsActive             = true,
                 RegisterBy           = registerBy,
                 ConstitutionType     = command.ConstitutionType,
