@@ -6,8 +6,8 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
-using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
