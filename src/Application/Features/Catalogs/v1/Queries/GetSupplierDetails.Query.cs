@@ -5,7 +5,7 @@ using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries
 {
-    public class GetSupplierDetailsQuery: BaseRequest, IRequest<PagedResponse<SupplierDto>>
+    public class GetSupplierDetailsQuery: BaseRequest, IRequest<SupplierInformationDto>
     {
         public Guid SupplierId { get; set; }
     }
