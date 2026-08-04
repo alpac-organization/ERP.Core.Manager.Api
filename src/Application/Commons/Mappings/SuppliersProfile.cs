@@ -15,7 +15,15 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.SupplierLegalName, src => src.MapFrom(su => su.SuppliersLegalName))
                 .ForMember(dest => dest.IdentificationType, src => src.MapFrom(su => su.IdentificationType))
                 .ForMember(dest => dest.IdentificationNumber, src => src.MapFrom(su => su.IdentificationNumber))
-                .ForMember(dest => dest.ConstitutionType, src => src.MapFrom(su => su.ConstitutionType));
+                .ForMember(dest => dest.ConstitutionType, src => src.MapFrom(su => su.ConstitutionType))
+
+
+                .ForPath(dest => dest.UserInformation.UserId, src => src.MapFrom(su => su.User.Id))
+                .ForPath(dest => dest.UserInformation.Email, src => src.MapFrom(su => su.User.Email))
+                .ForPath(dest => dest.UserInformation.UserFullname, src => src.MapFrom(su => su.User.Fullname))
+                .ForPath(dest => dest.UserInformation.AreaInformation.AreaId, src => src.MapFrom(su => su.User.WorkArea.Id))
+                .ForPath(dest => dest.UserInformation.AreaInformation.WorkAreaName, src => src.MapFrom(su => su.User.WorkArea.WorkAreaName))
+                .ForPath(dest => dest.UserInformation.AreaInformation.AreaCode, src => src.MapFrom(su => su.User.WorkArea.WorkAreaCode));
         }
     }
 
@@ -27,7 +35,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             {
                 Id                   = Guid.NewGuid(),
                 IsActive             = true,
-                RegisterBy           = registerBy,
+                UserId               = command.UserId,
                 ConstitutionType     = command.ConstitutionType,
                 IdentificationType   = command.IdentificationType,
                 IdentificationNumber = command.IdentificationNumber,

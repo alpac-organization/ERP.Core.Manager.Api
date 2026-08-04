@@ -24,18 +24,29 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .MaximumLength(200)
                 .WithMessage("El nombre legal del proveedor es obligatorio.");
 
+            RuleFor(x => x.IdentificationType)
+                .IsInEnum()
+                .WithMessage("El tipo de identificación es inválido.")
+                .When(x => x.IdentificationType.HasValue);
+
+            RuleFor(x => x.IdentificationType)
+                .NotNull()
+                .WithMessage("El tipo de identificación es obligatorio cuando se especifica el número de identificación.")
+                .When(x => !string.IsNullOrWhiteSpace(x.IdentificationNumber));
+
             RuleFor(x => x.IdentificationNumber)
                 .NotEmpty()
+                .WithMessage("El número de identificación es obligatorio cuando se especifica el tipo de identificación.")
+                .When(x => x.IdentificationType.HasValue);
+
+            RuleFor(x => x.IdentificationNumber)
                 .MaximumLength(50)
-                .WithMessage("El número de identificación es obligatorio.");
+                .WithMessage("El número de identificación no puede exceder 50 caracteres.")
+                .When(x => !string.IsNullOrWhiteSpace(x.IdentificationNumber));
 
             RuleFor(x => x.ConstitutionType)
                 .IsInEnum()
                 .WithMessage("El tipo de constitución es inválido.");
-
-            RuleFor(x => x.IdentificationType)
-                .IsInEnum()
-                .WithMessage("El tipo de identificación es inválido.");
 
             RuleFor(x => x.SupplierDetails)
                 .NotNull()

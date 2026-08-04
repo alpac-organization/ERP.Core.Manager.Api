@@ -14,6 +14,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
         public async Task<PagedResponse<SupplierDto>> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)
         {
             var suppliersQuery = _unitOfWork.Suppliers.Entities
+                .Include(sup => sup.User)
+                    .ThenInclude(user => user.WorkArea)
                 .Where(sup => sup.IsActive)
                 .AsNoTracking();
 
