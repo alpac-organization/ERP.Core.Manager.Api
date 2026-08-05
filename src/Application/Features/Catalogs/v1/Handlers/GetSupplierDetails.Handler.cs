@@ -14,16 +14,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
     {
         public override async Task<SupplierInformationDto> Handle(GetSupplierDetailsQuery request, CancellationToken cancellationToken)
         {
-            var suppliersQuery = await _unitOfWork.Suppliers.Entities
+            var supplier = await _unitOfWork.Suppliers.Entities
                 .Include(sup => sup.SupplierDetails)
                 .Include(sup => sup.User)
                     .ThenInclude(user => user.WorkArea)
                 .Where(sup => sup.IsActive)
+                .Where(sup => sup.Id == request.SupplierId)
                 .FirstOrDefaultAsync(cancellationToken);
-                
 
+            if (supplier is null)
+            {
+                return _errorManager.ThrowBadRequest<SupplierInformationDto>("No se encontro registro de este proveedor", "ERP:NOT_FOUND");
+            }
 
-            return new ();
+            return _mapper.Map<SupplierInformationDto>(supplier);
         }
     }
 }

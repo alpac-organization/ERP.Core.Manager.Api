@@ -81,17 +81,20 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
 
         [Tags("Proveedores")]
         [HttpGet("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}/details")]
-        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(SupplierInformationDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<OkResult> GetSupplierDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid supplier_id)
+        public async Task<SupplierInformationDto> GetSupplierDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid supplier_id)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            
-
-
-            return Ok();
+            return await _mediator.Send(new GetSupplierDetailsQuery()
+            {
+                UserId      = Guid.Parse(userIdStr ?? ""),
+                SupplierId  = supplier_id,
+                CompanyId   = companie_id,
+                ModuleCode  = module_code,
+            });
         }
 
     }

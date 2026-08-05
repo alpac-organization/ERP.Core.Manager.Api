@@ -17,13 +17,22 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.IdentificationNumber, src => src.MapFrom(su => su.IdentificationNumber))
                 .ForMember(dest => dest.ConstitutionType, src => src.MapFrom(su => su.ConstitutionType))
 
-
                 .ForPath(dest => dest.UserInformation.UserId, src => src.MapFrom(su => su.User.Id))
                 .ForPath(dest => dest.UserInformation.Email, src => src.MapFrom(su => su.User.Email))
                 .ForPath(dest => dest.UserInformation.UserFullname, src => src.MapFrom(su => su.User.Fullname))
                 .ForPath(dest => dest.UserInformation.AreaInformation.AreaId, src => src.MapFrom(su => su.User.WorkArea.Id))
                 .ForPath(dest => dest.UserInformation.AreaInformation.WorkAreaName, src => src.MapFrom(su => su.User.WorkArea.WorkAreaName))
                 .ForPath(dest => dest.UserInformation.AreaInformation.AreaCode, src => src.MapFrom(su => su.User.WorkArea.WorkAreaCode));
+            
+            CreateMap<Supplier, SupplierInformationDto>()
+                .IncludeBase<Supplier, SupplierDto>()
+
+                .ForPath(dest => dest.SupplierDetails.Address, src => src.MapFrom(su => su.SupplierDetails.Address))
+                .ForPath(dest => dest.SupplierDetails.ContactEmail, src => src.MapFrom(su => su.SupplierDetails.ContactEmail))
+                .ForPath(dest => dest.SupplierDetails.ContactName, src => src.MapFrom(su => su.SupplierDetails.ContactName))
+                .ForPath(dest => dest.SupplierDetails.ContactPhoneNumber, src => src.MapFrom(su => su.SupplierDetails.ContactPhoneNumber))
+                .ForPath(dest => dest.SupplierDetails.HasCredit, src => src.MapFrom(su => su.SupplierDetails.HasCredit))
+                .ForPath(dest => dest.SupplierDetails.CreditDays, src => src.MapFrom(su => su.SupplierDetails.CreditDays));
         }
     }
 

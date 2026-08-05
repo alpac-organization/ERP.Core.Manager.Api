@@ -1,20 +1,13 @@
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
 {
-    public class SupplierInformationDto
+    public class SupplierInformationDto : SupplierDto
     {
-        public Guid SupplierId { get; set; }
-        public string? SupplierLegalName { get; set; }
-        public string? IdentificationNumber { get; set; }
-        public IdentificationType? IdentificationType { get; set; }
-        public ConstitutionType ConstitutionType { get; set; }      
-
-        public RegisterUserInformation UserInformation { get; set; } = new ();
+        public SupplierDetailsDto SupplierDetails{ get; set; } = new();
     }
 
-    public class SupplierDetails
+    public class SupplierDetailsDto
     {
         public string? Address { get; set; }
         public string? EmailSupport { get; set; }
