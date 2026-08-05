@@ -15,5 +15,14 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UserStatus.ToString()));
         }
+
+    }
+
+    public class CreateUSerProfile : Profile
+    {
+        protected CreateUSerProfile()
+        {
+            
+        }
     }
 }

@@ -81,7 +81,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
                 UserName = user.UserName,
-                BranchId = user.AreaId,
+                BranchId = user.BranchId,
                 CompanyInformation = new()
                 {
                     CompanyId = profile.CompanyId,
