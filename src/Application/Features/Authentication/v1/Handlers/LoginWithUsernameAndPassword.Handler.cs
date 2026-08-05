@@ -6,14 +6,16 @@ using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Enums;
+using AutoMapper;
 
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 {
     public class LoginWithUsernameAndPasswordHandler(
-        IUnitOfWork _unitOfWork, 
+        IUnitOfWork _unitOfWork,
         IErrorManager _errorManager,
         IPasswordHasher _passwordHasher,
-        IAuthServices _authServices
+        IAuthServices _authServices,
+        IMapper _mapper
     ) : IRequestHandler<LoginWithUsernameAndPasswordCommand, LoginDto>
     {
         public async Task<LoginDto> Handle(LoginWithUsernameAndPasswordCommand request, CancellationToken cancellationToken)
@@ -44,22 +46,22 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             {
                 switch (user.UserStatus)
                 {
-                    case UserStatus.Locked :
-                    {
-                        return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente bloqueado, comunicar con el area de informatica", "ERP:USER_BLOCKED");  
-                    }
-                    case UserStatus.Inactive :
-                    {
-                        return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente inactivo, comunicar con el area de informatica", "ERP:USER_UNACTIVE");   
-                    }
-                }                
+                    case UserStatus.Locked:
+                        {
+                            return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente bloqueado, comunicar con el area de informatica", "ERP:USER_BLOCKED");
+                        }
+                    case UserStatus.Inactive:
+                        {
+                            return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente inactivo, comunicar con el area de informatica", "ERP:USER_UNACTIVE");
+                        }
+                }
             }
 
             //Verificamos el perfil al que quiere, ingresar
             var profile = await _unitOfWork.Profiles
                 .FirstOrDefaultAsync(profile => profile.CompanyId == request.CompanyId && profile.UserId == user.Id, cancellationToken);
 
-            if(profile is null)
+            if (profile is null)
             {
                 return _errorManager.ThrowBadRequest<LoginDto>("Este usuario no tiene un perfil asociado a esta empresa", "ERP:ProfileError");
             }
@@ -92,7 +94,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             var userModules = await _unitOfWork.UserModules.ToListAsync(modulesQuery, cancellationToken);
 
             var modulesWithAccess = userModules
-                .Select(m => m.ModuleCode!) 
+                .Select(m => m.ModuleCode!)
                 .Where(code => !string.IsNullOrEmpty(code))
                 .ToList();
 
@@ -114,29 +116,22 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             };
 
             await _unitOfWork.Sessions.CreateNewSession(newSession);
-            
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new LoginDto
+            var loginDto = _mapper.Map<LoginDto>(user);
+            loginDto.AccessToken = accessToken;
+            loginDto.RefreshToken = refreshToken;
+            loginDto.CompanyInformation = new()
             {
-                UserId               = user.Id,
-                Email                = user.Email,
-                UserName             = user.UserName,
-                AccessToken          = accessToken,
-                RefreshToken         = refreshToken,
-                FullName             = user.Fullname,
-                IdentificationNumber = user.IdentificationNumber,
-                UserType             = user.UserType.ToString(),
-                BranchId             = user.BranchId,
-                CompanyInformation = new()
-                {
-                    CompanyId       = profile.CompanyId,
-                    CompanyName     = company?.CompanieName,
-                    ImageUrl        = company?.ImageUrl,
-                    NeutralImageUrl = company?.NeutralImageUrl,
-                    Alias           = company?.Alias
-                },
+                CompanyId = profile.CompanyId,
+                CompanyName = company?.CompanieName,
+                ImageUrl = company?.ImageUrl,
+                NeutralImageUrl = company?.NeutralImageUrl,
+                Alias = company?.Alias
             };
+
+            return loginDto;
         }
     }
 }
