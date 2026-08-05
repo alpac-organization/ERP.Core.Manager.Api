@@ -62,7 +62,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                 IdentificationNumber = request.IdentificationNumber,
                 UserStatus = UserStatus.Active,
                 UserType = request.UserType,
-                BranchId = request.BranchId
+                BranchId = request.BranchId,
+                AreaId = request.AreaId
             };
 
             var userCreated = await _unitOfWork.Users.CreateNewUser(newUser);
