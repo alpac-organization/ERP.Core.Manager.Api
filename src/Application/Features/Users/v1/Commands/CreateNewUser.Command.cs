@@ -12,6 +12,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Commands
         public string? Password { get; set; }
         public UserType UserType { get; set; }
         public string? IdentificationNumber { get; set; }
+        public Guid BranchId { get; set; }
 
 
         [JsonIgnore]
