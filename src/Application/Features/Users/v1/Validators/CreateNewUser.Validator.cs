@@ -54,6 +54,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Validators
                     .WithMessage("El formato del correo electrónico no es válido.")
                 .MaximumLength(100)
                     .WithMessage("El correo no puede exceder los 100 caracteres.");
+            
+            RuleFor(x => x.BranchId)
+                .NotEmpty()
+                    .WithMessage("La sucursal es requerida.");
         }
     }
 }

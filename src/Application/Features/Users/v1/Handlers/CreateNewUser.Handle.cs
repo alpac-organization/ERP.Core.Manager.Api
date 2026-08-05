@@ -37,6 +37,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                 );
             }
 
+            var branch = await _unitOfWork.Branches
+                .FirstOrDefaultAsync(b => b.Id == request.BranchId, cancellationToken);
+
+            if (branch is null)
+            {
+                return _errorManager.ThrowBadRequest<CreateUserDto>(
+                    "La sucursal seleccionada no existe", 
+                    "ERP:BranchNotFound");
+            }
+
             //Hashiamos la contraseña
             var username = _codeGenerator.GenerateUsername(request.FullName!);
             var passwordHash = _passwordHasher.HashPassword(request.Password!);
@@ -51,7 +61,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                 Fullname = request.FullName,
                 IdentificationNumber = request.IdentificationNumber,
                 UserStatus = UserStatus.Active,
-                UserType = request.UserType
+                UserType = request.UserType,
+                BranchId = request.BranchId,
+                AreaId = request.AreaId
             };
 
             var userCreated = await _unitOfWork.Users.CreateNewUser(newUser);

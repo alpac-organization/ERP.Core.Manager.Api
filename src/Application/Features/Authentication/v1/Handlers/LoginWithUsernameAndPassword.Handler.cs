@@ -127,6 +127,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 FullName             = user.Fullname,
                 IdentificationNumber = user.IdentificationNumber,
                 UserType             = user.UserType.ToString(),
+                BranchId             = user.BranchId,
                 CompanyInformation = new()
                 {
                     CompanyId       = profile.CompanyId,

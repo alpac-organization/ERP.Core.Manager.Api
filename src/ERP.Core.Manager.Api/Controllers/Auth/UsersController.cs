@@ -48,6 +48,8 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
                 Password = payload.Password,
                 IdentificationNumber = payload.IdentificationNumber,
                 UserType = payload.UserType,
+                BranchId = payload.BranchId,
+                AreaId = payload.AreaId,
                 ModulesWithAccess = payload.ModulesWithAccess
             };
 
