@@ -6,12 +6,14 @@ using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
+using ERP.Core.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
-    public class GetSuppliersHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<GetSuppliersQuery, PagedResponse<SupplierDto>>
+    public class GetSuppliersHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) :  BaseValidatorHandler<GetSuppliersQuery,PagedResponse<SupplierDto>>(_unitOfWork, _errorManager)
     {
-        public async Task<PagedResponse<SupplierDto>> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)
+        public override async Task<PagedResponse<SupplierDto>> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)
         {
             var suppliersQuery = _unitOfWork.Suppliers.Entities
                 .Include(sup => sup.User)
