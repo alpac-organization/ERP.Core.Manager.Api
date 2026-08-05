@@ -10,6 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
         public string? Email { get; set; }
         public string? IdentificationNumber { get; set; }
         public string? UserType { get; set; }
+        public Guid BranchId { get; set; }
         public CompanyInformation CompanyInformation { get; set; } = new();
     }
 
