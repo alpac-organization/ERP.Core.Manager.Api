@@ -14,11 +14,11 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
     [Route("api/v1/")]
     public class UsersController(IMediator _mediator) : ApiControllerBase
     {
-        [Tags("Usuarios")] 
-        [HttpGet("companies/{companie_id}/users/modules")]    
-        [ProducesResponseType(typeof(List<UserModuleDto>), StatusCodes.Status200OK)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        [Tags("Usuarios")]
+        [HttpGet("companies/{companie_id}/users/modules")]
+        [ProducesResponseType(typeof(List<UserModuleDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<List<UserModuleDto>> GetAvailableModulesForUserAsync([FromRoute] Guid companie_id)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
@@ -26,35 +26,24 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
             var result = await _mediator.Send(new GetAvailableModulesForUserQuery()
             {
                 CompanyId = companie_id,
-                UserId =  Guid.Parse(userIdStr ?? "")
+                UserId = Guid.Parse(userIdStr ?? "")
             });
 
             return result;
         }
 
-        
-        [Tags("Usuarios")] 
+
+        [Tags("Usuarios")]
         [HttpPost("companies/{companie_id}/users", Name = "CreateUser")]
-        [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)] 
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)] 
+        [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<CreateUserDto> CreateNewUserAsync([FromRoute] Guid companie_id, [FromBody] CreateNewUserCommand payload)
         {
-            var command = new CreateNewUserCommand()
-            {
-                CompanyId = companie_id,
-                FullName = payload.FullName,
-                Email = payload.Email,
-                Password = payload.Password,
-                IdentificationNumber = payload.IdentificationNumber,
-                UserType = payload.UserType,
-                BranchId = payload.BranchId,
-                AreaId = payload.AreaId,
-                ModulesWithAccess = payload.ModulesWithAccess
-            };
+            payload.CompanyId = companie_id;
 
-            var result = await _mediator.Send(command);
-
+            var result = await _mediator.Send(payload);
+            
             return result;
         }
     }
