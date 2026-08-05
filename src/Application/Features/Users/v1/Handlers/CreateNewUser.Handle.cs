@@ -1,18 +1,19 @@
 using MediatR;
+using AutoMapper;
 
-using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Mappings;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
 
 using ERP.Core.Database.Domain.Entities.Auth;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Features.Users.v1.Commands;
-using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
-using AutoMapper;
+
 namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
 {
-    public class CreateNewUserHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPasswordHasher _passwordHasher, ICodeGenerator _codeGenerator, IMapper _mapper) : IRequestHandler<CreateNewUserCommand, CreateUserDto>
+    public class CreateNewUserHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPasswordHasher _passwordHasher, ICodeGenerator _codeGenerator) : IRequestHandler<CreateNewUserCommand, CreateUserDto>
     {
         public async Task<CreateUserDto> Handle(CreateNewUserCommand request, CancellationToken cancellationToken)
         {
@@ -53,7 +54,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
             var passwordHash = _passwordHasher.HashPassword(request.Password!);
 
             //Creamos el usuario
-            var newUser = _mapper.Map<User>(request);
+            var newUser = UserMapper.ToUserEntity(request);
+
             newUser.UserName = username;
             newUser.PasswordHash = passwordHash;
 

@@ -4,6 +4,7 @@ using ERP.Core.Manager.Api.Application.Features.Companies.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Companies.v1.Dtos;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace ERP.Core.Manager.Api.Application.Features.Companies.v1.Handlers
 {
@@ -13,7 +14,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Companies.v1.Handlers
         {
             _logger.LogInformation("Obteniendo empresas disponibles");
 
-            var companies = await _unitOfWork.Companies.GetAvailableCompanies(cancellationToken);
+            var companies = await _unitOfWork.Companies.Entities
+                .Where(comp => comp.IsActive)
+                .ToListAsync(cancellationToken);
 
             _logger.LogInformation("Empresas con exito ✅");
 
