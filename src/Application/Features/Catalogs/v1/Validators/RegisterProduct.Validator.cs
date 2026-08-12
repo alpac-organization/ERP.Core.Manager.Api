@@ -20,7 +20,7 @@ public class RegisterProductValidator : AbstractValidator<RegisterProductCommand
 
       RuleFor(x => x.ProductName)
           .NotEmpty().WithMessage("El nombre del producto es obligatorio.")
-          .MaximumLength(30).WithMessage("El nombre del producto no puede exceder los 200 caracteres.");
+          .MaximumLength(80).WithMessage("El nombre del producto no puede exceder los 80 caracteres.");
 
 
       RuleFor(x => x.CategoryId)
