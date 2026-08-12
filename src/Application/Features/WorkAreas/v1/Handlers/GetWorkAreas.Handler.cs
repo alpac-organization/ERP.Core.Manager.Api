@@ -1,11 +1,11 @@
 using MediatR;
+using AutoMapper;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
+using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Dtos;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Queries;
-using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Dtos;
-using Microsoft.EntityFrameworkCore;
-using AutoMapper;
 
 namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Handlers
 {
@@ -18,10 +18,18 @@ namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Handlers
             var workAreas = await _unitOfWork.WorkAreas.Entities
                 .Where(wk => wk.CompanyId == request.CompanyId)
                 .Where(wk => wk.IsActive)
+                .Include(wk => wk.CostCenters
+                    .Where(cc => 
+                        cc.IsActive
+                    )
+                )
                 .ToListAsync(cancellationToken);
             
             _logger.LogInformation("✅Area de trabajo obtenidas con exito");
-            return _mapper.Map<List<WorkAreaDto>>(workAreas);            
+            
+            var areasMapped = _mapper.Map<List<WorkAreaDto>>(workAreas);     
+
+            return areasMapped;       
         }
     }
 }
