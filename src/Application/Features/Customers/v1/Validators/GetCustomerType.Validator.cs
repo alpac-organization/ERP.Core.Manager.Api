@@ -3,18 +3,15 @@ using ERP.Core.Manager.Api.Application.Features.Customers.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Validators
 {
-    public class GetCustomersAvailableValitor: AbstractValidator<GetCustomersAvailableQuery>
+    public class GetCustomerTypesValidator : AbstractValidator<GetCustomerTypesQuery>
     {
-        public GetCustomersAvailableValitor()
+        public GetCustomerTypesValidator()
         {
             RuleFor(x => x.UserId)
                 .NotEqual(Guid.Empty).WithMessage("No se pudo identificar al usuario autenticado.");
 
             RuleFor(x => x.CompanyId)
-                .NotEmpty()
-                    .WithMessage("El id de la empresa no puedes vacio.")
-                .NotNull()
-                    .WithMessage("El id de la empresa es requerido");
+                .NotEqual(Guid.Empty).WithMessage("El identificador de la compañía es obligatorio.");
 
             RuleFor(x => x.ModuleCode)
                 .NotEmpty().WithMessage("El código del módulo es obligatorio.")
