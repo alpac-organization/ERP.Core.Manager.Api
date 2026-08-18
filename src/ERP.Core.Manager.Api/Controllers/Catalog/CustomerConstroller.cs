@@ -100,4 +100,29 @@ public class CustomerController(IMediator _mediator) : ApiControllerBase
             Status = status
         }, cancellationToken);
     }
+
+    [Tags("Clientes")]
+    [HttpPost("companies/{company_id}/modules/{module_code}/customer-types")]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<OkObjectResult> RegisterCustomerTypeAsync(
+        [FromRoute] Guid company_id,
+        [FromRoute] string module_code,
+        [FromBody] RegisterCustomerTypeDto dto,
+        CancellationToken cancellationToken)
+    {
+        var userIdStr = HttpContext.Items["UserId"] as string;
+        Guid.TryParse(userIdStr, out var userId);
+
+        var command = dto.ToCommand(
+            userId: userId,
+            companyId: company_id,
+            moduleCode: module_code
+        );
+
+        var response = await _mediator.Send(command, cancellationToken);
+
+        return Ok(response);
+    }
 }

@@ -37,7 +37,12 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
-
+            CreateMap<RegisterCustomerTypeCommand, CustomerType>()
+                .ForMember(d => d.Id, o => o.MapFrom(_ => Guid.NewGuid()))
+                .ForMember(d => d.Code, o => o.MapFrom(s => s.Code))
+                .ForMember(d => d.Name, o => o.MapFrom(s => s.Name))
+                .ForMember(d => d.IsActive, o => o.MapFrom(_ => true))
+                .ForMember(d => d.Customers, o => o.Ignore());
         }
     }
 
@@ -60,6 +65,25 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 IdentificationNumber = dto.IdentificationNumber,
                 IdentificationType = dto.IdentificationType,
                 CustomerTypeId = dto.CustomerTypeId
+            };
+        }
+    }
+
+    public static class CustomerTypeMapper
+    {
+        public static RegisterCustomerTypeCommand ToCommand(
+            this RegisterCustomerTypeDto dto,
+            Guid userId,
+            Guid companyId,
+            string moduleCode)
+        {
+            return new()
+            {
+                UserId = userId,
+                CompanyId = companyId,
+                ModuleCode = moduleCode,
+                Code = dto.Code,
+                Name = dto.Name
             };
         }
     }
