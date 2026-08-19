@@ -11,6 +11,7 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Infrastructure.Services;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Clock.Database.Infrastructure;
+using ERP.Core.Infrastructure;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -40,7 +41,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
             services.AddClockDatabaseServices(configuration);
-
+            services.AddErpCoreServices(configuration);
             return services;
         }
     }

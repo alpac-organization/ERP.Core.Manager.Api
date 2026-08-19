@@ -26,8 +26,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
 
             RuleFor(x => x.IdentificationType)
                 .IsInEnum()
-                .WithMessage("El tipo de identificación es inválido.")
-                .When(x => x.IdentificationType.HasValue);
+                .WithMessage("El tipo de identificación es inválido.");
 
             RuleFor(x => x.IdentificationType)
                 .NotNull()
@@ -36,8 +35,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
 
             RuleFor(x => x.IdentificationNumber)
                 .NotEmpty()
-                .WithMessage("El número de identificación es obligatorio cuando se especifica el tipo de identificación.")
-                .When(x => x.IdentificationType.HasValue);
+                .WithMessage("El número de identificación es obligatorio cuando se especifica el tipo de identificación.");
 
             RuleFor(x => x.IdentificationNumber)
                 .MaximumLength(50)

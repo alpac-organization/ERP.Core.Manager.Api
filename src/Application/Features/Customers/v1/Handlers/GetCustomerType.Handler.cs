@@ -10,14 +10,14 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Handlers
 {
-    public class GetCustomersAvailableHandler(
+    public class GetCustomerTypesHandler(
         IUnitOfWork unitOfWork,
         IErrorManager errorManager,
         IMapper mapper,
-        GetCustomersAvailableValitor validator)
-        : BaseValidatorHandler<GetCustomersAvailableQuery, List<CustomerDto>>(unitOfWork, errorManager)
+        GetCustomerTypesValidator validator)
+        : BaseValidatorHandler<GetCustomerTypesQuery, List<CustomerTypeDto>>(unitOfWork, errorManager)
     {
-        public override async Task<List<CustomerDto>> Handle(GetCustomersAvailableQuery request, CancellationToken cancellationToken)
+        public override async Task<List<CustomerTypeDto>> Handle(GetCustomerTypesQuery request, CancellationToken cancellationToken)
         {
             // 1. Validación de acceso
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode, cancellationToken);
@@ -27,36 +27,29 @@ namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Handlers
             var validation = await validator.ValidateAsync(request, cancellationToken);
             if (!validation.IsValid)
             {
-                return _errorManager.ThrowBadRequest<List<CustomerDto>>(
+                return _errorManager.ThrowBadRequest<List<CustomerTypeDto>>(
                     validation.Errors.First().ErrorMessage,
                     "ERP:VALIDATION_ERROR");
             }
 
             // 3. Construir query base
-            var customersQuery = _unitOfWork.Customers.Entities
+            var customerTypesQuery = _unitOfWork.CustomerType.Entities
                 .AsNoTracking()
-                .Where(cus => cus.CompanyId == request.CompanyId)
-                .Where(cus => cus.DeletedAt == null);
+                .Where(ct => ct.DeletedAt == null);
 
             // 4. Filtro por estado
             if (request.Status.HasValue)
             {
-                customersQuery = customersQuery.Where(cus => cus.IsActive == request.Status.Value);
+                customerTypesQuery = customerTypesQuery.Where(ct => ct.IsActive == request.Status.Value);
             }
 
-            // 5. Filtro por tipo de cliente
-            if (request.CustomerTypeId.HasValue)
-            {
-                customersQuery = customersQuery.Where(cus => cus.CustomerTypeId == request.CustomerTypeId.Value);
-            }
-
-            // 6. Ordenar y ejecutar
-            var customers = await customersQuery
-                .OrderBy(cus => cus.LegalName)
+            // 5. Ordenar y ejecutar
+            var customerTypes = await customerTypesQuery
+                .OrderBy(ct => ct.Name)
                 .ToListAsync(cancellationToken);
 
-            // 7. Mapear y retornar
-            return mapper.Map<List<CustomerDto>>(customers);
+            // 6. Mapear y retornar
+            return mapper.Map<List<CustomerTypeDto>>(customerTypes);
         }
     }
 }
