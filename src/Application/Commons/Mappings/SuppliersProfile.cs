@@ -46,7 +46,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 IsActive             = true,
                 UserId               = command.UserId,
                 ConstitutionType     = command.ConstitutionType,
-                // IdentificationType   = command.IdentificationType,
+                IdentificationType   = command.IdentificationType,
                 IdentificationNumber = command.IdentificationNumber,
                 SuppliersLegalName   = command.SuppliersLegalName,
             };

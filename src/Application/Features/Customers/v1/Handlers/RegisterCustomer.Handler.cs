@@ -48,10 +48,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Handlers
             // 4. Validar que no exista un cliente con el mismo número de identificación
             var existingCustomer = await _unitOfWork.Customers.Entities
                 .AsNoTracking()
-                .FirstOrDefaultAsync(c => 
-                    c.IdentificationNumber == request.IdentificationNumber && 
-                    c.CompanyId == request.CompanyId && 
-                    c.DeletedAt == null, 
+                .FirstOrDefaultAsync(c =>
+                    c.IdentificationNumber == request.IdentificationNumber &&
+                    c.CompanyId == request.CompanyId &&
+                    c.DeletedAt == null,
                     cancellationToken);
 
             if (existingCustomer != null)
@@ -64,10 +64,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Handlers
             // 5. Validar que no exista un cliente con el mismo CIF
             existingCustomer = await _unitOfWork.Customers.Entities
                 .AsNoTracking()
-                .FirstOrDefaultAsync(c => 
-                    c.Cif == request.Cif && 
-                    c.CompanyId == request.CompanyId && 
-                    c.DeletedAt == null, 
+                .FirstOrDefaultAsync(c =>
+                    c.Cif == request.Cif &&
+                    c.CompanyId == request.CompanyId &&
+                    c.DeletedAt == null,
                     cancellationToken);
 
             if (existingCustomer != null)
@@ -82,21 +82,50 @@ namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Handlers
             customer.IsActive = true;
 
             // 7. Subir imagen a S3 si viene en base64
-            if (!string.IsNullOrWhiteSpace(request.PictureBase64))
+            string? uploadedImageUrl = null;
+            var imageUploaded = false;
+
+            try
             {
-                var imageUrl = await s3StorageService.UploadImageAsync(
-                    module: "manager",
-                    section: "customers",
-                    base64Image: request.PictureBase64,
-                    cancellationToken);
+                if (!string.IsNullOrWhiteSpace(request.PictureBase64))
+                {
+                    uploadedImageUrl = await s3StorageService.UploadImageAsync(
+                        module: "manager",
+                        section: "customers",
+                        base64Image: request.PictureBase64,
+                        cancellationToken);
 
-                customer.PictureUrl = imageUrl;
+                    imageUploaded = true;
+                    customer.PictureUrl = uploadedImageUrl;
+                }
+
+                await _unitOfWork.Customers.RegisterCustomer(customer);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                return true;
             }
+            catch (Exception)
+            {
+                if (imageUploaded && !string.IsNullOrEmpty(uploadedImageUrl))
+                {
+                    try
+                    {
+                        await LogOrphanedImageAsync(uploadedImageUrl, request, cancellationToken);
+                    }
+                    catch
+                    {
+                        await LogOrphanedImageAsync(uploadedImageUrl, request, cancellationToken);
+                    }
+                }
 
-            await _unitOfWork.Customers.RegisterCustomer(customer);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                throw;
 
-            return true;
+            }
         }
+        private async Task LogOrphanedImageAsync(string imageUrl, RegisterCustomerCommand request, CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+        }
+
     }
 }

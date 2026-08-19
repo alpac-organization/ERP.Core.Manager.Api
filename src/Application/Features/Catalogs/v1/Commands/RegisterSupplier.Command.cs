@@ -11,7 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public string? IdentificationNumber { get; set; }
 
         public ConstitutionType ConstitutionType { get; set; }
-        public IdentificationType? IdentificationType { get; set; }
+        public IdentificationType IdentificationType { get; set; }
 
         public SupplierDetails SupplierDetails { get; set; } = new ();
     }
