@@ -18,7 +18,6 @@ namespace ERP.Core.Manager.Api.Controllers.Auth
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         public async Task<LoginDto> LoginWithUsernameOrEmailWithPasswordAsync([FromRoute] Guid companie_id, [FromBody] LoginWithUsernameAndPasswordCommand payload)
         {
-            // 1. Intentar obtener la IP desde el header de Render (X-Forwarded-For)
             var xForwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
             
             // 2. Lógica de selección de IP

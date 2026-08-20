@@ -10,13 +10,7 @@ using AutoMapper;
 
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 {
-    public class LoginWithUsernameAndPasswordHandler(
-        IUnitOfWork _unitOfWork,
-        IErrorManager _errorManager,
-        IPasswordHasher _passwordHasher,
-        IAuthServices _authServices,
-        IMapper _mapper
-    ) : IRequestHandler<LoginWithUsernameAndPasswordCommand, LoginDto>
+    public class LoginWithUsernameAndPasswordHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IPasswordHasher _passwordHasher, IAuthServices _authServices, IMapper _mapper) : IRequestHandler<LoginWithUsernameAndPasswordCommand, LoginDto>
     {
         public async Task<LoginDto> Handle(LoginWithUsernameAndPasswordCommand request, CancellationToken cancellationToken)
         {
@@ -47,13 +41,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 switch (user.UserStatus)
                 {
                     case UserStatus.Locked:
-                        {
-                            return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente bloqueado, comunicar con el area de informatica", "ERP:USER_BLOCKED");
-                        }
+                    {
+                        return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente bloqueado, comunicar con el area de informatica", "ERP:USER_BLOCKED");
+                    }
                     case UserStatus.Inactive:
-                        {
-                            return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente inactivo, comunicar con el area de informatica", "ERP:USER_UNACTIVE");
-                        }
+                    {
+                        return _errorManager.ThrowBadRequest<LoginDto>("Usuario se encuentra temporalmente inactivo, comunicar con el area de informatica", "ERP:USER_UNACTIVE");
+                    }
                 }
             }
 
@@ -75,7 +69,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 
             var currentActiveSession = await _unitOfWork.Sessions
                 .FirstOrDefaultAsync(s => s.UserId == user.Id && s.IsActive, cancellationToken);
-
 
             //Cerramos la session antigua y regresamos un nueva session.
             if (currentActiveSession != null)
@@ -114,8 +107,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
                 IsActive = true,
                 ExpiresAt = DateTime.UtcNow.AddHours(1)
             };
-
+            
             await _unitOfWork.Sessions.CreateNewSession(newSession);
+
+            //Establecer token de dispostivo
+            profile.DeviceToken = request.SessionDetails?.DeviceToken ?? "";
+            await _unitOfWork.Profiles.UpdateAsync(profile);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
