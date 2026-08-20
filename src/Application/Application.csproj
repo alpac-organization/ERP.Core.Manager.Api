@@ -8,8 +8,8 @@
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     <PackageReference Include="ERP.Core.Clock.Database.Application" Version="2.5.0" />
-    <PackageReference Include="ERP.Core.Application" Version="1.89.0" />
-    <PackageReference Include="ERP.Core.Database.Application" Version="1.89.0" />
+    <PackageReference Include="ERP.Core.Application" Version="1.92.2" />
+    <PackageReference Include="ERP.Core.Database.Application" Version="1.92.2" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="MediatR" Version="14.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
