@@ -20,6 +20,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands
     public class SessionDetails
     {
         public string? DeviceName { get; set; }
+        public string? DeviceToken { get; set; }
         public string? IpAddress { get; set; }
     }
 }
