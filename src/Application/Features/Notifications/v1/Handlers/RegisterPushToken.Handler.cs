@@ -16,7 +16,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
     {
         override public async Task<Unit> Handle(RegisterPushTokenCommand request, CancellationToken cancellationToken)
         {
-           var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken, true);
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken, true);
             
             if (!access.IsSuccess)
             {
@@ -25,18 +25,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
 
             _logger.LogInformation("RegisterPushTokenHandler executed successfully for UserId: {UserId}, CompanyId: {CompanyId}", request.UserId, request.CompanyId);
             
-            //A la espera de guardar registros. y modificaciones de las  pushes
 
-            var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, "");
+            var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, access.Profile.Id, "");
 
             if (arnToken is null)
             {
                 return _errorManager.ThrowInternalError<Unit>("Ocurrio un error al registrar el token del dispositivo", "ERP:01");
             }
 
-            access.Profile.DeviceToken = arnToken;
+            // access.Profile.DeviceToken = arnToken;
+            await _unitOfWork.Devices.RegisterDevice(new ()
+            {
+                DeviceName    = request.DeviceName,
+                FcmToken      = request.Token,
+                EndpointArn   = arnToken,
+                IsActive      = true,
+                UserProfileId = access.Profile.Id 
+            });
 
-            await  _unitOfWork.Profiles.UpdateAsync(access.Profile);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var deviceCopy = _notificationOptions.Value.DeviceRegistrationCopies;
