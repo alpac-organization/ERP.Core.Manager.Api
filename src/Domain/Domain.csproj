@@ -10,10 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ERP.Core.Application" Version="1.63.2" />
     <PackageReference Include="ERP.Core.Clock.Database.Domain" Version="2.4.0" />
-    <PackageReference Include="ERP.Core.Database.Domain" Version="1.96.0" />
-    <PackageReference Include="ERP.Core.Domain" Version="1.96.0" />
+    <PackageReference Include="ERP.Core.Database.Domain" Version="1.97.1" />
+    <PackageReference Include="ERP.Core.Domain" Version="1.97.1" />
   </ItemGroup>
 
 </Project>
