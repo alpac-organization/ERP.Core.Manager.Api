@@ -111,7 +111,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             await _unitOfWork.Sessions.CreateNewSession(newSession);
 
             //Establecer token de dispostivo
-            profile.DeviceToken = request.SessionDetails?.DeviceToken ?? "";
             await _unitOfWork.Profiles.UpdateAsync(profile);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
