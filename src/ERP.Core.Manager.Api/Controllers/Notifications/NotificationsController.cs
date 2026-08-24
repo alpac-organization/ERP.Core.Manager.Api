@@ -10,7 +10,7 @@ namespace ERP.Core.Manager.Api.Controllers.Notifications
     [Route("api/v1/")]
     public class NotificationsController(IMediator _mediator) : ApiControllerBase
     {
-        [Tags("Notificaciones Push")]
+        [Tags("Notificaciones")]
         [HttpPost("push-tokens")]
         [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -22,7 +22,7 @@ namespace ERP.Core.Manager.Api.Controllers.Notifications
             return Created();
         }
 
-        [Tags("Notificaciones Push")]
+        [Tags("Notificaciones")]
         [HttpPost("push-tokens/unlink")]
         [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
