@@ -25,25 +25,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
 
             _logger.LogInformation("RegisterPushTokenHandler executed successfully for UserId: {UserId}, CompanyId: {CompanyId}", request.UserId, request.CompanyId);
             
-
-            var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, access.Profile.Id, "");
+            var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, access.Profile.Id, request.DeviceName);
 
             if (arnToken is null)
             {
                 return _errorManager.ThrowInternalError<Unit>("Ocurrio un error al registrar el token del dispositivo", "ERP:01");
             }
-
-            // access.Profile.DeviceToken = arnToken;
-            await _unitOfWork.Devices.RegisterDevice(new ()
-            {
-                DeviceName    = request.DeviceName,
-                FcmToken      = request.Token,
-                EndpointArn   = arnToken,
-                IsActive      = true,
-                UserProfileId = access.Profile.Id 
-            });
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var deviceCopy = _notificationOptions.Value.DeviceRegistrationCopies;
 
