@@ -7,6 +7,7 @@ using ERP.Core.Manager.Api.Application.Commons.Options;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Notifications.v1.Commands;
+using Microsoft.EntityFrameworkCore;
 
 namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
 {
@@ -66,14 +67,26 @@ namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
             {
                 _logger.LogInformation("Enviando notificación push de bienvenida a ArnEndpoint: {ArnToken}", arnToken);
 
-                var result = await _notificationServices.SendPushNotificationAsync(arnToken, new()
+                var devices = await _unitOfWork.Devices.Entities
+                    .Where(device => device.UserProfileId == access.Profile.Id)
+                    .Where(device => device.IsActive)
+                    .ToListAsync(cancellationToken);
+
+                foreach(var device in devices)
                 {
-                    Title = pushTitle,
-                    Body = pushBody
-                });
+                    
+                    var result = await _notificationServices.SendPushNotificationAsync(device.EndpointArn ?? "", new()
+                    {
+                        Title = pushTitle,
+                        Body = pushBody
+                    });
+                    
+                    _logger.LogInformation("Notificación push enviada a AWS SNS. Resultado: {@Result}, ArnEndpoint: {ArnToken}", result, arnToken);
+                }
+
+
 
                 // Si SendPushNotificationAsync retorna un booleano o un objeto con estado, verifícalo aquí:
-                _logger.LogInformation("Notificación push enviada a AWS SNS. Resultado: {@Result}, ArnEndpoint: {ArnToken}", result, arnToken);
             }
             catch (Exception ex)
             {
