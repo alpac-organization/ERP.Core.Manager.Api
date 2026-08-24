@@ -1,4 +1,3 @@
-using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
@@ -13,7 +12,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Handlers
     public class GetCustomersAvailableHandler(
         IUnitOfWork unitOfWork,
         IErrorManager errorManager,
-        IMapper mapper,
         GetCustomersAvailableValitor validator)
         : BaseValidatorHandler<GetCustomersAvailableQuery, List<CustomerDto>>(unitOfWork, errorManager)
     {
@@ -53,10 +51,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Customers.v1.Handlers
             // 6. Ordenar y ejecutar
             var customers = await customersQuery
                 .OrderBy(cus => cus.LegalName)
+                .Select(cus => new CustomerDto
+                {
+                    CustomerId = cus.Id,
+                    LegalName = cus.LegalName,
+                    IdentificationNumber = cus.IdentificationNumber,
+                    IdentificationType = cus.IdentificationType
+                })
                 .ToListAsync(cancellationToken);
 
-            // 7. Mapear y retornar
-            return mapper.Map<List<CustomerDto>>(customers);
+            return customers;
         }
     }
 }
