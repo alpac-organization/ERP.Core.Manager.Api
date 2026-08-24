@@ -2,31 +2,25 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Features.Notifications.v1.Commands;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Manager.Api.Application.Features.Notifications.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
 {
-    public class RegisterPushTokenHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterPushTokenHandler> _logger) : IRequestHandler<RegisterPushTokenCommand, Unit>
+    public class RegisterPushTokenHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterPushTokenHandler> _logger) : BaseValidatorHandler<RegisterPushTokenCommand, Unit>(_unitOfWork, _errorManager)
     {
-        public async Task<Unit> Handle(RegisterPushTokenCommand request, CancellationToken cancellationToken)
+        override public async Task<Unit> Handle(RegisterPushTokenCommand request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("🚩Iniciando registro de token push para el usuario: {UserId} en la empresa: {CompanyId}", request.UserId, request.CompanyId);
-
-            var profile = await _unitOfWork.Profiles
-                .FirstOrDefaultAsync(p => p.UserId == request.UserId && p.CompanyId == request.CompanyId, cancellationToken);
-
-            if (profile is null)
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+            
+            if (!access.IsSuccess)
             {
-                return _errorManager.ThrowBadRequest<Unit>("Este usuario no tiene un perfil asociado a esta empresa", "ERP:ProfileError");
-            }
+                return access.ErrorResponse;
+            }            
 
-            profile.DeviceToken = request.Token;
-
-            await _unitOfWork.Profiles.UpdateAsync(profile);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation("✅Token push registrado con exito en el perfil del usuario: {UserId}", request.UserId);
+            //Your code here.
+            _logger.LogInformation("RegisterPushTokenHandler executed successfully for UserId: {UserId}, CompanyId: {CompanyId}", request.UserId, request.CompanyId);
 
             return Unit.Value;
         }
