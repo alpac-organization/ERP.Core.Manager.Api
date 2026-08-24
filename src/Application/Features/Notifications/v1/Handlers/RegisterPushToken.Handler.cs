@@ -2,36 +2,50 @@ using MediatR;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
+using Microsoft.Extensions.Options;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Application.Commons.Interfaces.AWS;
+using ERP.Core.Manager.Api.Application.Commons.Options;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Notifications.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
 {
-    public class RegisterPushTokenHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ISimpleNotificationServices _notificationServices, ILogger<RegisterPushTokenHandler> _logger) : BaseValidatorHandler<RegisterPushTokenCommand, Unit>(_unitOfWork, _errorManager)
+    public class RegisterPushTokenHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ISimpleNotificationServices _notificationServices, ILogger<RegisterPushTokenHandler> _logger, IOptions<NotificationsOptions> _notificationOptions) : BaseValidatorHandler<RegisterPushTokenCommand, Unit>(_unitOfWork, _errorManager)
     {
         override public async Task<Unit> Handle(RegisterPushTokenCommand request, CancellationToken cancellationToken)
         {
-            // var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+           var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken, true);
             
-            // if (!access.IsSuccess)
-            // {
-            //     return access.ErrorResponse;
-            // }            
+            if (!access.IsSuccess)
+            {
+                return access.ErrorResponse;
+            } 
 
-            //Your code here.
             _logger.LogInformation("RegisterPushTokenHandler executed successfully for UserId: {UserId}, CompanyId: {CompanyId}", request.UserId, request.CompanyId);
+            
+            //A la espera de guardar registros. y modificaciones de las  pushes
 
-            //Registramos el token del dispositivo en el servicio de notificaciones.
-            // var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, JsonSerializer.Serialize(""));
+            var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, "");
 
-            // await _notificationServices.SendPushNotificationAsync("arn:aws:sns:us-east-1:889149078931:endpoint/GCM/ERP-Grupo-Vassalli/9fc95631-ef1f-3576-8659-30cb7beed983", new()
-            // {
-            //     Title = "Nuevo cambio de salario",
-            //     Body = "Se ha realizado un cambio de salario en tu cuenta. Por favor, revisa los detalles en la aplicación.",
-            // });
+            if (arnToken is null)
+            {
+                return _errorManager.ThrowInternalError<Unit>("Ocurrio un error al registrar el token del dispositivo", "ERP:01");
+            }
+
+            access.Profile.DeviceToken = arnToken;
+
+            await  _unitOfWork.Profiles.UpdateAsync(access.Profile);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var deviceCopy = _notificationOptions.Value.DeviceRegistrationCopies;
+
+            await _notificationServices.SendPushNotificationAsync(arnToken, new()
+            {
+                Title = deviceCopy.Title,
+                Body = deviceCopy.Body.Replace("{DeviceName}", request.DeviceName ?? "Dispositivo")
+            });
 
             return Unit.Value;
         }
