@@ -1,98 +1,108 @@
 using MediatR;
-using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Application.Commons.Interfaces.AWS;
+
 using ERP.Core.Manager.Api.Application.Commons.Options;
+using ERP.Core.Manager.Api.Application.Features.Notifications.v1.Commands;
+
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Features.Notifications.v1.Commands;
-using Microsoft.EntityFrameworkCore;
+using ERP.Core.Manager.Api.Application.Commons.Mappings;
 
 namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
 {
     public class RegisterPushTokenHandler(
         IUnitOfWork _unitOfWork, 
         IErrorManager _errorManager, 
-        ISimpleNotificationServices _notificationServices, 
-        ILogger<RegisterPushTokenHandler> _logger, 
-        IOptions<NotificationsOptions> _notificationOptions) 
+        ISimpleNotificationServices _notificationServices,
+        IOptions<NotificationsOptions> _notificationOptions,
+        ILogger<RegisterPushTokenHandler> _logger) 
         : BaseValidatorHandler<RegisterPushTokenCommand, Unit>(_unitOfWork, _errorManager)
     {
         override public async Task<Unit> Handle(RegisterPushTokenCommand request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Iniciando registro de token PUSH. UserId: {UserId}, CompanyId: {CompanyId}, DeviceName: {DeviceName}", 
-                request.UserId, request.CompanyId, request.DeviceName);
+            _logger.LogInformation("Iniciando registro de token push");
 
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken, true);
-            
+
             if (!access.IsSuccess)
             {
-                _logger.LogWarning("Acceso denegado para registrar token PUSH. UserId: {UserId}, CompanyId: {CompanyId}, Error: {@ErrorResponse}", 
-                    request.UserId, request.CompanyId, access.ErrorResponse);
+                _logger.LogWarning("Acceso denegado para registrar token push. UserId: {UserId}", request.UserId);
                 return access.ErrorResponse;
             } 
 
-            string? arnToken = null;
-
-            try
-            {
-                _logger.LogInformation("Registrando dispositivo en AWS SNS para ProfileId: {ProfileId}...", access.Profile.Id);
-                
-                arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, access.Profile.Id, request.DeviceName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Excepción no controlada al registrar dispositivo en AWS SNS. ProfileId: {ProfileId}, DeviceName: {DeviceName}", 
-                    access.Profile.Id, request.DeviceName);
-                
-                return _errorManager.ThrowInternalError<Unit>("Ocurrió un error al registrar el dispositivo en el servicio de notificaciones.", "ERP:01");
-            }
-
-            if (string.IsNullOrWhiteSpace(arnToken))
-            {
-                _logger.LogError("AWS SNS devolvió un ARN nulo o vacío. ProfileId: {ProfileId}, Token (primeros 10 chars): {TokenSnippet}", 
-                    access.Profile.Id, request.Token?.Substring(0, Math.Min(10, request.Token?.Length ?? 0)));
-
-                return _errorManager.ThrowInternalError<Unit>("Ocurrio un error al registrar el token del dispositivo", "ERP:01");
-            }
-
-            _logger.LogInformation("Dispositivo registrado exitosamente en AWS SNS. ArnEndpoint: {ArnToken}", arnToken);
-
             var deviceCopy = _notificationOptions.Value.DeviceRegistrationCopies;
-            var pushTitle = deviceCopy.Title;
-            var pushBody = deviceCopy.Body.Replace("{DeviceName}", request.DeviceName ?? "Dispositivo");
 
-            try
+            var pushTitle  = deviceCopy.Title;
+            var pushBody   = deviceCopy.Body.Replace("{DeviceName}", request.DeviceName ?? "Dispositivo");
+
+            //Registro del dispositivo del usuario a cierto perfil y verificación de notificaciones push.
+
+            var deviceFinded = await _unitOfWork.Devices.Entities
+                .Where(device => device.IsActive)
+                .Where(device => device.FcmToken == request.Token)
+                .Include(device => device.UserProfile)
+                    .ThenInclude(device => device.User)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (deviceFinded is not null)
             {
-                _logger.LogInformation("Enviando notificación push de bienvenida a ArnEndpoint: {ArnToken}", arnToken);
-
-                var devices = await _unitOfWork.Devices.Entities
-                    .Where(device => device.UserProfileId == access.Profile.Id)
-                    .Where(device => device.IsActive)
-                    .ToListAsync(cancellationToken);
-
-                foreach(var device in devices)
+                //Alguien contiene este dispositivo
+                if (deviceFinded.UserProfile.User.Id == request.UserId)
                 {
-                    
-                    var result = await _notificationServices.SendPushNotificationAsync(device.EndpointArn ?? "", new()
+                    //El mismo usuario.
+                    if (deviceFinded.UserProfileId == access.Profile.Id)
                     {
-                        Title = pushTitle,
-                        Body = pushBody
-                    });
-                    
-                    _logger.LogInformation("Notificación push enviada a AWS SNS. Resultado: {@Result}, ArnEndpoint: {ArnToken}", result, arnToken);
+                        deviceFinded.DeviceName = request.DeviceName ?? deviceFinded.DeviceName;
+                        deviceFinded.IsActive = true;
+                    }
+                    else
+                    {
+                        var deviceEntity = DeviceMapper.ToDeviceEntity(request, access.Profile.Id, deviceFinded.EndpointArn ?? "");
+                        await _unitOfWork.Devices.RegisterDevice(deviceEntity);
+                    }
+                }
+                else
+                {
+                    deviceFinded.IsActive = false;
+
+                    var reassignedDevice = DeviceMapper.ToDeviceEntity(request, access.Profile.Id, deviceFinded.EndpointArn ?? "");
+                    await _unitOfWork.Devices.RegisterDevice(reassignedDevice);
+                }
+            }
+            else
+            {
+                //Este token es nuevo, y nadie tiene este dispositivo: sí se crea el ARN endpoint.
+                var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, JsonSerializer.Serialize(access.Profile));
+
+                if (arnToken is null)
+                {
+                    _logger.LogError("Ocurrio un error al registrar el dispositivo");
+                    return Unit.Value;
                 }
 
-
-
-                // Si SendPushNotificationAsync retorna un booleano o un objeto con estado, verifícalo aquí:
+                var newDeviceEntity = DeviceMapper.ToDeviceEntity(request, access.Profile.Id, arnToken);
+                await _unitOfWork.Devices.RegisterDevice(newDeviceEntity);
             }
-            catch (Exception ex)
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            //Notificar al usuario 🔔
+            var device = await _unitOfWork.Devices.Entities
+                .Where(device => device.UserProfileId == access.Profile.Id)
+                .Where(device => device.IsActive)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            var result = await _notificationServices.SendPushNotificationAsync(device?.EndpointArn ?? "", new()
             {
-                // Registramos el error de envío pero no detenemos el flujo si el token ya quedó registrado correctamente
-                _logger.LogError(ex, "Error al enviar la notificación push de bienvenida al ArnEndpoint: {ArnToken}", arnToken);
-            }
+                Title = pushTitle,
+                Body  = pushBody,
+            });
 
             return Unit.Value;
         }
