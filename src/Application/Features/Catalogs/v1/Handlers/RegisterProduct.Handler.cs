@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Entities.Warehouse;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Database.Domain.Entities.Warehouse;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 

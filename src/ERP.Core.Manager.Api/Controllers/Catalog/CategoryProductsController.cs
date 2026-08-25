@@ -5,6 +5,7 @@ using ERP.Core.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 namespace ERP.Core.Manager.Api.Controllers.Catalog;
 
 [HasToken]
@@ -32,5 +33,25 @@ public class CategoryProductController(IMediator _mediator) : ApiControllerBase
             UserId = userId,
             ParentId = parent_id
         });
+    }
+
+    [HttpPost("companies/{companie_id}/modules/{module_code}/category-products")]
+    [Tags("Categorías de Productos")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateCategoryAsync(
+    [FromRoute] Guid companie_id,
+    [FromRoute] string module_code,
+    [FromBody] CreateCategoryCommand command)
+    {
+        command.CompanyId = companie_id;
+        command.ModuleCode = module_code;
+
+        var userIdStr = HttpContext.Items["UserId"] as string;
+        command.UserId = Guid.TryParse(userIdStr, out var parsed) ? parsed : Guid.Empty;
+
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
 }
