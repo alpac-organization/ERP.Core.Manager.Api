@@ -78,7 +78,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
             else
             {
                 //Este token es nuevo, y nadie tiene este dispositivo: sí se crea el ARN endpoint.
-                var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, access.Profile.Id, request.DeviceName, JsonSerializer.Serialize(access.Profile));
+                var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, JsonSerializer.Serialize(access.Profile));
 
                 if (arnToken is null)
                 {
