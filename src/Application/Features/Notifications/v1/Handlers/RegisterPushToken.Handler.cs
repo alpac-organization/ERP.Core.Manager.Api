@@ -16,13 +16,7 @@ using ERP.Core.Manager.Api.Application.Commons.Mappings;
 
 namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
 {
-    public class RegisterPushTokenHandler(
-        IUnitOfWork _unitOfWork, 
-        IErrorManager _errorManager, 
-        ISimpleNotificationServices _notificationServices,
-        IOptions<NotificationsOptions> _notificationOptions,
-        ILogger<RegisterPushTokenHandler> _logger) 
-        : BaseValidatorHandler<RegisterPushTokenCommand, Unit>(_unitOfWork, _errorManager)
+    public class RegisterPushTokenHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ISimpleNotificationServices _notificationServices, IOptions<NotificationsOptions> _notificationOptions, ILogger<RegisterPushTokenHandler> _logger) : BaseValidatorHandler<RegisterPushTokenCommand, Unit>(_unitOfWork, _errorManager)
     {
         override public async Task<Unit> Handle(RegisterPushTokenCommand request, CancellationToken cancellationToken)
         {
