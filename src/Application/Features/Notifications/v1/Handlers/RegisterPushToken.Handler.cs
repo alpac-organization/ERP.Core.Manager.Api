@@ -38,10 +38,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
 
             var deviceCopy = _notificationOptions.Value.DeviceRegistrationCopies;
 
-            var pushTitle  = deviceCopy.Title;
-            var pushBody   = deviceCopy.Body.Replace("{DeviceName}", request.DeviceName ?? "Dispositivo");
-
-            //Registro del dispositivo del usuario a cierto perfil y verificación de notificaciones push.
+            var pushTitle = deviceCopy.Title;
+            var pushBody  = deviceCopy.Body.Replace("{DeviceName}", request.DeviceName ?? "Dispositivo");
 
             var deviceFinded = await _unitOfWork.Devices.Entities
                 .Where(device => device.IsActive)
@@ -77,8 +75,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
             }
             else
             {
-                //Este token es nuevo, y nadie tiene este dispositivo: sí se crea el ARN endpoint.
-                var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, JsonSerializer.Serialize(access.Profile));
+                var customUserData = JsonSerializer.Serialize(new
+                {
+                    ProfileId = access.Profile.Id,
+                    UserId    = access.User.Id,
+                    CompanyId = request.CompanyId,
+                    FullName  = access.User.Fullname
+                });
+
+                var arnToken = await _notificationServices.RegisterDeviceAsync(request.Token, customUserData);
 
                 if (arnToken is null)
                 {
@@ -92,7 +97,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Notifications.v1.Handlers
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            //Notificar al usuario 🔔
             var device = await _unitOfWork.Devices.Entities
                 .Where(device => device.UserProfileId == access.Profile.Id)
                 .Where(device => device.IsActive)
