@@ -45,19 +45,5 @@ namespace ERP.Core.Manager.Api.Controllers.Notifications
 
             return Ok();
         }
-
-        [Tags("Notificaciones")]
-        [HttpGet("companies/{companyId}/notifications")]
-        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<OkResult> GetNotificationsAsync([FromRoute] Guid companyId)
-        {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-            //Your code here.
-
-
-            return Ok();
-        }
     }
 }
