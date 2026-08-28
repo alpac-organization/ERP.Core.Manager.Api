@@ -23,7 +23,7 @@ public abstract class IntegrationTestBase
     protected Guid DefaultUserId { get; private set; }
 
     /// <summary>Empresa por defecto (ALPAC) — id determinista definido en la semilla.</summary>
-    protected Guid DefaultCompanyId => Guid.Parse("11111111-1111-1111-1111-111111111111");
+    protected static Guid DefaultCompanyId => Guid.Parse("11111111-1111-1111-1111-111111111111");
 
     protected IUnitOfWork UnitOfWork => Services.GetRequiredService<IUnitOfWork>();
 
@@ -35,6 +35,7 @@ public abstract class IntegrationTestBase
     {
         if (!Factory.IsDockerAvailable)
         {
+            TestContext.Out.WriteLine($"[Testcontainers] No disponible. Razón: {Factory.UnavailableReason}");
             return;
         }
 
@@ -50,7 +51,7 @@ public abstract class IntegrationTestBase
     {
         if (!Factory.IsDockerAvailable)
         {
-            Assert.Ignore("Docker no está disponible, se omiten los tests de integración.");
+            Assert.Ignore($"No se pudo levantar el contenedor de pruebas, se omiten los tests de integración. Detalle: {Factory.UnavailableReason}");
         }
 
         await Factory.ResetDatabaseAsync();

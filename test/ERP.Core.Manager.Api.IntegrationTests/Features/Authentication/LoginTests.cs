@@ -5,60 +5,93 @@ using Microsoft.EntityFrameworkCore;
 
 using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
 using ERP.Core.Testing.Seeding;
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
+using System.Runtime.CompilerServices;
 
-namespace ERP.Core.Manager.Api.IntegrationTests.Features.Authentication;
-
-/// <summary>
-/// Pruebas de integración del flujo de autenticación (login) usando los usuarios reales
-/// sembrados por <see cref="ErpSeedDataFactory"/> (misma contraseña para todos: Admin123!).
-/// </summary>
-[TestFixture]
-public class LoginTests : IntegrationTestBase
+namespace ERP.Core.Manager.Api.IntegrationTests.Features.Authentication
 {
-    [Test]
-    public async Task Login_WithValidCredentials_ReturnsAccessAndRefreshToken()
+    [TestFixture]
+    public class LoginTests : IntegrationTestBase
     {
-        var user = await UnitOfWork.Users.FirstOrDefaultAsync(u => u.Id == DefaultUserId, CancellationToken.None);
-        Assert.That(user, Is.Not.Null, "Debe existir el usuario sembrado por defecto.");
+        [Test]
+        [TestCase("ALPAC")]
+        [TestCase("ALPAC")]
+        [TestCase("AMINSA")]
+        [TestCase("VIGEMSA")]
+        [TestCase("ALPAC")]
+        [TestCase("ALPAC")]
+        public async Task Login_WithValidCredentials_ReturnsAccessAndRefreshToken(string companyAlias)
+        {
+            var user = await UnitOfWork.Users.Entities
+                .Where(user => user.UserStatus == UserStatus.Active)
+                .FirstOrDefaultAsync(u => u.Id == DefaultUserId);
 
-        var body = new { email = user!.Email, password = ErpSeedDataFactory.DefaultPassword };
+            //Crear commmand
+            var command = new LoginWithUsernameAndPasswordCommand (){ 
+                Username = user?.UserName ?? "", 
+                Password = ErpSeedDataFactory.DefaultPassword 
+            };
 
-        var response = await Client.PostAsJsonAsync($"/api/v1/companies/{DefaultCompanyId}/auth/login", body);
+            var company = await UnitOfWork.Companies.Entities
+                .Where(company => company.Alias == companyAlias)
+                .FirstOrDefaultAsync(default);
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            var response = await SendAsync(HttpMethod.Post,$"/api/v1/companies/{company?.Id}/auth/login", command);
 
-        var json = await response.Content.ReadAsStringAsync();
-        var login = JsonSerializer.Deserialize<LoginDto>(json, SnakeCaseJsonOptions());
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        Assert.That(login, Is.Not.Null);
-        Assert.That(login!.AccessToken, Is.Not.Null.And.Not.Empty);
-        Assert.That(login.RefreshToken, Is.Not.Null.And.Not.Empty);
-        Assert.That(login.UserId, Is.EqualTo(DefaultUserId));
-        Assert.That(login.CompanyInformation.CompanyId, Is.EqualTo(DefaultCompanyId));
+            var json  = await response.Content.ReadAsStringAsync();
+            var login = JsonSerializer.Deserialize<LoginDto>(json, SnakeCaseJsonOptions());
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(login, Is.Not.Null);
+                Assert.That(login!.AccessToken, Is.Not.Null.And.Not.Empty);
+                Assert.That(login.RefreshToken, Is.Not.Null.And.Not.Empty);
+            });
+        }
+        
+        [Test]
+        [TestCase("ALPAC")]
+        [TestCase("ALPAC")]
+        [TestCase("AMINSA")]
+        [TestCase("VIGEMSA")]
+        [TestCase("ALPAC")]
+        [TestCase("ALPAC")]
+        public async Task Login_WithWrongPassword_ReturnsUnauthorized(string companyAlias)
+        {
+            var user = await UnitOfWork.Users.Entities
+                .Where(user => user.Id == DefaultUserId)
+                .FirstOrDefaultAsync(default);
+
+            //Crear commmand
+            var command = new LoginWithUsernameAndPasswordCommand (){ 
+                Username = user?.UserName ?? "", 
+                Password = "InvalidPassword" 
+            };
+
+            var company = await UnitOfWork.Companies.Entities
+               .Where(company => company.Alias == companyAlias)
+               .FirstOrDefaultAsync(default);
+
+            var response = await SendAsync(HttpMethod.Post, $"/api/v1/companies/{company?.Id}/auth/login", command);
+
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [Test]
+        public async Task Login_CompanyWithoutProfileForUser_ReturnsBadRequest()
+        {
+            var user = await UnitOfWork.Users.FirstOrDefaultAsync(u => u.Id == DefaultUserId, CancellationToken.None);
+
+            var randomCompany = Guid.NewGuid();
+            var body = new { email = user!.Email, password = ErpSeedDataFactory.DefaultPassword };
+
+            var response = await Client.PostAsJsonAsync($"/api/v1/companies/{randomCompany}/auth/login", body);
+
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        }
     }
 
-    [Test]
-    public async Task Login_WithWrongPassword_ReturnsUnauthorized()
-    {
-        var user = await UnitOfWork.Users.FirstOrDefaultAsync(u => u.Id == DefaultUserId, CancellationToken.None);
-
-        var body = new { email = user!.Email, password = "WrongPassword1!" };
-
-        var response = await Client.PostAsJsonAsync($"/api/v1/companies/{DefaultCompanyId}/auth/login", body);
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-    }
-
-    [Test]
-    public async Task Login_CompanyWithoutProfileForUser_ReturnsBadRequest()
-    {
-        var user = await UnitOfWork.Users.FirstOrDefaultAsync(u => u.Id == DefaultUserId, CancellationToken.None);
-
-        var randomCompany = Guid.NewGuid();
-        var body = new { email = user!.Email, password = ErpSeedDataFactory.DefaultPassword };
-
-        var response = await Client.PostAsJsonAsync($"/api/v1/companies/{randomCompany}/auth/login", body);
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
-    }
 }

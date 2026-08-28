@@ -71,24 +71,64 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 .WithPassword("erp_test_password")
                 .Build();
 
-            await _container.StartAsync();
+            // Docker Desktop suele tardar en quedar listo; se reintenta el arranque.
+            const int startAttempts = 3;
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    await _container.StartAsync();
+                    break;
+                }
+                catch (Exception ex) when (attempt < startAttempts)
+                {
+                    TestContext.Progress.WriteLine(
+                        $"[Testcontainers] Intento {attempt}/{startAttempts} para levantar postgres:16-alpine falló: {ex.Message}");
+                    await Task.Delay(TimeSpan.FromSeconds(2 * attempt));
+                }
+            }
 
             SetEnvironmentVariables(_container.GetConnectionString());
 
             using var scope = Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ErpDbContext>();
-            await dbContext.Database.EnsureCreatedAsync();
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.MigrateAsync();
 
             IsDockerAvailable = true;
         }
         catch (Exception ex)
         {
             IsDockerAvailable = false;
-            UnavailableReason = string.Join(" ", ex.Message.Split('\n')[0]);
+            UnavailableReason = ex.Message;
+            TestContext.Out.WriteLine($"[Testcontainers] No se pudo levantar el contenedor: {ex}");
+            await DisposeContainerAsync();
         }
         finally
         {
             _initialized = true;
+        }
+    }
+
+    /// <summary>Detiene y elimina el contenedor para no dejar procesos huérfanos al terminar o fallar la prueba.</summary>
+    private async Task DisposeContainerAsync()
+    {
+        if (_container is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _container.DisposeAsync();
+        }
+        catch (Exception ex)
+        {
+            TestContext.Out.WriteLine($"[Testcontainers] No se pudo eliminar el contenedor correctamente: {ex.Message}");
+        }
+        finally
+        {
+            _container = null;
         }
     }
 
@@ -119,8 +159,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         if (disposing)
         {
-            _container?.DisposeAsync().AsTask().GetAwaiter().GetResult();
-            _container = null;
+            DisposeContainerAsync().GetAwaiter().GetResult();
         }
 
         base.Dispose(disposing);
@@ -128,12 +167,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     public override async ValueTask DisposeAsync()
     {
-        if (_container is not null)
-        {
-            await _container.DisposeAsync();
-            _container = null;
-        }
-
+        await DisposeContainerAsync();
         await base.DisposeAsync();
     }
 
