@@ -94,10 +94,6 @@ jobs:
             -p "$GH_PACKAGE_TOKEN" \
             --store-password-in-clear-text
 
-      - name: Install dotnet-coverage
-        shell: bash
-        run: dotnet tool install --global dotnet-coverage
-
       - name: Ensure Postgres test image
         shell: bash
         run: docker pull postgres:16-alpine
@@ -112,7 +108,7 @@ jobs:
             /k:"alpac-organization_ERP.Core.Manager.Api" \
             /o:"alpac-organization" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
+            /d:sonar.cs.cobertura.reportPaths="coverage/coverage.cobertura.xml"
 
       - name: Restore
         shell: bash
@@ -125,7 +121,12 @@ jobs:
       - name: Run tests with coverage
         shell: bash
         run: |
-          dotnet-coverage collect "dotnet test -c Release --no-build --logger 'console;verbosity=normal'" -f xml -o coverage.xml
+          # coverlet + determinist output path (Cobertura) para que SonarCloud lo lea.
+          dotnet test -c Release --no-build \
+            --collect:"XPlat Code Coverage" \
+            --logger "console;verbosity=normal" \
+            /p:CoverletOutput=./coverage/coverage.cobertura.xml \
+            /p:CoverletOutputFormat=cobertura
 
       - name: End Sonar analysis
         env:
