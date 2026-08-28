@@ -108,7 +108,7 @@ jobs:
             /k:"alpac-organization_ERP.Core.Manager.Api" \
             /o:"alpac-organization" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.cobertura.reportPaths="coverage/coverage.cobertura.xml"
+            /d:sonar.cs.cobertura.reportPaths="coverage/cobertura.xml"
 
       - name: Restore
         shell: bash
@@ -121,12 +121,21 @@ jobs:
       - name: Run tests with coverage
         shell: bash
         run: |
-          # coverlet + determinist output path (Cobertura) para que SonarCloud lo lea.
+          # coverlet.collector escribe en coverage/<guid>/coverage.cobertura.xml (independiente del SO).
           dotnet test -c Release --no-build \
             --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage \
             --logger "console;verbosity=normal" \
-            /p:CoverletOutput=./coverage/coverage.cobertura.xml \
             /p:CoverletOutputFormat=cobertura
+
+      - name: Prepare coverage report for Sonar
+        shell: bash
+        run: |
+          # SonarCloud necesita una ruta fija; se copia el reporte a coverage/cobertura.xml.
+          COV=$(find ./coverage -name "coverage.cobertura.xml" | head -n 1)
+          if [ -z "$COV" ]; then echo "No se encontró coverage.cobertura.xml"; exit 1; fi
+          cp "$COV" ./coverage/cobertura.xml
+          ls -la ./coverage
 
       - name: End Sonar analysis
         env:
