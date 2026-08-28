@@ -1,14 +1,12 @@
 using System.Text;
-using System.Text.Json;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Infrastructure.Persistence.Context;
-using ERP.Core.Testing.Seeding;
 
-namespace ERP.Core.Manager.Api.IntegrationTests.Common;
+namespace ERP.Core.Manager.Api.Tests.Common;
 
 /// <summary>
 /// Base para los tests de integración. Solo reemplaza la cadena de conexión por la del contenedor
@@ -31,8 +29,10 @@ public abstract class IntegrationTestBase
 
 
     [OneTimeSetUp]
-    public void OneTimeSetUp()
+    public async Task OneTimeSetUp()
     {
+        await Factory.InitializeAsync();
+        
         if (!Factory.IsDockerAvailable)
         {
             TestContext.Out.WriteLine($"[Testcontainers] No disponible. Razón: {Factory.UnavailableReason}");

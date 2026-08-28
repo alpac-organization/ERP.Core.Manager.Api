@@ -1,10 +1,10 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 using Microsoft.IdentityModel.Tokens;
 
-namespace ERP.Core.Manager.Api.IntegrationTests.Common
+namespace ERP.Core.Manager.Api.Tests.Common
 {
     public static class TestAuthHelper
     {

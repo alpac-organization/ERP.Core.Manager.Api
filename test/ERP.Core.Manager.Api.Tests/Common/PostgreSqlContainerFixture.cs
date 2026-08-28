@@ -1,10 +1,7 @@
-namespace ERP.Core.Manager.Api.IntegrationTests;
+using ERP.Core.Manager.Api.Tests.Common;
 
-/// <summary>
-/// [SetUpFixture] de NUnit: clase delgada que administra exclusivamente la fábrica global
-/// (<see cref="Factory"/>). Todo el ciclo de vida del contenedor PostgreSQL y el reset de datos
-/// viven dentro de <see cref="CustomWebApplicationFactory"/>.
-/// </summary>
+namespace ERP.Core.Manager.Api.Tests;
+
 [SetUpFixture]
 public class PostgreSqlContainerFixture
 {

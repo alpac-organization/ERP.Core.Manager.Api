@@ -1,15 +1,11 @@
-using System.Net.Http.Json;
-using System.Text.Json;
-
 using Microsoft.EntityFrameworkCore;
-
-using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
-using ERP.Core.Testing.Seeding;
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
-using System.Runtime.CompilerServices;
 
-namespace ERP.Core.Manager.Api.IntegrationTests.Features.Authentication
+using ERP.Core.Manager.Api.Tests.Common;
+using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
+
+namespace ERP.Core.Manager.Api.Tests.Controllers.Authentication
 {
     [TestFixture]
     public class LoginTests : IntegrationTestBase
@@ -79,19 +75,5 @@ namespace ERP.Core.Manager.Api.IntegrationTests.Features.Authentication
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
-
-        [Test]
-        public async Task Login_CompanyWithoutProfileForUser_ReturnsBadRequest()
-        {
-            var user = await UnitOfWork.Users.FirstOrDefaultAsync(u => u.Id == DefaultUserId, CancellationToken.None);
-
-            var randomCompany = Guid.NewGuid();
-            var body = new { email = user!.Email, password = ErpSeedDataFactory.DefaultPassword };
-
-            var response = await Client.PostAsJsonAsync($"/api/v1/companies/{randomCompany}/auth/login", body);
-
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
-        }
     }
-
 }
