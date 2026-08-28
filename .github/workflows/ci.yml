@@ -133,9 +133,17 @@ jobs:
         run: |
           # SonarCloud necesita una ruta fija; se copia el reporte a coverage/cobertura.xml.
           COV=$(find ./coverage -name "coverage.cobertura.xml" | head -n 1)
-          if [ -z "$COV" ]; then echo "No se encontró coverage.cobertura.xml"; exit 1; fi
+          if [ -z "$COV" ]; then
+            echo "::error::No se encontró coverage.cobertura.xml — el profiler de coverlet no generó reporte."
+            find ./coverage -type f || true
+            exit 1
+          fi
           cp "$COV" ./coverage/cobertura.xml
-          ls -la ./coverage
+          echo "Reporte copiado a coverage/cobertura.xml"
+          # Valida que sea un Cobertura XML válido y muestra el line-rate global.
+          head -c 400 ./coverage/cobertura.xml
+          echo ""
+          grep -o "line-rate=\"[0-9.]*\"" ./coverage/cobertura.xml | head -n 1
 
       - name: End Sonar analysis
         env:
