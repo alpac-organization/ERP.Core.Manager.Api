@@ -140,10 +140,10 @@ jobs:
           fi
           cp "$COV" ./coverage/cobertura.xml
           echo "Reporte copiado a coverage/cobertura.xml"
-          # Valida que sea un Cobertura XML válido y muestra el line-rate global.
+          # Valida que sea un Cobertura XML válido. grep -m1 evita SIGPIPE bajo pipefail.
           head -c 400 ./coverage/cobertura.xml
           echo ""
-          grep -o "line-rate=\"[0-9.]*\"" ./coverage/cobertura.xml | head -n 1
+          echo "line-rate global:" && grep -m 1 -o 'line-rate="[0-9.]*"' ./coverage/cobertura.xml || true
 
       - name: End Sonar analysis
         env:
