@@ -100,7 +100,7 @@ jobs:
         shell: powershell
         run: |
           ${{ runner.temp }}\scanner\dotnet-sonarscanner begin `
-            /k:"alpac-organization_ERP.Core.Warehouse.Api" `
+            /k:"alpac-organization_ERP.Core.Manager.Api" `
             /o:"alpac-organization" `
             /d:sonar.token="$env:SONAR_TOKEN" `
             /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
