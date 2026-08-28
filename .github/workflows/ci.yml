@@ -42,7 +42,8 @@ jobs:
   sonarqube:
     name: Build and analyze
     needs: docker-validate
-    runs-on: windows-latest
+    # Linux: Testcontainers + Postgres (Linux) funcionan de forma estable, no así en windows-latest.
+    runs-on: ubuntu-latest
     environment: EnvironmentalVariables
     permissions:
       contents: read
@@ -61,7 +62,7 @@ jobs:
       - name: Cache SonarQube Cloud packages
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          path: ~\sonar\cache
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
@@ -69,62 +70,67 @@ jobs:
         id: cache-sonar-scanner
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          path: ${{ runner.temp }}\scanner
+          path: ${{ runner.temp }}/scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
 
       - name: Install SonarQube Cloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: powershell
+        shell: bash
         run: |
-          New-Item -Path ${{ runner.temp }}\scanner -ItemType Directory
-          dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
+          mkdir -p "${{ runner.temp }}/scanner"
+          dotnet tool update dotnet-sonarscanner --tool-path "${{ runner.temp }}/scanner"
 
       # Necesario porque los paquetes ERP.Core.* son privados (mismo feed que usa Docker)
       - name: Setup private NuGet feed
         env:
           GH_USER: ${{ secrets.GH_USER }}
           GH_PACKAGE_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
-        shell: powershell
+        shell: bash
         run: |
-          dotnet nuget add source "https://nuget.pkg.github.com/alpac-organization/index.json" `
-            -n "github" `
-            -u "$env:GH_USER" `
-            -p "$env:GH_PACKAGE_TOKEN" `
+          dotnet nuget add source "https://nuget.pkg.github.com/alpac-organization/index.json" \
+            -n "github" \
+            -u "$GH_USER" \
+            -p "$GH_PACKAGE_TOKEN" \
             --store-password-in-clear-text
 
       - name: Install dotnet-coverage
-        shell: powershell
+        shell: bash
         run: dotnet tool install --global dotnet-coverage
+
+      - name: Ensure Postgres test image
+        shell: bash
+        run: docker pull postgres:16-alpine
 
       - name: Begin Sonar analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: powershell
+        shell: bash
         run: |
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin `
-            /k:"alpac-organization_ERP.Core.Manager.Api" `
-            /o:"alpac-organization" `
-            /d:sonar.token="$env:SONAR_TOKEN" `
+          "${{ runner.temp }}/scanner/dotnet-sonarscanner" begin \
+            /k:"alpac-organization_ERP.Core.Manager.Api" \
+            /o:"alpac-organization" \
+            /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
 
       - name: Restore
-        shell: powershell
+        shell: bash
         run: dotnet restore
 
       - name: Build
-        shell: powershell
+        shell: bash
         run: dotnet build -c Release --no-restore
 
       - name: Run tests with coverage
-        shell: powershell
+        shell: bash
         run: |
-          dotnet-coverage collect "dotnet test -c Release --no-build --logger `"console;verbosity=normal`"" -f xml -o coverage.xml
+          dotnet-coverage collect "dotnet test -c Release --no-build --logger 'console;verbosity=normal'" -f xml -o coverage.xml
 
       - name: End Sonar analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: powershell
-        run: ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
+        shell: bash
+        run: |
+          "${{ runner.temp }}/scanner/dotnet-sonarscanner" end /d:sonar.token="$SONAR_TOKEN"
