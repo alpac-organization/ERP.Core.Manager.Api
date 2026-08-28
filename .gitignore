@@ -4,5 +4,7 @@ nuget.config
 **/bin/
 **/obj/
 
+coverage/
+
 .vscode
 .vs

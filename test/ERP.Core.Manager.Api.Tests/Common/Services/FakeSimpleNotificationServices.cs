@@ -1,8 +1,8 @@
-using ERP.Core.Application.Commons.Interfaces.AWS;
-using ERP.Core.Domain.Entities.AWS;
 using ERP.Core.Domain.Enums;
+using ERP.Core.Domain.Entities.AWS;
+using ERP.Core.Application.Commons.Interfaces.AWS;
 
-namespace ERP.Core.Manager.Api.IntegrationTests.Common.Services;
+namespace ERP.Core.Manager.Api.Tests.Common.Services;
 
 /// <summary>
 /// Sustituto de AWS SNS: evita llamadas de red reales durante las pruebas de integración.

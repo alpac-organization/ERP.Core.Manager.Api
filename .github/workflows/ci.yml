@@ -121,31 +121,33 @@ jobs:
       - name: Run tests with coverage
         shell: bash
         run: |
-          # coverlet.collector escribe en coverage/<guid>/coverage.cobertura.xml (independiente del SO).
+          # coverlet.msbuild escribe en una ruta FIJA y determinista (sin GUID aleatorio),
+          # alineada con sonar.cs.cobertura.reportPaths del paso "Begin".
           dotnet test -c Release --no-build \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage \
-            --logger "console;verbosity=normal" \
-            /p:CoverletOutputFormat=cobertura
+            /p:CollectCoverage=true \
+            /p:CoverletOutput="$GITHUB_WORKSPACE/coverage/cobertura.xml" \
+            /p:CoverletOutputFormat=cobertura \
+            /p:IncludeTestAssembly=false \
+            --logger "console;verbosity=normal"
 
       - name: Prepare coverage report for Sonar
         shell: bash
         run: |
-          # SonarCloud necesita una ruta fija; se copia el reporte a coverage/cobertura.xml.
-          COV=$(find ./coverage -name "coverage.cobertura.xml" | head -n 1)
-          if [ -z "$COV" ]; then
-            echo "::error::No se encontró coverage.cobertura.xml — el profiler de coverlet no generó reporte."
-            find ./coverage -type f || true
+          # La ruta ya es determinista. Se valida que el profiler haya emitido el reporte.
+          COV="$GITHUB_WORKSPACE/coverage/cobertura.xml"
+          if [ ! -f "$COV" ]; then
+            echo "::error::No se generó $COV — el profiler de coverlet no emitió reporte."
+            ls -la "$GITHUB_WORKSPACE/coverage" || true
             exit 1
           fi
-          cp "$COV" ./coverage/cobertura.xml
-          echo "Reporte copiado a coverage/cobertura.xml"
+          echo "Reporte de cobertura: $COV"
           # Valida que sea un Cobertura XML válido. grep -m1 evita SIGPIPE bajo pipefail.
-          head -c 400 ./coverage/cobertura.xml
+          head -c 400 "$COV"
           echo ""
-          echo "line-rate global:" && grep -m 1 -o 'line-rate="[0-9.]*"' ./coverage/cobertura.xml || true
+          echo "line-rate global:" && grep -m 1 -o 'line-rate="[0-9.]*"' "$COV" || true
 
       - name: End Sonar analysis
+        if: always()
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
