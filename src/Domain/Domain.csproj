@@ -11,8 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="ERP.Core.Clock.Database.Domain" Version="2.4.0" />
-    <PackageReference Include="ERP.Core.Database.Domain" Version="1.101.1" />
-    <PackageReference Include="ERP.Core.Domain" Version="1.101.1" />
+    <PackageReference Include="ERP.Core.Database.Domain" Version="1.109.2" />
+    <PackageReference Include="ERP.Core.Domain" Version="1.109.2" />
   </ItemGroup>
 
 </Project>

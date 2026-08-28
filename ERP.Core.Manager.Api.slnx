@@ -5,4 +5,7 @@
     <Project Path="src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj" />
     <Project Path="src/Infrastructure/Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/ERP.Core.Manager.Api.IntegrationTests/ERP.Core.Manager.Api.IntegrationTests.csproj" />
+  </Folder>
 </Solution>
