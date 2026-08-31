@@ -116,6 +116,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var loginDto = _mapper.Map<LoginDto>(user);
+            loginDto.BranchId = profile.BranchId;
             loginDto.AccessToken = accessToken;
             loginDto.RefreshToken = refreshToken;
             loginDto.CompanyInformation = new()
