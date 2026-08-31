@@ -40,12 +40,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
             }
 
             var branch = await _unitOfWork.Branches
-                .FirstOrDefaultAsync(b => b.Id == request.BranchId, cancellationToken);
+                .FirstOrDefaultAsync(b => b.Id == request.BranchId && b.CompanyId == request.CompanyId, cancellationToken);
 
             if (branch is null)
             {
                 return _errorManager.ThrowBadRequest<CreateUserDto>(
-                    "La sucursal seleccionada no existe", 
+                    "La sucursal seleccionada no existe para la empresa", 
                     "ERP:BranchNotFound");
             }
 
@@ -74,7 +74,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                 Id = Guid.NewGuid(),
                 CompanyId = request.CompanyId,
                 IsActive = true,
-                UserId = userCreated.Id
+                UserId = userCreated.Id,
+                BranchId = request.BranchId
             };
 
             //Creamos su perfil y lo asociamos a la empresa.

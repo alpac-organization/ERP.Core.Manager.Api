@@ -30,7 +30,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 UserStatus           = UserStatus.Active,
                 AreaId               = command.AreaId,
                 Email                = command.Email,
-                BranchId             = command.BranchId,
                 IdentificationNumber = command.IdentificationNumber,
                 UserType             = command.UserType,
                 Fullname             = command.FullName,
