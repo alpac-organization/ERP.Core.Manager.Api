@@ -33,6 +33,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     .Where(sup => sup.ConstitutionType == request.ConstitutionType);
             }
 
+            if (!string.IsNullOrWhiteSpace(request.CommercialName))
+            {
+                suppliersQuery = suppliersQuery
+                    .Where(sup => sup.CommercialName != null && sup.CommercialName.Contains(request.CommercialName));
+            }
+
             var suppliers = await suppliersQuery
                 .OrderByDescending(sup => sup.CreatedAt) 
                 .Skip((request.PageNumber - 1) * request.PageSize)
