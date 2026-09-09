@@ -154,12 +154,7 @@ jobs:
         shell: bash
         run: |
           "${{ runner.temp }}/scanner/dotnet-sonarscanner" end /d:sonar.token="$SONAR_TOKEN"
-
-  # ---------------------------------------------------------------
-  # Notifica al repo de documentación para regenerar el sitio en
-  # GitHub Pages con los Markdown del directorio Docs.
-  # Se ejecuta en cada push a develop/main.
-  # ---------------------------------------------------------------
+  
   notify-docs:
     name: Disparar actualización de documentación
     if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
