@@ -10,9 +10,9 @@ using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-    public class GetCollaboratorsAvailableHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) : BaseValidatorHandler<GetCollaboratorsAvailableQuery, PagedResponse<GetCollaboratorDto>>(_unitOfWork, _errorManager)
+    public class GetCollaboratorsAvailableHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) : BaseValidatorHandler<GetCollaboratorsAvailableQuery, PagedResponse<CollaboratorDto>>(_unitOfWork, _errorManager)
     {
-        public override async Task<PagedResponse<GetCollaboratorDto>> Handle(GetCollaboratorsAvailableQuery request, CancellationToken cancellationToken)
+        public override async Task<PagedResponse<CollaboratorDto>> Handle(GetCollaboratorsAvailableQuery request, CancellationToken cancellationToken)
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
@@ -61,9 +61,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
-            var dtos = _mapper.Map<List<GetCollaboratorDto>>(collaborators) ?? [];
+            var dtos = _mapper.Map<List<CollaboratorDto>>(collaborators) ?? [];
 
-            return new PagedResponse<GetCollaboratorDto>(
+            return new PagedResponse<CollaboratorDto>(
                 dtos, 
                 filteredRecordsCount, 
                 request.PageNumber, 

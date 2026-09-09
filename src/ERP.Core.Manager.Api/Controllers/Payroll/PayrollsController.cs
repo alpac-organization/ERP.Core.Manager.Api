@@ -79,7 +79,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
         //Obtener detalles de la nomina activa en proceso.
         [Tags("Nomina")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/payrolls", Name = "GetPayrollActive")]      
+        [HttpGet("companies/{companie_id}/modules/{module_code}/payrolls")]      
         [ProducesResponseType(typeof(PayrollDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  

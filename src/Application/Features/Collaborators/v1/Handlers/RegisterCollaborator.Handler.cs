@@ -5,12 +5,11 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using Microsoft.Extensions.Logging;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
@@ -135,7 +134,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                }
             }
             #endregion
-
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return true;
