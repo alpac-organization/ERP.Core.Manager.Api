@@ -5,6 +5,8 @@ on:
     branches: [ "main", "develop" ]
   pull_request:
     types: [opened, synchronize, reopened]
+  release:
+    types: [published]
 
 jobs:
   docker-validate:
@@ -154,3 +156,28 @@ jobs:
         shell: bash
         run: |
           "${{ runner.temp }}/scanner/dotnet-sonarscanner" end /d:sonar.token="$SONAR_TOKEN"
+
+  # ---------------------------------------------------------------
+  # Notifica al repo de documentación para regenerar el sitio en
+  # GitHub Pages con los Markdown del directorio Docs.
+  # Solo se ejecuta al publicar una release.
+  # ---------------------------------------------------------------
+  notify-docs:
+    name: Disparar actualización de documentación
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch repository_dispatch a erp-api-docs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.DOCS_DISPATCH_TOKEN }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: 'alpac-organization',
+              repo: 'erp-api-docs',
+              event_type: 'api-released',
+              client_payload: {
+                ref: context.payload.release?.tag_name ?? context.ref,
+                repo: context.payload.repository?.full_name ?? context.ref,
+              },
+            });
