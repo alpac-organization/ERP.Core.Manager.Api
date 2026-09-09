@@ -1,5 +1,3 @@
-# Nómina - NMI-43GW
-
 ## Registrar Colaboradores
 
 Endpoint para registrar colaborador dentro del modulo de nomina.
