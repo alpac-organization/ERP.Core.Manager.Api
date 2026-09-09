@@ -28,6 +28,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<RegisterSupplierDto>("No tienes permiso para registrar un proveedor", "ERP:01");
             }
 
+            if (request.BankAccounts.Count(b => b.IsPrimary) > 1)
+            {
+                return _errorManager.ThrowBadRequest<RegisterSupplierDto>("Solo se puede definir una cuenta bancaria como principal", "ERP:ERROR_REGISTER");
+            }
+
             _logger.LogInformation("🚀Iniciando proceso de registro de proveedor");
 
             var supplierEntity = SupplierMapper.ToSupplierEntity(request, access.User.Fullname ?? "unknow user");
@@ -43,11 +48,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             await _unitOfWork.SuppliersDetails.RegisterSupplierDetails(supplierDetailsEntity);
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("✅Registro finalizado con exito");
 
-            return new () { SupplierId = supplierDetailsEntity.Id };
+            return new () { SupplierId = supplierEntity.Id };
         }
    }
 }

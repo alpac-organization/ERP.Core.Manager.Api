@@ -52,6 +52,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             supplier.SuppliersLegalName   = request.SuppliersLegalName   ?? supplier.SuppliersLegalName;
+            supplier.CommercialName       = request.CommercialName       ?? supplier.CommercialName;
             supplier.IdentificationNumber = request.IdentificationNumber ?? supplier.IdentificationNumber;
             supplier.ConstitutionType     = request.ConstitutionType     ?? supplier.ConstitutionType;
             supplier.IdentificationType   = request.IdentificationType   ?? supplier.IdentificationType;
@@ -65,13 +66,23 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
                 if (supplierDetails is not null)
                 {
-                    supplierDetails.HasCredit           = request.SupplierDetails.HasCredit;
-                    supplierDetails.CreditDays          = request.SupplierDetails.CreditDays;
-                    supplierDetails.Address             = request.SupplierDetails.Address             ?? supplierDetails.Address;
-                    supplierDetails.EmailSupport        = request.SupplierDetails.EmailSupport        ?? supplierDetails.EmailSupport;
-                    supplierDetails.ContactName         = request.SupplierDetails.ContactName         ?? supplierDetails.ContactName;
-                    supplierDetails.ContactEmail        = request.SupplierDetails.ContactEmail        ?? supplierDetails.ContactEmail;
-                    supplierDetails.ContactPhoneNumber  = request.SupplierDetails.ContactPhoneNumber  ?? supplierDetails.ContactPhoneNumber;
+                    supplierDetails.HasCredit                  = request.SupplierDetails.HasCredit                  ?? supplierDetails.HasCredit;
+                    supplierDetails.CreditDays                 = request.SupplierDetails.CreditDays                 ?? supplierDetails.CreditDays;
+                    supplierDetails.Address                    = request.SupplierDetails.Address                    ?? supplierDetails.Address;
+                    supplierDetails.EmailSupport               = request.SupplierDetails.EmailSupport               ?? supplierDetails.EmailSupport;
+                    supplierDetails.ContactName                = request.SupplierDetails.ContactName                ?? supplierDetails.ContactName;
+                    supplierDetails.ContactEmail               = request.SupplierDetails.ContactEmail               ?? supplierDetails.ContactEmail;
+                    supplierDetails.ContactPhoneNumber         = request.SupplierDetails.ContactPhoneNumber         ?? supplierDetails.ContactPhoneNumber;
+
+                    supplierDetails.IsExclusive                = request.SupplierDetails.IsExclusive                ?? supplierDetails.IsExclusive;
+                    supplierDetails.ExclusiveBrandsOrParts     = request.SupplierDetails.ExclusiveBrandsOrParts     ?? supplierDetails.ExclusiveBrandsOrParts;
+                    supplierDetails.CreditLimit                = request.SupplierDetails.CreditLimit                ?? supplierDetails.CreditLimit;
+                    supplierDetails.CreditCurrency             = request.SupplierDetails.CreditCurrency             ?? supplierDetails.CreditCurrency;
+                    supplierDetails.AlertDaysBeforeDue         = request.SupplierDetails.AlertDaysBeforeDue         ?? supplierDetails.AlertDaysBeforeDue;
+                    supplierDetails.PreferredPaymentMethod     = request.SupplierDetails.PreferredPaymentMethod     ?? supplierDetails.PreferredPaymentMethod;
+                    supplierDetails.ApplyIrRetention           = request.SupplierDetails.ApplyIrRetention           ?? supplierDetails.ApplyIrRetention;
+                    supplierDetails.ApplyMunicipalRetention    = request.SupplierDetails.ApplyMunicipalRetention    ?? supplierDetails.ApplyMunicipalRetention;
+                    supplierDetails.IsTaxExempt                = request.SupplierDetails.IsTaxExempt                ?? supplierDetails.IsTaxExempt;
                 }
             }
 

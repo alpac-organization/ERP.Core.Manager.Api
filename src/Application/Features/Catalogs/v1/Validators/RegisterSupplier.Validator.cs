@@ -24,6 +24,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .MaximumLength(200)
                 .WithMessage("El nombre legal del proveedor es obligatorio.");
 
+            RuleFor(x => x.CommercialName)
+                .MaximumLength(200)
+                .WithMessage("El nombre comercial no puede exceder 200 caracteres.")
+                .When(x => !string.IsNullOrWhiteSpace(x.CommercialName));
+
             RuleFor(x => x.IdentificationType)
                 .IsInEnum()
                 .WithMessage("El tipo de identificación es inválido.");
@@ -76,6 +81,59 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .Matches(@"^(\+505[\s-]?)?\d{4}[\s-]?\d{4}$")
                 .WithMessage("El número de teléfono debe tener 8 dígitos, opcionalmente con +505")
                 .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.ContactPhoneNumber));
+
+            RuleFor(x => x.SupplierDetails.ExclusiveBrandsOrParts)
+                .MaximumLength(500)
+                .WithMessage("Las marcas o líneas exclusivas no pueden exceder 500 caracteres.")
+                .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.ExclusiveBrandsOrParts));
+
+            RuleFor(x => x.SupplierDetails.CreditLimit)
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("El límite de crédito no puede ser negativo.")
+                .When(x => x.SupplierDetails.CreditLimit.HasValue);
+
+            RuleFor(x => x.SupplierDetails.CreditCurrency)
+                .IsInEnum()
+                .WithMessage("La moneda de crédito es inválida.")
+                .When(x => x.SupplierDetails.CreditCurrency.HasValue);
+
+            RuleFor(x => x.SupplierDetails.AlertDaysBeforeDue)
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("Los días de alerta no pueden ser negativos.");
+
+            RuleFor(x => x.SupplierDetails.PreferredPaymentMethod)
+                .IsInEnum()
+                .WithMessage("El método de pago preferido es inválido.");
+
+            RuleFor(x => x.BankAccounts)
+                .Must(list => list.Count(b => b.IsPrimary) <= 1)
+                .WithMessage("Solo se puede marcar una cuenta bancaria como principal.")
+                .When(x => x.BankAccounts != null && x.BankAccounts.Count > 0);
+
+            RuleForEach(x => x.BankAccounts).ChildRules(account =>
+            {
+                account.RuleFor(b => b.BankName)
+                    .NotEmpty().WithMessage("El nombre del banco es obligatorio.")
+                    .MaximumLength(100).WithMessage("El nombre del banco no puede exceder 100 caracteres.");
+
+                account.RuleFor(b => b.AccountNumber)
+                    .NotEmpty().WithMessage("El número de cuenta es obligatorio.")
+                    .MaximumLength(50).WithMessage("El número de cuenta no puede exceder 50 caracteres.");
+
+                account.RuleFor(b => b.AccountType)
+                    .IsInEnum().WithMessage("El tipo de cuenta bancaria es inválido.");
+
+                account.RuleFor(b => b.Currency)
+                    .IsInEnum().WithMessage("La moneda de la cuenta bancaria es inválida.");
+
+                account.RuleFor(b => b.AccountHolderName)
+                    .NotEmpty().WithMessage("El nombre del titular de la cuenta es obligatorio.")
+                    .MaximumLength(200).WithMessage("El nombre del titular no puede exceder 200 caracteres.");
+
+                account.RuleFor(b => b.AccountHolderIdentification)
+                    .MaximumLength(50).WithMessage("La identificación del titular no puede exceder 50 caracteres.")
+                    .When(b => !string.IsNullOrWhiteSpace(b.AccountHolderIdentification));
+            });
         }
     }
 }

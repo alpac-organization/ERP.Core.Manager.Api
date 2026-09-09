@@ -25,7 +25,8 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromQuery] int page_size = 10,
             [FromQuery] int page_number = 1,
             [FromQuery] ConstitutionType? constitution_type = null,
-            [FromQuery] string? identification_number = null
+            [FromQuery] string? identification_number = null,
+            [FromQuery] string? commercial_name = null
         )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
@@ -38,6 +39,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
                 PageNumber           = page_number,
                 ConstitutionType     = constitution_type,
                 IdentificationNumber = identification_number,
+                CommercialName       = commercial_name,
                 UserId               = Guid.Parse(userIdStr ?? "")
             });
         }
@@ -95,6 +97,98 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
                 CompanyId   = companie_id,
                 ModuleCode  = module_code,
             });
+        }
+
+        [Tags("Proveedores")]
+        [HttpGet("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}/bank-accounts")]
+        [ProducesResponseType(typeof(List<SupplierBankAccountDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<List<SupplierBankAccountDto>> GetSupplierBankAccountsAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromRoute] Guid supplier_id)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            return await _mediator.Send(new GetSupplierBankAccountsQuery()
+            {
+                CompanyId  = companie_id,
+                ModuleCode = module_code,
+                SupplierId = supplier_id,
+                UserId     = Guid.Parse(userIdStr ?? "")
+            });
+        }
+
+        [Tags("Proveedores")]
+        [HttpPost("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}/bank-accounts")]
+        [ProducesResponseType(typeof(SupplierBankAccountDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<SupplierBankAccountDto> AddSupplierBankAccountAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromRoute] Guid supplier_id,
+            [FromBody] AddSupplierBankAccountCommand payload)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            payload.CompanyId  = companie_id;
+            payload.ModuleCode = module_code;
+            payload.SupplierId = supplier_id;
+            payload.UserId     = Guid.Parse(userIdStr ?? "");
+
+            return await _mediator.Send(payload);
+        }
+
+        [Tags("Proveedores")]
+        [HttpPatch("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}/bank-accounts/{bank_account_id}")]
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<OkResult> UpdateSupplierBankAccountAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromRoute] Guid supplier_id,
+            [FromRoute] Guid bank_account_id,
+            [FromBody] UpdateSupplierBankAccountCommand payload)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            payload.CompanyId     = companie_id;
+            payload.ModuleCode    = module_code;
+            payload.SupplierId    = supplier_id;
+            payload.BankAccountId = bank_account_id;
+            payload.UserId        = Guid.Parse(userIdStr ?? "");
+
+            await _mediator.Send(payload);
+
+            return Ok();
+        }
+
+        [Tags("Proveedores")]
+        [HttpDelete("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}/bank-accounts/{bank_account_id}")]
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<OkResult> DeleteSupplierBankAccountAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromRoute] Guid supplier_id,
+            [FromRoute] Guid bank_account_id)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            await _mediator.Send(new DeleteSupplierBankAccountCommand()
+            {
+                CompanyId     = companie_id,
+                ModuleCode    = module_code,
+                SupplierId    = supplier_id,
+                BankAccountId = bank_account_id,
+                UserId        = Guid.Parse(userIdStr ?? "")
+            });
+
+            return Ok();
         }
 
     }

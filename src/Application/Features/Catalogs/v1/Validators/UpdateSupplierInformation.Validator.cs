@@ -28,6 +28,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("La razón social no puede exceder los 200 caracteres")
                 .When(x => x.SuppliersLegalName is not null);
 
+            RuleFor(x => x.CommercialName)
+                .MaximumLength(200)
+                .WithMessage("El nombre comercial no puede exceder los 200 caracteres")
+                .When(x => x.CommercialName is not null);
+
             RuleFor(x => x.IdentificationNumber)
                 .MaximumLength(30)
                 .WithMessage("El número de identificación no puede exceder los 30 caracteres")
@@ -73,6 +78,31 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .MaximumLength(250)
                 .WithMessage("La dirección no puede exceder los 250 caracteres")
                 .When(x => x.SupplierDetails.Address is not null);
+
+            RuleFor(x => x.SupplierDetails.ExclusiveBrandsOrParts)
+                .MaximumLength(500)
+                .WithMessage("Las marcas o líneas exclusivas no pueden exceder los 500 caracteres")
+                .When(x => x.SupplierDetails.ExclusiveBrandsOrParts is not null);
+
+            RuleFor(x => x.SupplierDetails.CreditLimit)
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("El límite de crédito no puede ser negativo")
+                .When(x => x.SupplierDetails.CreditLimit.HasValue);
+
+            RuleFor(x => x.SupplierDetails.CreditCurrency)
+                .IsInEnum()
+                .WithMessage("La moneda de crédito no es válida")
+                .When(x => x.SupplierDetails.CreditCurrency.HasValue);
+
+            RuleFor(x => x.SupplierDetails.AlertDaysBeforeDue)
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("Los días de alerta no pueden ser negativos")
+                .When(x => x.SupplierDetails.AlertDaysBeforeDue.HasValue);
+
+            RuleFor(x => x.SupplierDetails.PreferredPaymentMethod)
+                .IsInEnum()
+                .WithMessage("El método de pago no es válido")
+                .When(x => x.SupplierDetails.PreferredPaymentMethod.HasValue);
         }
     }
 }

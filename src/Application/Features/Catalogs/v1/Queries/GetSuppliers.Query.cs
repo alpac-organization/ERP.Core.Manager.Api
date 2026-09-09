@@ -12,5 +12,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries
 
         public string? IdentificationNumber { get; set; }
         public ConstitutionType? ConstitutionType { get; set; }
+        public string? CommercialName { get; set; }
     }
 }
