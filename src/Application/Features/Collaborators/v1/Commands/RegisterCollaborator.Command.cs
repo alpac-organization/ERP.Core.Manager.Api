@@ -24,7 +24,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? RegisteredBy { get; set; }
 
         public GenderType Gender { get; set; }
-        public CollaboratorStatus Status { get; set; }
         public IdentificationType IdentificationType { get; set; }
 
         

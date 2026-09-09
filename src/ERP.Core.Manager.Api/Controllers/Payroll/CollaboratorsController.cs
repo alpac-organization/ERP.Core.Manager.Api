@@ -1,15 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-using ERP.Core.Manager.Api.Domain.Enums;
+using ERP.Core.Domain.Entities.Errors;
+using ERP.Core.Infrastructure.Attributes;
+
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
-using ERP.Core.Manager.Api.Controllers.ApiBase;
 
-using ERP.Core.Domain.Entities.Errors;
-using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Infrastructure.Attributes;
 
 namespace ERP.Core.Manager.Api.Controllers.Payroll
 {
@@ -18,8 +18,6 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     [Route("api/v1/")]
     public class CollaboratorsController(IMediator _mediator) : ApiControllerBase
     {
-        #region Registrar Colaborador
-
         [Tags("Colaboradores")] 
         [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators")]      
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status201Created)]
@@ -29,44 +27,71 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            payload.UserId = Guid.Parse(userIdStr ?? "");
-            payload.ModuleCode = module_code;
-            payload.CompanyId = companie_id;
+            payload.UserId      = Guid.Parse(userIdStr ?? "");
+            payload.ModuleCode  = module_code;
+            payload.CompanyId   = companie_id;
 
             await _mediator.Send(payload);
 
-            return Created(string.Empty, null);
+            return Created();
         }
 
-        #endregion 
-
-        #region Metodo para desactivar colaborador
         [Tags("Colaboradores")] 
-        [HttpDelete("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}", Name = "DeactivateCollaborator")]
-        [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status200OK)]
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators")]
+        [ProducesResponseType(typeof(PagedResponse<CollaboratorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<NoContentResult> DeactivateCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
+        public async Task<PagedResponse<CollaboratorDto>> GetCollaboratorsAvailableAsync(
+            [FromRoute] Guid companie_id, 
+            [FromRoute] string module_code, 
+            [FromQuery] Guid? area_id                 = null,
+            [FromQuery] Guid? branch_id               = null,
+            [FromQuery] CollaboratorStatus? status    = null,
+            [FromQuery] string? identification_number = null,
+            [FromQuery] int page_size   = 10,
+            [FromQuery] int page_number = 1
+        )   
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+            
+            var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery()
+            {
+                Status      = status,
+                AreaId      = area_id,
+                BranchId    = branch_id, 
+                CompanyId   = companie_id,
+                ModuleCode  = module_code,
+                PageSize    = page_size,
+                PageNumber  = page_number,
+                UserId      = Guid.Parse(userIdStr ?? ""),
+                IdentificationNumber = identification_number
+            });
+
+            return collaborators;
+        }
+
+        [Tags("Colaboradores")] 
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details")]      
+        [ProducesResponseType(typeof(CollaboratorDetailsDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<CollaboratorDetailsDto> GetCollaboratorDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)   
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            var Payload = new DeactivateCollaboratorCommand()
+            var collaborator = await _mediator.Send(new GetCollaboratorDetailsQuery()
             {
-                CompanyId = companie_id,
+                CompanyId  = companie_id,
                 ModuleCode = module_code,
-                UserId = Guid.Parse(userIdStr ?? ""),
-                IdentificationNumber = identification_number
-            };
+                UserId     = Guid.Parse(userIdStr ?? ""),
+                IdentificationNumber = identification_number,
+            });
 
-            await _mediator.Send(Payload);
-
-            return NoContent();
+            return collaborator;
         }
-        #endregion
-
 
         [Tags("Colaboradores")] 
-        [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details", Name = "UpdateCollaboratorInformation")]
+        [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details")]
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
@@ -87,84 +112,17 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         }
 
         [Tags("Colaboradores")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators", Name = "GetCollaborators")]
-        [ProducesResponseType(typeof(PagedResponse<GetCollaboratorDto>), StatusCodes.Status200OK)]
+        [HttpDelete("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}")]
+        [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<PagedResponse<GetCollaboratorDto>> GetCollaboratorsAvailableAsync(
-            [FromRoute] Guid companie_id, 
-            [FromRoute] string module_code, 
-            [FromQuery] CollaboratorStatus? status,
-            [FromQuery] string? identification_number,
-            [FromQuery] Guid? branch_id,
-            [FromQuery] Guid? area_id,
-            [FromQuery] int page_number = 1,
-            [FromQuery] int page_size = 10
-        )   
+        public async Task<NoContentResult> DeactivateCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery()
-            {
-                AreaId = area_id,
-                BranchId = branch_id, 
-                UserId = Guid.Parse(userIdStr ?? ""),
-                CompanyId = companie_id,
-                ModuleCode = module_code,
-                IdentificationNumber = identification_number,
-                Status = status,
-                PageNumber = page_number,
-                PageSize = page_size
-            });
+            //Desactivado por el momento
 
-            return collaborators;
-        }
-
-
-        [Tags("Colaboradores")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details", Name = "CollaboratorDetails")]      
-        [ProducesResponseType(typeof(CollaboratorDetailsDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<CollaboratorDetailsDto> GetCollaboratorDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
-            [FromRoute] string identification_number
-        )   
-        {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-            
-            var collaborator = await _mediator.Send(new GetCollaboratorDetailsQuery()
-            {
-                CompanyId = companie_id,
-                IdentificationNumber = identification_number,
-                ModuleCode = module_code,
-                UserId = Guid.Parse(userIdStr ?? "")
-            });
-
-            return collaborator;
-        }
-
-        [Tags("Colaboradores")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/documents/{document_type}/generator", Name = "GenerateDocument")]      
-        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GenerateDocumentToCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, 
-            [FromRoute] DocumentType document_type,
-            [FromRoute] string identification_number
-        )   
-        {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
-            var document = await _mediator.Send(new GenerateDocumentToCollaboratorQuery()
-            {
-                CompanyId = companie_id,
-                DocumentType = document_type,
-                IdentificationNumber = identification_number,
-                ModuleCode = module_code,
-                UserId = Guid.Parse(userIdStr ?? "")
-            });
-
-            return File(document, "application/pdf", $"Documento_{identification_number}.pdf");;
+            return NoContent();
         }
     }
 }

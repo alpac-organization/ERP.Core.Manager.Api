@@ -1,10 +1,11 @@
 using AutoMapper;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Utils;
 using ERP.Core.Database.Domain.Entities.Payrolls;
-using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 
 using Commands = ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 {
@@ -14,21 +15,11 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
       public CollaboratorProfile()
       {
 
-         #region Mapeo de listado de colaboradores
+        #region Mapeo de listado de colaboradores
 
-        CreateMap<Collaborator, GetCollaboratorDto>()
+        CreateMap<Collaborator, CollaboratorDto>()
             .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
-            .ForMember(dest => dest.FirstLastname, opt => opt.MapFrom(src => src.FirstLastname))
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src =>
-                string.Join(" ", new[]
-                {
-                    src.FirstName.ToCapitalize(),
-                    src.SecondName.ToCapitalize(),
-                    src.FirstLastname.ToCapitalize(),
-                    src.SecondLastname.ToCapitalize()
-                }.Where(s => !string.IsNullOrWhiteSpace(s)))))
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src)))
 
             .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src =>
                 src.WorkingInformation != null && src.WorkingInformation.Area != null
@@ -48,11 +39,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             .ForMember(dest => dest.Vacations, opt => opt.MapFrom(src =>
                 src.WorkingInformation != null && src.Vacation != null
                 ? src.Vacation.AvailableVacations
-                : 0))
-
-            .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
-
-            .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.IdentificationNumber));
+                : 0));
 
         #endregion
 
@@ -128,7 +115,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             IdentificationNumber = command.IdentificationNumber,
             IdentificationType = command.IdentificationType,
             Gender = command.Gender,
-            Status = command.Status,
+            Status = CollaboratorStatus.Active,
             CollaboratorCode = generatedCode,
             RegisteredBy = command.RegisteredBy ?? "Sistema ERP",
             DoesWorkSaturdays = command.DoesWorkSaturday,
