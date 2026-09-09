@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Infrastructure.Persistence.Context;
+using ERP.Core.Database.Domain.Entities.Auth;
+using ERP.Core.Database.Domain.Entities.Catalogs;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Tests.Common;
 
@@ -67,6 +70,44 @@ public abstract class IntegrationTestBase
             .Select(u => u.Id)
             .FirstAsync();
 
+        // Sembrar módulo y rol de Administrador para que las llamadas con ValidateAccessAsync tengan permiso
+        var module = new Module
+        {
+            Id = Guid.NewGuid(),
+            Code = "PURCHASING",
+            ModuleName = "Compras",
+            IsActive = true
+        };
+        dbContext.Modules.Add(module);
+
+        var adminRole = new Role
+        {
+            Id = Guid.NewGuid(),
+            RoleName = "Administrador",
+            Description = "Administrador de Compras",
+            RoleType = RoleType.Administrator
+        };
+        dbContext.Roles.Add(adminRole);
+
+        var userProfiles = await dbContext.Profiles
+            .Where(p => p.UserId == DefaultUserId)
+            .ToListAsync();
+
+        foreach (var profile in userProfiles)
+        {
+            dbContext.UserModuleRoles.Add(new UserModuleRoles
+            {
+                Id = Guid.NewGuid(),
+                UserProfileId = profile.Id,
+                ModuleId = module.Id,
+                RoleId = adminRole.Id,
+                ModuleCode = module.Code,
+                IsActive = true
+            });
+        }
+
+        await dbContext.SaveChangesAsync();
+
         Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
             "Bearer",
             TestAuthHelper.CreateBearerToken(CustomWebApplicationFactory.JwtKey, DefaultUserId));
@@ -94,9 +135,14 @@ public abstract class IntegrationTestBase
         return await Client.SendAsync(request);
     }
 
-    protected static JsonSerializerOptions SnakeCaseJsonOptions() => new()
+    protected static JsonSerializerOptions SnakeCaseJsonOptions()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-        PropertyNameCaseInsensitive = true
-    };
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            PropertyNameCaseInsensitive = true
+        };
+        options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        return options;
+    }
 }
