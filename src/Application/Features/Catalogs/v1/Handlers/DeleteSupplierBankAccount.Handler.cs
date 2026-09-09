@@ -26,23 +26,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para eliminar cuentas bancarias de un proveedor", "ERP:01");
             }
 
-            var supplier = await _unitOfWork.Suppliers.Entities
-                .Include(s => s.SupplierBankAccounts)
-                .Where(s => s.IsActive && s.Id == request.SupplierId)
-                .FirstOrDefaultAsync(cancellationToken);
+            var lookup = await SupplierBankAccountHandlerHelper.FindSupplierAndAccountAsync(
+                _unitOfWork,
+                _errorManager,
+                request.SupplierId,
+                request.BankAccountId,
+                cancellationToken);
 
-            if (supplier is null)
+            if (!lookup.IsSuccess)
             {
-                return _errorManager.ThrowBadRequest<bool>("El proveedor especificado no existe", "ERP:NOT_FOUND");
+                return lookup.ErrorResult;
             }
 
-            var account = supplier.SupplierBankAccounts
-                .FirstOrDefault(b => b.Id == request.BankAccountId && b.DeletedAt == null);
-
-            if (account is null)
-            {
-                return _errorManager.ThrowBadRequest<bool>("La cuenta bancaria especificada no existe", "ERP:NOT_FOUND");
-            }
+            var supplier = lookup.Supplier!;
+            var account = lookup.Account!;
 
             bool wasPrimary = account.IsPrimary;
             account.DeletedAt = DateTime.UtcNow;
