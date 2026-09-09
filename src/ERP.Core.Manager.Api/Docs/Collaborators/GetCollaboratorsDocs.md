@@ -51,52 +51,28 @@ Retorna un `PagedResponse<CollaboratorDto>`.
 
 ```json
 {
-  "collaborator_id": "5f8d0d55-6c8a-4a2b-9d3f-000000000099",
-  "collaborator_code": "COL-0001",
-  "full_name": "Juan Carlos Pérez Gómez",
-  "work_position": "Analista de Nómina",
-  "status": "Active",
-  "profile_picture_url": "https://cdn.tuservicio.com/profiles/col_001.png",
- 
-  "cost_centers": [
+  "data": [
     {
-      "id": "5f8d0d55-6c8a-4a2b-9d3f-000000000011",
-      "name": "Administración"
+      "collaborator_id": "ee702059-9d26-4464-9900-c95b616d55c9",
+      "full_name": "Juan Ramon Calero Velazquez",
+      "first_name": "Juan",
+      "first_lastname": "Calero",
+      "branch_name": "Almacenadora del Pacífico S.A.",
+      "work_area": "DEPOSITO PUBLICO",
+      "vacations": 14.64,
+      "work_position": "Jefe de almacen",
+      "collaborator_code": "TXX-SFWD",
+      "identification_number": "0012708810028T",
+      "status": "Active"
     }
   ],
- 
-  "personal_information": {
-    "gender": 1,
-    "identification_number": "001-090926-0001A",
-    "address": "Barrio El Progreso, Managua",
-    "personal_email": "juanperez@gmail.com",
-    "personal_phone_number": "88887777",
-    "departament": "Managua",
-    "marital_status": 1,
-    "birthdate": "1995-04-12T00:00:00"
-  },
- 
-  "working_information": {
-    "inss_number": "1234567",
-    "work_phone_number": "22551234",
-    "work_email": "juan.perez@empresa.com",
-    "bank_account_number": "1234567890",
-    "bank_name": "BAC Nicaragua",
-    "work_area": "Recursos Humanos",
-    "work_position": "Analista de Nómina",
-    "branch_name": "Sucursal Managua",
-    "entry_date": "2026-09-09"
-  },
- 
-  "salary_information": {
-    "salary": 15000.00,
-    "currency": "NIO",
-    "salary_type": "Fixed"
-  },
- 
-  "vacation_information": {
-    "available_vacations": 8.5
-  }
+  "page_size": 116,
+  "page_number": 1,
+  "total_records": 1,
+  "total_active": 113,
+  "total_on_vacation": 0,
+  "total_on_subsidy": 0,
+  "total_collaborators": 116
 }
 ```
 
