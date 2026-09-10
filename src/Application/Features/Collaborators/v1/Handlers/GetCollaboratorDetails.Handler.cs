@@ -6,7 +6,6 @@ using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
@@ -22,11 +21,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 return access.ErrorResponse!; 
             }
 
-            var collaborator = await _unitOfWork.Collaborators.Entities
-                .AsNoTracking()
-                
+            var collaborator = await _unitOfWork.Collaborators.Entities                
                 .Include(c => c.PersonalInformation)
-
                 .Include(c => c.Vacation)
                 
                 .Include(c => c.WorkingInformation)
@@ -34,10 +30,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                         .ThenInclude(a => a.CostCenters)
 
                 .Include(c => c.WorkingInformation)
-                    .ThenInclude(w => w.WorkPosition)
+                    .ThenInclude(w => w.JobPosition)
 
                 .Include(c => c.WorkingInformation)
-                    .ThenInclude(w => w.BranchInfo)
+                    .ThenInclude(w => w.Branch)
 
                 .Include(c => c.Salaries.Where(s => s.EndDate == null))
 
@@ -52,17 +48,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             }
 
             var mapped = _mapper.Map<CollaboratorDetailsDto>(collaborator);
-
-            //Obtener centros de costos de la area;
-
-            var costCenters = await _unitOfWork.CostCenters.Entities
-                .Where(cos => cos.WorkAreaId == collaborator.WorkingInformation.AreaId)
-                .ToListAsync(cancellationToken);
-
-            var costCentersMapped = _mapper.Map<List<CostCenterDto>>(costCenters);
-
-            mapped.CostCenters = costCentersMapped;
-
+            mapped.PersonalInformation.IdentificationNumber = request.IdentificationNumber;
+            
             return mapped;
         }
     }

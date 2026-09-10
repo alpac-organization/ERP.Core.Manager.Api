@@ -12,7 +12,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries
 
         public string? IdentificationNumber { get; set; }
         public Guid? AreaId { get; set; }
-        public int? WorkPositionId { get; set; }
+        public Guid? JobPositionId { get; set; }
         
         public int PageSize { get; set; }
         public int PageNumber { get; set; }

@@ -1,12 +1,13 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
+using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
-using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
@@ -32,12 +33,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             var totalOnSubsidy = await baseQuery.CountAsync(c => c.Status == CollaboratorStatus.Subsidy, cancellationToken);
 
             var gridQuery = baseQuery
+                .Include(c => c.Company)
                 .Include(c => c.WorkingInformation)
                     .ThenInclude(w => w.Area)
                 .Include(c => c.WorkingInformation)
-                    .ThenInclude(w => w.WorkPosition)
+                    .ThenInclude(w => w.JobPosition)
                 .Include(c => c.WorkingInformation)
-                    .ThenInclude(w => w.BranchInfo)
+                    .ThenInclude(w => w.Branch)
                 .Include(c => c.Vacation)
                 .AsQueryable();
 
@@ -48,7 +50,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 gridQuery = gridQuery.Where(c => c.IdentificationNumber == request.IdentificationNumber);
 
             if (!string.IsNullOrEmpty(request.BranchId.ToString()))
-                gridQuery = gridQuery.Where(c => c.WorkingInformation.CompanyBranchId == request.BranchId);
+                gridQuery = gridQuery.Where(c => c.WorkingInformation.BranchId == request.BranchId);
 
             if (!string.IsNullOrEmpty(request.AreaId.ToString()))
                 gridQuery = gridQuery.Where(c => c.WorkingInformation.AreaId == request.AreaId);

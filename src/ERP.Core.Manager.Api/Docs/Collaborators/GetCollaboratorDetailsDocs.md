@@ -39,50 +39,39 @@ Retorna un `CollaboratorDetailsDto`.
 ```json
 {
   "collaborator_id": "e6ee56aa-185d-42fe-9deb-e83aedacfed7",
-  "collaborator_code": "VXX-H38W",
   "full_name": "Angel Abraham Lopez Delgado",
+  "collaborator_code": "VXX-H38W",
   "work_position": "Desarrollador",
-  "status": "Active",
-  "profile_picture_url": null,
-
-  "cost_centers": [
-    {
-      "area_id": "f006b2d8-af3f-4c8b-b59c-a08b677b66ca",
-      "cost_center_id": "8d8c47fd-337c-41b7-8156-eac944027ff7",
-      "descripcion": null,
-      "cost_center_name": "GERENCIA DE INFORMATICA"
-    }
-  ],
-
+  "working_information": {
+    "working_information_id": "211cb285-81fb-4ace-b66f-611c0dd703c3",
+    "daem": null,
+    "work_email": "",
+    "inss_number": "44487722",
+    "work_phone_number": null,
+    "bank_account_number": "373733476",
+    "branch_name": "Almacenadora del Pacífico S.A.",
+    "work_area": "INFORMÁTICA",
+    "job_position": "Desarrollador",
+    "cost_center": null,
+    "entry_date": "2026-03-05",
+    "departure_date": null
+  },
   "personal_information": {
-    "gender": "Man",
-    "identification_number": "0012103011052V",
+    "personal_information_id": "62c8c3a6-1446-4b56-b49f-f59765ef7642",
     "address": null,
     "personal_email": null,
     "personal_phone_number": null,
-    "departament": null,
+    "birthdate": "2001-03-21T06:00:00Z",
+    "gender": "Man",
     "marital_status": "Single",
-    "birthdate": "2001-03-21T06:00:00Z"
+    "identification_number": "0012103011052V"
   },
-
-  "working_information": {
-    "inss_number": "44487722",
-    "work_phone_number": null,
-    "work_email": "",
-    "bank_account_number": "373733476",
-    "bank_name": null,
-    "work_area": "INFORMÁTICA",
-    "work_position": "Desarrollador",
-    "branch_name": "Almacenadora del Pacífico S.A.",
-    "entry_date": "2026-03-05"
-  },
-
   "salary_information": {
-    "salary": 32961.87,
+    "salary": 0.0,
     "currency": "NIO",
-    "salary_type": "Fixed"
+    "salary_type": "Fixed",
+    "bank_name": "BAC",
   },
-
   "vacation_information": {
     "available_vacations": 3.42
   }

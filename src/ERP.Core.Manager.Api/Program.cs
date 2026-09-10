@@ -48,6 +48,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+    
 
 builder.Services.AddApiVersioning(options =>
 {

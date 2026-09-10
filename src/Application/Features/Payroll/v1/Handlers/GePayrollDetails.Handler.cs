@@ -47,11 +47,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                 .AsNoTracking()
                 .Include(op => op.Collaborator)
                     .ThenInclude(col => col.WorkingInformation)
-                        .ThenInclude(col => col.WorkPosition)
+                        .ThenInclude(col => col.JobPosition)
                 .Where(op => op.PayrollId == payroll.Id);
 
 
             #region Filtro de nomina
+            
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {
                 payrollDetails = payrollDetails
@@ -64,11 +65,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     .Where(op => op.Collaborator.WorkingInformation.AreaId == request.AreaId);
             }
 
-            if (request.WorkPositionId.HasValue)
+            if (request.JobPositionId.HasValue)
             {
                 payrollDetails = payrollDetails
-                    .Where(op => op.Collaborator.WorkingInformation.WorkPositionId == request.WorkPositionId);
+                    .Where(op => op.Collaborator.WorkingInformation.JobPositionId == request.JobPositionId);
             }
+
             #endregion
 
             int totalRecords= await payrollDetails.CountAsync(cancellationToken);
@@ -80,7 +82,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
                 .Include(x => x.Collaborator)
                     .ThenInclude(x => x.WorkingInformation)
-                        .ThenInclude(x => x.WorkPosition)
+                        .ThenInclude(x => x.JobPosition)
                         
                 .OrderBy(op => op.Collaborator.FirstName)
                 .Skip((request.PageNumber - 1) * request.PageSize)
@@ -107,7 +109,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     x,
                     x.Collaborator,
                     x.Collaborator.WorkingInformation,
-                    x.Collaborator.WorkingInformation.WorkPosition, 
+                    x.Collaborator.WorkingInformation.JobPosition, 
                     x.Collaborator.WorkingInformation.Area 
                 ));
 

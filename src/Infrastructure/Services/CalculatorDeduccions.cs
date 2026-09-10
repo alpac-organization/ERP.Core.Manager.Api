@@ -256,7 +256,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #region Aplicamos antigüedad si la empresa acumula antigüeda.
 
-         if (collaborator.WorkingInformation.BranchInfo.DoesGenerateSeniority)
+         if (collaborator.WorkingInformation.Branch.DoesGenerateSeniority)
          {
             var (antique, yearsOfService) = CalculateAntique(BiweeklySalary, payrollEnd, entryDate);
             Antique = antique;
@@ -426,7 +426,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 holiday.Month == date.Month &&
                 (
                     holiday.IsGlobal ||
-                    holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId
+                    holiday.BranchId == collaborator.WorkingInformation.BranchId
                 )
             );
 

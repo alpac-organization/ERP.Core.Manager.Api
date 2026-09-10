@@ -9,10 +9,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         public CostCenterProfile()
         {
             CreateMap<CostCenter, CostCenterDto>()
-                .ForMember(dest => dest.CostCenterId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.CostCenterName, opt => opt.MapFrom(src => src.CostCenterName))
-                .ForMember(dest => dest.Descripcion, opt => opt.MapFrom(src => src.Description))
-                .ForMember(dest => dest.AreaId, opt => opt.MapFrom(src => src.WorkAreaId));
+                .ForMember(dest => dest.CostCenterId, opt => opt.MapFrom(src => src.Id));
         }
     }
 }

@@ -3,12 +3,11 @@ using ERP.Core.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
-using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 
-using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Application.Commons.Utils;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
@@ -67,10 +66,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                     .Where(op => op.Collaborator.WorkingInformation.AreaId == request.AreaId);
             }
 
-            if (request.WorkPositionId.HasValue)
+            if (request.JobPositionId.HasValue)
             {
                 detailsQuery = detailsQuery
-                    .Where(op => op.Collaborator.WorkingInformation.WorkPositionId == request.WorkPositionId);
+                    .Where(op => op.Collaborator.WorkingInformation.JobPositionId == request.JobPositionId);
             }
 
             int totalItems = await detailsQuery.CountAsync(cancellationToken);
@@ -117,7 +116,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
                         CollaboratorCode = op.Collaborator.CollaboratorCode,
                         IdentificationNumber = op.Collaborator.IdentificationNumber,
                         InssNumber = op.Collaborator.WorkingInformation.InssNumber,
-                        JobPosition = op.Collaborator.WorkingInformation.WorkPosition.CatalogName,
+                        JobPosition = op.Collaborator.WorkingInformation.JobPosition.JobPositionName,
                         WorkArea = op.Collaborator.WorkingInformation.Area.WorkAreaName,
                         EntryDate = op.Collaborator.WorkingInformation.EntryDate,
                         BankAccount = StringExtensions.FormatWithNullWhenNoHasValue(op.Collaborator.WorkingInformation.BankAccountNumber)

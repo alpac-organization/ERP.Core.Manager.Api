@@ -38,7 +38,7 @@ namespace ERP.Core.Manager.Api.Application.Features.SalaryAdvance.v1.Handlers
 
             var payrolActive = await _unitOfWork.Payrolls.Entities
                 .Where(payroll => payroll.Status == PayrollStatus.Progress && payroll.PayrollType == PayrollType.Ordinary)
-                .Where(payroll => payroll.BranchId == collaborator.WorkingInformation.CompanyBranchId)
+                .Where(payroll => payroll.BranchId == collaborator.WorkingInformation.BranchId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             var AdvanceSalary =  await _unitOfWork.Deductions.Entities

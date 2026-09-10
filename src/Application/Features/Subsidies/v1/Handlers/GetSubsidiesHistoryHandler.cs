@@ -44,7 +44,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
             if (request.BranchId != Guid.Empty)
             {
                 query = query.Where(s =>
-                    s.Collaborator.WorkingInformation.CompanyBranchId == request.BranchId);
+                    s.Collaborator.WorkingInformation.BranchId == request.BranchId);
             }
 
             if (!string.IsNullOrEmpty(request.CollaboradorCode))

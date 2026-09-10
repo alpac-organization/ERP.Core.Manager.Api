@@ -51,7 +51,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
         }
     }
 
-    public class PersonalInformationValidator : AbstractValidator<PersonalInformation>
+    public class PersonalInformationValidator : AbstractValidator<PersonalInformationCommand>
     {
         public PersonalInformationValidator()
         {
@@ -71,7 +71,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
         }
     }
 
-    public class WorkingInformationValidator : AbstractValidator<WorkingInformation>
+    public class WorkingInformationValidator : AbstractValidator<WorkingInformationCommand>
     {
         public WorkingInformationValidator()
         {
@@ -98,14 +98,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
                 .WithMessage("El número de teléfono debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)")
                 .When(x => !string.IsNullOrEmpty(x.WorkPhoneNumber));
 
-            RuleFor(x => x.WorkPositionId) 
-                .GreaterThan(0)
+            RuleFor(x => x.JobPositionId)
                 .NotEmpty()
                 .WithMessage("La posición de trabajo es obligatoria");
         }
     }
 
-    public class SalaryInformationValidator : AbstractValidator<SalaryInformation>
+    public class SalaryInformationValidator : AbstractValidator<SalaryInformationCommand>
     {
         public SalaryInformationValidator()
         {

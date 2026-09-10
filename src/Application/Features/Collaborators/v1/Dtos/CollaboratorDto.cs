@@ -5,16 +5,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
     public class CollaboratorDto
     {
         public Guid CollaboratorId { get; set; }
+        public string? PictureUrl { get; set; }
         public string? FullName { get; set; }
-        public string? FirstName { get; set; }
-        public string? FirstLastname { get; set; }
-        public string? BranchName { get; set; }
-        public string? WorkArea { get; set; }
-        public decimal Vacations { get; set; }
-        public string? WorkPosition { get; set; }
         public string? CollaboratorCode { get; set; }
         public string? IdentificationNumber { get; set; }
         public CollaboratorStatus Status { get; set; }
+
+        public decimal Vacations { get; set; }
+        public string? WorkArea { get; set; }
+        public string? CostCenter { get; set; }
+        public string? JobPosition { get; set; }
     }
 
     public record PagedResponse<T>(
