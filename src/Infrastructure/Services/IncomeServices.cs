@@ -238,7 +238,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             bool isHoliday = holidays.Any(holiday =>
             holiday.Day == date.Day && holiday.Month == date.Month &&
-            (holiday.IsGlobal || holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId));
+            (holiday.IsGlobal || holiday.BranchId == collaborator.WorkingInformation.BranchId));
 
             if (isHoliday)
             {
@@ -276,7 +276,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                bool isHoliday = holidays.Any(holiday =>
                    holiday.Day == date.Day && holiday.Month == date.Month &&
-                   (holiday.IsGlobal || holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId));
+                   (holiday.IsGlobal || holiday.BranchId == collaborator.WorkingInformation.BranchId));
 
                if (isHoliday) continue;
                if (date.DayOfWeek == DayOfWeek.Sunday) continue;
@@ -627,7 +627,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             bool isHoliday = holidays.Any(holiday =>
                 holiday.Day == date.Day && holiday.Month == date.Month &&
-                (holiday.IsGlobal || holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId));
+                (holiday.IsGlobal || holiday.BranchId == collaborator.WorkingInformation.BranchId));
 
             if (isHoliday)
             {
@@ -665,7 +665,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                bool isHoliday = holidays.Any(holiday =>
                    holiday.Day == date.Day && holiday.Month == date.Month &&
-                   (holiday.IsGlobal || holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId));
+                   (holiday.IsGlobal || holiday.BranchId == collaborator.WorkingInformation.BranchId));
 
                if (isHoliday) continue;
                if (date.DayOfWeek == DayOfWeek.Sunday) continue;

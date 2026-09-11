@@ -41,9 +41,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
          {
             #region Mapeo de campos.
             var code = _codeGenerator.GenerateModuleCode(request.IdentificationNumber!);
-            request.RegisteredBy = access.User.UserName;
 
             var collaboratorEntity = CollaboratorMapper.ToCollaboratorEntity(request, code);
+            collaboratorEntity.RegisteredBy = access.User.Fullname;
+
             await _unitOfWork.Collaborators.RegisterCollaborator(collaboratorEntity);
 
             if (request.PersonalInformation != null)
@@ -67,11 +68,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
             #region Registrar salario laboral
 
-            isSuccess = await _payrollServices.AssignSalary(collaboratorEntity, request.SalaryInformation ?? new());
+            isSuccess = await _payrollServices.AssignSalary(collaboratorEntity, request.SalaryInformation ?? new ());
 
             if (isSuccess is false)
             {
-               //Rollback
                return _errorManager.ThrowBadRequest<bool>("No se pudo realizar la asignación de salario. consultar con IT", "ERP");
             }
 
@@ -95,7 +95,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
+            
             #endregion
 
             //Procesos para realizar insert a la nomina actual
@@ -117,7 +117,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                   var collaborator = await _unitOfWork.Collaborators.Entities
                      .Where(col => col.IdentificationNumber == request.IdentificationNumber)
                      .Include(col => col.WorkingInformation)
-                        .ThenInclude(col => col.BranchInfo)
+                        .ThenInclude(col => col.Branch)
                      .FirstOrDefaultAsync(cancellationToken);
 
                   if (collaborator is null)

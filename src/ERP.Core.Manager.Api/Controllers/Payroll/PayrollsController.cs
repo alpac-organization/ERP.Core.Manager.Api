@@ -86,9 +86,9 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         public async Task<PayrollDto> GetCurrentPayrollInProgressAsync([FromRoute] Guid companie_id,  [FromRoute] string module_code, 
             [FromQuery] PayrollType type,
             [FromQuery] Guid branch_id,
-            [FromQuery] string? identification_number,
             [FromQuery] Guid? area_id,
-            [FromQuery] int? job_position_id,
+            [FromQuery] Guid? job_position_id,
+            [FromQuery] string? identification_number,
             [FromQuery] int page_number = 1,
             [FromQuery] int page_size = 10
         )
@@ -105,7 +105,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 PageSize = page_size,
                 IdentificationNumber = identification_number,
                 AreaId = area_id,
-                WorkPositionId = job_position_id
+                JobPositionId = job_position_id
             });
 
             return result;
@@ -155,7 +155,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromRoute] string module_code,
 
             [FromQuery] Guid? area_id,
-            [FromQuery] int? job_position_id,
+            [FromQuery] Guid? job_position_id,
             [FromQuery] string? identification_number,
 
             [FromQuery] int page_size = 10,
@@ -173,7 +173,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
                 ModuleCode = module_code,
                 
                 AreaId = area_id,
-                WorkPositionId = job_position_id,
+                JobPositionId = job_position_id,
                 IdentificationNumber = identification_number,
 
                 PageSize = page_size,

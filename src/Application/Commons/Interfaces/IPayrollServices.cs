@@ -19,7 +19,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
       Task AssignTravelAllowance(Collaborator collaborator, List<TravelExpenses> travelExpenses);
 
       //Asignar Salario al colaborador
-      Task<bool> AssignSalary(Collaborator collaborator, SalaryInformation salaryInformation);
+      Task<bool> AssignSalary(Collaborator collaborator, SalaryInformationCommand salaryInformation);
 
       Task<bool> RegisterCollaboratorToPayroll(Payroll payroll, Collaborator collaborator);
 

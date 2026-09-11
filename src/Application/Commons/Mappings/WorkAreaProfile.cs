@@ -9,10 +9,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         public WorkAreaProfile()
         {
             CreateMap<WorkArea, WorkAreaDto>()
-                .ForMember(dest => dest.WorkAreaId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.WorkAreaName, opt => opt.MapFrom(src => src.WorkAreaName))
-                .ForMember(dest => dest.Descripcion, opt => opt.MapFrom(src => src.Description))
-                .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId));
+                .ForMember(dest => dest.WorkAreaId, opt => opt.MapFrom(src => src.Id));
         }
     }
 }

@@ -1,6 +1,6 @@
 using FluentValidation;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
 {
@@ -12,6 +12,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
             RuleFor(x => x.UserId)
                 .NotEmpty().WithMessage("El id de usario es requerido.")
                 .NotNull().WithMessage("El id de usuario es requerido.");
+
+            RuleFor(x => x.ModuleCode)
+                .NotEmpty().WithMessage("El codigo de modulo es requerido")
+                .NotNull().WithMessage("El codigo de modulo es requerido");
 
             RuleFor(x => x.CompanyId)
                 .NotEmpty().WithMessage("El id de la empresa es requerido.")
@@ -51,7 +55,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
         }
     }
 
-    public class PersonalInformationValidator : AbstractValidator<PersonalInformation>
+    public class PersonalInformationValidator : AbstractValidator<PersonalInformationCommand>
     {
         public PersonalInformationValidator()
         {
@@ -71,7 +75,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
         }
     }
 
-    public class WorkingInformationValidator : AbstractValidator<WorkingInformation>
+    public class WorkingInformationValidator : AbstractValidator<WorkingInformationCommand>
     {
         public WorkingInformationValidator()
         {
@@ -98,14 +102,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Validators
                 .WithMessage("El número de teléfono debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)")
                 .When(x => !string.IsNullOrEmpty(x.WorkPhoneNumber));
 
-            RuleFor(x => x.WorkPositionId) 
-                .GreaterThan(0)
+            RuleFor(x => x.JobPositionId)
                 .NotEmpty()
                 .WithMessage("La posición de trabajo es obligatoria");
         }
     }
 
-    public class SalaryInformationValidator : AbstractValidator<SalaryInformation>
+    public class SalaryInformationValidator : AbstractValidator<SalaryInformationCommand>
     {
         public SalaryInformationValidator()
         {

@@ -1,13 +1,13 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Queries;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
 {
@@ -39,7 +39,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
                         if (!string.IsNullOrEmpty(request.BranchId.ToString()))
                         {
                             baseQuery = baseQuery
-                                .Where(vac => vac.Collaborator.WorkingInformation.CompanyBranchId == request.BranchId);
+                                .Where(vac => vac.Collaborator.WorkingInformation.BranchId == request.BranchId);
                         }
 
                         if (request.AreaId.HasValue)

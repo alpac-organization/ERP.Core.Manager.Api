@@ -109,7 +109,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                             .Where(col => col.IdentificationNumber == collaborator.IdentificationNumber && col.CompanyId == request.CompanyId)
                             .Where(col => col.Status != CollaboratorStatus.Inactive)
                             .Include(col => col.WorkingInformation)
-                            .Where(col => col.WorkingInformation.CompanyBranchId == request.BranchId)
+                            .Where(col => col.WorkingInformation.BranchId == request.BranchId)
                             .FirstOrDefaultAsync(cancellationToken);
 
                         if (collaboratorInformation is null)
@@ -249,7 +249,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Handlers
                             .Where(col => col.IdentificationNumber == holidayData.IdentificationNumber && col.CompanyId == request.CompanyId)
                             .Where(col => col.Status != CollaboratorStatus.Inactive)
                             .Include(col => col.WorkingInformation)
-                            .Where(col => col.WorkingInformation.CompanyBranchId == request.BranchId)
+                            .Where(col => col.WorkingInformation.BranchId == request.BranchId)
                             .FirstOrDefaultAsync(cancellationToken);
 
                         if (collaboratorInformation is null)

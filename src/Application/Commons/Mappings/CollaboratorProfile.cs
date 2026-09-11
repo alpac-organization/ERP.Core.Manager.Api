@@ -17,48 +17,27 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 
         #region Mapeo de listado de colaboradores
 
-        CreateMap<Collaborator, CollaboratorDto>()
+         CreateMap<Collaborator, CollaboratorDto>()
             .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src)))
-
-            .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src =>
-                src.WorkingInformation != null && src.WorkingInformation.Area != null
-                ? src.WorkingInformation.Area.WorkAreaName
-                : string.Empty))
-
-            .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src =>
-                src.WorkingInformation != null && src.WorkingInformation.WorkPosition != null
-                ? src.WorkingInformation.WorkPosition.CatalogName
-                : string.Empty))
-
-            .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src =>
-                src.WorkingInformation != null && src.WorkingInformation.BranchInfo != null
-                ? src.WorkingInformation.BranchInfo.BranchName
-                : string.Empty))
-
-            .ForMember(dest => dest.Vacations, opt => opt.MapFrom(src =>
-                src.WorkingInformation != null && src.Vacation != null
-                ? src.Vacation.AvailableVacations
-                : 0));
+            .ForMember(dest => dest.Vacations, opt => opt.MapFrom(src => src.Vacation.AvailableVacations))
+            .ForMember(dest => dest.JobPosition, opt => opt.MapFrom(src => src.WorkingInformation.JobPosition.JobPositionName))
+            .ForMember(dest => dest.CostCenter, opt => opt.MapFrom(src => src.WorkingInformation.CostCenter.CostCenterName))
+            .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => src.WorkingInformation.Area.WorkAreaName));
 
         #endregion
 
         #region Mapeo de detalles de colaborador
 
         CreateMap<PersonalInformation, PersonalInformationDto>()
-            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-            .ForMember(dest => dest.PersonalEmail, opt => opt.MapFrom(src => src.PersonalEmail))
-            .ForMember(dest => dest.Birthdate, opt => opt.MapFrom(src => src.Birthdate))
-            .ForMember(dest => dest.Departament, opt => opt.MapFrom(src => src.Departament != null ? src.Departament.CatalogName : null))
-            .ForMember(dest => dest.PersonalPhoneNumber, opt => opt.MapFrom(src => src.PersonalPhoneNumber));
+            .ForMember(dest => dest.PersonalInformationId, opt => opt.MapFrom(src => src.Id));
 
         CreateMap<WorkingInformation, WorkingInformationDto>()
+            .ForMember(dest => dest.WorkingInformationId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => src.Area.WorkAreaName))
-            .ForMember(dest => dest.WorkEmail, opt => opt.MapFrom(src => src.WorkEmail))
-            .ForMember(dest => dest.WorkPhoneNumber, opt => opt.MapFrom(src => src.WorkPhoneNumber))
-            .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(src => src.EntryDate))
-            .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkPosition.CatalogName))
-            .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.BranchInfo.BranchName));
+            .ForMember(dest => dest.CostCenter, opt => opt.MapFrom(src => src.CostCenter.CostCenterName))
+            .ForMember(dest => dest.JobPosition, opt => opt.MapFrom(src => src.JobPosition.JobPositionName))
+         ;
 
         CreateMap<Salary, SalaryInformationDto>()
             .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.AmountSalary))
@@ -70,35 +49,21 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 
         CreateMap<Collaborator, CollaboratorDetailsDto>()
             .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkingInformation.WorkPosition.CatalogName))
             .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
-            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src =>
-                string.Join(" ", new[]
-                {
-                    src.FirstName, src.SecondName, src.FirstLastname, src.SecondLastname
-                }.Where(s => !string.IsNullOrWhiteSpace(s))
-                .Select(s => s.ToCapitalize()))))
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src)))
+            .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkingInformation.JobPosition.JobPositionName))
 
             .ForMember(dest => dest.PersonalInformation, opt => opt.MapFrom(src => src.PersonalInformation))
             .ForMember(dest => dest.WorkingInformation, opt => opt.MapFrom(src => src.WorkingInformation))
             .ForMember(dest => dest.VacationInformation, opt => opt.MapFrom(src => src.Vacation))
-            .ForMember(dest => dest.SalaryInformation, opt => opt.MapFrom(src => src.Salaries != null ? src.Salaries.FirstOrDefault() : null))
-
-            .AfterMap((src, dest) =>
-            {
-            if (dest.PersonalInformation != null)
-            {
-                dest.PersonalInformation.Gender = src.Gender;
-                dest.PersonalInformation.IdentificationNumber = src.IdentificationNumber;
-                dest.PersonalInformation.PersonalEmail = src.PersonalInformation.PersonalEmail;
-            }
-            });
+            .ForMember(dest => dest.SalaryInformation, opt => opt.MapFrom(src => src.Salaries != null ? src.Salaries.FirstOrDefault() : null));
 
          #endregion
       }
    }
 
    #region Mapeo para crear colaborador
+
    public static class CollaboratorMapper
    {
       public static Collaborator ToCollaboratorEntity(this Commands.RegisterCollaboratorCommand command, string generatedCode)
@@ -114,17 +79,15 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             SecondLastname = StringExtensions.FormatWithNullWhenNoHasValue(command.SecondLastname),
             IdentificationNumber = command.IdentificationNumber,
             IdentificationType = command.IdentificationType,
-            Gender = command.Gender,
             Status = CollaboratorStatus.Active,
             CollaboratorCode = generatedCode,
-            RegisteredBy = command.RegisteredBy ?? "Sistema ERP",
             DoesWorkSaturdays = command.DoesWorkSaturday,
             IsFirstTimeRegister = true,
             PictureUrl = null
          };
       }
 
-      public static PersonalInformation ToPersonalInformationEntity(this Commands.PersonalInformation info, Guid collaboratorId)
+      public static PersonalInformation ToPersonalInformationEntity(this Commands.PersonalInformationCommand info, Guid collaboratorId)
       {
          return new PersonalInformation
          {
@@ -133,27 +96,28 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             Address = StringExtensions.FormatWithNullWhenNoHasValue(info.Address),
             PersonalEmail = StringExtensions.FormatWithNullWhenNoHasValue(info.PersonalEmail),
             PersonalPhoneNumber = StringExtensions.FormatWithNullWhenNoHasValue(info.PersonalPhoneNumber),
-            DepartamentId = info.DepartamentId,
+            Gender = info.Gender,
             Birthdate = info.Birthdate,
             MaritalStatus = info.MaritalStatus
          };
       }
 
-      public static WorkingInformation ToWorkingInformationEntity(this Commands.WorkingInformation info, Guid collaboratorId)
+      public static WorkingInformation ToWorkingInformationEntity(this Commands.WorkingInformationCommand info, Guid collaboratorId)
       {
          return new WorkingInformation
          {
             Id = Guid.NewGuid(),
             CollaboratorId = collaboratorId,
+            Daem = info.Daem,
             AreaId = info.AreaId,
-            WorkPositionId = info.WorkPositionId,
-            CompanyBranchId = info.BranchId,
+            BranchId = info.BranchId,
+            CostCenterId = info.CostCenterId,
+            JobPositionId = info.JobPositionId,
             BankAccountNumber = StringExtensions.FormatWithNullWhenNoHasValue(info.BankAccountNumber),
             WorkPhoneNumber = StringExtensions.FormatWithNullWhenNoHasValue(info.WorkPhoneNumber),
             WorkEmail = StringExtensions.FormatWithNullWhenNoHasValue(info.WorkEmail),
             InssNumber = StringExtensions.FormatWithNullWhenNoHasValue(info.InssNumber),
-            EntryDate = info.EntryDate,
-            Daem = info.Daem
+            EntryDate = info.EntryDate
          };
       }
 

@@ -322,7 +322,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         }
                         for (DateOnly date = vacationData.StartDate; date <= vacationData.EndDate; date = date.AddDays(1))
                         {
-                            bool isHoliday = holidays.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month && (holiday.IsGlobal || (collaborator.WorkingInformation != null && holiday.BranchId == collaborator.WorkingInformation.CompanyBranchId)));
+                            bool isHoliday = holidays.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month && (holiday.IsGlobal || (collaborator.WorkingInformation != null && holiday.BranchId == collaborator.WorkingInformation.BranchId)));
                             if (isHoliday)
                             {
                                 if (date.DayOfWeek == DayOfWeek.Sunday) continue;

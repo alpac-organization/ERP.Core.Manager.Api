@@ -3,15 +3,29 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Commands;
 
+using ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Commands;
 namespace ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Handlers
 {
-    public class RegisterJobPositionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterJobPositionHandler> _logger) : IRequestHandler<RegisterJobPositionCommand>
+    public class RegisterJobPositionHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterJobPositionHandler> _logger) : BaseValidatorHandler<RegisterJobPositionCommand, Unit>(_unitOfWork, _errorManager)
     {
-        public async Task Handle(RegisterJobPositionCommand request, CancellationToken cancellationToken)
+        public override async Task<Unit> Handle(RegisterJobPositionCommand request, CancellationToken cancellationToken)
         {
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess)
+            {
+                return access.ErrorResponse!;
+            }
+
+            if (access.Role!.RoleType != RoleType.Administrator)
+            {
+                return _errorManager.ThrowBadRequest<Unit>("No tienes permiso para registrar un cargo de trabajo", "ERP:01");
+            }
+
             _logger.LogInformation("🚩Iniciando proceso de registro de cargo");
 
             var company = await _unitOfWork.Companies.Entities    
@@ -35,6 +49,8 @@ namespace ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Handlers
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             
             _logger.LogInformation("✅Cargo registrado con exito");
+
+            return Unit.Value;
         }
     }
 }

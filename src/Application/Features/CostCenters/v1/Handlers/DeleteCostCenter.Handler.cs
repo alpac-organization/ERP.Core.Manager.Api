@@ -1,17 +1,30 @@
-using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Commands;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
 {
-    public class DeleteCostCenterHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterCostCenterHandler> _logger) : IRequestHandler<DeleteCostCenterCommand, bool>
+    public class DeleteCostCenterHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<RegisterCostCenterHandler> _logger) : BaseValidatorHandler<DeleteCostCenterCommand, bool>(_unitOfWork, _errorManager)
     {
-        public async Task<bool> Handle(DeleteCostCenterCommand request, CancellationToken cancellationToken)
+        public override async Task<bool> Handle(DeleteCostCenterCommand request, CancellationToken cancellationToken)
         {
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess)
+            {
+                return access.ErrorResponse!;
+            }
+
+            if (access.Role?.RoleType != RoleType.Administrator)
+            {
+                return _errorManager.ThrowBadRequest<bool>("Solo administradores pueden eliminar un centro de costo", "ERP:DeleteCostCenter");
+            }
+
             _logger.LogInformation("🚩Iniciando proceso de eliminación del centro de costo con id: {identification}", request.CostCenterId);
 
             var area = await _unitOfWork.WorkAreas.Entities

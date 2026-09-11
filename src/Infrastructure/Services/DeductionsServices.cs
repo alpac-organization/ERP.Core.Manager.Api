@@ -86,10 +86,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (daysWorked < 0)  daysWorked = 0;
             if (daysWorked > 15) daysWorked = 15;
-           
-
-           
-
 
             #region Actualizar reportes de ir y nomina
 
@@ -118,7 +114,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(pay => pay.Id == payrollId)
                 .Where(pay => pay.Status == PayrollStatus.Progress)
                 .Where(pay => pay.PayrollType == PayrollType.Ordinary)
-                .Where(pay => pay.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId)
+                .Where(pay => pay.BranchId == collaboratorInformation.WorkingInformation.BranchId)
                 .FirstOrDefaultAsync(default);
 
             if (payrollActive is null)
@@ -163,7 +159,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     holiday.Month == date.Month &&
                     (
                         holiday.IsGlobal ||
-                        holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
+                        holiday.BranchId == collaboratorInformation.WorkingInformation.BranchId
                     )
                 );
 
@@ -209,7 +205,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     bool isHoliday = holidays.Any(holiday => holiday.Day == date.Day && holiday.Month == date.Month &&
                         (
                             holiday.IsGlobal ||
-                            holiday.BranchId == collaboratorInformation.WorkingInformation.CompanyBranchId
+                            holiday.BranchId == collaboratorInformation.WorkingInformation.BranchId
                         )
                     );
 

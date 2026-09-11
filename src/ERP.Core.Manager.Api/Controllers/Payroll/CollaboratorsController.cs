@@ -95,7 +95,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<IActionResult> UpdateCollaboratoInformationrAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number,
+        public async Task<IActionResult> UpdateCollaboratoInformationAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number,
             [FromBody] UpdateCollaboratorInformationCommand Payload
         )
         {

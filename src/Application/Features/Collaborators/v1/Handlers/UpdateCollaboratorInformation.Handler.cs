@@ -49,12 +49,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                     {
                         WorkingInformation?.AreaId = request.WorkingInformation.AreaId.Value;
 
-                        //Agregar logica para actualizar codigo del colaborador aqui al hacer una nueva actualización de area                    
+                        //update collaborator code here!
+                    }
+
+                    if (request.WorkingInformation.CostCenterId.HasValue)
+                    {
+                        WorkingInformation?.AreaId = request.WorkingInformation.CostCenterId.Value;
+                        
+                        //update collaborator code here!
                     }
 
                     if (request.WorkingInformation.WorkPositionId.HasValue)
                     {
-                        WorkingInformation?.WorkPositionId = request.WorkingInformation.WorkPositionId.Value;                    
+                        WorkingInformation?.JobPositionId = request.WorkingInformation.WorkPositionId.Value;                    
                     }
                     
                     WorkingInformation?.InssNumber = request?.WorkingInformation?.InssNumber ?? WorkingInformation?.InssNumber;

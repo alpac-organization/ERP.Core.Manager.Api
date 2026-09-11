@@ -12,9 +12,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Incomes.v1.Commands
 
         public BonusPayload? BonusPayload { get; set; }
         public CommissionsPayload? CommissionsPayload { get; set; }
-        public List<OvertimeIncomeData> OvertimeIncomeData { get; set; } = [];
         public DepreciationPayload? DepreciationPayload { get; set; }
+        
         public List<HolidayIncomeData> HolidayIncomeData { get; set; } = [];
+        public List<OvertimeIncomeData> OvertimeIncomeData { get; set; } = [];
     }
 
     public class OvertimeIncomeData
