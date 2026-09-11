@@ -160,9 +160,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     AmountInLocal       = amountInLocal,
                     AmountInForeign     = amountInForeign,
                     StartDate           = DateTime.Now,
-                    Currency            = salaryInformation?.Currency ?? Currency.NIO,
-                    SalaryType          = salaryInformation?.SalaryType ?? SalaryType.Fixed,
-                    BankSubCatalogId    = salaryInformation?.SubCatalogBankId ?? 1,
+                    Currency            = salaryInformation!.Currency,
+                    SalaryType          = salaryInformation.SalaryType,
+                    BankSubCatalogId    = salaryInformation.SubCatalogBankId,
                 };
 
                 //✅Registro de salario exitoso
