@@ -1,6 +1,6 @@
+using MediatR;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
-using MediatR;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
 {
@@ -26,12 +26,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         required public PersonalInformationCommand PersonalInformation { get; set; }
 
         public List<TravelExpenses> TravelExpenses { get; set; } = [];
-    }
-
-    public class TravelExpenses
-    {
-        public Guid TypeIncomeId { get; set; }
-        public decimal IncomeAmount { get; set; }
     }
 
     public class WorkingInformationCommand
@@ -69,5 +63,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
 
         public Currency Currency { get; set; }
         public SalaryType SalaryType { get; set; }
+    }
+
+    public class TravelExpenses
+    {
+        public Guid TypeIncomeId { get; set; }
+        public decimal IncomeAmount { get; set; }
     }
 }

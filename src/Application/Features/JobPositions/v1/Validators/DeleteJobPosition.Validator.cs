@@ -13,6 +13,18 @@ namespace ERP.Core.Manager.Api.Application.Features.JobPositions.v1.Validators
                 .NotNull()
                     .WithMessage("El id de la empresa es requerido");
 
+            RuleFor(x => x.ModuleCode)
+                .NotEmpty()
+                    .WithMessage("El codigo del modulo es requerido")
+                .NotNull()
+                    .WithMessage("El codigo del modulo es requerido");
+
+            RuleFor(x => x.UserId)
+                .NotEmpty()
+                    .WithMessage("El id de usuario es requerido")
+                .NotNull()
+                    .WithMessage("El id de usuario es requerido");
+
             RuleFor(x => x.JobPositionId)
                 .NotEmpty()
                     .WithMessage("El id del cargo es requerido.")

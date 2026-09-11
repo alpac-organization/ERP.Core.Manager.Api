@@ -31,14 +31,14 @@ Endpoint para listar (con paginación y filtros) los colaboradores registrados d
 
 ## Query Params
 
-| Parámetro                | Tipo                        | Requerido | Default | Descripción |
+| Parámetro                 | Tipo                        | Requerido | Default | Descripción |
 |---------------------------|-----------------------------|-----------|---------|-------------|
 | `area_id`                 | `guid`                      | No        | `null`  | Filtra colaboradores por área de trabajo. |
-| `branch_id`                | `guid`                      | No        | `null`  | Filtra colaboradores por sucursal. |
-| `status`                   | `enum (CollaboratorStatus)` | No        | `null`  | Filtra colaboradores por estado. |
-| `identification_number`    | `string`                    | No        | `null`  | Filtra por número de identificación exacto. |
-| `page_size`                | `integer`                   | No        | `10`    | Cantidad de registros por página. |
-| `page_number`              | `integer`                   | No        | `1`     | Número de página a consultar. |
+| `branch_id`               | `guid`                      | No        | `null`  | Filtra colaboradores por sucursal. |
+| `status`                  | `enum (CollaboratorStatus)` | No        | `null`  | Filtra colaboradores por estado. |
+| `identification_number`   | `string`                    | No        | `null`  | Filtra por número de identificación exacto. |
+| `page_size`               | `integer`                   | No        | `10`    | Cantidad de registros por página. |
+| `page_number`             | `integer`                   | No        | `1`     | Número de página a consultar. |
 
 ---
 

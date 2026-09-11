@@ -33,49 +33,43 @@ Endpoint para registrar colaborador dentro del modulo de nomina.
  
 ```json
 {
+  "does_work_saturday": false,
   "first_name": "Juan",
   "second_name": "Carlos",
   "third_name": null,
   "first_lastname": "Pérez",
   "second_lastname": "Gómez",
-  "identification_number": "001-090926-0001A",
+  "identification_number": "001-120390-0001A",
   "identification_type": 1,
-  "gender": 1,
-  "status": "Active",
-  "does_work_saturday": false,
-  "registered_by": "admin@empresa.com",
- 
-  "working_information": {
-    "bank_account_number": "1234567890",
-    "work_phone_number": "22551234",
-    "work_email": "juan.perez@empresa.com",
-    "inss_number": "1234567",
-    "daem": "DAEM-001",
-    "area_id": "5f8d0d55-6c8a-4a2b-9d3f-000000000001",
-    "work_position_id": 12,
-    "branch_id": "5f8d0d55-6c8a-4a2b-9d3f-000000000002",
-    "entry_date": "2026-09-09"
+  "salary_information": {
+    "salary": 15000.00,
+    "sub_catalog_bank_id": 3,
+    "currency": 1,
+    "salary_type": 2
   },
- 
+  "working_information": {
+    "daem": "DAEM-001",
+    "work_email": "juan.perez@empresa.com",
+    "inss_number": "INSS-123456",
+    "work_phone_number": "+505 8888-1234",
+    "bank_account_number": "1234567890123456",
+    "area_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "branch_id": "3fa85f64-5717-4562-b3fc-2c963f66afa7",
+    "cost_center_id": "3fa85f64-5717-4562-b3fc-2c963f66afa8",
+    "job_position_id": "3fa85f64-5717-4562-b3fc-2c963f66afa9",
+    "entry_date": "2025-01-15"
+  },
   "personal_information": {
-    "personal_email": "juanperez@gmail.com",
-    "personal_phone_number": "88887777",
-    "address": "Barrio El Progreso, Managua",
-    "departament_id": 3,
-    "birthdate": "1995-04-12T00:00:00",
+    "address": "Barrio Larreynaga, calle principal, casa #45",
+    "personal_email": "juan.perez@gmail.com",
+    "personal_phone_number": "+505 8777-4321",
+    "gender": 1,
+    "birthdate": "1990-03-12T00:00:00",
     "marital_status": 1
   },
- 
-  "salary_information": {
-    "currency": 1,
-    "salary_type": 1,
-    "salary": 15000.00,
-    "sub_catalog_bank_id": 4
-  },
- 
   "travel_expenses": [
     {
-      "type_income_id": "5f8d0d55-6c8a-4a2b-9d3f-000000000003",
+      "type_income_id": "3fa85f64-5717-4562-b3fc-2c963f66afb0",
       "income_amount": 500.00
     }
   ]
@@ -88,20 +82,16 @@ Endpoint para registrar colaborador dentro del modulo de nomina.
  
 | Campo | Tipo | Requerido | Descripción |
 |---|---|---|---|
-| `code` | `string` | No | Código interno del colaborador. |
-| `first_name` | `string` | No* | Primer nombre. |
+| `first_name` | `string` | Si* | Primer nombre. |
 | `second_name` | `string` | No | Segundo nombre. |
 | `third_name` | `string` | No | Tercer nombre. |
-| `first_lastname` | `string` | No* | Primer apellido. |
+| `first_lastname` | `string` | Si* | Primer apellido. |
 | `second_lastname` | `string` | No | Segundo apellido. |
-| `identification_number` | `string` | No* | Número de identificación. |
+| `identification_number` | `string` | Si* | Número de identificación. |
 | `identification_type` | `enum (IdentificationType)` | Sí | Tipo de identificación. |
-| `gender` | `enum (GenderType)` | Sí | Género del colaborador. |
-| `status` | `enum (CollaboratorStatus)` | Sí | Estado del colaborador. |
 | `does_work_saturday` | `boolean` | No | Indica si el colaborador trabaja los sábados. Default: `false`. |
-| `registered_by` | `string` | No | Identificador de quién registró al colaborador. |
-| `working_information` | `object` | No | Información laboral (ver detalle abajo). |
-| `personal_information` | `object` | No | Información personal (ver detalle abajo). |
+| `working_information` | `object` | Si | Información laboral (ver detalle abajo). |
+| `personal_information` | `object` | Si | Información personal (ver detalle abajo). |
 | `salary_information` | `object` | **Sí** | Información salarial (ver detalle abajo). |
 | `travel_expenses` | `array` | No | Lista de viáticos/ingresos adicionales. Default: `[]`. |
  
@@ -116,8 +106,9 @@ Endpoint para registrar colaborador dentro del modulo de nomina.
 | `work_email` | `string` | No | Correo electrónico laboral. |
 | `inss_number` | `string` | No | Número de afiliación INSS. |
 | `daem` | `string` | No | Código DAEM. |
-| `area_id` | `guid` | Sí | Identificador del área (catálogo). |
-| `work_position_id` | `integer` | Sí | Identificador del cargo (catálogo). |
+| `area_id` | `Guid` | Sí | Identificador del área (catálogo). |
+| `work_position_id` | `Guid` | Sí | Identificador del cargo (catálogo). |
+| `cost_center_id` | `Guid` | Sí | Identificador del cargo (catálogo). |
 | `branch_id` | `guid` | Sí | Identificador de la sucursal (catálogo). |
 | `entry_date` | `date (YYYY-MM-DD)` | Sí | Fecha de ingreso. |
  
@@ -128,6 +119,7 @@ Endpoint para registrar colaborador dentro del modulo de nomina.
 | `personal_email` | `string` | No | Correo electrónico personal. |
 | `personal_phone_number` | `string` | No | Teléfono personal. |
 | `address` | `string` | No | Dirección de residencia. |
+| `gender` | `enum (GenderType)` | Sí | Género del colaborador. |
 | `departament_id` | `integer` | No | Identificador del departamento (catálogo geográfico). |
 | `birthdate` | `datetime (ISO 8601)` | Sí | Fecha de nacimiento. |
 | `marital_status` | `enum (MaritalStatus)` | Sí | Estado civil. |
