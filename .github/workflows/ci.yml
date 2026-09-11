@@ -111,13 +111,22 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          BRANCH_NAME: ${{ github.ref_name }}
         shell: bash
         run: |
+          BRANCH_ARG=""
+          # En push a una rama (develop/main) se fija el nombre de la rama para que Sonar
+          # publique la COBERTURA TOTAL de esa rama. En PRs, SonarCloud lo detecta solo.
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            BRANCH_ARG="/d:sonar.branch.name=$BRANCH_NAME"
+          fi
           "${{ runner.temp }}/scanner/dotnet-sonarscanner" begin \
             /k:"alpac-organization_ERP.Core.Manager.Api" \
             /o:"alpac-organization" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.opencover.reportsPaths="$GITHUB_WORKSPACE/coverage/coverage.opencover.xml"
+            /d:sonar.cs.opencover.reportsPaths="$GITHUB_WORKSPACE/coverage/coverage.opencover.xml" \
+            $BRANCH_ARG
 
       - name: Restore
         shell: bash
@@ -162,6 +171,33 @@ jobs:
             echo "::error::El reporte no tiene líneas cubiertas (visitedSequencePoints=0). Los tests de integración probablemente se omitieron por Docker/Testcontainers."
             exit 1
           fi
+
+      # Deja la cobertura TOTAL visible en el resumen del run (útil al fusionar a develop).
+      - name: Publish total coverage in job summary
+        if: always()
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          COV="$GITHUB_WORKSPACE/coverage/coverage.opencover.xml"
+          if [ ! -f "$COV" ]; then
+            echo "No hay reporte de cobertura para resumir." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          COVERAGE=$(grep -m 1 -o 'sequenceCoverage="[0-9.]*"' "$COV" | tr -dc '0-9.' || true)
+          VISITED=$(grep -m 1 -o 'visitedSequencePoints="[0-9]*"' "$COV" | tr -dc '0-9' || true)
+          TOTAL=$(grep -m 1 -o 'numSequencePoints="[0-9]*"' "$COV" | tr -dc '0-9' || true)
+
+          {
+            echo "## Cobertura total de pruebas (OpenCover)"
+            echo ""
+            echo "| Métrica | Valor |"
+            echo "|---|---|"
+            echo "| Cobertura total (líneas) | ${COVERAGE:-0}% |"
+            echo "| Líneas cubiertas | ${VISITED:-0} / ${TOTAL:-0} |"
+            echo "| Rama | ${BRANCH_NAME:-N/A} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: End Sonar analysis
         if: always()
