@@ -1,8 +1,6 @@
-# Registrar Centro de Costos
+﻿# Registrar Centro de Costos
 
 Endpoint para registrar un nuevo centro de costos dentro del área de un módulo y compañía especificados.
-
-## Información General
 
 | Campo | Valor |
 |---|---|

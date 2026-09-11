@@ -1,8 +1,6 @@
-# Registrar Puesto de Trabajo
+﻿# Registrar Puesto de Trabajo
 
 Endpoint para registrar un nuevo puesto de trabajo (cargo) dentro de un módulo de una compañía.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

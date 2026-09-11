@@ -1,8 +1,6 @@
-# Registrar Área de Trabajo
+﻿# Registrar Área de Trabajo
 
 Endpoint para registrar una nueva área de trabajo dentro de un módulo de una compañía.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

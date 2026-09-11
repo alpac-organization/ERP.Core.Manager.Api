@@ -1,8 +1,6 @@
-## Listar Cuentas Bancarias del Proveedor
+﻿## Listar Cuentas Bancarias del Proveedor
 
 Endpoint para consultar todas las cuentas bancarias activas pertenecientes a un proveedor específico.
-
-## Información General
 
 | Campo | Valor |
 |---|---|

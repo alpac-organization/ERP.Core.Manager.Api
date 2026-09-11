@@ -1,8 +1,6 @@
-# Eliminar Centro de Costo
+﻿# Eliminar Centro de Costo
 
 Endpoint para eliminar (baja lógica) un centro de costo asociado a un área de trabajo dentro de una compañía/módulo.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

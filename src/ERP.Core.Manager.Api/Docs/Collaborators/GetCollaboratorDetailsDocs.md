@@ -1,8 +1,6 @@
-## Obtener Detalle de Colaborador
+﻿## Obtener Detalle de Colaborador
 
 Endpoint para obtener el detalle completo de un colaborador específico, buscando por su número de identificación.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

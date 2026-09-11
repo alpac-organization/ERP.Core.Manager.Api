@@ -1,8 +1,6 @@
-# Eliminar Área de Trabajo
+﻿# Eliminar Área de Trabajo
 
 Endpoint para eliminar (baja lógica) un área de trabajo del catálogo de una compañía/módulo.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

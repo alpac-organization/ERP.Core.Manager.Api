@@ -1,8 +1,6 @@
-# Listar Centros de Costo por Área
+﻿# Listar Centros de Costo por Área
 
 Endpoint para listar los centros de costo activos asociados a un área de trabajo específica dentro de una compañía/módulo.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

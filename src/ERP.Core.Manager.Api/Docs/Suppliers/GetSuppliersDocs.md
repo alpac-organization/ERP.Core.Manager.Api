@@ -1,8 +1,6 @@
-## Listar Proveedores
+﻿## Listar Proveedores
 
 Endpoint para listar con paginación y filtros los proveedores registrados dentro de una compañía y módulo.
-
-## Información General
 
 | Campo | Valor |
 |---|---|

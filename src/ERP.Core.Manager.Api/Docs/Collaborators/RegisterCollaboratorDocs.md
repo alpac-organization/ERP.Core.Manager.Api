@@ -1,8 +1,6 @@
-## Registrar Colaboradores
+﻿## Registrar Colaboradores
 
 Endpoint para registrar colaborador dentro del modulo de nomina.
-
-## Información General
 
 | Campo | Valor     |
 |-------|-----------|
@@ -18,16 +16,16 @@ Para poder registrar un colaborador es obligatorio que existan previamente los s
 
 | Campo en `working_information` | Catálogo | Documentación |
 |---|---|---|
-| `area_id`        | Área de trabajo  | [Registrar](../Catalogs/WorkAreas/RegisterWorkArea.md) · [Listar](../Catalogs/WorkAreas/GetWorkAreas.md) |
-| `job_position_id`| Puesto de trabajo| [Registrar](../Catalogs/JobPositions/RegisterJobPosition.md) · [Listar](../Catalogs/JobPositions/GetJobPositions.md) |
-| `cost_center_id` | Centro de costo  | [Registrar](../Catalogs/CostCenters/RegisterCostCenter.md) · [Listar](../Catalogs/CostCenters/GetCostCenters.md) |
+| `area_id`        | Área de trabajo  | [Registrar](../Catalogs/WorkAreas/register-work-area.md) · [Listar](../Catalogs/WorkAreas/get-work-areas.md) |
+| `job_position_id`| Puesto de trabajo| [Registrar](../Catalogs/JobPositions/register-job-position.md) · [Listar](../Catalogs/JobPositions/get-job-positions.md) |
+| `cost_center_id` | Centro de costo  | [Registrar](../Catalogs/CostCenters/register-cost-center.md) · [Listar](../Catalogs/CostCenters/get-cost-centers.md) |
 | `branch_id`      | Sucursal         | *Documentación pendiente* |
 
 Para asignar viáticos (`travel_expenses[]`) se requiere además el catálogo de tipos de ingreso:
 
 | Campo en `travel_expenses[]` | Catálogo         | Documentación |
 |---|---|---|
-| `type_income_id`             | Tipo de ingreso  | [Listar](../Catalogs/TypesIncome/GetTypesIncome.md) |
+| `type_income_id`             | Tipo de ingreso  | [Listar](../Catalogs/TypesIncome/get-types-income.md) |
 
 > 🔗 El centro de costo (`cost_center_id`) pertenece a un área de trabajo (`area_id`), por lo que primero debe registrarse el área y luego el centro de costo.
 >

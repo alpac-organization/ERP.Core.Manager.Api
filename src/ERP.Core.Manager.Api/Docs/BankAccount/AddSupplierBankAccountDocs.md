@@ -1,8 +1,6 @@
-## Agregar Cuenta Bancaria a Proveedor
+﻿## Agregar Cuenta Bancaria a Proveedor
 
 Endpoint para registrar una nueva cuenta bancaria a un proveedor existente.
-
-## Información General
 
 | Campo | Valor |
 |---|---|

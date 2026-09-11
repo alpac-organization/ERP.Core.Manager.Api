@@ -1,8 +1,6 @@
-# Listar Puestos de Trabajo
+﻿# Listar Puestos de Trabajo
 
 Endpoint para listar todos los puestos de trabajo registrados dentro de un módulo de una compañía.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

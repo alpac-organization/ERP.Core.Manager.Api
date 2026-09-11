@@ -1,8 +1,6 @@
-## Modificar Cuenta Bancaria de Proveedor
+﻿## Modificar Cuenta Bancaria de Proveedor
 
 Endpoint para actualizar parcialmente los datos de una cuenta bancaria o cambiar el estado de cuenta principal.
-
-## Información General
 
 | Campo | Valor |
 |---|---|

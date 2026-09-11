@@ -1,8 +1,6 @@
-# Listar Áreas de Trabajo
+﻿# Listar Áreas de Trabajo
 
 Endpoint para listar todas las áreas de trabajo activas registradas dentro de un módulo de una compañía.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|
@@ -63,7 +61,7 @@ Retorna un `List<WorkAreaDto>`.
 | `work_area_name` | `string \| null`         | Nombre del área de trabajo. |
 | `description`    | `string \| null`         | Descripción del área. |
 
-> ℹ️ Para obtener los centros de costo de un área usa el endpoint [Listar Centros de Costo](../CostCenters/GetCostCenters.md); este listado de áreas no los incluye.
+> ℹ️ Para obtener los centros de costo de un área usa el endpoint [Listar Centros de Costo](../CostCenters/get-cost-centers.md); este listado de áreas no los incluye.
 
 ### ❌ 400 Bad Request
 

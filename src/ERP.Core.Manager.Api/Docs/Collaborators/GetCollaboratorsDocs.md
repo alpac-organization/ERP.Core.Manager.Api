@@ -1,8 +1,6 @@
-## Listar Colaboradores Disponibles
+﻿## Listar Colaboradores Disponibles
 
 Endpoint para listar (con paginación y filtros) los colaboradores registrados dentro de un módulo de una compañía.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

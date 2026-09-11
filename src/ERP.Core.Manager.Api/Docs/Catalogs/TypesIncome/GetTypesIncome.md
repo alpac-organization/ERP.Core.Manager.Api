@@ -1,10 +1,8 @@
-# Listar Tipos de Ingreso
+﻿# Listar Tipos de Ingreso
 
 Endpoint para listar los tipos de ingreso activos disponibles en el sistema.
 
-> 🔗 Este catálogo es **requerido al registrar un colaborador**: su endpoint permite definir el `type_income_id` de cada viático (`travel_expenses[]`) que se le asigna. Ver [Registrar Colaborador](../../Collaborators/RegisterCollaboratorDocs.md).
-
-## Información General
+> 🔗 Este catálogo es **requerido al registrar un colaborador**: su endpoint permite definir el `type_income_id` de cada viático (`travel_expenses[]`) que se le asigna. Ver [Registrar Colaborador](../../Collaborators/register-collaborator.md).
 
 | Campo     | Valor |
 |-----------|-------|

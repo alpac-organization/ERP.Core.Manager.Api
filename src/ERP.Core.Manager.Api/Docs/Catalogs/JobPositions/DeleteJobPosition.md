@@ -1,8 +1,6 @@
-# Eliminar Puesto de Trabajo
+﻿# Eliminar Puesto de Trabajo
 
 Endpoint para eliminar un puesto de trabajo del catálogo de una compañía/módulo.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

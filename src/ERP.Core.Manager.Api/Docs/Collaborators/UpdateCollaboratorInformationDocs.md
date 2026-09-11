@@ -1,8 +1,6 @@
-## Actualizar Información de Colaborador
+﻿## Actualizar Información de Colaborador
 
 Endpoint para actualizar la información personal y laboral de un colaborador, buscando por su número de identificación.
-
-## Información General
 
 | Campo     | Valor |
 |-----------|-------|

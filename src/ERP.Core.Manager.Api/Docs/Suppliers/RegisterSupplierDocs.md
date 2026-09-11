@@ -1,8 +1,6 @@
-## Registrar Proveedor
+﻿## Registrar Proveedor
 
 Endpoint para registrar un nuevo proveedor con sus datos fiscales, comerciales, condiciones crediticias y cuentas bancarias asociadas.
-
-## Información General
 
 | Campo | Valor |
 |---|---|
