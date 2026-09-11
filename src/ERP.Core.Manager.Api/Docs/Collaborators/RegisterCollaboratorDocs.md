@@ -9,6 +9,30 @@ Endpoint para registrar colaborador dentro del modulo de nomina.
 | **Método**        | `POST` |
 | **Endpoint**      | `/api/v1/companies/{company_id}/modules/{module_code}/collaborators` |
 | **Descripción**   | Registra un nuevo colaborador asociado a una compañía y a un módulo específico. |
+
+---
+
+## Catálogos requeridos
+
+Para poder registrar un colaborador es obligatorio que existan previamente los siguientes registros de catálogo. Sus identificadores se envían dentro de `working_information`:
+
+| Campo en `working_information` | Catálogo | Documentación |
+|---|---|---|
+| `area_id`        | Área de trabajo  | [Registrar](../Catalogs/WorkAreas/RegisterWorkArea.md) · [Listar](../Catalogs/WorkAreas/GetWorkAreas.md) |
+| `job_position_id`| Puesto de trabajo| [Registrar](../Catalogs/JobPositions/RegisterJobPosition.md) · [Listar](../Catalogs/JobPositions/GetJobPositions.md) |
+| `cost_center_id` | Centro de costo  | [Registrar](../Catalogs/CostCenters/RegisterCostCenter.md) · [Listar](../Catalogs/CostCenters/GetCostCenters.md) |
+| `branch_id`      | Sucursal         | *Documentación pendiente* |
+
+Para asignar viáticos (`travel_expenses[]`) se requiere además el catálogo de tipos de ingreso:
+
+| Campo en `travel_expenses[]` | Catálogo         | Documentación |
+|---|---|---|
+| `type_income_id`             | Tipo de ingreso  | [Listar](../Catalogs/TypesIncome/GetTypesIncome.md) |
+
+> 🔗 El centro de costo (`cost_center_id`) pertenece a un área de trabajo (`area_id`), por lo que primero debe registrarse el área y luego el centro de costo.
+>
+> 🔗 El endpoint de **tipos de ingreso** es necesario para poder definir el tipo de ingreso al momento de asignarle un viático al colaborador.
+
 ---
 
 ## Parámetros de Ruta (Path Params)

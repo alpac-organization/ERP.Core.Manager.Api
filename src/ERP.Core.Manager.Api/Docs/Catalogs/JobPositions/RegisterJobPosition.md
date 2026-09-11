@@ -45,6 +45,14 @@ Endpoint para registrar un nuevo puesto de trabajo (cargo) dentro de un módulo 
 
 ---
 
+## Autorización
+
+- Requiere token (`Authorization: Bearer {token}`).
+- Solo usuarios con rol **`Administrator`** pueden registrar puestos de trabajo. En caso contrario, la API responde `400` con `"No tienes permiso para registrar un cargo de trabajo"`.
+- El handler invoca `ValidateAccessAsync` (usuario → perfil → módulo → rol).
+
+---
+
 ## Respuestas
 
 ### ✅ 201 Created

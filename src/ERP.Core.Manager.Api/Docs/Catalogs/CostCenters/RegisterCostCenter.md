@@ -44,9 +44,17 @@ Endpoint para registrar un nuevo centro de costos dentro del área de un módulo
 
 | Campo | Tipo | Requerido | Descripción |
 |---|:---:|:---:|---|
-| `coil_code` | `integer` | **Sí** | Código numérico del centro de costo (`CoilCode`). |
+| `coil_code` | `integer` | **No** | Código numérico del centro de costo (`CoilCode`). |
 | `cost_center_name` | `string` | **Si** | Nombre opcional del centro de costo (`CostCenterName`). |
 | `description` | `string` | **No** | Descripción general opcional del centro de costo. |
+
+---
+
+## Autorización
+
+- Requiere token (`Authorization: Bearer {token}`).
+- Solo usuarios con rol **`Administrator`** pueden registrar centros de costo. En caso contrario, la API responde `400` con `"Solo administradores pueden registrar centros de costo"`.
+- El handler `RegisterCostCenterHandler` invoca `ValidateAccessAsync` (usuario → perfil → módulo → rol) usando `company_id`, `module_code` y el `UserId` del token.
 
 ---
 
@@ -88,6 +96,6 @@ No retorna cuerpo (`CreatedResult`).
 
 | Código | Descripción |
 |---|---|
-| `200` | Listado de puestos de trabajo obtenido exitosamente. |
-| `400` | Error de validación o de acceso del usuario a la compañía/módulo (`ErrorResponse`). |
+| `201` | Centro de costo registrado exitosamente. |
+| `400` | Error de validación, de acceso o rol no autorizado (`ErrorResponse`). |
 | `500` | Error interno del servidor (`ErrorResponse`). |

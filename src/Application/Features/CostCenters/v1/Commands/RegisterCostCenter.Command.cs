@@ -4,7 +4,7 @@ using MediatR;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Commands
 {
-    public class RegisterCostCenterCommand : BaseRequest, IRequest
+    public class RegisterCostCenterCommand : BaseRequest, IRequest<Unit>
     {
         [JsonIgnore]
         public Guid AreaId { get; set; }

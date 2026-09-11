@@ -30,6 +30,14 @@ Endpoint para eliminar un puesto de trabajo del catálogo de una compañía/mód
 
 ---
 
+## Autorización
+
+- Requiere token (`Authorization: Bearer {token}`).
+- Solo usuarios con rol **`Administrator`** pueden eliminar puestos de trabajo. En caso contrario, la API responde `400` con `"Solo administradores puede eliminar un dato del catalogo"`.
+- El handler invoca `ValidateAccessAsync` (usuario → perfil → módulo → rol).
+
+---
+
 ## Respuestas
 
 ### ✅ 204 No Content

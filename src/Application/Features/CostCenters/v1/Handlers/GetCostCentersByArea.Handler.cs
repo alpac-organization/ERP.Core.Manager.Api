@@ -1,19 +1,28 @@
-using MediatR;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-
 using ERP.Core.Application.Commons.Interfaces;
+
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
 {
-    public class GetCostCenterByAreaHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) : IRequestHandler<GetCostCentersByAreaQuery, List<CostCenterDto>>
+    public class GetCostCenterByAreaHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) : BaseValidatorHandler<GetCostCentersByAreaQuery, List<CostCenterDto>>(_unitOfWork, _errorManager)
     {
-        public async Task<List<CostCenterDto>> Handle(GetCostCentersByAreaQuery request, CancellationToken cancellationToken)
+        public override async Task<List<CostCenterDto>> Handle(GetCostCentersByAreaQuery request, CancellationToken cancellationToken)
         {
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess)
+            {
+                return access.ErrorResponse!;
+            }
+
             var area =  await _unitOfWork.WorkAreas.Entities
+                .Where(area => area.IsActive)
                 .Where(area => area.Id == request.AreaId)
                 .Where(area => area.CompanyId == request.CompanyId)
                 .FirstOrDefaultAsync(cancellationToken);
