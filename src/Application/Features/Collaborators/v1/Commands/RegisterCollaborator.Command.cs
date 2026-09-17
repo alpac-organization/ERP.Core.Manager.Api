@@ -39,8 +39,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         //Catalogs
         public Guid AreaId { get; set; }
         public Guid BranchId { get; set; }
-        public Guid CostCenterId { get; set; }
         public Guid JobPositionId { get; set; }
+        public Guid? CostCenterId { get; set; }
 
         public DateOnly EntryDate { get; set; }
     }

@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
-using Microsoft.Extensions.Logging;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
@@ -40,6 +40,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
          if (access.Role!.RoleType == RoleType.Administrator || access.Role!.RoleType == RoleType.Operator)
          {
             #region Mapeo de campos.
+
+            //Remove this line
             var code = _codeGenerator.GenerateModuleCode(request.IdentificationNumber!);
 
             var collaboratorEntity = CollaboratorMapper.ToCollaboratorEntity(request, code);
@@ -61,6 +63,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                // Registramos su información laboral
                var workingInfo = CollaboratorMapper.ToWorkingInformationEntity(request.WorkingInformation, collaboratorEntity.Id);
                workingInfo.CollaboratorId = collaboratorEntity.Id;
+
+               if(request.WorkingInformation.CostCenterId.HasValue)
+               {
+                  //Generamos el codigo unico del colaborador. y sobre escribimos el por defecto. your code here
+
+               }
 
                await _unitOfWork.WorkingInformations.RegisterWorkingInformation(workingInfo);
             }
@@ -98,7 +106,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             
             #endregion
 
-            //Procesos para realizar insert a la nomina actual
             #region Insertar colaborador a la nomina si se encuentra activa
 
             _logger.LogInformation("Verificar si existe una nomina en progreso✅");
