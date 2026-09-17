@@ -1,12 +1,138 @@
-name: CI - Docker Validation & SonarQube
+name: CI/CD - Migrations, Build, Tests & Package
 
 on:
   push:
     branches: [ "main", "develop" ]
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+env:
+  PROJECT_PATH: "Back-End/ERP.Core.Manager.Api/src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj"
+  TEST_PROJECT_PATH: "Back-End/ERP.Core.Manager.Api/test/ERP.Core.Manager.Api.Tests/ERP.Core.Manager.Api.ITests.csproj"
+  PACKAGE_VERSION: "1.130.0"
+  NUGET_SOURCE: "https://nuget.pkg.github.com/alpac-organization/index.json"
+  NUGET_PACKAGE_NAME: "ERP.Core.Testing"
 
 jobs:
+  migrate-and-build:
+    name: Migrate DB & Build Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: EnvironmentalVariables
+    outputs:
+      migration-status: ${{ steps.migration.outputs.status }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # Setup NuGet feed para paquetes privados de GitHub
+      - name: Setup private NuGet feed
+        env:
+          GH_USER: ${{ secrets.GH_USER }}
+          GH_PACKAGE_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
+        shell: bash
+        run: |
+          dotnet nuget add source "${{ env.NUGET_SOURCE }}" \
+            -n "github" \
+            -u "$GH_USER" \
+            -p "$GH_PACKAGE_TOKEN" \
+            --store-password-in-clear-text
+
+      - name: Restore dependencies
+        shell: bash
+        run: dotnet restore
+
+      # ── MIGRATIONS: Paso obligatorio antes de cualquier build/package ──
+      - name: Apply EF Migrations
+        id: migration
+        shell: bash
+        env:
+          ConnectionStrings__ErpConnectionDatabase: ${{ secrets.ERP_CONNECTION_STRING }}
+        run: |
+          echo "🔄 Aplicando migraciones a la base de datos..."
+
+          # Verificar que la cadena de conexión existe
+          if [ -z "${{ secrets.ERP_CONNECTION_STRING }}" ]; then
+            echo "::error::ERP_CONNECTION_STRING no está configurado en los secrets del repositorio"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Ejecutar las migraciones
+          cd Back-End/ERP.Core.Manager.Api/src/Infrastructure
+          dotnet ef database update --context ErpDbContext 2>&1
+
+          if [ $? -ne 0 ]; then
+            echo "::error::❌ Las migraciones fallaron. No se generará el paquete."
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "✅ Migraciones aplicadas exitosamente"
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Build Release
+        if: steps.migration.outputs.status == 'success'
+        shell: bash
+        run: |
+          dotnet build -c Release --no-restore
+
+      # ── PACK: Solo se genera si las migraciones fueron exitosas ──
+      - name: Pack NuGet Package
+        if: steps.migration.outputs.status == 'success'
+        shell: bash
+        run: |
+          echo "📦 Generando paquete NuGet versión ${{ env.PACKAGE_VERSION }}..."
+
+          # Pack del proyecto de testing con versión explícita
+          cd Back-End/ERP.Core.Testing
+          dotnet pack -c Release /p:Version=${{ env.PACKAGE_VERSION }} --no-restore
+
+          if [ $? -ne 0 ]; then
+            echo "::error::❌ Error al generar el paquete"
+            exit 1
+          fi
+
+          echo "✅ Paquete generado exitosamente"
+
+      # ── PUBLISH: Solo si todo lo anterior fue exitoso ──
+      - name: Publish NuGet Package
+        if: steps.migration.outputs.status == 'success'
+        shell: bash
+        env:
+          GH_PACKAGE_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
+        run: |
+          echo "🚀 Publicando paquete ${{ env.NUGET_PACKAGE_NAME }} v${{ env.PACKAGE_VERSION }}..."
+
+          # Encontrar el .nupkg generado
+          NUGET_PKG=$(find Back-End/ERP.Core.Testing/bin/Release -name "ERP.Core.Testing.${{ env.PACKAGE_VERSION }}.nupkg" | head -1)
+
+          if [ -z "$NUGET_PKG" ]; then
+            echo "::error::No se encontró el archivo .nupkg generado"
+            ls -la Back-End/ERP.Core.Testing/bin/Release/ || true
+            exit 1
+          fi
+
+          dotnet nuget push "$NUGET_PKG" \
+            --source "$NGUT_SOURCE" \
+            --api-key "$GH_PACKAGE_TOKEN" \
+            --skip-duplicate
+
+          echo "✅ Paquete publicado exitosamente"
+
+      - name: Migration Failed - Notify
+        if: steps.migration.outputs.status != 'success'
+        shell: bash
+        run: |
+          echo "::warning::⚠️ Las migraciones fallaron. El pipeline NO generó un nuevo paquete."
+          echo "Consulta los logs de la migración arriba para detalles del error."
+
   docker-validate:
     name: Docker Build & Startup Validation
     runs-on: ubuntu-latest
@@ -15,6 +141,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Setup private NuGet feed
+        env:
+          GH_USER: ${{ secrets.GH_USER }}
+          GH_PACKAGE_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
+        shell: bash
+        run: |
+          dotnet nuget add source "${{ env.NUGET_SOURCE }}" \
+            -n "github" \
+            -u "$GH_USER" \
+            -p "$GH_PACKAGE_TOKEN" \
+            --store-password-in-clear-text
 
       - name: Build Docker image
         env:
@@ -26,13 +169,10 @@ jobs:
             --build-arg GH_PACKAGE_TOKEN="$GH_PACKAGE_TOKEN" \
             -t erp-test .
 
-      # ✅ SMOKE TEST REAL (esto reemplaza todo lo de chromium)
       - name: Run app and capture logs
         run: |
           echo "🚀 Iniciando contenedor..."
-
           timeout 25s docker run --name test-container erp-test > output.log 2>&1 || true
-
           echo "📄 Logs capturados:"
           cat output.log
 
@@ -40,27 +180,25 @@ jobs:
         run: docker rm -f test-container || true
 
   sonarqube:
-    name: Build and analyze
-    needs: docker-validate
-    # Linux: Testcontainers + Postgres (Linux) funcionan de forma estable, no así en windows-latest.
+    name: Build, Tests & SonarQube Analysis
+    needs: [migrate-and-build, docker-validate]
     runs-on: ubuntu-latest
     environment: EnvironmentalVariables
     permissions:
       contents: read
       pull-requests: read
     steps:
-      - name: Set up JDK 17
-        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
         with:
-          java-version: 17
-          distribution: 'zulu'
+          dotnet-version: "10.0.x"
 
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
 
       - name: Cache SonarQube Cloud packages
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
@@ -68,7 +206,7 @@ jobs:
 
       - name: Cache SonarQube Cloud scanner
         id: cache-sonar-scanner
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/scanner
           key: ${{ runner.os }}-sonar-scanner
@@ -81,14 +219,14 @@ jobs:
           mkdir -p "${{ runner.temp }}/scanner"
           dotnet tool update dotnet-sonarscanner --tool-path "${{ runner.temp }}/scanner"
 
-      # Necesario porque los paquetes ERP.Core.* son privados (mismo feed que usa Docker)
+      # Setup NuGet feed
       - name: Setup private NuGet feed
         env:
           GH_USER: ${{ secrets.GH_USER }}
           GH_PACKAGE_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
         shell: bash
         run: |
-          dotnet nuget add source "https://nuget.pkg.github.com/alpac-organization/index.json" \
+          dotnet nuget add source "${{ env.NUGET_SOURCE }}" \
             -n "github" \
             -u "$GH_USER" \
             -p "$GH_PACKAGE_TOKEN" \
@@ -98,9 +236,6 @@ jobs:
         shell: bash
         run: docker pull postgres:16-alpine
 
-      # Falla temprano si el daemon de Docker no puede levantar contenedores. Sin esto,
-      # Testcontainers falla, todos los tests se omiten (Assert.Ignore) y el reporte de
-      # cobertura queda en 0 sin que el pipeline lo note.
       - name: Verify Docker daemon can run containers
         shell: bash
         run: |
@@ -116,8 +251,6 @@ jobs:
         shell: bash
         run: |
           BRANCH_ARG=""
-          # En push a una rama (develop/main) se fija el nombre de la rama para que Sonar
-          # publique la COBERTURA TOTAL de esa rama. En PRs, SonarCloud lo detecta solo.
           if [ "$EVENT_NAME" != "pull_request" ]; then
             BRANCH_ARG="/d:sonar.branch.name=$BRANCH_NAME"
           fi
@@ -139,8 +272,6 @@ jobs:
       - name: Run tests with coverage
         shell: bash
         run: |
-          # coverlet.msbuild escribe en una ruta FIJA y determinista (sin GUID aleatorio),
-          # alineada con sonar.cs.opencover.reportsPaths del paso "Begin".
           dotnet test -c Release --no-build \
             /p:CollectCoverage=true \
             /p:CoverletOutput="$GITHUB_WORKSPACE/coverage/coverage.opencover.xml" \
@@ -151,7 +282,6 @@ jobs:
       - name: Prepare coverage report for Sonar
         shell: bash
         run: |
-          # La ruta ya es determinista. Se valida que el profiler haya emitido el reporte.
           COV="$GITHUB_WORKSPACE/coverage/coverage.opencover.xml"
           if [ ! -f "$COV" ]; then
             echo "::error::No se generó $COV — el profiler de coverlet no emitió reporte."
@@ -162,8 +292,6 @@ jobs:
           head -c 500 "$COV"
           echo ""
 
-          # Falla si el reporte no tiene NINGUNA línea cubierta: significa que los tests de
-          # integración se omitieron (p. ej. Testcontainers no levantó) y Sonar leería 0%.
           VISITED=$(grep -m 1 -o 'visitedSequencePoints="[0-9]*"' "$COV" | tr -dc '0-9' || true)
           echo "visitedSequencePoints: ${VISITED:-desconocido}"
 
@@ -172,7 +300,6 @@ jobs:
             exit 1
           fi
 
-      # Deja la cobertura TOTAL visible en el resumen del run (útil al fusionar a develop).
       - name: Publish total coverage in job summary
         if: always()
         env:
@@ -207,10 +334,11 @@ jobs:
         shell: bash
         run: |
           "${{ runner.temp }}/scanner/dotnet-sonarscanner" end /d:sonar.token="$SONAR_TOKEN"
-  
+
   notify-docs:
     name: Disparar actualización de documentación
     if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+    needs: [migrate-and-build]
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch repository_dispatch a ERP.Core.Docs.Api

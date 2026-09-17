@@ -5,14 +5,15 @@ using ERP.Core.Manager.Api.Infrastructure;
 using System.Text.Json.Serialization;
 using ERP.Core.Infrastructure.Middlewares;
 using System.Security.Authentication;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var root = builder.Environment.ContentRootPath;
 var envPath = Path.Combine(root, "..", "..", ".env");
 
-if (File.Exists(envPath)) DotNetEnv.Env.NoClobber().Load(envPath);
-else DotNetEnv.Env.NoClobber().Load();
+if (File.Exists(envPath)) DotNetEnv.Env.Load(envPath);
+else DotNetEnv.Env.Load();
 
 builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddApplicationServices(builder.Configuration);
@@ -21,7 +22,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>();
+    .Get<List<string>>()
+    ?.Where(o => !string.IsNullOrWhiteSpace(o))
+    .ToList() ?? [];
 
 // Configuración correcta de Kestrel para forzar TLS 1.2
 builder.WebHost.ConfigureKestrel(serverOptions =>
@@ -36,7 +39,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ViteLocalPolicy", policy =>
     {
-        policy.WithOrigins(allowedOrigins ?? [])
+        policy.WithOrigins(allowedOrigins?.ToArray() ?? Array.Empty<string>())
             .AllowAnyMethod()
             .AllowAnyHeader();
     });
@@ -71,20 +74,13 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    OnPrepareResponse = ctx =>
-    {
-        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
-        ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, OPTIONS");
-        ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type");
-    }
-});
+app.UseStaticFiles();
 
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseRouting();
 
 app.UseCors("ViteLocalPolicy");
+
+app.UseRouting();
 
 app.UseMiddleware<ApiKeyMiddleware>();
 

@@ -35,6 +35,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             var gridQuery = baseQuery
                 .Include(c => c.Company)
                 .Include(c => c.WorkingInformation)
+                    .ThenInclude(w => w.CostCenter)
+                .Include(c => c.WorkingInformation)
                     .ThenInclude(w => w.Area)
                 .Include(c => c.WorkingInformation)
                     .ThenInclude(w => w.JobPosition)
