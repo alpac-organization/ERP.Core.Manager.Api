@@ -17,7 +17,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
         {
             var suppliersQuery = _unitOfWork.Suppliers.Entities
                 .Include(sup => sup.User)
-                    .ThenInclude(user => user.WorkArea)
                 .Where(sup => sup.IsActive)
                 .AsNoTracking();
 
@@ -44,7 +43,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
-
 
             var totalCount = await _unitOfWork.Suppliers.Entities
                 .CountAsync(cancellationToken);
