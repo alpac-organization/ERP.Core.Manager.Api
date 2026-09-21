@@ -28,7 +28,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             {
                 Id                   = Guid.NewGuid(),
                 UserStatus           = UserStatus.Active,
-                AreaId               = command.AreaId,
                 Email                = command.Email,
                 IdentificationNumber = command.IdentificationNumber,
                 UserType             = command.UserType,

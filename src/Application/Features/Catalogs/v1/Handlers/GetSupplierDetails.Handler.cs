@@ -18,7 +18,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .Include(sup => sup.SupplierDetails)
                 .Include(sup => sup.SupplierBankAccounts)
                 .Include(sup => sup.User)
-                    .ThenInclude(user => user.WorkArea)
                 .Where(sup => sup.IsActive)
                 .Where(sup => sup.Id == request.SupplierId)
                 .FirstOrDefaultAsync(cancellationToken);

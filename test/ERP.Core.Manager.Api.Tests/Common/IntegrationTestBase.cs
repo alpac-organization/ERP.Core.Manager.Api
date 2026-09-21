@@ -53,13 +53,16 @@ namespace ERP.Core.Manager.Api.Tests.Common
 
             await Factory.ResetDatabaseAsync();
 
-            using var scope = Services.CreateScope();
+using var scope = Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ErpDbContext>();
             await ErpDatabaseSeeder.SeedAsync(dbContext, ErpSeedDataFactory.CreateScenario());
 
-            DefaultUserId = await dbContext.Users
-                .Where(u => u.AreaId == ErpSeedDataFactory.AlpacAreaTiId)
-                .Select(u => u.Id)
+            // Find a user from ALPAC company (which owns the IT work area)
+            // Since User no longer has AreaId, query through UserProfile -> Company
+            var alpacCompanyId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            DefaultUserId = await dbContext.Profiles
+                .Where(p => p.CompanyId == alpacCompanyId && p.IsActive)
+                .Select(p => p.UserId)
                 .FirstAsync();
 
             await GrantModuleAccessAsync(PayrollModuleCode, RoleType.Administrator);
