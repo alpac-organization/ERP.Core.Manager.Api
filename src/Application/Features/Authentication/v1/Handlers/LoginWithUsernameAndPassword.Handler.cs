@@ -7,6 +7,7 @@ using ERP.Core.Manager.Api.Application.Features.Authentication.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Enums;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 {
@@ -52,8 +53,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             }
 
             //Verificamos el perfil al que quiere, ingresar
-            var profile = await _unitOfWork.Profiles
-                .FirstOrDefaultAsync(profile => profile.CompanyId == request.CompanyId && profile.UserId == user.Id, cancellationToken);
+            var profile = await _unitOfWork.Profiles.Entities
+                .Include(profile => profile.CostCenter)
+                .Where(profile => profile.UserId == user.Id)
+                .Where(profile => profile.CompanyId == request.CompanyId)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (profile is null)
             {
@@ -115,10 +119,23 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var loginDto = _mapper.Map<LoginDto>(user);
+            var loginDto = _mapper.Map<LoginDto>(user); 
+
             loginDto.BranchId = profile.BranchId;
             loginDto.AccessToken = accessToken;
             loginDto.RefreshToken = refreshToken;
+
+
+            if (profile.CostCenter is not null)
+            {
+                loginDto.CostCenterInformation = new()
+                {
+                    CostCenterCode = profile.CostCenter.CostCenterCode,
+                    CostCenterName = profile.CostCenter.CostCenterName,
+                    CostCenterId = profile.CostCenter.Id
+                };   
+            }
+
             loginDto.CompanyInformation = new()
             {
                 CompanyId = profile.CompanyId,

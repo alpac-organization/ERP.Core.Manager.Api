@@ -1,3 +1,4 @@
+
 namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
 {
     public class LoginDto
@@ -13,6 +14,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
         public Guid BranchId { get; set; }
         public Guid AreaId { get; set; }
         public CompanyInformation CompanyInformation { get; set; } = new();
+        public CostCenterInformation? CostCenterInformation { get; set; } = new();
+    }
+
+    public class CostCenterInformation
+    {
+        public int? CostCenterCode { get; set;  }
+        public string? CostCenterName { get; set; }
+        public Guid? CostCenterId { get; set; }
     }
 
     public class CompanyInformation
