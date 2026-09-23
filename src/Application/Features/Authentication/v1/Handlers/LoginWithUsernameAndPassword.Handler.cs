@@ -121,6 +121,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 
             var loginDto = _mapper.Map<LoginDto>(user); 
 
+            loginDto.AreaId = profile.AreaId;
             loginDto.BranchId = profile.BranchId;
             loginDto.AccessToken = accessToken;
             loginDto.RefreshToken = refreshToken;
