@@ -1,64 +1,60 @@
 using System.Text;
-
+using System.Text.Json;
+using System.Net.Http.Headers;
 using Microsoft.EntityFrameworkCore;
+
+using NUnit.Framework;
 using Microsoft.Extensions.DependencyInjection;
 
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Database.Infrastructure.Persistence.Context;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Database.Domain.Entities.Catalogs;
-using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Infrastructure.Persistence.Context;
+using ERP.Core.Testing.Seeding;
+using ERP.Core.Manager.Api.Tests.Common.Utils;
 
 namespace ERP.Core.Manager.Api.Tests.Common
 {
     [TestFixture]
     public abstract class IntegrationTestBase
     {
-        protected HttpClient Client = null!;
-        protected IServiceProvider Services = null!;
-        protected Guid DefaultUserId { get; private set; }
+        private IServiceScope _scope = null!;
 
+        protected HttpClient _client = null!;
+        protected IUnitOfWork _unitOfWork = null!;
+        protected static CustomWebApplicationFactory Factory => PostgreSqlContainerFixture.Factory;
+
+        // Backward compatibility
+        protected HttpClient Client => _client;
+        protected IServiceProvider Services => Factory.Services;
+        protected IUnitOfWork UnitOfWork => _unitOfWork;
+        protected Guid DefaultUserId { get; private set; }
         protected static Guid DefaultCompanyId => Guid.Parse("11111111-1111-1111-1111-111111111111");
         public const string PayrollModuleCode = "NOMINA";
 
-        protected IUnitOfWork UnitOfWork => Services.GetRequiredService<IUnitOfWork>();
-        private static CustomWebApplicationFactory Factory => PostgreSqlContainerFixture.Factory;
-
-
-        [OneTimeSetUp]
-        public async Task OneTimeSetUp()
+        protected static readonly JsonSerializerOptions JsonOptions = new()
         {
-            await Factory.InitializeAsync();
-            
-            if (!Factory.IsDockerAvailable)
-            {
-                TestContext.Out.WriteLine($"[Testcontainers] No disponible. Razón: {Factory.UnavailableReason}");
-                return;
-            }
-
-            Client = Factory.CreateClient();
-            Client.DefaultRequestHeaders.Add("x-api-key", CustomWebApplicationFactory.ApiKey);
-            Client.DefaultRequestHeaders.Add("x-device-name", "Test-Device");
-
-            Services = Factory.Services;
-        }
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            PropertyNameCaseInsensitive = true
+        };
 
         [SetUp]
         public async Task SetUp()
         {
-            if (!Factory.IsDockerAvailable)
-            {
-                Assert.Ignore($"No se pudo levantar el contenedor de pruebas, se omiten los tests de integración. Detalle: {Factory.UnavailableReason}");
-            }
+            _client = PostgreSqlContainerFixture.Factory.CreateClient();
 
-            await Factory.ResetDatabaseAsync();
+            //Limpiamos la base de datos para el uso de ella
+            await Factory.ResetDatabase();
+            await Factory.SeedDatabase();
 
-using var scope = Services.CreateScope();
+            //Definir los servicios
+            _scope = Factory.Services.CreateScope();
+            _unitOfWork = ServiceProviderServiceExtensions.GetRequiredService<IUnitOfWork>(_scope.ServiceProvider);
+
+            // Backward compatibility: find a user from ALPAC company
+            using var scope = Factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ErpDbContext>();
-            await ErpDatabaseSeeder.SeedAsync(dbContext, ErpSeedDataFactory.CreateScenario());
-
-            // Find a user from ALPAC company (which owns the IT work area)
-            // Since User no longer has AreaId, query through UserProfile -> Company
             var alpacCompanyId = Guid.Parse("11111111-1111-1111-1111-111111111111");
             DefaultUserId = await dbContext.Profiles
                 .Where(p => p.CompanyId == alpacCompanyId && p.IsActive)
@@ -68,33 +64,80 @@ using var scope = Services.CreateScope();
             await GrantModuleAccessAsync(PayrollModuleCode, RoleType.Administrator);
             await GrantModuleAccessAsync("PURCHASING", RoleType.Administrator);
 
-            Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+            Client.DefaultRequestHeaders.Add("x-api-key", EnvironmentManager.ApiKey);
+            Client.DefaultRequestHeaders.Add("x-device-name", "Test-Device");
+            Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
                 "Bearer",
-                TestAuthHelper.CreateBearerToken(CustomWebApplicationFactory.JwtKey, DefaultUserId));
+                AuthManager.GenerateJwtToken(EnvironmentManager.JwtKey, DefaultUserId));
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            _scope.Dispose();
+            _client.Dispose();
+        }
+
+        // Backward compatibility method
         protected async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, object? body = null, Guid? asUser = null)
         {
             var request = new HttpRequestMessage(method, path);
 
             if (asUser.HasValue)
             {
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                request.Headers.Authorization = new AuthenticationHeaderValue(
                     "Bearer",
-                    TestAuthHelper.CreateBearerToken(CustomWebApplicationFactory.JwtKey, asUser.Value));
+                    AuthManager.GenerateJwtToken(EnvironmentManager.JwtKey, asUser.Value));
+            }
+            else
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue(
+                    "Bearer",
+                    AuthManager.GenerateJwtToken(EnvironmentManager.JwtKey, DefaultUserId));
             }
 
             if (body is not null)
             {
-                request.Content = new StringContent(
-                    JsonSerializer.Serialize(body, SnakeCaseJsonOptions()),
-                    Encoding.UTF8,
-                    "application/json");
+                var jsonBody = JsonSerializer.Serialize(body, JsonOptions);
+                request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             }
 
-            return await Client.SendAsync(request);
+            return await _client.SendAsync(request);
         }
 
+        // New method matching Warehouse.Api pattern
+        protected async Task<HttpResponseMessage> SendRequestAsync(HttpMethod method, string pathUrl, string BearerToken, object? body = null)
+        {
+            var request = new HttpRequestMessage(method, pathUrl);
+
+            request.Headers.Add("X-Api-Key", EnvironmentManager.ApiKey);
+
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer", BearerToken
+            );
+
+            if (body != null && (method == HttpMethod.Post || method == HttpMethod.Put || method == HttpMethod.Patch))
+            {
+                var jsonBody = JsonSerializer.Serialize(body, JsonOptions);
+                request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            }
+
+            return await _client.SendAsync(request);
+        }
+
+        // Backward compatibility
+        protected static JsonSerializerOptions SnakeCaseJsonOptions()
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                PropertyNameCaseInsensitive = true
+            };
+            options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+            return options;
+        }
+
+        // Backward compatibility
         protected async Task<bool> GrantModuleAccessAsync(string moduleCode, RoleType roleType = RoleType.Administrator, Guid? userId = null)
         {
             var targetUserId = userId ?? DefaultUserId;
@@ -167,6 +210,7 @@ using var scope = Services.CreateScope();
             return await query.AnyAsync();
         }
 
+        // Backward compatibility
         protected async Task DemoteDefaultUserToRoleAsync(RoleType roleType)
         {
             using var scope = Services.CreateScope();
@@ -180,17 +224,5 @@ using var scope = Services.CreateScope();
 
             await dbContext.SaveChangesAsync();
         }
-
-        protected static JsonSerializerOptions SnakeCaseJsonOptions()
-        {
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-                PropertyNameCaseInsensitive = true
-            };
-            options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-            return options;
-        }
     }
-
 }
