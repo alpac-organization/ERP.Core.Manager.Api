@@ -45,7 +45,7 @@ Retorna un `List<WorkAreaDto>`.
 [
   {
     "work_area_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "work_area_code": 1,
+    "work_area_code": "ALPAC-01",
     "company_id": "7708d447-1b6a-4194-a877-7e6f49cd80b4",
     "work_area_name": "DEPOSITO PUBLICO",
     "description": "Área encargada del resguardo y despacho de mercancía."
@@ -58,7 +58,7 @@ Retorna un `List<WorkAreaDto>`.
 | Campo            | Tipo                     | Descripción |
 |------------------|--------------------------|-------------|
 | `work_area_id`   | `guid`                   | Identificador único del área de trabajo. |
-| `work_area_code` | `integer`                | Código consecutivo del área dentro de la compañía. |
+| `work_area_code` | `string`                 | Código del área con formato `{company_code}-{NN}` (ej. `ALPAC-01`). |
 | `company_id`     | `guid`                   | Identificador de la compañía. |
 | `work_area_name` | `string \| null`         | Nombre del área de trabajo. |
 | `description`    | `string \| null`         | Descripción del área. |

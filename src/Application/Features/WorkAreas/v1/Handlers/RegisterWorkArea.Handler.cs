@@ -1,15 +1,13 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Commands;
 
-using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
-using System.ComponentModel;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Handlers
 {
@@ -30,10 +28,6 @@ namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Handlers
             {
                 return _errorManager.ThrowBadRequest<Unit>("Solo administradores pueden registrar áreas de trabajo", "ERP:RegisterWorkArea");
             }
-
-            var existingWorkAreas = await _unitOfWork.WorkAreas.Entities
-                .Where(x => x.CompanyId == request.CompanyId)
-                .ToListAsync(cancellationToken);
 
             var (IsSuccess, newCode) = await _codeGenerator.GenerateUniqueWorkAreaCodeAsync(
                     request.CompanyId, cancellationToken);

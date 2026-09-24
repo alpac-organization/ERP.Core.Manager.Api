@@ -75,6 +75,19 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
 }
 ```
 
+No se pudo generar el código del área:
+
+```json
+{
+  "status": 400,
+  "error": {
+    "type_error": "ValidationError",
+    "description": "No se pudo generar el código del Área de trabajo."
+  },
+  "created_at": "2026-09-11 10:00:00"
+}
+```
+
 ### ❌ 500 Internal Server Error
 
 ```json
@@ -107,7 +120,9 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
 
 ## Notas de Implementación
 
-- El `work_area_code` se calcula como `max(work_area_code) + 1` tomando **todas** las áreas de la compañía (incluidas las inactivas). Se almacena con `IsActive = true`.
+- El `work_area_code` se genera automáticamente con `ICodeGenerator.GenerateUniqueWorkAreaCodeAsync(company_id)`: se usa el código de la compañía (`Company.Code`) y el siguiente consecutivo de 2 dígitos (con `0` a la izquierda) por compañía → formato `{company_code}-{NN}` (ej. `ALPAC-01`).
+- Si no se puede generar el código, la API responde `400` con `"No se pudo generar el código del Área de trabajo."` (`ERP:WORK_AREA_CODE_GENERATION_FAILED`).
+- Se almacena con `IsActive = true`.
 
 ---
 
