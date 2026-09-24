@@ -49,7 +49,7 @@ Retorna un `List<CostCenterDto>` (`CostCenterDto` hereda de `CostCenterInformati
     "description": "Centro de costos para operaciones logísticas y almacenamiento.",
     "cost_center_name": "Centro de Costo - Almacén Central",
     "coil_code": 101,
-    "cost_center_code": 1
+    "cost_center_code": "ALPAC-01-01"
   }
 ]
 ```
@@ -62,7 +62,7 @@ Retorna un `List<CostCenterDto>` (`CostCenterDto` hereda de `CostCenterInformati
 | `description`      | `string \| null` | Descripción del centro de costo. |
 | `cost_center_name` | `string \| null` | Nombre del centro de costo. |
 | `coil_code`        | `integer`        | Código numérico (`CoilCode`) del centro de costo. |
-| `cost_center_code` | `integer`        | Código consecutivo del centro de costo. |
+| `cost_center_code` | `string`        | Código del centro de costo con formato `{area_code}-{NN}` (ej. `ALPAC-01-01`). |
 
 > ℹ️ La respuesta **no** incluye `company_id` ni `work_area_id`, ya que `CostCenterDto` solo hereda las propiedades de `CostCenterInformation`.
 

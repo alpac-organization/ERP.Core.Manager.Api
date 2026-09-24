@@ -58,6 +58,14 @@ Endpoint para registrar un nuevo centro de costos dentro del área de un módulo
 
 ---
 
+## Notas de Implementación
+
+- El `cost_center_code` se genera automáticamente con `ICodeGenerator.GenerateUniqueCostCenterCodeAsync(area_id)`: se usa el código del área (`WorkAreaCode`) y el siguiente consecutivo de 2 dígitos (con `0` a la izquierda) por área → formato `{area_code}-{NN}` (ej. `ALPAC-01-01`).
+- Si el área no está registrada, la API responde `400` con `"Esta area no se encuentra registrada"` (`ERP:AreaNotFound`).
+- Si no se puede generar el código, la API responde `400` con `"No se pudo generar el código del centro de costo."` (`ERP:COST_CENTER_CODE_GENERATION_FAILED`).
+
+---
+
 ## Respuestas
 
 ### ✅ 201 Created
@@ -72,6 +80,32 @@ No retorna cuerpo (`CreatedResult`).
   "error": {
     "type_error": "ValidationError",
     "description": "El usuario no tiene acceso a esta compañía o módulo"
+  },
+  "created_at": "2026-09-11 10:00:00"
+}
+```
+
+El área no está registrada:
+
+```json
+{
+  "status": 400,
+  "error": {
+    "type_error": "ValidationError",
+    "description": "Esta area no se encuentra registrada"
+  },
+  "created_at": "2026-09-11 10:00:00"
+}
+```
+
+No se pudo generar el código del centro de costo:
+
+```json
+{
+  "status": 400,
+  "error": {
+    "type_error": "ValidationError",
+    "description": "No se pudo generar el código del centro de costo."
   },
   "created_at": "2026-09-11 10:00:00"
 }
