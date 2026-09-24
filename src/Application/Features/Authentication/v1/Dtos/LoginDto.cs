@@ -19,7 +19,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
 
     public class CostCenterInformation
     {
-        public int? CostCenterCode { get; set;  }
+        public string? CostCenterCode { get; set;  }
         public string? CostCenterName { get; set; }
         public Guid? CostCenterId { get; set; }
     }
