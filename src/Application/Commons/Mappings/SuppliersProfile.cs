@@ -12,14 +12,10 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         {
             CreateMap<Supplier, SupplierDto>()
                 .ForMember(dest => dest.SupplierId, src => src.MapFrom(su => su.Id))
-                .ForMember(dest => dest.SupplierLegalName, src => src.MapFrom(su => su.SuppliersLegalName))
-                .ForMember(dest => dest.CommercialName, src => src.MapFrom(su => su.CommercialName))
-                .ForMember(dest => dest.IdentificationType, src => src.MapFrom(su => su.IdentificationType))
-                .ForMember(dest => dest.IdentificationNumber, src => src.MapFrom(su => su.IdentificationNumber))
+                .ForPath(dest => dest.SupplierPaymentMethods, src => src.MapFrom(su => su.SupplierPaymentMethods));
 
-                .ForMember(dest => dest.ConstitutionType, src => src.MapFrom(su => su.ConstitutionType));
-                
- 
+            CreateMap<SupplierPaymentMethod, SupplierPaymentMethods>();
+
             CreateMap<SupplierBankAccount, SupplierBankAccountDto>();
 
             CreateMap<Supplier, SupplierInformationDto>()
