@@ -17,6 +17,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
         {
             var suppliersQuery = _unitOfWork.Suppliers.Entities
                 .Include(sup => sup.User)
+                .Include(sup => sup.SupplierPaymentMethods)
                 .Where(sup => sup.IsActive)
                 .AsNoTracking();
 
