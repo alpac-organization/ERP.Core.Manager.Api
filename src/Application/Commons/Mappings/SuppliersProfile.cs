@@ -12,6 +12,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         {
             CreateMap<Supplier, SupplierDto>()
                 .ForMember(dest => dest.SupplierId, src => src.MapFrom(su => su.Id))
+                .ForMember(dest => dest.CommercialName, src => src.MapFrom(su => su.CommercialName))
+                .ForMember(dest => dest.SupplierLegalName, src => src.MapFrom(su => su.SuppliersLegalName))
                 .ForPath(dest => dest.SupplierPaymentMethods, src => src.MapFrom(su => su.SupplierPaymentMethods));
 
             CreateMap<SupplierPaymentMethod, SupplierPaymentMethods>();
