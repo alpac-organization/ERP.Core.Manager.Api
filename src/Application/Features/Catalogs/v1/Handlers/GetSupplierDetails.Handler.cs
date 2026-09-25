@@ -17,6 +17,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             var supplier = await _unitOfWork.Suppliers.Entities
                 .Include(sup => sup.SupplierDetails)
                 .Include(sup => sup.SupplierBankAccounts)
+                .Include(sup => sup.SupplierPaymentMethods)
                 .Include(sup => sup.User)
                 .Where(sup => sup.IsActive)
                 .Where(sup => sup.Id == request.SupplierId)
