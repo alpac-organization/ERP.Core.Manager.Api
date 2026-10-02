@@ -75,7 +75,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Handlers
                 CompanyId = request.CompanyId,
                 IsActive = true,
                 UserId = userCreated.Id,
-                BranchId = request.BranchId
+                AreaId = request.AreaId,
+                BranchId = request.BranchId,
+                CostCenterId = request.CostCenterId
             };
 
             //Creamos su perfil y lo asociamos a la empresa.
