@@ -14,6 +14,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Users.v1.Commands
         public string? IdentificationNumber { get; set; }
         public Guid BranchId { get; set; }
         public Guid AreaId { get; set; }
+        public Guid CostCenterId { get; set; }
 
 
         [JsonIgnore]
