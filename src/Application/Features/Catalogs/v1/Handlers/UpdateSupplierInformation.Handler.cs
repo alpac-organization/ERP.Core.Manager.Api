@@ -74,7 +74,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     supplierDetails.ContactEmail               = request.SupplierDetails.ContactEmail               ?? supplierDetails.ContactEmail;
                     supplierDetails.ContactPhoneNumber         = request.SupplierDetails.ContactPhoneNumber         ?? supplierDetails.ContactPhoneNumber;
 
-                    supplierDetails.IsExclusive                = request.SupplierDetails.IsExclusive                ?? supplierDetails.IsExclusive;
                     supplierDetails.ExclusiveBrandsOrParts     = request.SupplierDetails.ExclusiveBrandsOrParts     ?? supplierDetails.ExclusiveBrandsOrParts;
                     supplierDetails.CreditLimit                = request.SupplierDetails.CreditLimit                ?? supplierDetails.CreditLimit;
                     supplierDetails.CreditCurrency             = request.SupplierDetails.CreditCurrency             ?? supplierDetails.CreditCurrency;

@@ -19,7 +19,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .Include(sup => sup.SupplierBankAccounts)
                 .Include(sup => sup.SupplierPaymentMethods)
                 .Include(sup => sup.User)
-                .Where(sup => sup.IsActive)
+                .Include(sup => sup.SupplierProducts.Where(sp => sp.IsActive && sp.DeletedAt == null))
+                    .ThenInclude(sp => sp.Product)
+                .Include(sup => sup.SupplierProducts.Where(sp => sp.IsActive && sp.DeletedAt == null))
+                    .ThenInclude(sp => sp.TierPrices.Where(t => t.DeletedAt == null))
+                .Where(sup => sup.IsActive && sup.DeletedAt == null)
                 .Where(sup => sup.Id == request.SupplierId)
                 .FirstOrDefaultAsync(cancellationToken);
 

@@ -41,15 +41,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .Select(p => new ProductDto
                 {
                     ProductId = p.Id,
+                    Code = p.Code,
                     ProductName = p.ProductName!,
                     Description = p.Description,
                     CategoryId = p.CategoryId,
+                    UnitMeasureId = p.UnitMeasureId,
                     Category = new ProductCategoryDto
                     {
                         Name = p.Category.Name!,
                         Code = p.Category.Code,
                         IsActive = p.Category.IsActive,
-                    }
+                    },
+                    SuppliersCount = p.SupplierProducts.Count(sp => sp.IsActive && sp.DeletedAt == null)
                 })
                 .ToListAsync(cancellationToken);
 

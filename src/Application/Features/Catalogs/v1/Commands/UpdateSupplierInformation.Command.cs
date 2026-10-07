@@ -29,7 +29,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public string? ContactEmail { get; set; }
         public string? ContactPhoneNumber { get; set; }
 
-        public bool? IsExclusive { get; set; }
         public string? ExclusiveBrandsOrParts { get; set; }
         public decimal? CreditLimit { get; set; }
         public Currency? CreditCurrency { get; set; }

@@ -1,4 +1,3 @@
-using MediatR;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,14 +10,23 @@ using ERP.Core.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
-    public class GetSuppliersHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) :  BaseValidatorHandler<GetSuppliersQuery,PagedResponse<SupplierDto>>(_unitOfWork, _errorManager)
+    public class GetSuppliersHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper)
+        : BaseValidatorHandler<GetSuppliersQuery, PagedResponse<SupplierDto>>(_unitOfWork, _errorManager)
     {
         public override async Task<PagedResponse<SupplierDto>> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)
         {
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess)
+            {
+                return access.ErrorResponse!;
+            }
+
             var suppliersQuery = _unitOfWork.Suppliers.Entities
                 .Include(sup => sup.User)
                 .Include(sup => sup.SupplierPaymentMethods)
-                .Where(sup => sup.IsActive)
+                .Include(sup => sup.SupplierDetails)
+                .Where(sup => sup.IsActive && sup.DeletedAt == null)
                 .AsNoTracking();
 
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
@@ -36,17 +44,26 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             if (!string.IsNullOrWhiteSpace(request.CommercialName))
             {
                 suppliersQuery = suppliersQuery
-                    .Where(sup => sup.CommercialName != null && sup.CommercialName.Contains(request.CommercialName));
+                    .Where(sup =>
+                        sup.CommercialName != null &&
+                        sup.CommercialName.Contains(request.CommercialName));
             }
 
+            if (request.ExclusiveStatus.HasValue)
+            {
+                suppliersQuery = suppliersQuery
+                    .Where(sup =>
+                        sup.SupplierDetails != null &&
+                        sup.SupplierDetails.ExclusiveStatus == request.ExclusiveStatus.Value);
+            }
+
+            var totalCount = await suppliersQuery.CountAsync(cancellationToken);
+
             var suppliers = await suppliersQuery
-                .OrderByDescending(sup => sup.CreatedAt) 
+                .OrderByDescending(sup => sup.CreatedAt)
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
-
-            var totalCount = await _unitOfWork.Suppliers.Entities
-                .CountAsync(cancellationToken);
 
             var suppliersMapped = _mapper.Map<List<SupplierDto>>(suppliers);
 

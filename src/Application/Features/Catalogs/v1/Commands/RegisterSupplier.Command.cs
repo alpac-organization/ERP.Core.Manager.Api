@@ -14,9 +14,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public ConstitutionType ConstitutionType { get; set; }
         public IdentificationType IdentificationType { get; set; }
 
-        public SupplierDetails SupplierDetails { get; set; } = new ();
+        public SupplierDetails SupplierDetails { get; set; } = new();
 
         public List<SupplierBankAccountCommand> BankAccounts { get; set; } = [];
+
+        public List<SupplierProductItemDto> Products { get; set; } = [];
     }
 
     public class SupplierDetails
@@ -29,7 +31,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public string? ContactEmail { get; set; }
         public string? ContactPhoneNumber { get; set; }
 
-        public bool IsExclusive { get; set; }
+        public SupplierExclusiveStatus ExclusiveStatus { get; set; } = SupplierExclusiveStatus.None;
+
         public string? ExclusiveBrandsOrParts { get; set; }
         public decimal? CreditLimit { get; set; }
         public Currency? CreditCurrency { get; set; }
@@ -39,6 +42,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public bool ApplyMunicipalRetention { get; set; } = true;
         public bool IsTaxExempt { get; set; } = false;
     }
+
     public class SupplierBankAccountCommand
     {
         public string BankName { get; set; } = string.Empty;
@@ -48,5 +52,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public string AccountHolderName { get; set; } = string.Empty;
         public string? AccountHolderIdentification { get; set; }
         public bool IsPrimary { get; set; }
+    }
+
+    public class SupplierProductItemDto
+    {
+        public Guid ProductId { get; set; }
+        public decimal UnitPrice { get; set; }
+        public List<TierPriceDto>? TierPrices { get; set; } = [];
     }
 }
