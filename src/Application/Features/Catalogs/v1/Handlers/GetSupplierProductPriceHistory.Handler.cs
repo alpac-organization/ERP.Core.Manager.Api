@@ -4,13 +4,14 @@ using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 
 public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager)
-    : BaseValidatorHandler<GetSupplierProductPriceHistoryQuery, List<SupplierProductPriceHistoryDto>>(_unitOfWork, _errorManager)
+    : BaseValidatorHandler<GetSupplierProductPriceHistoryQuery, PagedResponse<SupplierProductPriceHistoryDto>>(_unitOfWork, _errorManager)
 {
-    public override async Task<List<SupplierProductPriceHistoryDto>> Handle(
+    public override async Task<PagedResponse<SupplierProductPriceHistoryDto>> Handle(
         GetSupplierProductPriceHistoryQuery request,
         CancellationToken cancellationToken)
     {
@@ -25,26 +26,41 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
             return access.ErrorResponse!;
         }
 
-        var product = await _unitOfWork.Products.Entities
+        var supplierProductExists = await _unitOfWork.Products.Entities
             .AsNoTracking()
-            .Include(p => p.SupplierProducts.Where(sp =>
+            .Where(p => p.Id == request.ProductId && p.DeletedAt == null)
+            .SelectMany(p => p.SupplierProducts)
+            .AnyAsync(sp =>
                 sp.SupplierId == request.SupplierId &&
-                sp.DeletedAt == null))
-            .ThenInclude(sp => sp.PriceHistories)
-            .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.DeletedAt == null, cancellationToken);
+                sp.DeletedAt == null,
+                cancellationToken);
 
-        var supplierProduct = product?.SupplierProducts.FirstOrDefault();
-
-        if (supplierProduct is null)
+        if (!supplierProductExists)
         {
-            return _errorManager.ThrowBadRequest<List<SupplierProductPriceHistoryDto>>(
+            return _errorManager.ThrowBadRequest<PagedResponse<SupplierProductPriceHistoryDto>>(
                 "La relación proveedor-producto no existe.",
                 "ERP:PRICE_01");
         }
 
-        return supplierProduct.PriceHistories
-            .Where(h => h.DeletedAt == null)
+        var historyQuery = _unitOfWork.Products.Entities
+            .AsNoTracking()
+            .Where(p => p.Id == request.ProductId && p.DeletedAt == null)
+            .SelectMany(p => p.SupplierProducts)
+            .Where(sp => sp.SupplierId == request.SupplierId && sp.DeletedAt == null)
+            .SelectMany(sp => sp.PriceHistories)
+            .Where(h => h.DeletedAt == null);
+
+        if (request.PriceType.HasValue)
+        {
+            historyQuery = historyQuery.Where(h => h.PriceType == request.PriceType.Value);
+        }
+
+        var totalCount = await historyQuery.CountAsync(cancellationToken);
+
+        var history = await historyQuery
             .OrderByDescending(h => h.EffectiveFrom)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
             .Select(h => new SupplierProductPriceHistoryDto
             {
                 HistoryPriceId = h.Id,
@@ -54,6 +70,12 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
                 EffectiveFrom = h.EffectiveFrom,
                 EffectiveTo = h.EffectiveTo
             })
-            .ToList();
+            .ToListAsync(cancellationToken);
+
+        return new PagedResponse<SupplierProductPriceHistoryDto>(
+            history,
+            request.PageNumber,
+            request.PageSize,
+            totalCount);
     }
 }

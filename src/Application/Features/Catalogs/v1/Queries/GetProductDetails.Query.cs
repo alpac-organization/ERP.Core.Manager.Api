@@ -9,4 +9,7 @@ public class GetProductDetailsQuery : BaseRequest, IRequest<ProductDetailDto>
 {
     [JsonIgnore]
     public Guid ProductId { get; set; }
+
+    public int PageSize { get; set; } = 10;
+    public int PageNumber { get; set; } = 1;
 }

@@ -120,7 +120,11 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         public async Task<SupplierInformationDto> GetSupplierDetailsAsync(
             [FromRoute] Guid companie_id,
             [FromRoute] string module_code,
-            [FromRoute] Guid supplier_id)
+            [FromRoute] Guid supplier_id,
+            [FromQuery] int page_size = 10,
+            [FromQuery] int page_number = 1,
+            [FromQuery] string? code = null,
+            [FromQuery] Guid? unit_measure_id = null)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
@@ -130,6 +134,10 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
                 SupplierId = supplier_id,
                 CompanyId = companie_id,
                 ModuleCode = module_code,
+                PageSize = page_size,
+                PageNumber = page_number,
+                Code = code,
+                UnitMeasureId = unit_measure_id,
             });
         }
 

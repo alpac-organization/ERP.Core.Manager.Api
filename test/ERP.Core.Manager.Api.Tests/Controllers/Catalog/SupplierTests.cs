@@ -27,6 +27,7 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260001A",
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     Address = "Km 5 Carretera Norte",
@@ -38,7 +39,6 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                     CreditDays = 30,
                     CreditLimit = 50000m,
                     CreditCurrency = Currency.USD,
-                    PreferredPaymentMethod = PaymentMethodType.ACH,
                     ExclusiveStatus = SupplierExclusiveStatus.PendingReview,
                     ExclusiveBrandsOrParts = "Marca Exclusiva",
                     ApplyIrRetention = true,
@@ -100,11 +100,11 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260002B",
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     HasCredit = true,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 }
             };
 
@@ -128,11 +128,11 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260003C",
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     HasCredit = false,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 },
                 BankAccounts = new List<SupplierBankAccountCommand>
                 {
@@ -161,12 +161,12 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260010A",
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     Address = "Managua",
                     HasCredit = false,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 }
             };
             var cmd2 = new RegisterSupplierCommand
@@ -176,12 +176,12 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260011B",
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     Address = "Leon",
                     HasCredit = false,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 }
             };
 
@@ -214,12 +214,12 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260020X",
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     Address = "Original Address",
                     HasCredit = false,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 }
             };
 
@@ -271,13 +271,13 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260030Z",
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     Address = "Zona Franca",
                     HasCredit = true,
                     CreditDays = 45,
                     CreditLimit = 80000m,
-                    PreferredPaymentMethod = PaymentMethodType.InternationalWire
                 },
                 BankAccounts = new List<SupplierBankAccountCommand>
                 {
@@ -310,7 +310,7 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
             details!.CommercialName.Should().Be("Full Details");
             details.SupplierDetails.Should().NotBeNull();
             details.SupplierDetails.CreditDays.Should().Be(45);
-            details.SupplierDetails.PreferredPaymentMethod.Should().Be(PaymentMethodType.InternationalWire);
+            details.SupplierPaymentMethods.Should().Contain(pm => pm.PaymentMethodType == PaymentMethodType.ACH);
             details.BankAccounts.Should().HaveCount(1);
             details.BankAccounts.First().AccountNumber.Should().Be("123456789");
             details.BankAccounts.First().IsPrimary.Should().BeTrue();
@@ -328,12 +328,12 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260040A",
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     Address = "Managua, Nicaragua",
                     HasCredit = false,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 },
                 BankAccounts = new List<SupplierBankAccountCommand>()
             };
@@ -372,11 +372,11 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "", // Empty
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     HasCredit = false,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 }
             };
 
@@ -400,12 +400,12 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260050A",
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     Address = "Managua",
                     HasCredit = false,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 }
             };
             var cmdNatural = new RegisterSupplierCommand
@@ -415,12 +415,12 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = "0010909260051B",
                 ConstitutionType = ConstitutionType.Natural,
                 IdentificationType = IdentificationType.Cedula,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     Address = "Granada",
                     HasCredit = false,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 }
             };
 

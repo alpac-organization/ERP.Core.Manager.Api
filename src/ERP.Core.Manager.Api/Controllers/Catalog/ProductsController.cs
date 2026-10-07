@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
@@ -48,7 +49,9 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
     public async Task<ProductDetailDto> GetProductDetailsAsync(
         [FromRoute] Guid companie_id,
         [FromRoute] string module_code,
-        [FromRoute] Guid product_id)
+        [FromRoute] Guid product_id,
+        [FromQuery] int page_size = 10,
+        [FromQuery] int page_number = 1)
     {
         var userId = ResolveUserId();
 
@@ -57,7 +60,9 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
             CompanyId = companie_id,
             ModuleCode = module_code,
             UserId = userId,
-            ProductId = product_id
+            ProductId = product_id,
+            PageSize = page_size,
+            PageNumber = page_number
         });
     }
 
@@ -130,14 +135,17 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
 
     [Tags("Productos")]
     [HttpGet("companies/{companie_id}/modules/{module_code}/products/{product_id}/suppliers/{supplier_id}/price-history")]
-    [ProducesResponseType(typeof(List<SupplierProductPriceHistoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<SupplierProductPriceHistoryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<List<SupplierProductPriceHistoryDto>> GetSupplierProductPriceHistoryAsync(
+    public async Task<PagedResponse<SupplierProductPriceHistoryDto>> GetSupplierProductPriceHistoryAsync(
         [FromRoute] Guid companie_id,
         [FromRoute] string module_code,
         [FromRoute] Guid product_id,
-        [FromRoute] Guid supplier_id)
+        [FromRoute] Guid supplier_id,
+        [FromQuery] int page_size = 10,
+        [FromQuery] int page_number = 1,
+        [FromQuery] SupplierPriceHistoryType? price_type = null)
     {
         var userId = ResolveUserId();
 
@@ -147,7 +155,10 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
             ModuleCode = module_code,
             UserId = userId,
             ProductId = product_id,
-            SupplierId = supplier_id
+            SupplierId = supplier_id,
+            PageSize = page_size,
+            PageNumber = page_number,
+            PriceType = price_type
         });
     }
 

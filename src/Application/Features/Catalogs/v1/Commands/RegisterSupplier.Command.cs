@@ -16,6 +16,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
 
         public SupplierDetails SupplierDetails { get; set; } = new();
 
+        public List<PaymentMethodType> PaymentMethods { get; set; } = [];
+
         public List<SupplierBankAccountCommand> BankAccounts { get; set; } = [];
 
         public List<SupplierProductItemDto> Products { get; set; } = [];
@@ -37,7 +39,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public decimal? CreditLimit { get; set; }
         public Currency? CreditCurrency { get; set; }
         public int AlertDaysBeforeDue { get; set; }
-        public PaymentMethodType PreferredPaymentMethod { get; set; }
         public bool ApplyIrRetention { get; set; } = true;
         public bool ApplyMunicipalRetention { get; set; } = true;
         public bool IsTaxExempt { get; set; } = false;

@@ -25,12 +25,12 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                 IdentificationNumber = ruc,
                 ConstitutionType = ConstitutionType.Legal,
                 IdentificationType = IdentificationType.Ruc,
+                PaymentMethods = [PaymentMethodType.ACH],
                 SupplierDetails = new SupplierDetails
                 {
                     Address = "Managua",
                     HasCredit = false,
                     CreditDays = 0,
-                    PreferredPaymentMethod = PaymentMethodType.ACH
                 },
                 BankAccounts = includeInitialAccount
                     ? new List<SupplierBankAccountCommand>
