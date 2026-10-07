@@ -32,6 +32,7 @@ public class DeactivateSupplierProductHandler(
         }
 
         var product = await _unitOfWork.Products.Entities
+            .AsSplitQuery()
             .Include(p => p.SupplierProducts.Where(sp =>
                 sp.SupplierId == request.SupplierId &&
                 sp.DeletedAt == null))
