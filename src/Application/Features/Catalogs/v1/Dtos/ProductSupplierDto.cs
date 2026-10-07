@@ -1,4 +1,5 @@
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 
@@ -46,5 +47,5 @@ public class ProductDetailDto
     public string? UnitMeasureName { get; set; }
     public ProductUsageType ProductUsageType { get; set; }
     public bool IsTaxExempt { get; set; }
-    public List<ProductSupplierDto> Suppliers { get; set; } = [];
+    public PagedResponse<ProductSupplierDto> Suppliers { get; set; } = new([], 1, 10);
 }

@@ -36,7 +36,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             CreateMap<Supplier, SupplierInformationDto>()
                 .IncludeBase<Supplier, SupplierDto>()
                 .ForMember(dest => dest.BankAccounts, src => src.MapFrom(su => su.SupplierBankAccounts.Where(b => b.DeletedAt == null)))
-                .ForMember(dest => dest.Products, src => src.MapFrom(su => su.SupplierProducts.Where(sp => sp.IsActive && sp.DeletedAt == null)))
+                .ForMember(dest => dest.Products, opt => opt.Ignore())
                 .ForPath(dest => dest.SupplierDetails.Address, src => src.MapFrom(su => su.SupplierDetails.Address))
                 .ForPath(dest => dest.SupplierDetails.EmailSupport, src => src.MapFrom(su => su.SupplierDetails.EmailSupport))
                 .ForPath(dest => dest.SupplierDetails.ContactEmail, src => src.MapFrom(su => su.SupplierDetails.ContactEmail))
@@ -71,7 +71,16 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 IdentificationNumber = command.IdentificationNumber,
                 SuppliersLegalName   = command.SuppliersLegalName,
                 CommercialName       = command.CommercialName,
-                SupplierBankAccounts = command.BankAccounts?.Select(b => b.ToSupplierBankAccount(supplierId)).ToList() ?? []
+                SupplierBankAccounts = command.BankAccounts?.Select(b => b.ToSupplierBankAccount(supplierId)).ToList() ?? [],
+                SupplierPaymentMethods = command.PaymentMethods?
+                    .Distinct()
+                    .Select(pm => new SupplierPaymentMethod
+                    {
+                        Id = Guid.NewGuid(),
+                        SupplierId = supplierId,
+                        PaymentMethodType = pm,
+                        IsActive = true
+                    }).ToList() ?? []
             };
         }
 
@@ -92,7 +101,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 CreditLimit              = command.CreditLimit,
                 CreditCurrency           = command.CreditCurrency,
                 AlertDaysBeforeDue       = command.AlertDaysBeforeDue,
-                PreferredPaymentMethod   = command.PreferredPaymentMethod,
                 ApplyIrRetention         = command.ApplyIrRetention,
                 ApplyMunicipalRetention  = command.ApplyMunicipalRetention,
                 IsTaxExempt              = command.IsTaxExempt

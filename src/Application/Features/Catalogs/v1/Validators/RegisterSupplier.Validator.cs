@@ -129,9 +129,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("Los días de alerta no pueden ser negativos.");
 
-            RuleFor(x => x.SupplierDetails.PreferredPaymentMethod)
+            RuleFor(x => x.PaymentMethods)
+                .NotNull()
+                .WithMessage("Los métodos de pago son obligatorios.")
+                .Must(list => list.Count > 0)
+                .WithMessage("Debe especificar al menos un método de pago.");
+
+            RuleForEach(x => x.PaymentMethods)
                 .IsInEnum()
-                .WithMessage("El método de pago preferido es inválido.");
+                .WithMessage("El método de pago es inválido.");
 
             RuleFor(x => x.BankAccounts)
                 .Must(list => list.Count(b => b.IsPrimary) <= 1)

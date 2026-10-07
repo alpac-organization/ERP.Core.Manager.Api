@@ -1,4 +1,5 @@
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
 {
@@ -8,7 +9,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
 
         public List<SupplierBankAccountDto> BankAccounts { get; set; } = [];
 
-        public List<SupplierLinkedProductDto> Products { get; set; } = [];
+        public PagedResponse<SupplierLinkedProductDto> Products { get; set; } = new([], 1, 10);
     }
 
     public class SupplierDetailsDto
