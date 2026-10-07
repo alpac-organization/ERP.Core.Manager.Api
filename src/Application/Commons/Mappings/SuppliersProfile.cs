@@ -14,15 +14,29 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.SupplierId, src => src.MapFrom(su => su.Id))
                 .ForMember(dest => dest.CommercialName, src => src.MapFrom(su => su.CommercialName))
                 .ForMember(dest => dest.SupplierLegalName, src => src.MapFrom(su => su.SuppliersLegalName))
+                .ForMember(dest => dest.ExclusiveStatus, src => src.MapFrom(su => su.SupplierDetails != null ? su.SupplierDetails.ExclusiveStatus : (ERP.Core.Database.Domain.Enums.SupplierExclusiveStatus?)null))
                 .ForPath(dest => dest.SupplierPaymentMethods, src => src.MapFrom(su => su.SupplierPaymentMethods));
 
             CreateMap<SupplierPaymentMethod, SupplierPaymentMethods>();
 
             CreateMap<SupplierBankAccount, SupplierBankAccountDto>();
 
+            CreateMap<SupplierProduct, SupplierLinkedProductDto>()
+                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Product.Code))
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
+                .ForMember(dest => dest.UnitMeasureId, opt => opt.MapFrom(src => src.Product.UnitMeasureId))
+                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
+                .ForMember(dest => dest.LastPriceUpdate, opt => opt.MapFrom(src => src.LastPriceUpdate))
+                .ForMember(dest => dest.TierPrices, opt => opt.MapFrom(src => src.TierPrices));
+
+            CreateMap<SupplierProductTierPrice, TierPriceResponseDto>()
+                .ForMember(dest => dest.TierPriceId, opt => opt.MapFrom(src => src.Id));
+
             CreateMap<Supplier, SupplierInformationDto>()
                 .IncludeBase<Supplier, SupplierDto>()
                 .ForMember(dest => dest.BankAccounts, src => src.MapFrom(su => su.SupplierBankAccounts.Where(b => b.DeletedAt == null)))
+                .ForMember(dest => dest.Products, src => src.MapFrom(su => su.SupplierProducts.Where(sp => sp.IsActive && sp.DeletedAt == null)))
                 .ForPath(dest => dest.SupplierDetails.Address, src => src.MapFrom(su => su.SupplierDetails.Address))
                 .ForPath(dest => dest.SupplierDetails.EmailSupport, src => src.MapFrom(su => su.SupplierDetails.EmailSupport))
                 .ForPath(dest => dest.SupplierDetails.ContactEmail, src => src.MapFrom(su => su.SupplierDetails.ContactEmail))
@@ -30,7 +44,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForPath(dest => dest.SupplierDetails.ContactPhoneNumber, src => src.MapFrom(su => su.SupplierDetails.ContactPhoneNumber))
                 .ForPath(dest => dest.SupplierDetails.HasCredit, src => src.MapFrom(su => su.SupplierDetails.HasCredit))
                 .ForPath(dest => dest.SupplierDetails.CreditDays, src => src.MapFrom(su => su.SupplierDetails.CreditDays))
-                .ForPath(dest => dest.SupplierDetails.IsExclusive, src => src.MapFrom(su => su.SupplierDetails.IsExclusive))
+                .ForPath(dest => dest.SupplierDetails.ExclusiveStatus, src => src.MapFrom(su => su.SupplierDetails.ExclusiveStatus))
                 .ForPath(dest => dest.SupplierDetails.ExclusiveBrandsOrParts, src => src.MapFrom(su => su.SupplierDetails.ExclusiveBrandsOrParts))
                 .ForPath(dest => dest.SupplierDetails.CreditLimit, src => src.MapFrom(su => su.SupplierDetails.CreditLimit))
                 .ForPath(dest => dest.SupplierDetails.CreditCurrency, src => src.MapFrom(su => su.SupplierDetails.CreditCurrency))
@@ -73,7 +87,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 CreditDays               = command.CreditDays,
                 EmailSupport             = command.EmailSupport,
                 HasCredit                = command.HasCredit,
-                IsExclusive              = command.IsExclusive,
+                ExclusiveStatus          = command.ExclusiveStatus,
                 ExclusiveBrandsOrParts   = command.ExclusiveBrandsOrParts,
                 CreditLimit              = command.CreditLimit,
                 CreditCurrency           = command.CreditCurrency,

@@ -39,7 +39,7 @@ namespace ERP.Core.Manager.Api.Tests.Controllers.Catalog
                     CreditLimit = 50000m,
                     CreditCurrency = Currency.USD,
                     PreferredPaymentMethod = PaymentMethodType.ACH,
-                    IsExclusive = true,
+                    ExclusiveStatus = SupplierExclusiveStatus.PendingReview,
                     ExclusiveBrandsOrParts = "Marca Exclusiva",
                     ApplyIrRetention = true,
                     ApplyMunicipalRetention = true,

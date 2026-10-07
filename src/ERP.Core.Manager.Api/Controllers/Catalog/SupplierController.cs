@@ -21,26 +21,29 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         [ProducesResponseType(typeof(PagedResponse<SupplierDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<PagedResponse<SupplierDto>> GetSuppliersAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
+        public async Task<PagedResponse<SupplierDto>> GetSuppliersAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
             [FromQuery] int page_size = 10,
             [FromQuery] int page_number = 1,
             [FromQuery] ConstitutionType? constitution_type = null,
             [FromQuery] string? identification_number = null,
-            [FromQuery] string? commercial_name = null
-        )
+            [FromQuery] string? commercial_name = null,
+            [FromQuery] SupplierExclusiveStatus? exclusive_status = null)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
             return await _mediator.Send(new GetSuppliersQuery()
             {
-                CompanyId            = companie_id,
-                ModuleCode           = module_code,
-                PageSize             = page_size,
-                PageNumber           = page_number,
-                ConstitutionType     = constitution_type,
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                PageSize = page_size,
+                PageNumber = page_number,
+                ConstitutionType = constitution_type,
                 IdentificationNumber = identification_number,
-                CommercialName       = commercial_name,
-                UserId               = Guid.Parse(userIdStr ?? "")
+                CommercialName = commercial_name,
+                ExclusiveStatus = exclusive_status,
+                UserId = Guid.Parse(userIdStr ?? "")
             });
         }
 
@@ -49,7 +52,10 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         [ProducesResponseType(typeof(RegisterSupplierDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<RegisterSupplierDto> RegisterSupplierAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromBody] RegisterSupplierCommand payload)
+        public async Task<RegisterSupplierDto> RegisterSupplierAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromBody] RegisterSupplierCommand payload)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
@@ -60,13 +66,16 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             return await _mediator.Send(payload);
         }
 
-
         [Tags("Proveedores")]
         [HttpPatch("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}")]
         [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<OkResult> UpdaterSupplierInformationAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid supplier_id, [FromBody] UpdateSupplierInformationCommand payload)
+        public async Task<OkResult> UpdaterSupplierInformationAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromRoute] Guid supplier_id,
+            [FromBody] UpdateSupplierInformationCommand payload)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
@@ -80,22 +89,47 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             return Ok();
         }
 
+        [Tags("Proveedores")]
+        [HttpPatch("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}/exclusive-status")]
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<OkResult> UpdateExclusiveStatusAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromRoute] Guid supplier_id,
+            [FromBody] UpdateSupplierExclusiveStatusCommand payload)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            payload.CompanyId = companie_id;
+            payload.ModuleCode = module_code;
+            payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.SupplierId = supplier_id;
+
+            await _mediator.Send(payload);
+
+            return Ok();
+        }
 
         [Tags("Proveedores")]
         [HttpGet("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}/details")]
         [ProducesResponseType(typeof(SupplierInformationDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<SupplierInformationDto> GetSupplierDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid supplier_id)
+        public async Task<SupplierInformationDto> GetSupplierDetailsAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromRoute] Guid supplier_id)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
             return await _mediator.Send(new GetSupplierDetailsQuery()
             {
-                UserId      = Guid.Parse(userIdStr ?? ""),
-                SupplierId  = supplier_id,
-                CompanyId   = companie_id,
-                ModuleCode  = module_code,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                SupplierId = supplier_id,
+                CompanyId = companie_id,
+                ModuleCode = module_code,
             });
         }
 
@@ -113,10 +147,10 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
 
             return await _mediator.Send(new GetSupplierBankAccountsQuery()
             {
-                CompanyId  = companie_id,
+                CompanyId = companie_id,
                 ModuleCode = module_code,
                 SupplierId = supplier_id,
-                UserId     = Guid.Parse(userIdStr ?? "")
+                UserId = Guid.Parse(userIdStr ?? "")
             });
         }
 
@@ -133,10 +167,10 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            payload.CompanyId  = companie_id;
+            payload.CompanyId = companie_id;
             payload.ModuleCode = module_code;
             payload.SupplierId = supplier_id;
-            payload.UserId     = Guid.Parse(userIdStr ?? "");
+            payload.UserId = Guid.Parse(userIdStr ?? "");
 
             return await _mediator.Send(payload);
         }
@@ -155,11 +189,11 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            payload.CompanyId     = companie_id;
-            payload.ModuleCode    = module_code;
-            payload.SupplierId    = supplier_id;
+            payload.CompanyId = companie_id;
+            payload.ModuleCode = module_code;
+            payload.SupplierId = supplier_id;
             payload.BankAccountId = bank_account_id;
-            payload.UserId        = Guid.Parse(userIdStr ?? "");
+            payload.UserId = Guid.Parse(userIdStr ?? "");
 
             await _mediator.Send(payload);
 
@@ -181,15 +215,14 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
 
             await _mediator.Send(new DeleteSupplierBankAccountCommand()
             {
-                CompanyId     = companie_id,
-                ModuleCode    = module_code,
-                SupplierId    = supplier_id,
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                SupplierId = supplier_id,
                 BankAccountId = bank_account_id,
-                UserId        = Guid.Parse(userIdStr ?? "")
+                UserId = Guid.Parse(userIdStr ?? "")
             });
 
             return Ok();
         }
-
     }
 }

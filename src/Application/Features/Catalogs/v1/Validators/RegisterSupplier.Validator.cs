@@ -1,4 +1,5 @@
 using FluentValidation;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
@@ -82,10 +83,37 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("El número de teléfono debe tener 8 dígitos, opcionalmente con +505")
                 .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.ContactPhoneNumber));
 
+            RuleFor(x => x.SupplierDetails.ExclusiveStatus)
+                .Must(status => status is SupplierExclusiveStatus.None or SupplierExclusiveStatus.PendingReview)
+                .WithMessage("Al registrar un proveedor solo se permite ExclusiveStatus None o PendingReview.");
+
             RuleFor(x => x.SupplierDetails.ExclusiveBrandsOrParts)
                 .MaximumLength(500)
                 .WithMessage("Las marcas o líneas exclusivas no pueden exceder 500 caracteres.")
                 .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.ExclusiveBrandsOrParts));
+
+            RuleForEach(x => x.Products).ChildRules(product =>
+            {
+                product.RuleFor(p => p.ProductId)
+                    .NotEmpty().WithMessage("El id del producto es obligatorio.")
+                    .NotEqual(Guid.Empty).WithMessage("El id del producto no es válido.");
+
+                product.RuleFor(p => p.UnitPrice)
+                    .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
+
+                product.RuleForEach(p => p.TierPrices).ChildRules(tier =>
+                {
+                    tier.RuleFor(t => t.MinQuantity)
+                        .GreaterThan(0).WithMessage("La cantidad mínima debe ser mayor a cero.");
+
+                    tier.RuleFor(t => t.PreferentialPrice)
+                        .GreaterThanOrEqualTo(0).WithMessage("El precio preferencial no puede ser negativo.");
+
+                    tier.RuleFor(t => t)
+                        .Must(t => !t.ValidTo.HasValue || t.ValidTo.Value >= t.ValidFrom)
+                        .WithMessage("La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.");
+                });
+            });
 
             RuleFor(x => x.SupplierDetails.CreditLimit)
                 .GreaterThanOrEqualTo(0)
