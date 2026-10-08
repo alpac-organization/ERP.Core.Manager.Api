@@ -34,6 +34,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public string? ContactPhoneNumber { get; set; }
 
         public SupplierExclusiveStatus ExclusiveStatus { get; set; } = SupplierExclusiveStatus.None;
+        public string? ExclusiveStatusComments { get; set; }
+
+        public SupplierType SupplierType { get; set; } = SupplierType.Ordinary;
+        public Currency Currency { get; set; } = Currency.NIO;
 
         public string? ExclusiveBrandsOrParts { get; set; }
         public decimal? CreditLimit { get; set; }

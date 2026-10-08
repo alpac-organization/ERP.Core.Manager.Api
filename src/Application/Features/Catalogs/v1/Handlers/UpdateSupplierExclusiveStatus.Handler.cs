@@ -53,6 +53,7 @@ public class UpdateSupplierExclusiveStatusHandler(
         }
 
         supplierDetails.ExclusiveStatus = request.ExclusiveStatus;
+        supplierDetails.ExclusiveStatusComments = request.Comments;
 
         await _unitOfWork.SuppliersDetails.UpdateAsync(supplierDetails);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

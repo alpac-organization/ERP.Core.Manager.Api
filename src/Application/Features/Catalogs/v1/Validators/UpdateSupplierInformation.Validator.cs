@@ -103,6 +103,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .IsInEnum()
                 .WithMessage("El método de pago no es válido")
                 .When(x => x.SupplierDetails.PreferredPaymentMethod.HasValue);
+
+            RuleFor(x => x.SupplierDetails.SupplierType)
+                .IsInEnum()
+                .WithMessage("El tipo de proveedor no es válido")
+                .When(x => x.SupplierDetails.SupplierType.HasValue);
+
+            RuleFor(x => x.SupplierDetails.Currency)
+                .IsInEnum()
+                .WithMessage("La moneda del proveedor no es válida")
+                .When(x => x.SupplierDetails.Currency.HasValue);
         }
     }
 }

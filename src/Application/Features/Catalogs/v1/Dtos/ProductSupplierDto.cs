@@ -9,6 +9,7 @@ public class ProductSupplierDto
     public Guid SupplierId { get; set; }
     public string? SupplierLegalName { get; set; }
     public string? CommercialName { get; set; }
+    public SupplierType SupplierType { get; set; }
     public decimal UnitPrice { get; set; }
     public DateTime LastPriceUpdate { get; set; }
     public bool IsActive { get; set; }

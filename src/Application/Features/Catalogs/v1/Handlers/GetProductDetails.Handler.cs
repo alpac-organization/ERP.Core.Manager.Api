@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
@@ -53,6 +54,9 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
                 SupplierId = sp.SupplierId,
                 SupplierLegalName = sp.Supplier.SuppliersLegalName,
                 CommercialName = sp.Supplier.CommercialName,
+                SupplierType = sp.Supplier.SupplierDetails != null
+                    ? sp.Supplier.SupplierDetails.SupplierType
+                    : SupplierType.Ordinary,
                 UnitPrice = sp.UnitPrice,
                 LastPriceUpdate = sp.LastPriceUpdate,
                 IsActive = sp.IsActive,

@@ -45,6 +45,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForPath(dest => dest.SupplierDetails.HasCredit, src => src.MapFrom(su => su.SupplierDetails.HasCredit))
                 .ForPath(dest => dest.SupplierDetails.CreditDays, src => src.MapFrom(su => su.SupplierDetails.CreditDays))
                 .ForPath(dest => dest.SupplierDetails.ExclusiveStatus, src => src.MapFrom(su => su.SupplierDetails.ExclusiveStatus))
+                .ForPath(dest => dest.SupplierDetails.ExclusiveStatusComments, src => src.MapFrom(su => su.SupplierDetails.ExclusiveStatusComments))
+                .ForPath(dest => dest.SupplierDetails.SupplierType, src => src.MapFrom(su => su.SupplierDetails.SupplierType))
+                .ForPath(dest => dest.SupplierDetails.Currency, src => src.MapFrom(su => su.SupplierDetails.Currency))
                 .ForPath(dest => dest.SupplierDetails.ExclusiveBrandsOrParts, src => src.MapFrom(su => su.SupplierDetails.ExclusiveBrandsOrParts))
                 .ForPath(dest => dest.SupplierDetails.CreditLimit, src => src.MapFrom(su => su.SupplierDetails.CreditLimit))
                 .ForPath(dest => dest.SupplierDetails.CreditCurrency, src => src.MapFrom(su => su.SupplierDetails.CreditCurrency))
@@ -97,6 +100,9 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 EmailSupport             = command.EmailSupport,
                 HasCredit                = command.HasCredit,
                 ExclusiveStatus          = command.ExclusiveStatus,
+                ExclusiveStatusComments  = command.ExclusiveStatusComments,
+                SupplierType             = command.SupplierType,
+                Currency                 = command.Currency,
                 ExclusiveBrandsOrParts   = command.ExclusiveBrandsOrParts,
                 CreditLimit              = command.CreditLimit,
                 CreditCurrency           = command.CreditCurrency,
