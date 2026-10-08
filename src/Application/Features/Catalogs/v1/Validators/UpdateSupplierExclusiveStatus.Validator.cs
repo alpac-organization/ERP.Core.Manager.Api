@@ -16,7 +16,9 @@ public class UpdateSupplierExclusiveStatusValidator : BaseRequestValidator<Updat
             .WithMessage("Solo se permite aprobar (Approved) o rechazar (Rejected) el estado exclusivo.");
 
         RuleFor(x => x.Comments)
+            .NotEmpty()
+            .WithMessage("El comentario es obligatorio al aprobar o rechazar la exclusividad.")
             .MaximumLength(500)
-            .When(x => !string.IsNullOrWhiteSpace(x.Comments));
+            .WithMessage("El comentario no puede exceder los 500 caracteres.");
     }
 }

@@ -10,6 +10,7 @@ public class ProductSupplierDto
     public string? SupplierLegalName { get; set; }
     public string? CommercialName { get; set; }
     public decimal UnitPrice { get; set; }
+    public Currency Currency { get; set; }
     public DateTime LastPriceUpdate { get; set; }
     public bool IsActive { get; set; }
     public List<TierPriceResponseDto> TierPrices { get; set; } = [];

@@ -12,6 +12,7 @@ public static class SupplierProductPriceHelper
         Guid supplierId,
         Guid? productId,
         decimal unitPrice,
+        Currency currency,
         IEnumerable<TierPriceDto>? tierPrices,
         Guid? unitMeasureId,
         DateTime now)
@@ -21,6 +22,7 @@ public static class SupplierProductPriceHelper
             IsActive = true,
             SupplierId = supplierId,
             UnitPrice = unitPrice,
+            Currency = currency,
             LastPriceUpdate = now,
             PriceHistories =
             [
@@ -103,6 +105,54 @@ public static class SupplierProductPriceHelper
 
         supplierProduct.UnitPrice = newUnitPrice;
         supplierProduct.LastPriceUpdate = now;
+    }
+
+    public static string? SyncTierPrices(
+        SupplierProduct supplierProduct,
+        IEnumerable<TierPriceDto>? incomingTiers,
+        Guid? unitMeasureId,
+        DateTime now)
+    {
+        var tiers = (incomingTiers ?? []).ToList();
+        var overlapError = ValidateTierPriceOverlaps(tiers);
+
+        if (overlapError is not null)
+        {
+            return overlapError;
+        }
+
+        foreach (var existing in supplierProduct.TierPrices.Where(t => t.DeletedAt == null))
+        {
+            existing.DeletedAt = now;
+            if (!existing.ValidTo.HasValue || existing.ValidTo.Value > DateOnly.FromDateTime(now))
+            {
+                existing.ValidTo = DateOnly.FromDateTime(now);
+            }
+        }
+
+        foreach (var history in supplierProduct.PriceHistories.Where(h =>
+                     h.DeletedAt == null &&
+                     h.PriceType == SupplierPriceHistoryType.PreferentialPrice &&
+                     h.EffectiveTo == ActiveEffectiveTo))
+        {
+            history.EffectiveTo = now;
+        }
+
+        foreach (var tier in tiers)
+        {
+            supplierProduct.TierPrices.Add(CreateTierPrice(tier, unitMeasureId));
+            supplierProduct.PriceHistories.Add(new HistoryPrices
+            {
+                PriceType = SupplierPriceHistoryType.PreferentialPrice,
+                Price = tier.PreferentialPrice,
+                MinQuantity = tier.MinQuantity,
+                EffectiveFrom = now,
+                EffectiveTo = ActiveEffectiveTo
+            });
+        }
+
+        supplierProduct.LastPriceUpdate = now;
+        return null;
     }
 
     public static string? ValidateTierPriceOverlaps(IEnumerable<TierPriceDto> tiers)

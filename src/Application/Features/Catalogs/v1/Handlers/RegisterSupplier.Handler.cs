@@ -94,6 +94,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     supplierEntity.Id,
                     p.ProductId,
                     p.UnitPrice,
+                    p.Currency,
                     p.TierPrices,
                     unitMeasureId: null,
                     now))

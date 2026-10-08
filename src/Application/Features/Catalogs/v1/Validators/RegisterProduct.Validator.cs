@@ -42,6 +42,9 @@ public class RegisterProductValidator : AbstractValidator<RegisterProductCommand
             supplier.RuleFor(s => s.UnitPrice)
                 .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
 
+            supplier.RuleFor(s => s.Currency)
+                .IsInEnum().WithMessage("La moneda del proveedor-producto es obligatoria y debe ser válida.");
+
             supplier.RuleForEach(s => s.TierPrices).ChildRules(tier =>
             {
                 tier.RuleFor(t => t.MinQuantity)

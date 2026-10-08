@@ -60,6 +60,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     ProductName = sp.Product.ProductName!,
                     UnitMeasureId = sp.Product.UnitMeasureId,
                     UnitPrice = sp.UnitPrice,
+                    Currency = sp.Currency,
                     LastPriceUpdate = sp.LastPriceUpdate,
                     TierPrices = sp.TierPrices
                         .Where(t => t.DeletedAt == null)

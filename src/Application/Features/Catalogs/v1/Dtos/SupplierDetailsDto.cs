@@ -25,6 +25,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public bool HasCredit { get; set; }
 
         public SupplierExclusiveStatus ExclusiveStatus { get; set; }
+        public string? ExclusiveStatusComment { get; set; }
         public string? ExclusiveBrandsOrParts { get; set; }
         public decimal? CreditLimit { get; set; }
         public Currency? CreditCurrency { get; set; }
@@ -42,6 +43,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public string ProductName { get; set; } = string.Empty;
         public Guid UnitMeasureId { get; set; }
         public decimal UnitPrice { get; set; }
+        public Currency Currency { get; set; }
         public DateTime LastPriceUpdate { get; set; }
         public List<TierPriceResponseDto> TierPrices { get; set; } = [];
     }

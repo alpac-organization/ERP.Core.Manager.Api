@@ -54,6 +54,7 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
                 SupplierLegalName = sp.Supplier.SuppliersLegalName,
                 CommercialName = sp.Supplier.CommercialName,
                 UnitPrice = sp.UnitPrice,
+                Currency = sp.Currency,
                 LastPriceUpdate = sp.LastPriceUpdate,
                 IsActive = sp.IsActive,
                 TierPrices = sp.TierPrices

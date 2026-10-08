@@ -101,6 +101,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 product.RuleFor(p => p.UnitPrice)
                     .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
 
+                product.RuleFor(p => p.Currency)
+                    .IsInEnum().WithMessage("La moneda del producto es obligatoria y debe ser válida.");
+
                 product.RuleForEach(p => p.TierPrices).ChildRules(tier =>
                 {
                     tier.RuleFor(t => t.MinQuantity)

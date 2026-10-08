@@ -27,6 +27,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
                 .ForMember(dest => dest.UnitMeasureId, opt => opt.MapFrom(src => src.Product.UnitMeasureId))
                 .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency))
                 .ForMember(dest => dest.LastPriceUpdate, opt => opt.MapFrom(src => src.LastPriceUpdate))
                 .ForMember(dest => dest.TierPrices, opt => opt.MapFrom(src => src.TierPrices));
 
@@ -45,6 +46,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForPath(dest => dest.SupplierDetails.HasCredit, src => src.MapFrom(su => su.SupplierDetails.HasCredit))
                 .ForPath(dest => dest.SupplierDetails.CreditDays, src => src.MapFrom(su => su.SupplierDetails.CreditDays))
                 .ForPath(dest => dest.SupplierDetails.ExclusiveStatus, src => src.MapFrom(su => su.SupplierDetails.ExclusiveStatus))
+                .ForPath(dest => dest.SupplierDetails.ExclusiveStatusComment, src => src.MapFrom(su => su.SupplierDetails.ExclusiveStatusComment))
                 .ForPath(dest => dest.SupplierDetails.ExclusiveBrandsOrParts, src => src.MapFrom(su => su.SupplierDetails.ExclusiveBrandsOrParts))
                 .ForPath(dest => dest.SupplierDetails.CreditLimit, src => src.MapFrom(su => su.SupplierDetails.CreditLimit))
                 .ForPath(dest => dest.SupplierDetails.CreditCurrency, src => src.MapFrom(su => su.SupplierDetails.CreditCurrency))

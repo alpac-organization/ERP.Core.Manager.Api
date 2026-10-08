@@ -99,10 +99,41 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("Los días de alerta no pueden ser negativos")
                 .When(x => x.SupplierDetails.AlertDaysBeforeDue.HasValue);
 
-            RuleFor(x => x.SupplierDetails.PreferredPaymentMethod)
+            RuleFor(x => x.PaymentMethods)
+                .Must(list => list!.Count > 0)
+                .WithMessage("Debe especificar al menos un método de pago.")
+                .When(x => x.PaymentMethods is not null);
+
+            RuleForEach(x => x.PaymentMethods)
                 .IsInEnum()
                 .WithMessage("El método de pago no es válido")
-                .When(x => x.SupplierDetails.PreferredPaymentMethod.HasValue);
+                .When(x => x.PaymentMethods is not null);
+
+            RuleForEach(x => x.Products).ChildRules(product =>
+            {
+                product.RuleFor(p => p.ProductId)
+                    .NotEmpty().WithMessage("El id del producto es obligatorio.")
+                    .NotEqual(Guid.Empty).WithMessage("El id del producto no es válido.");
+
+                product.RuleFor(p => p.UnitPrice)
+                    .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
+
+                product.RuleFor(p => p.Currency)
+                    .IsInEnum().WithMessage("La moneda del producto es obligatoria y debe ser válida.");
+
+                product.RuleForEach(p => p.TierPrices).ChildRules(tier =>
+                {
+                    tier.RuleFor(t => t.MinQuantity)
+                        .GreaterThan(0).WithMessage("La cantidad mínima debe ser mayor a cero.");
+
+                    tier.RuleFor(t => t.PreferentialPrice)
+                        .GreaterThanOrEqualTo(0).WithMessage("El precio preferencial no puede ser negativo.");
+
+                    tier.RuleFor(t => t)
+                        .Must(t => !t.ValidTo.HasValue || t.ValidTo.Value >= t.ValidFrom)
+                        .WithMessage("La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.");
+                });
+            }).When(x => x.Products is not null);
         }
     }
 }

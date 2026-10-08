@@ -113,6 +113,7 @@ public class RegisterProductHandler(
                     s.SupplierId,
                     productId: null,
                     s.UnitPrice,
+                    s.Currency,
                     s.TierPrices,
                     request.UnitMeasureId,
                     now))
