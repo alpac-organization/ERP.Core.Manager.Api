@@ -45,9 +45,23 @@ public static class SupplierProductLinkValidator
                 "ERP:PROD04");
         }
 
-        var unitMeasureError = await ValidateTierUnitMeasuresAsync(
+        var unitMeasureIds = suppliers
+            .SelectMany(s =>
+            {
+                var ids = (s.TierPrices ?? [])
+                    .Where(t => t.UnitMeasureId.HasValue)
+                    .Select(t => t.UnitMeasureId!.Value);
+
+                return s.UnitMeasureId.HasValue
+                    ? ids.Append(s.UnitMeasureId.Value)
+                    : ids;
+            })
+            .Distinct()
+            .ToList();
+
+        var unitMeasureError = await ValidateUnitMeasuresAsync(
             unitOfWork,
-            suppliers.SelectMany(s => s.TierPrices ?? []),
+            unitMeasureIds,
             "ERP:PROD06",
             cancellationToken);
 
@@ -121,9 +135,23 @@ public static class SupplierProductLinkValidator
 
         productUnitMeasures = productRows.ToDictionary(p => p.Id, p => p.UnitMeasureId);
 
-        var unitMeasureError = await ValidateTierUnitMeasuresAsync(
+        var unitMeasureIds = products
+            .SelectMany(p =>
+            {
+                var ids = (p.TierPrices ?? [])
+                    .Where(t => t.UnitMeasureId.HasValue)
+                    .Select(t => t.UnitMeasureId!.Value);
+
+                return p.UnitMeasureId.HasValue
+                    ? ids.Append(p.UnitMeasureId.Value)
+                    : ids;
+            })
+            .Distinct()
+            .ToList();
+
+        var unitMeasureError = await ValidateUnitMeasuresAsync(
             unitOfWork,
-            products.SelectMany(p => p.TierPrices ?? []),
+            unitMeasureIds,
             errorCode,
             cancellationToken);
 
@@ -146,18 +174,12 @@ public static class SupplierProductLinkValidator
         return (null, productUnitMeasures);
     }
 
-    private static async Task<LinkValidationError?> ValidateTierUnitMeasuresAsync(
+    private static async Task<LinkValidationError?> ValidateUnitMeasuresAsync(
         IUnitOfWork unitOfWork,
-        IEnumerable<TierPriceDto> tiers,
+        IReadOnlyList<Guid> unitMeasureIds,
         string errorCode,
         CancellationToken cancellationToken)
     {
-        var unitMeasureIds = tiers
-            .Where(t => t.UnitMeasureId.HasValue)
-            .Select(t => t.UnitMeasureId!.Value)
-            .Distinct()
-            .ToList();
-
         if (unitMeasureIds.Count == 0)
         {
             return null;

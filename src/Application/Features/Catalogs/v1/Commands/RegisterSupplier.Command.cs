@@ -63,6 +63,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
     {
         public Guid ProductId { get; set; }
         public decimal UnitPrice { get; set; }
+
+        public Guid? UnitMeasureId { get; set; }
         public List<TierPriceDto>? TierPrices { get; set; } = [];
     }
 }

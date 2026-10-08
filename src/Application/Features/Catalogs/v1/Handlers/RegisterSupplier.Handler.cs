@@ -74,7 +74,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     p.ProductId,
                     p.UnitPrice,
                     p.TierPrices,
-                    productUnitMeasures.GetValueOrDefault(p.ProductId),
+                    p.UnitMeasureId ?? productUnitMeasures.GetValueOrDefault(p.ProductId),
                     now))
                 .ToList();
 

@@ -92,7 +92,7 @@ public class RegisterProductHandler(
                     productId: null,
                     s.UnitPrice,
                     s.TierPrices,
-                    request.UnitMeasureId,
+                    s.UnitMeasureId ?? request.UnitMeasureId,
                     now))
                 .ToList()
         };

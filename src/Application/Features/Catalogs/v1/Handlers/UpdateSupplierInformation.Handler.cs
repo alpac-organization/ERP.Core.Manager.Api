@@ -118,7 +118,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                             productItem.ProductId,
                             productItem.UnitPrice,
                             productItem.TierPrices,
-                            productUnitMeasures[productItem.ProductId],
+                            productItem.UnitMeasureId ?? productUnitMeasures[productItem.ProductId],
                             now));
                 }
             }

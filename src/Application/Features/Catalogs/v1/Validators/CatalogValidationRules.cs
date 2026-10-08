@@ -57,6 +57,10 @@ internal static class CatalogValidationRules
             supplier.RuleFor(s => s.UnitPrice)
                 .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
 
+            supplier.RuleFor(s => s.UnitMeasureId)
+                .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
+                .When(s => s.UnitMeasureId.HasValue);
+
             supplier.RuleForEach(s => s.TierPrices)
                 .ChildRules(tier => ApplyTierPriceRules(tier, requireValidFrom));
         });
@@ -75,6 +79,10 @@ internal static class CatalogValidationRules
 
             product.RuleFor(p => p.UnitPrice)
                 .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
+
+            product.RuleFor(p => p.UnitMeasureId)
+                .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
+                .When(p => p.UnitMeasureId.HasValue);
 
             product.RuleForEach(p => p.TierPrices)
                 .ChildRules(tier => ApplyTierPriceRules(tier, requireValidFrom));

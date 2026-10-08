@@ -15,6 +15,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.CommercialName, src => src.MapFrom(su => su.CommercialName))
                 .ForMember(dest => dest.SupplierLegalName, src => src.MapFrom(su => su.SuppliersLegalName))
                 .ForMember(dest => dest.ExclusiveStatus, src => src.MapFrom(su => su.SupplierDetails != null ? su.SupplierDetails.ExclusiveStatus : (ERP.Core.Database.Domain.Enums.SupplierExclusiveStatus?)null))
+                .ForMember(dest => dest.SupplierType, src => src.MapFrom(su => su.SupplierDetails != null ? su.SupplierDetails.SupplierType : (ERP.Core.Database.Domain.Enums.SupplierType?)null))
                 .ForPath(dest => dest.SupplierPaymentMethods, src => src.MapFrom(su => su.SupplierPaymentMethods));
 
             CreateMap<SupplierPaymentMethod, SupplierPaymentMethods>();
