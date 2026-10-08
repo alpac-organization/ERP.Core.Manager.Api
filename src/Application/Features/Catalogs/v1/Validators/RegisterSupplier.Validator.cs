@@ -125,6 +125,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("La moneda de crédito es inválida.")
                 .When(x => x.SupplierDetails.CreditCurrency.HasValue);
 
+            RuleFor(x => x.SupplierDetails.SupplierType)
+                .IsInEnum()
+                .WithMessage("El tipo de proveedor es inválido.");
+
+            RuleFor(x => x.SupplierDetails.Currency)
+                .IsInEnum()
+                .WithMessage("La moneda del proveedor es inválida.");
+
             RuleFor(x => x.SupplierDetails.AlertDaysBeforeDue)
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("Los días de alerta no pueden ser negativos.");

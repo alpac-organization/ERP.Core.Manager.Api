@@ -30,6 +30,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public string? ContactPhoneNumber { get; set; }
 
         public string? ExclusiveBrandsOrParts { get; set; }
+        public string? ExclusiveStatusComments { get; set; }
+        public SupplierType? SupplierType { get; set; }
+        public Currency? Currency { get; set; }
         public decimal? CreditLimit { get; set; }
         public Currency? CreditCurrency { get; set; }
         public int? AlertDaysBeforeDue { get; set; }
@@ -37,6 +40,5 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public bool? ApplyIrRetention { get; set; }
         public bool? ApplyMunicipalRetention { get; set; }
         public bool? IsTaxExempt { get; set; }
-        
     }
 }

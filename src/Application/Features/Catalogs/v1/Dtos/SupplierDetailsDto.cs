@@ -25,6 +25,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public bool HasCredit { get; set; }
 
         public SupplierExclusiveStatus ExclusiveStatus { get; set; }
+        public string? ExclusiveStatusComments { get; set; }
+        public SupplierType SupplierType { get; set; }
+        public Currency Currency { get; set; }
         public string? ExclusiveBrandsOrParts { get; set; }
         public decimal? CreditLimit { get; set; }
         public Currency? CreditCurrency { get; set; }
