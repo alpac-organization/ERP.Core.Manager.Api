@@ -51,64 +51,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<RegisterSupplierDto>("Los dias de creditos deben contener almenos un dia", "ERP:ERROR_REGISTER");
             }
 
-            Dictionary<Guid, Guid> productUnitMeasures = [];
+            var (linkError, productUnitMeasures) = await SupplierProductLinkValidator.ValidateProductsToLinkAsync(
+                _unitOfWork,
+                request.Products,
+                alreadyLinkedProductIds: null,
+                "ERP:ERROR_REGISTER",
+                cancellationToken);
 
-            if (request.Products.Count > 0)
+            if (linkError is not null)
             {
-                var productIds = request.Products.Select(p => p.ProductId).Distinct().ToList();
-
-                if (productIds.Count != request.Products.Count)
-                {
-                    return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
-                        "No se puede relacionar el mismo producto más de una vez al proveedor.",
-                        "ERP:ERROR_REGISTER");
-                }
-
-                var products = await _unitOfWork.Products.Entities
-                    .AsNoTracking()
-                    .Where(p => productIds.Contains(p.Id) && p.DeletedAt == null)
-                    .Select(p => new { p.Id, p.UnitMeasureId })
-                    .ToListAsync(cancellationToken);
-
-                if (products.Count != productIds.Count)
-                {
-                    return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
-                        "Uno o más productos seleccionados no existen.",
-                        "ERP:ERROR_REGISTER");
-                }
-
-                productUnitMeasures = products.ToDictionary(p => p.Id, p => p.UnitMeasureId);
-
-                var unitMeasureIds = request.Products
-                    .SelectMany(p => p.TierPrices ?? [])
-                    .Where(t => t.UnitMeasureId.HasValue)
-                    .Select(t => t.UnitMeasureId!.Value)
-                    .Distinct()
-                    .ToList();
-
-                if (unitMeasureIds.Count > 0)
-                {
-                    var existingUomCount = await _unitOfWork.UnitsMeasurement.Entities
-                        .CountAsync(u => unitMeasureIds.Contains(u.Id) && u.IsActive, cancellationToken);
-
-                    if (existingUomCount != unitMeasureIds.Count)
-                    {
-                        return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
-                            "Una o más unidades de medida no existen o no están activas.",
-                            "ERP:ERROR_REGISTER");
-                    }
-                }
-
-                foreach (var productItem in request.Products)
-                {
-                    var overlapError = SupplierProductPriceHelper.ValidateTierPriceOverlaps(
-                        productItem.TierPrices ?? []);
-
-                    if (overlapError is not null)
-                    {
-                        return _errorManager.ThrowBadRequest<RegisterSupplierDto>(overlapError, "ERP:ERROR_REGISTER");
-                    }
-                }
+                return _errorManager.ThrowBadRequest<RegisterSupplierDto>(linkError.Message, linkError.Code);
             }
 
             _logger.LogInformation("Iniciando proceso de registro de proveedor");

@@ -20,21 +20,6 @@ public class UpdateSupplierProductPriceValidator : BaseRequestValidator<UpdateSu
             .When(x => x.NewUnitPrice.HasValue)
             .WithMessage("El precio unitario no puede ser negativo.");
 
-        RuleForEach(x => x.TierPrices).ChildRules(tier =>
-        {
-            tier.RuleFor(t => t.MinQuantity)
-                .GreaterThan(0).WithMessage("La cantidad mínima debe ser mayor a cero.");
-
-            tier.RuleFor(t => t.PreferentialPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("El precio preferencial no puede ser negativo.");
-
-            tier.RuleFor(t => t.UnitMeasureId)
-                .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
-                .When(t => t.UnitMeasureId.HasValue);
-
-            tier.RuleFor(t => t)
-                .Must(t => !t.ValidTo.HasValue || t.ValidTo.Value >= t.ValidFrom)
-                .WithMessage("La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.");
-        });
+        RuleForEach(x => x.TierPrices).ChildRules(tier => CatalogValidationRules.ApplyTierPriceRules(tier));
     }
 }

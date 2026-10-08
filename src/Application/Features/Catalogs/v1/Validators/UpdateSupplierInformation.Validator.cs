@@ -1,27 +1,14 @@
 using FluentValidation;
+using ERP.Core.Manager.Api.Application.Commons.Validators;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
 {
-    public class UpdateSupplierInformationValidator : AbstractValidator<UpdateSupplierInformationCommand>
+    public class UpdateSupplierInformationValidator : BaseRequestValidator<UpdateSupplierInformationCommand>
     {
         public UpdateSupplierInformationValidator()
         {
-            RuleFor(x => x.SupplierId)
-                .NotEmpty()
-                .WithMessage("El identificador del proveedor es obligatorio");
-
-            RuleFor(x => x.UserId)
-                .NotEmpty()
-                .WithMessage("El identificador del usuario es obligatorio");
-
-            RuleFor(x => x.CompanyId)
-                .NotEmpty()
-                .WithMessage("El identificador de la empresa es obligatorio");
-
-            RuleFor(x => x.ModuleCode)
-                .NotEmpty()
-                .WithMessage("El código del módulo es obligatorio");
+            CatalogValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
 
             RuleFor(x => x.SuppliersLegalName)
                 .MaximumLength(200)
@@ -47,8 +34,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .IsInEnum()
                 .WithMessage("El tipo de identificación no es válido")
                 .When(x => x.IdentificationType is not null);
-
-            // SupplierDetails
 
             RuleFor(x => x.SupplierDetails.ContactName)
                 .MaximumLength(150)
@@ -114,32 +99,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("La moneda del proveedor no es válida")
                 .When(x => x.SupplierDetails.Currency.HasValue);
 
-            RuleForEach(x => x.Products).ChildRules(product =>
-            {
-                product.RuleFor(p => p.ProductId)
-                    .NotEmpty().WithMessage("El id del producto es obligatorio.")
-                    .NotEqual(Guid.Empty).WithMessage("El id del producto no es válido.");
-
-                product.RuleFor(p => p.UnitPrice)
-                    .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
-
-                product.RuleForEach(p => p.TierPrices).ChildRules(tier =>
-                {
-                    tier.RuleFor(t => t.MinQuantity)
-                        .GreaterThan(0).WithMessage("La cantidad mínima debe ser mayor a cero.");
-
-                    tier.RuleFor(t => t.PreferentialPrice)
-                        .GreaterThanOrEqualTo(0).WithMessage("El precio preferencial no puede ser negativo.");
-
-                    tier.RuleFor(t => t.UnitMeasureId)
-                        .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
-                        .When(t => t.UnitMeasureId.HasValue);
-
-                    tier.RuleFor(t => t)
-                        .Must(t => !t.ValidTo.HasValue || t.ValidTo.Value >= t.ValidFrom)
-                        .WithMessage("La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.");
-                });
-            });
+            CatalogValidationRules.ApplySupplierProductItemsRules(this, x => x.Products);
         }
     }
 }

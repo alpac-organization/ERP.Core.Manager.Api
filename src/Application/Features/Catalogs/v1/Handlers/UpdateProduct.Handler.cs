@@ -98,66 +98,20 @@ public class UpdateProductHandler(
 
         if (request.Suppliers is { Count: > 0 })
         {
-            var supplierIds = request.Suppliers.Select(s => s.SupplierId).Distinct().ToList();
-
-            if (supplierIds.Count != request.Suppliers.Count)
-            {
-                return _errorManager.ThrowBadRequest<bool>(
-                    "No se puede relacionar el mismo proveedor más de una vez al producto.",
-                    "ERP:PROD03");
-            }
-
             var alreadyLinked = product.SupplierProducts
                 .Where(sp => sp.IsActive && sp.DeletedAt == null)
                 .Select(sp => sp.SupplierId)
                 .ToHashSet();
 
-            if (supplierIds.Any(alreadyLinked.Contains))
+            var linkError = await SupplierProductLinkValidator.ValidateSuppliersToLinkAsync(
+                _unitOfWork,
+                request.Suppliers,
+                alreadyLinked,
+                cancellationToken);
+
+            if (linkError is not null)
             {
-                return _errorManager.ThrowBadRequest<bool>(
-                    "Uno o más proveedores ya están vinculados a este producto.",
-                    "ERP:PROD07");
-            }
-
-            var existingSupplierCount = await _unitOfWork.Suppliers.Entities
-                .CountAsync(s => supplierIds.Contains(s.Id) && s.IsActive && s.DeletedAt == null, cancellationToken);
-
-            if (existingSupplierCount != supplierIds.Count)
-            {
-                return _errorManager.ThrowBadRequest<bool>(
-                    "Uno o más proveedores seleccionados no existen o no están activos.",
-                    "ERP:PROD04");
-            }
-
-            var unitMeasureIds = request.Suppliers
-                .SelectMany(s => s.TierPrices ?? [])
-                .Where(t => t.UnitMeasureId.HasValue)
-                .Select(t => t.UnitMeasureId!.Value)
-                .Distinct()
-                .ToList();
-
-            if (unitMeasureIds.Count > 0)
-            {
-                var existingUomCount = await _unitOfWork.UnitsMeasurement.Entities
-                    .CountAsync(u => unitMeasureIds.Contains(u.Id) && u.IsActive, cancellationToken);
-
-                if (existingUomCount != unitMeasureIds.Count)
-                {
-                    return _errorManager.ThrowBadRequest<bool>(
-                        "Una o más unidades de medida no existen o no están activas.",
-                        "ERP:PROD06");
-                }
-            }
-
-            foreach (var supplierItem in request.Suppliers)
-            {
-                var overlapError = SupplierProductPriceHelper.ValidateTierPriceOverlaps(
-                    supplierItem.TierPrices ?? []);
-
-                if (overlapError is not null)
-                {
-                    return _errorManager.ThrowBadRequest<bool>(overlapError, "ERP:PROD05");
-                }
+                return _errorManager.ThrowBadRequest<bool>(linkError.Message, linkError.Code);
             }
 
             var now = DateTime.UtcNow;
