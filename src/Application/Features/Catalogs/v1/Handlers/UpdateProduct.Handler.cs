@@ -124,7 +124,7 @@ public class UpdateProductHandler(
                         productId: null,
                         supplierItem.UnitPrice,
                         supplierItem.TierPrices,
-                        product.UnitMeasureId,
+                        supplierItem.UnitMeasureId ?? product.UnitMeasureId,
                         now));
             }
         }

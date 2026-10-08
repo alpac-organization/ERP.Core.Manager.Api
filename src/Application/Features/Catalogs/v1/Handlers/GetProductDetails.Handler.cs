@@ -42,6 +42,28 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
             .SelectMany(p => p.SupplierProducts)
             .Where(sp => sp.IsActive && sp.DeletedAt == null);
 
+        if (!string.IsNullOrWhiteSpace(request.CommercialName))
+        {
+            suppliersQuery = suppliersQuery
+                .Where(sp =>
+                    sp.Supplier.CommercialName != null &&
+                    sp.Supplier.CommercialName.Contains(request.CommercialName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.IdentificationNumber))
+        {
+            suppliersQuery = suppliersQuery
+                .Where(sp => sp.Supplier.IdentificationNumber == request.IdentificationNumber);
+        }
+
+        if (request.ExclusiveStatus.HasValue)
+        {
+            suppliersQuery = suppliersQuery
+                .Where(sp =>
+                    sp.Supplier.SupplierDetails != null &&
+                    sp.Supplier.SupplierDetails.ExclusiveStatus == request.ExclusiveStatus.Value);
+        }
+
         var totalCount = await suppliersQuery.CountAsync(cancellationToken);
 
         var suppliers = await suppliersQuery

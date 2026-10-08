@@ -9,6 +9,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public string? CommercialName { get; set; }
         public string? IdentificationNumber { get; set; }
         public IdentificationType? IdentificationType { get; set; }
+        public SupplierType? SupplierType { get; set; }
         public ConstitutionType ConstitutionType { get; set; }
         public SupplierExclusiveStatus? ExclusiveStatus { get; set; }
         public List<SupplierPaymentMethods> SupplierPaymentMethods { get; set; } = [];

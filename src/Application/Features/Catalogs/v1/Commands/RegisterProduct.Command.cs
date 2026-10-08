@@ -21,7 +21,7 @@ public class ProductSupplierItemDto
 {
     public Guid SupplierId { get; set; }
     public decimal UnitPrice { get; set; }
-    
+    public Guid? UnitMeasureId { get; set; }
     public List<TierPriceDto>? TierPrices { get; set; } = [];
 }
 

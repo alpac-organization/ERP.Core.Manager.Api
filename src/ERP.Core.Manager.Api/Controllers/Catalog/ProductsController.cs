@@ -51,7 +51,10 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
         [FromRoute] string module_code,
         [FromRoute] Guid product_id,
         [FromQuery] int page_size = 10,
-        [FromQuery] int page_number = 1)
+        [FromQuery] int page_number = 1,
+        [FromQuery] string? commercial_name = null,
+        [FromQuery] string? identification_number = null,
+        [FromQuery] SupplierExclusiveStatus? exclusive_status = null)
     {
         var userId = ResolveUserId();
 
@@ -62,7 +65,10 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
             UserId = userId,
             ProductId = product_id,
             PageSize = page_size,
-            PageNumber = page_number
+            PageNumber = page_number,
+            CommercialName = commercial_name,
+            IdentificationNumber = identification_number,
+            ExclusiveStatus = exclusive_status
         });
     }
 
