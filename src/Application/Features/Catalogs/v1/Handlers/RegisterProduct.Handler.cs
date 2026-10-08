@@ -71,6 +71,26 @@ public class RegisterProductHandler(
                     "ERP:PROD04");
             }
 
+            var unitMeasureIds = request.Suppliers
+                .SelectMany(s => s.TierPrices ?? [])
+                .Where(t => t.UnitMeasureId.HasValue)
+                .Select(t => t.UnitMeasureId!.Value)
+                .Distinct()
+                .ToList();
+
+            if (unitMeasureIds.Count > 0)
+            {
+                var existingUomCount = await _unitOfWork.UnitsMeasurement.Entities
+                    .CountAsync(u => unitMeasureIds.Contains(u.Id) && u.IsActive, cancellationToken);
+
+                if (existingUomCount != unitMeasureIds.Count)
+                {
+                    return _errorManager.ThrowBadRequest<Guid>(
+                        "Una o más unidades de medida no existen o no están activas.",
+                        "ERP:PROD06");
+                }
+            }
+
             foreach (var supplierItem in request.Suppliers)
             {
                 var overlapError = SupplierProductPriceHelper.ValidateTierPriceOverlaps(

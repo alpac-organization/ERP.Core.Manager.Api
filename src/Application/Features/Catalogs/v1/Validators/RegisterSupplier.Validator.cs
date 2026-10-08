@@ -109,6 +109,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                     tier.RuleFor(t => t.PreferentialPrice)
                         .GreaterThanOrEqualTo(0).WithMessage("El precio preferencial no puede ser negativo.");
 
+                    tier.RuleFor(t => t.UnitMeasureId)
+                        .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
+                        .When(t => t.UnitMeasureId.HasValue);
+
                     tier.RuleFor(t => t)
                         .Must(t => !t.ValidTo.HasValue || t.ValidTo.Value >= t.ValidFrom)
                         .WithMessage("La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.");

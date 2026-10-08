@@ -7,6 +7,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
@@ -37,6 +38,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             var supplier = await _unitOfWork.Suppliers.Entities
+                .Include(sup => sup.SupplierProducts)
                 .Where(sup => sup.Id == request.SupplierId)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -59,7 +61,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             if (request.SupplierDetails is not null)
             {
-
                 var supplierDetails = await _unitOfWork.SuppliersDetails.Entities
                     .Where(supl => supl.SupplierId == supplier.Id)
                     .FirstOrDefaultAsync(cancellationToken);
@@ -85,6 +86,89 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     supplierDetails.ApplyIrRetention           = request.SupplierDetails.ApplyIrRetention           ?? supplierDetails.ApplyIrRetention;
                     supplierDetails.ApplyMunicipalRetention    = request.SupplierDetails.ApplyMunicipalRetention    ?? supplierDetails.ApplyMunicipalRetention;
                     supplierDetails.IsTaxExempt                = request.SupplierDetails.IsTaxExempt                ?? supplierDetails.IsTaxExempt;
+                }
+            }
+
+            if (request.Products is { Count: > 0 })
+            {
+                var productIds = request.Products.Select(p => p.ProductId).Distinct().ToList();
+
+                if (productIds.Count != request.Products.Count)
+                {
+                    return _errorManager.ThrowBadRequest<bool>(
+                        "No se puede relacionar el mismo producto más de una vez al proveedor.",
+                        "ERP:ERROR_UPDATE");
+                }
+
+                var alreadyLinked = supplier.SupplierProducts
+                    .Where(sp => sp.IsActive && sp.DeletedAt == null)
+                    .Select(sp => sp.ProductId)
+                    .ToHashSet();
+
+                if (productIds.Any(alreadyLinked.Contains))
+                {
+                    return _errorManager.ThrowBadRequest<bool>(
+                        "Uno o más productos ya están vinculados a este proveedor.",
+                        "ERP:ERROR_UPDATE");
+                }
+
+                var products = await _unitOfWork.Products.Entities
+                    .AsNoTracking()
+                    .Where(p => productIds.Contains(p.Id) && p.DeletedAt == null)
+                    .Select(p => new { p.Id, p.UnitMeasureId })
+                    .ToListAsync(cancellationToken);
+
+                if (products.Count != productIds.Count)
+                {
+                    return _errorManager.ThrowBadRequest<bool>(
+                        "Uno o más productos seleccionados no existen.",
+                        "ERP:ERROR_UPDATE");
+                }
+
+                var unitMeasureIds = request.Products
+                    .SelectMany(p => p.TierPrices ?? [])
+                    .Where(t => t.UnitMeasureId.HasValue)
+                    .Select(t => t.UnitMeasureId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                if (unitMeasureIds.Count > 0)
+                {
+                    var existingUomCount = await _unitOfWork.UnitsMeasurement.Entities
+                        .CountAsync(u => unitMeasureIds.Contains(u.Id) && u.IsActive, cancellationToken);
+
+                    if (existingUomCount != unitMeasureIds.Count)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>(
+                            "Una o más unidades de medida no existen o no están activas.",
+                            "ERP:ERROR_UPDATE");
+                    }
+                }
+
+                foreach (var productItem in request.Products)
+                {
+                    var overlapError = SupplierProductPriceHelper.ValidateTierPriceOverlaps(
+                        productItem.TierPrices ?? []);
+
+                    if (overlapError is not null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>(overlapError, "ERP:ERROR_UPDATE");
+                    }
+                }
+
+                var now = DateTime.UtcNow;
+                var productUnitMeasures = products.ToDictionary(p => p.Id, p => p.UnitMeasureId);
+
+                foreach (var productItem in request.Products)
+                {
+                    supplier.SupplierProducts.Add(
+                        SupplierProductPriceHelper.BuildSupplierProduct(
+                            supplier.Id,
+                            productItem.ProductId,
+                            productItem.UnitPrice,
+                            productItem.TierPrices,
+                            productUnitMeasures[productItem.ProductId],
+                            now));
                 }
             }
 

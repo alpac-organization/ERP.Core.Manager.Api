@@ -16,7 +16,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public ConstitutionType? ConstitutionType { get; set; }
         public IdentificationType? IdentificationType { get; set; }
 
-        public SupplierDetailsInformation SupplierDetails { get; set; } = new ();
+        public SupplierDetailsInformation SupplierDetails { get; set; } = new();
+
+        public List<SupplierProductItemDto> Products { get; set; } = [];
     }
 
     public class SupplierDetailsInformation

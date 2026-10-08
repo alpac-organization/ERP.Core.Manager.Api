@@ -64,6 +64,25 @@ public class UpdateSupplierProductPriceHandler(
 
         if (request.TierPrices is { Count: > 0 })
         {
+            var unitMeasureIds = request.TierPrices
+                .Where(t => t.UnitMeasureId.HasValue)
+                .Select(t => t.UnitMeasureId!.Value)
+                .Distinct()
+                .ToList();
+
+            if (unitMeasureIds.Count > 0)
+            {
+                var existingUomCount = await _unitOfWork.UnitsMeasurement.Entities
+                    .CountAsync(u => unitMeasureIds.Contains(u.Id) && u.IsActive, cancellationToken);
+
+                if (existingUomCount != unitMeasureIds.Count)
+                {
+                    return _errorManager.ThrowBadRequest<bool>(
+                        "Una o más unidades de medida no existen o no están activas.",
+                        "ERP:PRICE_03");
+                }
+            }
+
             var existingActiveTiers = supplierProduct.TierPrices
                 .Where(t => t.DeletedAt == null)
                 .Select(t => new TierPriceDto
@@ -71,7 +90,8 @@ public class UpdateSupplierProductPriceHandler(
                     MinQuantity = t.MinQuantity,
                     PreferentialPrice = t.PreferentialPrice,
                     ValidFrom = t.ValidFrom,
-                    ValidTo = t.ValidTo
+                    ValidTo = t.ValidTo,
+                    UnitMeasureId = t.UnitMeasureId
                 });
 
             var combined = existingActiveTiers.Concat(request.TierPrices).ToList();
@@ -97,16 +117,18 @@ public class UpdateSupplierProductPriceHandler(
                     history.EffectiveTo = now;
                 }
 
+                var resolvedUnitMeasureId = tier.UnitMeasureId ?? product.UnitMeasureId;
+
                 supplierProduct.TierPrices.Add(
-                    SupplierProductPriceHelper.CreateTierPrice(tier, product.UnitMeasureId));
+                    SupplierProductPriceHelper.CreateTierPrice(tier, resolvedUnitMeasureId));
 
                 supplierProduct.PriceHistories.Add(new HistoryPrices
                 {
                     PriceType = SupplierPriceHistoryType.PreferentialPrice,
                     Price = tier.PreferentialPrice,
                     MinQuantity = tier.MinQuantity,
-                    EffectiveFrom = now,
-                    EffectiveTo = SupplierProductPriceHelper.ActiveEffectiveTo
+                    EffectiveFrom = SupplierProductPriceHelper.ResolvePreferentialEffectiveFrom(tier.ValidFrom, now),
+                    EffectiveTo = SupplierProductPriceHelper.ResolvePreferentialEffectiveTo(tier.ValidTo)
                 });
             }
 

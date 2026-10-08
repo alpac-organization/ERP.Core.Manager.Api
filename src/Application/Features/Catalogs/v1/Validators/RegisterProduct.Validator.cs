@@ -53,6 +53,10 @@ public class RegisterProductValidator : AbstractValidator<RegisterProductCommand
                 tier.RuleFor(t => t.ValidFrom)
                     .NotEmpty().WithMessage("La fecha de inicio de vigencia es obligatoria.");
 
+                tier.RuleFor(t => t.UnitMeasureId)
+                    .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
+                    .When(t => t.UnitMeasureId.HasValue);
+
                 tier.RuleFor(t => t)
                     .Must(t => !t.ValidTo.HasValue || t.ValidTo.Value >= t.ValidFrom)
                     .WithMessage("La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.");
