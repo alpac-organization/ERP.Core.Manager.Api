@@ -1,27 +1,14 @@
 using FluentValidation;
+using ERP.Core.Manager.Api.Application.Commons.Validators;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
 {
-    public class UpdateSupplierInformationValidator : AbstractValidator<UpdateSupplierInformationCommand>
+    public class UpdateSupplierInformationValidator : BaseRequestValidator<UpdateSupplierInformationCommand>
     {
         public UpdateSupplierInformationValidator()
         {
-            RuleFor(x => x.SupplierId)
-                .NotEmpty()
-                .WithMessage("El identificador del proveedor es obligatorio");
-
-            RuleFor(x => x.UserId)
-                .NotEmpty()
-                .WithMessage("El identificador del usuario es obligatorio");
-
-            RuleFor(x => x.CompanyId)
-                .NotEmpty()
-                .WithMessage("El identificador de la empresa es obligatorio");
-
-            RuleFor(x => x.ModuleCode)
-                .NotEmpty()
-                .WithMessage("El código del módulo es obligatorio");
+            CatalogValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
 
             RuleFor(x => x.SuppliersLegalName)
                 .MaximumLength(200)
@@ -47,8 +34,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .IsInEnum()
                 .WithMessage("El tipo de identificación no es válido")
                 .When(x => x.IdentificationType is not null);
-
-            // SupplierDetails
 
             RuleFor(x => x.SupplierDetails.ContactName)
                 .MaximumLength(150)
@@ -113,6 +98,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .IsInEnum()
                 .WithMessage("La moneda del proveedor no es válida")
                 .When(x => x.SupplierDetails.Currency.HasValue);
+
+            CatalogValidationRules.ApplySupplierProductItemsRules(this, x => x.Products);
         }
     }
 }

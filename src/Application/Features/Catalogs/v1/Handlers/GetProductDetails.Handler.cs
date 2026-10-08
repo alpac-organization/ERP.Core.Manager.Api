@@ -57,6 +57,9 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
                 SupplierType = sp.Supplier.SupplierDetails != null
                     ? sp.Supplier.SupplierDetails.SupplierType
                     : SupplierType.Ordinary,
+                Currency = sp.Supplier.SupplierDetails != null
+                    ? sp.Supplier.SupplierDetails.Currency
+                    : Currency.NIO,
                 UnitPrice = sp.UnitPrice,
                 LastPriceUpdate = sp.LastPriceUpdate,
                 IsActive = sp.IsActive,

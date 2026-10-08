@@ -51,37 +51,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<RegisterSupplierDto>("Los dias de creditos deben contener almenos un dia", "ERP:ERROR_REGISTER");
             }
 
-            if (request.Products.Count > 0)
+            var (linkError, productUnitMeasures) = await SupplierProductLinkValidator.ValidateProductsToLinkAsync(
+                _unitOfWork,
+                request.Products,
+                alreadyLinkedProductIds: null,
+                "ERP:ERROR_REGISTER",
+                cancellationToken);
+
+            if (linkError is not null)
             {
-                var productIds = request.Products.Select(p => p.ProductId).Distinct().ToList();
-
-                if (productIds.Count != request.Products.Count)
-                {
-                    return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
-                        "No se puede relacionar el mismo producto más de una vez al proveedor.",
-                        "ERP:ERROR_REGISTER");
-                }
-
-                var existingProductCount = await _unitOfWork.Products.Entities
-                    .CountAsync(p => productIds.Contains(p.Id) && p.DeletedAt == null, cancellationToken);
-
-                if (existingProductCount != productIds.Count)
-                {
-                    return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
-                        "Uno o más productos seleccionados no existen.",
-                        "ERP:ERROR_REGISTER");
-                }
-
-                foreach (var productItem in request.Products)
-                {
-                    var overlapError = SupplierProductPriceHelper.ValidateTierPriceOverlaps(
-                        productItem.TierPrices ?? []);
-
-                    if (overlapError is not null)
-                    {
-                        return _errorManager.ThrowBadRequest<RegisterSupplierDto>(overlapError, "ERP:ERROR_REGISTER");
-                    }
-                }
+                return _errorManager.ThrowBadRequest<RegisterSupplierDto>(linkError.Message, linkError.Code);
             }
 
             _logger.LogInformation("Iniciando proceso de registro de proveedor");
@@ -95,7 +74,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     p.ProductId,
                     p.UnitPrice,
                     p.TierPrices,
-                    unitMeasureId: null,
+                    productUnitMeasures.GetValueOrDefault(p.ProductId),
                     now))
                 .ToList();
 

@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
@@ -26,16 +28,20 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
             return access.ErrorResponse!;
         }
 
-        var supplierProductExists = await _unitOfWork.Products.Entities
+        var supplierProduct = await _unitOfWork.Products.Entities
             .AsNoTracking()
             .Where(p => p.Id == request.ProductId && p.DeletedAt == null)
             .SelectMany(p => p.SupplierProducts)
-            .AnyAsync(sp =>
-                sp.SupplierId == request.SupplierId &&
-                sp.DeletedAt == null,
-                cancellationToken);
+            .Where(sp => sp.SupplierId == request.SupplierId && sp.DeletedAt == null)
+            .Select(sp => new
+            {
+                Currency = sp.Supplier.SupplierDetails != null
+                    ? sp.Supplier.SupplierDetails.Currency
+                    : Currency.NIO
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (!supplierProductExists)
+        if (supplierProduct is null)
         {
             return _errorManager.ThrowBadRequest<PagedResponse<SupplierProductPriceHistoryDto>>(
                 "La relación proveedor-producto no existe.",
@@ -56,21 +62,40 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
         }
 
         var totalCount = await historyQuery.CountAsync(cancellationToken);
+        var utcNow = DateTime.UtcNow;
 
-        var history = await historyQuery
+        var historyRows = await historyQuery
             .OrderByDescending(h => h.EffectiveFrom)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(h => new SupplierProductPriceHistoryDto
+            .Select(h => new
             {
-                HistoryPriceId = h.Id,
-                PriceType = h.PriceType,
-                Price = h.Price,
-                MinQuantity = h.MinQuantity,
-                EffectiveFrom = h.EffectiveFrom,
-                EffectiveTo = h.EffectiveTo
+                h.Id,
+                h.PriceType,
+                h.Price,
+                h.MinQuantity,
+                h.EffectiveFrom,
+                h.EffectiveTo
             })
             .ToListAsync(cancellationToken);
+
+        var history = historyRows
+            .Select(h =>
+            {
+                var effectiveTo = SupplierProductPriceHelper.ToApiEffectiveTo(h.EffectiveTo);
+                return new SupplierProductPriceHistoryDto
+                {
+                    HistoryPriceId = h.Id,
+                    PriceType = h.PriceType,
+                    Price = h.Price,
+                    MinQuantity = h.MinQuantity,
+                    Currency = supplierProduct.Currency,
+                    EffectiveFrom = h.EffectiveFrom,
+                    EffectiveTo = effectiveTo,
+                    IsCurrent = SupplierProductPriceHelper.IsCurrentPrice(h.EffectiveFrom, effectiveTo, utcNow)
+                };
+            })
+            .ToList();
 
         return new PagedResponse<SupplierProductPriceHistoryDto>(
             history,

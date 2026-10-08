@@ -1,26 +1,14 @@
 using FluentValidation;
+using ERP.Core.Manager.Api.Application.Commons.Validators;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators;
 
-public class UpdateProductValidator : AbstractValidator<UpdateProductCommand>
+public class UpdateProductValidator : BaseRequestValidator<UpdateProductCommand>
 {
     public UpdateProductValidator()
     {
-        RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("El id de usuario es requerido.")
-            .NotEqual(Guid.Empty).WithMessage("El id de usuario no es válido.");
-
-        RuleFor(x => x.CompanyId)
-            .NotEmpty().WithMessage("El id de la empresa es requerido.")
-            .NotEqual(Guid.Empty).WithMessage("El id de la empresa no es válido.");
-
-        RuleFor(x => x.ModuleCode)
-            .NotEmpty().WithMessage("El código de módulo es requerido.");
-
-        RuleFor(x => x.ProductId)
-            .NotEmpty().WithMessage("El id del producto es requerido.")
-            .NotEqual(Guid.Empty).WithMessage("El id del producto no es válido.");
+        CatalogValidationRules.ApplyProductIdRules(this, x => x.ProductId);
 
         RuleFor(x => x.ProductName)
             .MaximumLength(80)
@@ -39,5 +27,7 @@ public class UpdateProductValidator : AbstractValidator<UpdateProductCommand>
         RuleFor(x => x.ProductUsageType)
             .IsInEnum()
             .When(x => x.ProductUsageType.HasValue);
+
+        CatalogValidationRules.ApplyProductSupplierItemsRules(this, x => x.Suppliers);
     }
 }

@@ -31,4 +31,5 @@ public class TierPriceDto
     public decimal PreferentialPrice { get; set; }
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
+    public Guid? UnitMeasureId { get; set; }
 }

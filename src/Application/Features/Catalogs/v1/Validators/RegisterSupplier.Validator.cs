@@ -1,25 +1,14 @@
 using FluentValidation;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Commons.Validators;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
 {
-    public class RegisterSupplierValidator : AbstractValidator<RegisterSupplierCommand>
+    public class RegisterSupplierValidator : BaseRequestValidator<RegisterSupplierCommand>
     {
         public RegisterSupplierValidator()
         {
-            RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("El id de usario es requerido.")
-                .NotNull().WithMessage("El id de usuario es requerido.");
-
-            RuleFor(x => x.CompanyId)
-                .NotEmpty().WithMessage("El id de la empresa es requerido")
-                .NotNull().WithMessage("El id de la empresa es requerido");
-
-            RuleFor(x => x.ModuleCode)
-                .NotEmpty().WithMessage("El codigo de modulo es requerido")
-                .NotNull().WithMessage("El codigo de modulo es requerido");
-
             RuleFor(x => x.SuppliersLegalName)
                 .NotEmpty()
                 .MaximumLength(200)
@@ -92,28 +81,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("Las marcas o líneas exclusivas no pueden exceder 500 caracteres.")
                 .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.ExclusiveBrandsOrParts));
 
-            RuleForEach(x => x.Products).ChildRules(product =>
-            {
-                product.RuleFor(p => p.ProductId)
-                    .NotEmpty().WithMessage("El id del producto es obligatorio.")
-                    .NotEqual(Guid.Empty).WithMessage("El id del producto no es válido.");
-
-                product.RuleFor(p => p.UnitPrice)
-                    .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
-
-                product.RuleForEach(p => p.TierPrices).ChildRules(tier =>
-                {
-                    tier.RuleFor(t => t.MinQuantity)
-                        .GreaterThan(0).WithMessage("La cantidad mínima debe ser mayor a cero.");
-
-                    tier.RuleFor(t => t.PreferentialPrice)
-                        .GreaterThanOrEqualTo(0).WithMessage("El precio preferencial no puede ser negativo.");
-
-                    tier.RuleFor(t => t)
-                        .Must(t => !t.ValidTo.HasValue || t.ValidTo.Value >= t.ValidFrom)
-                        .WithMessage("La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.");
-                });
-            });
+            CatalogValidationRules.ApplySupplierProductItemsRules(this, x => x.Products);
 
             RuleFor(x => x.SupplierDetails.CreditLimit)
                 .GreaterThanOrEqualTo(0)

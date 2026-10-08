@@ -7,6 +7,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
@@ -37,6 +38,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             var supplier = await _unitOfWork.Suppliers.Entities
+                .Include(sup => sup.SupplierProducts)
                 .Where(sup => sup.Id == request.SupplierId)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -59,7 +61,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             if (request.SupplierDetails is not null)
             {
-
                 var supplierDetails = await _unitOfWork.SuppliersDetails.Entities
                     .Where(supl => supl.SupplierId == supplier.Id)
                     .FirstOrDefaultAsync(cancellationToken);
@@ -85,6 +86,40 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     supplierDetails.ApplyIrRetention           = request.SupplierDetails.ApplyIrRetention           ?? supplierDetails.ApplyIrRetention;
                     supplierDetails.ApplyMunicipalRetention    = request.SupplierDetails.ApplyMunicipalRetention    ?? supplierDetails.ApplyMunicipalRetention;
                     supplierDetails.IsTaxExempt                = request.SupplierDetails.IsTaxExempt                ?? supplierDetails.IsTaxExempt;
+                }
+            }
+
+            if (request.Products is { Count: > 0 })
+            {
+                var alreadyLinked = supplier.SupplierProducts
+                    .Where(sp => sp.IsActive && sp.DeletedAt == null)
+                    .Select(sp => sp.ProductId)
+                    .ToHashSet();
+
+                var (linkError, productUnitMeasures) = await SupplierProductLinkValidator.ValidateProductsToLinkAsync(
+                    _unitOfWork,
+                    request.Products,
+                    alreadyLinked,
+                    "ERP:ERROR_UPDATE",
+                    cancellationToken);
+
+                if (linkError is not null)
+                {
+                    return _errorManager.ThrowBadRequest<bool>(linkError.Message, linkError.Code);
+                }
+
+                var now = DateTime.UtcNow;
+
+                foreach (var productItem in request.Products)
+                {
+                    supplier.SupplierProducts.Add(
+                        SupplierProductPriceHelper.BuildSupplierProduct(
+                            supplier.Id,
+                            productItem.ProductId,
+                            productItem.UnitPrice,
+                            productItem.TierPrices,
+                            productUnitMeasures[productItem.ProductId],
+                            now));
                 }
             }
 

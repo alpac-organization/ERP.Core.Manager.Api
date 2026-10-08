@@ -6,6 +6,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 
@@ -31,6 +32,7 @@ public class UpdateProductHandler(
         }
 
         var product = await _unitOfWork.Products.Entities
+            .Include(p => p.SupplierProducts)
             .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.DeletedAt == null, cancellationToken);
 
         if (product is null)
@@ -93,6 +95,39 @@ public class UpdateProductHandler(
         product.Description = request.Description ?? product.Description;
         product.ProductUsageType = request.ProductUsageType ?? product.ProductUsageType;
         product.IsTaxExempt = request.IsTaxExempt ?? product.IsTaxExempt;
+
+        if (request.Suppliers is { Count: > 0 })
+        {
+            var alreadyLinked = product.SupplierProducts
+                .Where(sp => sp.IsActive && sp.DeletedAt == null)
+                .Select(sp => sp.SupplierId)
+                .ToHashSet();
+
+            var linkError = await SupplierProductLinkValidator.ValidateSuppliersToLinkAsync(
+                _unitOfWork,
+                request.Suppliers,
+                alreadyLinked,
+                cancellationToken);
+
+            if (linkError is not null)
+            {
+                return _errorManager.ThrowBadRequest<bool>(linkError.Message, linkError.Code);
+            }
+
+            var now = DateTime.UtcNow;
+
+            foreach (var supplierItem in request.Suppliers)
+            {
+                product.SupplierProducts.Add(
+                    SupplierProductPriceHelper.BuildSupplierProduct(
+                        supplierItem.SupplierId,
+                        productId: null,
+                        supplierItem.UnitPrice,
+                        supplierItem.TierPrices,
+                        product.UnitMeasureId,
+                        now));
+            }
+        }
 
         await _unitOfWork.Products.UpdateAsync(product);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

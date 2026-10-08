@@ -16,4 +16,6 @@ public class UpdateProductCommand : BaseRequest, IRequest<bool>
     public Guid? UnitMeasureId { get; set; }
     public ProductUsageType? ProductUsageType { get; set; }
     public bool? IsTaxExempt { get; set; }
+
+    public List<ProductSupplierItemDto> Suppliers { get; set; } = [];
 }

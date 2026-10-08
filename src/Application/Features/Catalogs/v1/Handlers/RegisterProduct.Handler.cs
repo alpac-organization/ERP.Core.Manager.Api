@@ -50,37 +50,15 @@ public class RegisterProductHandler(
                 "ERP:PROD02");
         }
 
-        if (request.Suppliers.Count > 0)
+        var linkError = await SupplierProductLinkValidator.ValidateSuppliersToLinkAsync(
+            _unitOfWork,
+            request.Suppliers,
+            alreadyLinkedSupplierIds: null,
+            cancellationToken);
+
+        if (linkError is not null)
         {
-            var supplierIds = request.Suppliers.Select(s => s.SupplierId).Distinct().ToList();
-
-            if (supplierIds.Count != request.Suppliers.Count)
-            {
-                return _errorManager.ThrowBadRequest<Guid>(
-                    "No se puede relacionar el mismo proveedor más de una vez al producto.",
-                    "ERP:PROD03");
-            }
-
-            var existingSupplierCount = await _unitOfWork.Suppliers.Entities
-                .CountAsync(s => supplierIds.Contains(s.Id) && s.IsActive && s.DeletedAt == null, cancellationToken);
-
-            if (existingSupplierCount != supplierIds.Count)
-            {
-                return _errorManager.ThrowBadRequest<Guid>(
-                    "Uno o más proveedores seleccionados no existen o no están activos.",
-                    "ERP:PROD04");
-            }
-
-            foreach (var supplierItem in request.Suppliers)
-            {
-                var overlapError = SupplierProductPriceHelper.ValidateTierPriceOverlaps(
-                    supplierItem.TierPrices ?? []);
-
-                if (overlapError is not null)
-                {
-                    return _errorManager.ThrowBadRequest<Guid>(overlapError, "ERP:PROD05");
-                }
-            }
+            return _errorManager.ThrowBadRequest<Guid>(linkError.Message, linkError.Code);
         }
 
         var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(

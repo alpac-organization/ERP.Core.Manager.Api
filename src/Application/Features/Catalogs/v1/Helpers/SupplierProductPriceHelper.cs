@@ -42,14 +42,15 @@ public static class SupplierProductPriceHelper
 
         foreach (var tier in tierPrices ?? [])
         {
-            link.TierPrices.Add(CreateTierPrice(tier, unitMeasureId));
+            var resolvedUnitMeasureId = tier.UnitMeasureId ?? unitMeasureId;
+            link.TierPrices.Add(CreateTierPrice(tier, resolvedUnitMeasureId));
             link.PriceHistories.Add(new HistoryPrices
             {
                 PriceType = SupplierPriceHistoryType.PreferentialPrice,
                 Price = tier.PreferentialPrice,
                 MinQuantity = tier.MinQuantity,
-                EffectiveFrom = now,
-                EffectiveTo = ActiveEffectiveTo
+                EffectiveFrom = ResolvePreferentialEffectiveFrom(tier.ValidFrom, now),
+                EffectiveTo = ResolvePreferentialEffectiveTo(tier.ValidTo)
             });
         }
 
@@ -65,6 +66,25 @@ public static class SupplierProductPriceHelper
             ValidTo = tier.ValidTo,
             UnitMeasureId = unitMeasureId
         };
+
+    public static DateTime ResolvePreferentialEffectiveFrom(DateOnly validFrom, DateTime fallbackNow)
+    {
+        var from = validFrom.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        return from > fallbackNow ? from : fallbackNow;
+    }
+
+    public static DateTime ResolvePreferentialEffectiveTo(DateOnly? validTo) =>
+        validTo.HasValue
+            ? validTo.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)
+            : ActiveEffectiveTo;
+
+    public static DateTime? ToApiEffectiveTo(DateTime effectiveTo) =>
+        effectiveTo == ActiveEffectiveTo || effectiveTo == DateTime.MaxValue
+            ? null
+            : effectiveTo;
+
+    public static bool IsCurrentPrice(DateTime effectiveFrom, DateTime? effectiveTo, DateTime utcNow) =>
+        effectiveFrom <= utcNow && (effectiveTo is null || effectiveTo > utcNow);
 
     public static void CloseActivePriceHistories(SupplierProduct supplierProduct, DateTime closedAt)
     {
