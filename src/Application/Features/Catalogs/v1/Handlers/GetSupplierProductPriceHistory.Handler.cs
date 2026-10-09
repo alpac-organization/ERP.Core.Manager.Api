@@ -35,9 +35,7 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
             .Where(sp => sp.SupplierId == request.SupplierId && sp.DeletedAt == null)
             .Select(sp => new
             {
-                Currency = sp.Supplier.SupplierDetails != null
-                    ? sp.Supplier.SupplierDetails.Currency
-                    : Currency.NIO
+                Currency = sp.Currency
             })
             .FirstOrDefaultAsync(cancellationToken);
 

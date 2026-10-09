@@ -14,7 +14,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public ConstitutionType ConstitutionType { get; set; }
         public IdentificationType IdentificationType { get; set; }
 
-        // Alias raíz; si viene, tiene prioridad sobre supplier_details.supplier_type
         public SupplierType? SupplierType { get; set; }
 
         public SupplierDetails SupplierDetails { get; set; } = new();
@@ -40,7 +39,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public string? ExclusiveStatusComments { get; set; }
 
         public SupplierType? SupplierType { get; set; }
-        public Currency Currency { get; set; } = Currency.NIO;
+        public Currency Currency { get; set; } 
 
         public string? ExclusiveBrandsOrParts { get; set; }
         public decimal? CreditLimit { get; set; }
@@ -68,6 +67,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public decimal UnitPrice { get; set; }
 
         public Guid? UnitMeasureId { get; set; }
+        public Currency? Currency { get; set; }
         public List<TierPriceDto>? TierPrices { get; set; } = [];
     }
 }

@@ -14,7 +14,8 @@ public static class SupplierProductPriceHelper
         decimal unitPrice,
         IEnumerable<TierPriceDto>? tierPrices,
         Guid? unitMeasureId,
-        DateTime now)
+        DateTime now,
+        Currency? currency = null)
     {
         var link = new SupplierProduct
         {
@@ -22,6 +23,7 @@ public static class SupplierProductPriceHelper
             SupplierId = supplierId,
             UnitPrice = unitPrice,
             LastPriceUpdate = now,
+            Currency = currency ?? Currency.NIO,
             PriceHistories =
             [
                 new HistoryPrices
@@ -190,9 +192,15 @@ public static class SupplierProductPriceHelper
         decimal unitPrice,
         IReadOnlyList<TierPriceDto>? tierPrices,
         Guid fallbackUnitMeasureId,
-        DateTime now)
+        DateTime now,
+        Currency? currency = null)
     {
         ApplyUnitPriceChange(supplierProduct, unitPrice, now);
+
+        if (currency.HasValue)
+        {
+            supplierProduct.Currency = currency.Value;
+        }
 
         if (tierPrices is not { Count: > 0 })
         {
@@ -201,6 +209,13 @@ public static class SupplierProductPriceHelper
 
         return ApplyTierPrices(supplierProduct, tierPrices, fallbackUnitMeasureId, now);
     }
+
+    public static Currency ResolveLinkCurrency(
+        Currency? linkCurrency,
+        Currency? supplierDetailsCurrency) =>
+        linkCurrency
+        ?? supplierDetailsCurrency
+        ?? Currency.NIO;
 
     public static string? ValidateTierPriceOverlaps(IEnumerable<TierPriceDto> tiers)
     {

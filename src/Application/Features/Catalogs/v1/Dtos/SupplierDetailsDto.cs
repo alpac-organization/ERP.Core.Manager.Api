@@ -44,6 +44,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public string Code { get; set; } = string.Empty;
         public string ProductName { get; set; } = string.Empty;
         public Guid UnitMeasureId { get; set; }
+        public Currency Currency { get; set; }
         public decimal UnitPrice { get; set; }
         public DateTime LastPriceUpdate { get; set; }
         public List<TierPriceResponseDto> TierPrices { get; set; } = [];
