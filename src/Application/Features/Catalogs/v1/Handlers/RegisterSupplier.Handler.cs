@@ -87,7 +87,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     p.UnitPrice,
                     p.TierPrices,
                     p.UnitMeasureId ?? productUnitMeasures.GetValueOrDefault(p.ProductId),
-                    now))
+                    now,
+                    p.Currency ?? request.SupplierDetails.Currency))
                 .ToList();
 
             await _unitOfWork.Suppliers.RegisterSupplier(supplierEntity);

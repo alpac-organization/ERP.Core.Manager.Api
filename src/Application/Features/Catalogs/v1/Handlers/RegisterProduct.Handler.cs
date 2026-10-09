@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Warehouse;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
@@ -75,6 +76,16 @@ public class RegisterProductHandler(
 
         _logger.LogInformation("Iniciando registro de producto: {ProductName}", request.ProductName);
 
+        var supplierCurrencies = new Dictionary<Guid, Currency>();
+        if (request.Suppliers.Count > 0)
+        {
+            var supplierIds = request.Suppliers.Select(s => s.SupplierId).Distinct().ToList();
+            supplierCurrencies = await _unitOfWork.SuppliersDetails.Entities
+                .AsNoTracking()
+                .Where(d => supplierIds.Contains(d.SupplierId))
+                .ToDictionaryAsync(d => d.SupplierId, d => d.Currency, cancellationToken);
+        }
+
         var now = DateTime.UtcNow;
 
         var productEntity = new Product
@@ -93,7 +104,8 @@ public class RegisterProductHandler(
                     s.UnitPrice,
                     s.TierPrices,
                     s.UnitMeasureId ?? request.UnitMeasureId,
-                    now))
+                    now,
+                    s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))
                 .ToList()
         };
 

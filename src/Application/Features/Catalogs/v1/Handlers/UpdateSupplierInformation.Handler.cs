@@ -108,6 +108,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 }
 
                 var now = DateTime.UtcNow;
+                var supplierDetailsCurrency = request.SupplierDetails?.Currency
+                    ?? await _unitOfWork.SuppliersDetails.Entities
+                        .AsNoTracking()
+                        .Where(d => d.SupplierId == supplier.Id)
+                        .Select(d => (Currency?)d.Currency)
+                        .FirstOrDefaultAsync(cancellationToken)
+                    ?? Currency.NIO;
 
                 foreach (var productItem in request.Products)
                 {
@@ -127,7 +134,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                             productItem.UnitPrice,
                             productItem.TierPrices,
                             resolvedUnitMeasureId,
-                            now);
+                            now,
+                            productItem.Currency);
 
                         if (applyError is not null)
                         {
@@ -144,7 +152,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                             productItem.UnitPrice,
                             productItem.TierPrices,
                             resolvedUnitMeasureId,
-                            now));
+                            now,
+                            productItem.Currency ?? supplierDetailsCurrency));
                 }
             }
 

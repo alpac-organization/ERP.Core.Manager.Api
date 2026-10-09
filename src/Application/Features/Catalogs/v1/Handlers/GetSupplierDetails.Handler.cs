@@ -59,6 +59,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     Code = sp.Product.Code,
                     ProductName = sp.Product.ProductName!,
                     UnitMeasureId = sp.Product.UnitMeasureId,
+                    Currency = sp.Currency,
                     UnitPrice = sp.UnitPrice,
                     LastPriceUpdate = sp.LastPriceUpdate,
                     TierPrices = sp.TierPrices

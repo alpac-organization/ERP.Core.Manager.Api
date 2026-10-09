@@ -114,6 +114,11 @@ public class UpdateProductHandler(
             }
 
             var now = DateTime.UtcNow;
+            var supplierIds = request.Suppliers.Select(s => s.SupplierId).Distinct().ToList();
+            var supplierCurrencies = await _unitOfWork.SuppliersDetails.Entities
+                .AsNoTracking()
+                .Where(d => supplierIds.Contains(d.SupplierId))
+                .ToDictionaryAsync(d => d.SupplierId, d => d.Currency, cancellationToken);
 
             foreach (var supplierItem in request.Suppliers)
             {
@@ -124,6 +129,7 @@ public class UpdateProductHandler(
                         sp.DeletedAt == null);
 
                 var resolvedUnitMeasureId = supplierItem.UnitMeasureId ?? product.UnitMeasureId;
+                var fallbackCurrency = supplierCurrencies.GetValueOrDefault(supplierItem.SupplierId, Currency.NIO);
 
                 if (existingLink is not null)
                 {
@@ -132,7 +138,8 @@ public class UpdateProductHandler(
                         supplierItem.UnitPrice,
                         supplierItem.TierPrices,
                         resolvedUnitMeasureId,
-                        now);
+                        now,
+                        supplierItem.Currency);
 
                     if (applyError is not null)
                     {
@@ -149,7 +156,8 @@ public class UpdateProductHandler(
                         supplierItem.UnitPrice,
                         supplierItem.TierPrices,
                         resolvedUnitMeasureId,
-                        now));
+                        now,
+                        supplierItem.Currency ?? fallbackCurrency));
             }
         }
 

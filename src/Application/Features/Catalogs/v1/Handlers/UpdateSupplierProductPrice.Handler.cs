@@ -61,6 +61,11 @@ public class UpdateSupplierProductPriceHandler(
             SupplierProductPriceHelper.ApplyUnitPriceChange(supplierProduct, request.NewUnitPrice.Value, now);
         }
 
+        if (request.Currency.HasValue)
+        {
+            supplierProduct.Currency = request.Currency.Value;
+        }
+
         if (request.TierPrices is { Count: > 0 })
         {
             var unitMeasureIds = request.TierPrices

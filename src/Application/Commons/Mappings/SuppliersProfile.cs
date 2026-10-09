@@ -27,6 +27,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Product.Code))
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
                 .ForMember(dest => dest.UnitMeasureId, opt => opt.MapFrom(src => src.Product.UnitMeasureId))
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency))
                 .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
                 .ForMember(dest => dest.LastPriceUpdate, opt => opt.MapFrom(src => src.LastPriceUpdate))
                 .ForMember(dest => dest.TierPrices, opt => opt.MapFrom(src => src.TierPrices));

@@ -232,5 +232,29 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
 
             return Ok();
         }
+
+        [Tags("Proveedores")]
+        [HttpPatch("companies/{companie_id}/modules/{module_code}/suppliers/{supplier_id}/products/{product_id}/prices")]
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<OkResult> UpdateSupplierProductPriceAsync(
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromRoute] Guid supplier_id,
+            [FromRoute] Guid product_id,
+            [FromBody] UpdateSupplierProductPriceCommand payload)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            payload.CompanyId = companie_id;
+            payload.ModuleCode = module_code;
+            payload.SupplierId = supplier_id;
+            payload.ProductId = product_id;
+            payload.UserId = Guid.Parse(userIdStr ?? "");
+
+            await _mediator.Send(payload);
+            return Ok();
+        }
     }
 }
