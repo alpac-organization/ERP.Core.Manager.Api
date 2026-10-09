@@ -14,6 +14,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public ConstitutionType ConstitutionType { get; set; }
         public IdentificationType IdentificationType { get; set; }
 
+        // Alias raíz; si viene, tiene prioridad sobre supplier_details.supplier_type
+        public SupplierType? SupplierType { get; set; }
+
         public SupplierDetails SupplierDetails { get; set; } = new();
 
         public List<PaymentMethodType> PaymentMethods { get; set; } = [];
@@ -36,7 +39,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public SupplierExclusiveStatus ExclusiveStatus { get; set; } = SupplierExclusiveStatus.None;
         public string? ExclusiveStatusComments { get; set; }
 
-        public SupplierType SupplierType { get; set; } = SupplierType.Ordinary;
+        public SupplierType? SupplierType { get; set; }
         public Currency Currency { get; set; } = Currency.NIO;
 
         public string? ExclusiveBrandsOrParts { get; set; }

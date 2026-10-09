@@ -63,7 +63,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<RegisterSupplierDto>(linkError.Message, linkError.Code);
             }
 
-            _logger.LogInformation("Iniciando proceso de registro de proveedor");
+            var resolvedSupplierType = request.SupplierType ?? request.SupplierDetails.SupplierType;
+            if (!resolvedSupplierType.HasValue)
+            {
+                return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
+                    "El tipo de proveedor es obligatorio (supplier_type o supplier_details.supplier_type).",
+                    "ERP:ERROR_REGISTER");
+            }
+
+            request.SupplierDetails.SupplierType = resolvedSupplierType.Value;
+
+            _logger.LogInformation(
+                "Iniciando proceso de registro de proveedor. SupplierType={SupplierType}",
+                resolvedSupplierType.Value);
 
             var now = DateTime.UtcNow;
             var supplierEntity = SupplierMapper.ToSupplierEntity(request, access.User.Fullname ?? "unknow user");
@@ -81,6 +93,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             await _unitOfWork.Suppliers.RegisterSupplier(supplierEntity);
 
             var supplierDetailsEntity = SupplierMapper.ToSupplierDetails(request.SupplierDetails, supplierEntity.Id);
+            supplierDetailsEntity.SupplierType = resolvedSupplierType.Value;
             await _unitOfWork.SuppliersDetails.RegisterSupplierDetails(supplierDetailsEntity);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

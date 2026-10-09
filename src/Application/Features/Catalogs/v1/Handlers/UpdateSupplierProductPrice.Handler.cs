@@ -4,7 +4,6 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Database.Domain.Entities.Shopping;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 
@@ -83,56 +82,16 @@ public class UpdateSupplierProductPriceHandler(
                 }
             }
 
-            var existingActiveTiers = supplierProduct.TierPrices
-                .Where(t => t.DeletedAt == null)
-                .Select(t => new TierPriceDto
-                {
-                    MinQuantity = t.MinQuantity,
-                    PreferentialPrice = t.PreferentialPrice,
-                    ValidFrom = t.ValidFrom,
-                    ValidTo = t.ValidTo,
-                    UnitMeasureId = t.UnitMeasureId
-                });
-
-            var combined = existingActiveTiers.Concat(request.TierPrices).ToList();
-            var overlapError = SupplierProductPriceHelper.ValidateTierPriceOverlaps(combined);
+            var overlapError = SupplierProductPriceHelper.ApplyTierPrices(
+                supplierProduct,
+                request.TierPrices,
+                product.UnitMeasureId,
+                now);
 
             if (overlapError is not null)
             {
                 return _errorManager.ThrowBadRequest<bool>(overlapError, "ERP:PRICE_02");
             }
-
-            foreach (var tier in request.TierPrices)
-            {
-                var activePreferential = supplierProduct.PriceHistories
-                    .Where(h =>
-                        h.DeletedAt == null &&
-                        h.PriceType == SupplierPriceHistoryType.PreferentialPrice &&
-                        h.MinQuantity == tier.MinQuantity &&
-                        h.EffectiveTo == SupplierProductPriceHelper.ActiveEffectiveTo)
-                    .ToList();
-
-                foreach (var history in activePreferential)
-                {
-                    history.EffectiveTo = now;
-                }
-
-                var resolvedUnitMeasureId = tier.UnitMeasureId ?? product.UnitMeasureId;
-
-                supplierProduct.TierPrices.Add(
-                    SupplierProductPriceHelper.CreateTierPrice(tier, resolvedUnitMeasureId));
-
-                supplierProduct.PriceHistories.Add(new HistoryPrices
-                {
-                    PriceType = SupplierPriceHistoryType.PreferentialPrice,
-                    Price = tier.PreferentialPrice,
-                    MinQuantity = tier.MinQuantity,
-                    EffectiveFrom = SupplierProductPriceHelper.ResolvePreferentialEffectiveFrom(tier.ValidFrom, now),
-                    EffectiveTo = SupplierProductPriceHelper.ResolvePreferentialEffectiveTo(tier.ValidTo)
-                });
-            }
-
-            supplierProduct.LastPriceUpdate = now;
         }
 
         await _unitOfWork.Products.UpdateAsync(product);

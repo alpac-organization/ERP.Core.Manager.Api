@@ -32,7 +32,11 @@ public class UpdateProductHandler(
         }
 
         var product = await _unitOfWork.Products.Entities
+            .AsSplitQuery()
             .Include(p => p.SupplierProducts)
+                .ThenInclude(sp => sp.PriceHistories)
+            .Include(p => p.SupplierProducts)
+                .ThenInclude(sp => sp.TierPrices)
             .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.DeletedAt == null, cancellationToken);
 
         if (product is null)
@@ -98,15 +102,10 @@ public class UpdateProductHandler(
 
         if (request.Suppliers is { Count: > 0 })
         {
-            var alreadyLinked = product.SupplierProducts
-                .Where(sp => sp.IsActive && sp.DeletedAt == null)
-                .Select(sp => sp.SupplierId)
-                .ToHashSet();
-
             var linkError = await SupplierProductLinkValidator.ValidateSuppliersToLinkAsync(
                 _unitOfWork,
                 request.Suppliers,
-                alreadyLinked,
+                alreadyLinkedSupplierIds: null,
                 cancellationToken);
 
             if (linkError is not null)
@@ -118,13 +117,38 @@ public class UpdateProductHandler(
 
             foreach (var supplierItem in request.Suppliers)
             {
+                var existingLink = product.SupplierProducts
+                    .FirstOrDefault(sp =>
+                        sp.SupplierId == supplierItem.SupplierId &&
+                        sp.IsActive &&
+                        sp.DeletedAt == null);
+
+                var resolvedUnitMeasureId = supplierItem.UnitMeasureId ?? product.UnitMeasureId;
+
+                if (existingLink is not null)
+                {
+                    var applyError = SupplierProductPriceHelper.ApplyExistingLinkUpdate(
+                        existingLink,
+                        supplierItem.UnitPrice,
+                        supplierItem.TierPrices,
+                        resolvedUnitMeasureId,
+                        now);
+
+                    if (applyError is not null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>(applyError, "ERP:PROD07");
+                    }
+
+                    continue;
+                }
+
                 product.SupplierProducts.Add(
                     SupplierProductPriceHelper.BuildSupplierProduct(
                         supplierItem.SupplierId,
                         productId: null,
                         supplierItem.UnitPrice,
                         supplierItem.TierPrices,
-                        supplierItem.UnitMeasureId ?? product.UnitMeasureId,
+                        resolvedUnitMeasureId,
                         now));
             }
         }

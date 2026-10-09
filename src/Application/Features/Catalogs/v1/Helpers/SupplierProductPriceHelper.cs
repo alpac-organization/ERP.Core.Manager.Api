@@ -125,6 +125,83 @@ public static class SupplierProductPriceHelper
         supplierProduct.LastPriceUpdate = now;
     }
 
+    public static string? ApplyTierPrices(
+        SupplierProduct supplierProduct,
+        IReadOnlyList<TierPriceDto> tierPrices,
+        Guid fallbackUnitMeasureId,
+        DateTime now)
+    {
+        if (tierPrices.Count == 0)
+        {
+            return null;
+        }
+
+        var existingActiveTiers = supplierProduct.TierPrices
+            .Where(t => t.DeletedAt == null)
+            .Select(t => new TierPriceDto
+            {
+                MinQuantity = t.MinQuantity,
+                PreferentialPrice = t.PreferentialPrice,
+                ValidFrom = t.ValidFrom,
+                ValidTo = t.ValidTo,
+                UnitMeasureId = t.UnitMeasureId
+            });
+
+        var overlapError = ValidateTierPriceOverlaps(existingActiveTiers.Concat(tierPrices));
+        if (overlapError is not null)
+        {
+            return overlapError;
+        }
+
+        foreach (var tier in tierPrices)
+        {
+            var activePreferential = supplierProduct.PriceHistories
+                .Where(h =>
+                    h.DeletedAt == null &&
+                    h.PriceType == SupplierPriceHistoryType.PreferentialPrice &&
+                    h.MinQuantity == tier.MinQuantity &&
+                    h.EffectiveTo == ActiveEffectiveTo)
+                .ToList();
+
+            foreach (var history in activePreferential)
+            {
+                history.EffectiveTo = now;
+            }
+
+            var resolvedUnitMeasureId = tier.UnitMeasureId ?? fallbackUnitMeasureId;
+
+            supplierProduct.TierPrices.Add(CreateTierPrice(tier, resolvedUnitMeasureId));
+            supplierProduct.PriceHistories.Add(new HistoryPrices
+            {
+                PriceType = SupplierPriceHistoryType.PreferentialPrice,
+                Price = tier.PreferentialPrice,
+                MinQuantity = tier.MinQuantity,
+                EffectiveFrom = ResolvePreferentialEffectiveFrom(tier.ValidFrom, now),
+                EffectiveTo = ResolvePreferentialEffectiveTo(tier.ValidTo)
+            });
+        }
+
+        supplierProduct.LastPriceUpdate = now;
+        return null;
+    }
+
+    public static string? ApplyExistingLinkUpdate(
+        SupplierProduct supplierProduct,
+        decimal unitPrice,
+        IReadOnlyList<TierPriceDto>? tierPrices,
+        Guid fallbackUnitMeasureId,
+        DateTime now)
+    {
+        ApplyUnitPriceChange(supplierProduct, unitPrice, now);
+
+        if (tierPrices is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        return ApplyTierPrices(supplierProduct, tierPrices, fallbackUnitMeasureId, now);
+    }
+
     public static string? ValidateTierPriceOverlaps(IEnumerable<TierPriceDto> tiers)
     {
         var groups = tiers.GroupBy(t => t.MinQuantity);
