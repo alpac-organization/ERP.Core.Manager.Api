@@ -38,7 +38,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             var supplier = await _unitOfWork.Suppliers.Entities
+                .AsSplitQuery()
                 .Include(sup => sup.SupplierProducts)
+                    .ThenInclude(sp => sp.PriceHistories)
+                .Include(sup => sup.SupplierProducts)
+                    .ThenInclude(sp => sp.TierPrices)
                 .Where(sup => sup.Id == request.SupplierId)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -91,15 +95,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             if (request.Products is { Count: > 0 })
             {
-                var alreadyLinked = supplier.SupplierProducts
-                    .Where(sp => sp.IsActive && sp.DeletedAt == null)
-                    .Select(sp => sp.ProductId)
-                    .ToHashSet();
-
                 var (linkError, productUnitMeasures) = await SupplierProductLinkValidator.ValidateProductsToLinkAsync(
                     _unitOfWork,
                     request.Products,
-                    alreadyLinked,
+                    alreadyLinkedProductIds: null,
                     "ERP:ERROR_UPDATE",
                     cancellationToken);
 
@@ -112,13 +111,39 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
                 foreach (var productItem in request.Products)
                 {
+                    var existingLink = supplier.SupplierProducts
+                        .FirstOrDefault(sp =>
+                            sp.ProductId == productItem.ProductId &&
+                            sp.IsActive &&
+                            sp.DeletedAt == null);
+
+                    var resolvedUnitMeasureId =
+                        productItem.UnitMeasureId ?? productUnitMeasures[productItem.ProductId];
+
+                    if (existingLink is not null)
+                    {
+                        var applyError = SupplierProductPriceHelper.ApplyExistingLinkUpdate(
+                            existingLink,
+                            productItem.UnitPrice,
+                            productItem.TierPrices,
+                            resolvedUnitMeasureId,
+                            now);
+
+                        if (applyError is not null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(applyError, "ERP:ERROR_UPDATE");
+                        }
+
+                        continue;
+                    }
+
                     supplier.SupplierProducts.Add(
                         SupplierProductPriceHelper.BuildSupplierProduct(
                             supplier.Id,
                             productItem.ProductId,
                             productItem.UnitPrice,
                             productItem.TierPrices,
-                            productItem.UnitMeasureId ?? productUnitMeasures[productItem.ProductId],
+                            resolvedUnitMeasureId,
                             now));
                 }
             }
