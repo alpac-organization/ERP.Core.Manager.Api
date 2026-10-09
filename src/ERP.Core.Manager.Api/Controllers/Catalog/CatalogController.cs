@@ -31,5 +31,21 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             return result;
         }
 
+        //endpoint para obtener las razones de rechazo de compra que es un catalogo 
+        [Tags("Catologos")]
+        [HttpGet("companies/{companie_id}/purchase-rejection-reasons")]
+        [ProducesResponseType(typeof(List<CatalogDetailsDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<List<CatalogDetailsDto>> GetPurchaseRejectionReasonsAsync([FromRoute] Guid companie_id)
+        {
+            var result = await _mediator.Send(new GetPurchaseRejectionReasonsQuery()
+            {
+                CompanyId = companie_id
+            });
+
+            return result;
+        }
+
     }
 }
