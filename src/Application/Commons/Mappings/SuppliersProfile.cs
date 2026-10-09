@@ -102,7 +102,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 HasCredit                = command.HasCredit,
                 ExclusiveStatus          = command.ExclusiveStatus,
                 ExclusiveStatusComments  = command.ExclusiveStatusComments,
-                SupplierType             = command.SupplierType,
+                SupplierType             = command.SupplierType!.Value,
                 Currency                 = command.Currency,
                 ExclusiveBrandsOrParts   = command.ExclusiveBrandsOrParts,
                 CreditLimit              = command.CreditLimit,

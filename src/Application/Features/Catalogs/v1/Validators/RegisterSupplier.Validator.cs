@@ -93,9 +93,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("La moneda de crédito es inválida.")
                 .When(x => x.SupplierDetails.CreditCurrency.HasValue);
 
-            RuleFor(x => x.SupplierDetails.SupplierType)
-                .IsInEnum()
-                .WithMessage("El tipo de proveedor es inválido.");
+            RuleFor(x => x)
+                .Must(x => ResolveSupplierType(x).HasValue)
+                .WithMessage("El tipo de proveedor es obligatorio (supplier_type o supplier_details.supplier_type).")
+                .OverridePropertyName("supplier_type");
+
+            RuleFor(x => x)
+                .Must(x =>
+                {
+                    var supplierType = ResolveSupplierType(x);
+                    return supplierType is null || Enum.IsDefined(typeof(SupplierType), supplierType.Value);
+                })
+                .WithMessage("El tipo de proveedor es inválido.")
+                .OverridePropertyName("supplier_type")
+                .When(x => ResolveSupplierType(x).HasValue);
 
             RuleFor(x => x.SupplierDetails.Currency)
                 .IsInEnum()
@@ -145,5 +156,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                     .When(b => !string.IsNullOrWhiteSpace(b.AccountHolderIdentification));
             });
         }
+
+        private static SupplierType? ResolveSupplierType(RegisterSupplierCommand command) =>
+            command.SupplierType ?? command.SupplierDetails?.SupplierType;
     }
 }
