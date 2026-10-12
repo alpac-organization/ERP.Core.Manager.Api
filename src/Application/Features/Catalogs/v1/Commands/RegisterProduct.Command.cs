@@ -24,7 +24,8 @@ public class ProductSupplierItemDto
     public Guid? UnitMeasureId { get; set; }
 
     public Currency? Currency { get; set; }
-    public List<TierPriceDto>? TierPrices { get; set; } = [];
+
+    public List<TierPriceDto>? TierPrices { get; set; }
 }
 
 public class TierPriceDto
@@ -34,4 +35,5 @@ public class TierPriceDto
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
     public Guid? UnitMeasureId { get; set; }
+    public Currency? Currency { get; set; }
 }

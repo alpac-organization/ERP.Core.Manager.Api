@@ -17,5 +17,7 @@ public class UpdateSupplierProductPriceCommand : BaseRequest, IRequest<bool>
 
     public decimal? NewUnitPrice { get; set; }
 
+    public Guid? UnitMeasureId { get; set; }
+
     public List<TierPriceDto>? TierPrices { get; set; }
 }

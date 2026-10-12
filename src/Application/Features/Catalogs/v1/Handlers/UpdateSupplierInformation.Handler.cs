@@ -39,6 +39,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             var supplier = await _unitOfWork.Suppliers.Entities
                 .AsSplitQuery()
+                .Include(sup => sup.SupplierPaymentMethods)
                 .Include(sup => sup.SupplierProducts)
                     .ThenInclude(sp => sp.PriceHistories)
                 .Include(sup => sup.SupplierProducts)
@@ -93,6 +94,21 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 }
             }
 
+            var now = DateTime.UtcNow;
+
+            if (request.PaymentMethods is not null)
+            {
+                SupplierPaymentMethodHelper.SyncPaymentMethods(supplier, request.PaymentMethods, now);
+
+                if (request.SupplierDetails?.PreferredPaymentMethod is { } preferred &&
+                    !request.PaymentMethods.Contains(preferred))
+                {
+                    return _errorManager.ThrowBadRequest<bool>(
+                        "El método de pago preferido debe estar incluido en los métodos de pago habilitados.",
+                        "ERP:ERROR_UPDATE");
+                }
+            }
+
             if (request.Products is { Count: > 0 })
             {
                 var (linkError, productUnitMeasures) = await SupplierProductLinkValidator.ValidateProductsToLinkAsync(
@@ -107,7 +123,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     return _errorManager.ThrowBadRequest<bool>(linkError.Message, linkError.Code);
                 }
 
-                var now = DateTime.UtcNow;
                 var supplierDetailsCurrency = request.SupplierDetails?.Currency
                     ?? await _unitOfWork.SuppliersDetails.Entities
                         .AsNoTracking()
@@ -124,8 +139,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                             sp.IsActive &&
                             sp.DeletedAt == null);
 
-                    var resolvedUnitMeasureId =
-                        productItem.UnitMeasureId ?? productUnitMeasures[productItem.ProductId];
+                    var productUnitMeasureId = productUnitMeasures[productItem.ProductId];
 
                     if (existingLink is not null)
                     {
@@ -133,7 +147,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                             existingLink,
                             productItem.UnitPrice,
                             productItem.TierPrices,
-                            resolvedUnitMeasureId,
+                            productItem.UnitMeasureId,
+                            productUnitMeasureId,
                             now,
                             productItem.Currency);
 
@@ -151,7 +166,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                             productItem.ProductId,
                             productItem.UnitPrice,
                             productItem.TierPrices,
-                            resolvedUnitMeasureId,
+                            productItem.UnitMeasureId ?? productUnitMeasureId,
                             now,
                             productItem.Currency ?? supplierDetailsCurrency));
                 }

@@ -128,7 +128,6 @@ public class UpdateProductHandler(
                         sp.IsActive &&
                         sp.DeletedAt == null);
 
-                var resolvedUnitMeasureId = supplierItem.UnitMeasureId ?? product.UnitMeasureId;
                 var fallbackCurrency = supplierCurrencies.GetValueOrDefault(supplierItem.SupplierId, Currency.NIO);
 
                 if (existingLink is not null)
@@ -137,7 +136,8 @@ public class UpdateProductHandler(
                         existingLink,
                         supplierItem.UnitPrice,
                         supplierItem.TierPrices,
-                        resolvedUnitMeasureId,
+                        supplierItem.UnitMeasureId,
+                        product.UnitMeasureId,
                         now,
                         supplierItem.Currency);
 
@@ -155,7 +155,7 @@ public class UpdateProductHandler(
                         productId: null,
                         supplierItem.UnitPrice,
                         supplierItem.TierPrices,
-                        resolvedUnitMeasureId,
+                        supplierItem.UnitMeasureId ?? product.UnitMeasureId,
                         now,
                         supplierItem.Currency ?? fallbackCurrency));
             }

@@ -99,7 +99,27 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("La moneda del proveedor no es válida")
                 .When(x => x.SupplierDetails.Currency.HasValue);
 
-            CatalogValidationRules.ApplySupplierProductItemsRules(this, x => x.Products);
+            RuleFor(x => x.PaymentMethods)
+                .Must(list => list is null || list.Count > 0)
+                .WithMessage("Debe especificar al menos un método de pago cuando se envía payment_methods.");
+
+            RuleForEach(x => x.PaymentMethods)
+                .IsInEnum()
+                .WithMessage("El método de pago es inválido.")
+                .When(x => x.PaymentMethods is not null);
+
+            RuleFor(x => x)
+                .Must(x =>
+                    x.PaymentMethods is null ||
+                    !x.SupplierDetails.PreferredPaymentMethod.HasValue ||
+                    x.PaymentMethods.Contains(x.SupplierDetails.PreferredPaymentMethod.Value))
+                .WithMessage("El método de pago preferido debe estar incluido en los métodos de pago habilitados.")
+                .When(x => x.PaymentMethods is not null && x.SupplierDetails.PreferredPaymentMethod.HasValue);
+
+            CatalogValidationRules.ApplySupplierProductItemsRules(
+                this,
+                x => x.Products,
+                requireValidFromNotInPast: true);
         }
     }
 }
