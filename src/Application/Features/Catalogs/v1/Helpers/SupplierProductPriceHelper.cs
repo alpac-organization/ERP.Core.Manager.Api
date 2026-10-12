@@ -13,23 +13,27 @@ public static class SupplierProductPriceHelper
         Guid? productId,
         decimal unitPrice,
         IEnumerable<TierPriceDto>? tierPrices,
-        Guid? unitMeasureId,
+        Guid unitMeasureId,
         DateTime now,
         Currency? currency = null)
     {
+        var resolvedCurrency = currency ?? Currency.NIO;
+
         var link = new SupplierProduct
         {
             IsActive = true,
             SupplierId = supplierId,
             UnitPrice = unitPrice,
             LastPriceUpdate = now,
-            Currency = currency ?? Currency.NIO,
+            Currency = resolvedCurrency,
+            UnitMeasureId = unitMeasureId,
             PriceHistories =
             [
                 new HistoryPrices
                 {
                     PriceType = SupplierPriceHistoryType.UnitPrice,
                     Price = unitPrice,
+                    Currency = resolvedCurrency,
                     EffectiveFrom = now,
                     EffectiveTo = ActiveEffectiveTo
                 }
@@ -42,24 +46,18 @@ public static class SupplierProductPriceHelper
             link.ProductId = productId.Value;
         }
 
-        foreach (var tier in tierPrices ?? [])
+        var preferential = NormalizeSinglePreferential(tierPrices);
+        if (preferential is not null)
         {
-            var resolvedUnitMeasureId = tier.UnitMeasureId ?? unitMeasureId;
-            link.TierPrices.Add(CreateTierPrice(tier, resolvedUnitMeasureId));
-            link.PriceHistories.Add(new HistoryPrices
-            {
-                PriceType = SupplierPriceHistoryType.PreferentialPrice,
-                Price = tier.PreferentialPrice,
-                MinQuantity = tier.MinQuantity,
-                EffectiveFrom = ResolvePreferentialEffectiveFrom(tier.ValidFrom, now),
-                EffectiveTo = ResolvePreferentialEffectiveTo(tier.ValidTo)
-            });
+            ApplyPreferentialReplacement(link, preferential, unitMeasureId, now, isInitial: true);
         }
 
         return link;
     }
 
-    public static SupplierProductTierPrice CreateTierPrice(TierPriceDto tier, Guid? unitMeasureId) =>
+    public static SupplierProductTierPrice CreateTierPrice(
+        TierPriceDto tier,
+        Guid unitMeasureId) =>
         new()
         {
             MinQuantity = tier.MinQuantity,
@@ -97,20 +95,29 @@ public static class SupplierProductPriceHelper
         }
     }
 
-    public static void ApplyUnitPriceChange(SupplierProduct supplierProduct, decimal newUnitPrice, DateTime now)
+    public static void ApplyUnitPriceOrCurrencyChange(
+        SupplierProduct supplierProduct,
+        decimal? newUnitPrice,
+        Currency? newCurrency,
+        DateTime now)
     {
-        if (supplierProduct.UnitPrice == newUnitPrice)
+        var priceChanged = newUnitPrice.HasValue && supplierProduct.UnitPrice != newUnitPrice.Value;
+        var currencyChanged = newCurrency.HasValue && supplierProduct.Currency != newCurrency.Value;
+
+        if (!priceChanged && !currencyChanged)
         {
             return;
         }
 
-        var active = supplierProduct.PriceHistories
-            .FirstOrDefault(h =>
-                h.DeletedAt == null &&
-                h.PriceType == SupplierPriceHistoryType.UnitPrice &&
-                h.EffectiveTo == ActiveEffectiveTo);
+        var resultingPrice = newUnitPrice ?? supplierProduct.UnitPrice;
+        var resultingCurrency = newCurrency ?? supplierProduct.Currency;
 
-        if (active is not null)
+        foreach (var active in supplierProduct.PriceHistories
+                     .Where(h =>
+                         h.DeletedAt == null &&
+                         h.PriceType == SupplierPriceHistoryType.UnitPrice &&
+                         h.EffectiveTo == ActiveEffectiveTo)
+                     .ToList())
         {
             active.EffectiveTo = now;
         }
@@ -118,96 +125,91 @@ public static class SupplierProductPriceHelper
         supplierProduct.PriceHistories.Add(new HistoryPrices
         {
             PriceType = SupplierPriceHistoryType.UnitPrice,
-            Price = newUnitPrice,
+            Price = resultingPrice,
+            Currency = resultingCurrency,
             EffectiveFrom = now,
             EffectiveTo = ActiveEffectiveTo
         });
 
-        supplierProduct.UnitPrice = newUnitPrice;
+        if (priceChanged)
+        {
+            supplierProduct.UnitPrice = resultingPrice;
+        }
+
+        if (currencyChanged)
+        {
+            supplierProduct.Currency = resultingCurrency;
+        }
+
         supplierProduct.LastPriceUpdate = now;
+    }
+
+    public static void ApplyUnitPriceChange(SupplierProduct supplierProduct, decimal newUnitPrice, DateTime now) =>
+        ApplyUnitPriceOrCurrencyChange(supplierProduct, newUnitPrice, null, now);
+
+    public static string? ApplyPreferentialPrices(
+        SupplierProduct supplierProduct,
+        IReadOnlyList<TierPriceDto>? tierPrices,
+        Guid fallbackUnitMeasureId,
+        DateTime now)
+    {
+        if (tierPrices is null)
+        {
+            return null;
+        }
+
+        if (tierPrices.Count == 0)
+        {
+            ClearPreferentialPrices(supplierProduct, now);
+            return null;
+        }
+
+        if (tierPrices.Count > 1)
+        {
+            return "Solo se permite un precio preferencial por vínculo proveedor-producto.";
+        }
+
+        var tier = tierPrices[0];
+        var dateError = ValidatePreferentialDates(tier, now);
+        if (dateError is not null)
+        {
+            return dateError;
+        }
+
+        ApplyPreferentialReplacement(supplierProduct, tier, fallbackUnitMeasureId, now, isInitial: false);
+        supplierProduct.LastPriceUpdate = now;
+        return null;
     }
 
     public static string? ApplyTierPrices(
         SupplierProduct supplierProduct,
         IReadOnlyList<TierPriceDto> tierPrices,
         Guid fallbackUnitMeasureId,
-        DateTime now)
-    {
-        if (tierPrices.Count == 0)
-        {
-            return null;
-        }
-
-        var existingActiveTiers = supplierProduct.TierPrices
-            .Where(t => t.DeletedAt == null)
-            .Select(t => new TierPriceDto
-            {
-                MinQuantity = t.MinQuantity,
-                PreferentialPrice = t.PreferentialPrice,
-                ValidFrom = t.ValidFrom,
-                ValidTo = t.ValidTo,
-                UnitMeasureId = t.UnitMeasureId
-            });
-
-        var overlapError = ValidateTierPriceOverlaps(existingActiveTiers.Concat(tierPrices));
-        if (overlapError is not null)
-        {
-            return overlapError;
-        }
-
-        foreach (var tier in tierPrices)
-        {
-            var activePreferential = supplierProduct.PriceHistories
-                .Where(h =>
-                    h.DeletedAt == null &&
-                    h.PriceType == SupplierPriceHistoryType.PreferentialPrice &&
-                    h.MinQuantity == tier.MinQuantity &&
-                    h.EffectiveTo == ActiveEffectiveTo)
-                .ToList();
-
-            foreach (var history in activePreferential)
-            {
-                history.EffectiveTo = now;
-            }
-
-            var resolvedUnitMeasureId = tier.UnitMeasureId ?? fallbackUnitMeasureId;
-
-            supplierProduct.TierPrices.Add(CreateTierPrice(tier, resolvedUnitMeasureId));
-            supplierProduct.PriceHistories.Add(new HistoryPrices
-            {
-                PriceType = SupplierPriceHistoryType.PreferentialPrice,
-                Price = tier.PreferentialPrice,
-                MinQuantity = tier.MinQuantity,
-                EffectiveFrom = ResolvePreferentialEffectiveFrom(tier.ValidFrom, now),
-                EffectiveTo = ResolvePreferentialEffectiveTo(tier.ValidTo)
-            });
-        }
-
-        supplierProduct.LastPriceUpdate = now;
-        return null;
-    }
+        DateTime now) =>
+        ApplyPreferentialPrices(supplierProduct, tierPrices, fallbackUnitMeasureId, now);
 
     public static string? ApplyExistingLinkUpdate(
         SupplierProduct supplierProduct,
         decimal unitPrice,
         IReadOnlyList<TierPriceDto>? tierPrices,
+        Guid? unitMeasureId,
         Guid fallbackUnitMeasureId,
         DateTime now,
         Currency? currency = null)
     {
-        ApplyUnitPriceChange(supplierProduct, unitPrice, now);
+        ApplyUnitPriceOrCurrencyChange(supplierProduct, unitPrice, currency, now);
 
-        if (currency.HasValue)
+        if (unitMeasureId.HasValue && supplierProduct.UnitMeasureId != unitMeasureId.Value)
         {
-            supplierProduct.Currency = currency.Value;
+            supplierProduct.UnitMeasureId = unitMeasureId.Value;
         }
 
-        if (tierPrices is not { Count: > 0 })
-        {
-            return null;
-        }
+        var tierFallback = unitMeasureId
+            ?? (supplierProduct.UnitMeasureId != Guid.Empty
+                ? supplierProduct.UnitMeasureId
+                : fallbackUnitMeasureId);
 
-        return ApplyTierPrices(supplierProduct, tierPrices, fallbackUnitMeasureId, now);
+        return ApplyPreferentialPrices(supplierProduct, tierPrices, tierFallback, now);
     }
 
     public static Currency ResolveLinkCurrency(
@@ -217,33 +219,37 @@ public static class SupplierProductPriceHelper
         ?? supplierDetailsCurrency
         ?? Currency.NIO;
 
+    public static string? ValidatePreferentialDates(TierPriceDto tier, DateTime utcNow)
+    {
+        var today = DateOnly.FromDateTime(utcNow);
+
+        if (tier.ValidFrom < today)
+        {
+            return "La fecha inicial del precio preferencial no puede ser anterior al día actual.";
+        }
+
+        if (tier.ValidTo.HasValue && tier.ValidTo.Value < tier.ValidFrom)
+        {
+            return "La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.";
+        }
+
+        return null;
+    }
+
     public static string? ValidateTierPriceOverlaps(IEnumerable<TierPriceDto> tiers)
     {
-        var groups = tiers.GroupBy(t => t.MinQuantity);
-
-        foreach (var group in groups)
+        var list = tiers.ToList();
+        if (list.Count > 1)
         {
-            var ordered = group
-                .OrderBy(t => t.ValidFrom)
-                .ToList();
+            return "Solo se permite un precio preferencial por vínculo proveedor-producto.";
+        }
 
-            for (var i = 0; i < ordered.Count; i++)
+        if (list.Count == 1)
+        {
+            var tier = list[0];
+            if (tier.ValidTo.HasValue && tier.ValidTo.Value < tier.ValidFrom)
             {
-                var current = ordered[i];
-
-                if (current.ValidTo.HasValue && current.ValidTo.Value < current.ValidFrom)
-                {
-                    return $"El precio preferencial con cantidad mínima {current.MinQuantity} tiene ValidTo anterior a ValidFrom.";
-                }
-
-                for (var j = i + 1; j < ordered.Count; j++)
-                {
-                    var next = ordered[j];
-                    if (DatesOverlap(current.ValidFrom, current.ValidTo, next.ValidFrom, next.ValidTo))
-                    {
-                        return $"Los precios preferenciales con cantidad mínima {current.MinQuantity} se traslapan en fechas.";
-                    }
-                }
+                return "El precio preferencial tiene ValidTo anterior a ValidFrom.";
             }
         }
 
@@ -256,6 +262,12 @@ public static class SupplierProductPriceHelper
         var endB = toB ?? DateOnly.MaxValue;
         return fromA <= endB && fromB <= endA;
     }
+
+    public static bool IsTierCurrentlyValid(DateOnly validFrom, DateOnly? validTo, DateOnly today) =>
+        validFrom <= today && (!validTo.HasValue || validTo.Value >= today);
+
+    public static bool IsTierActiveOrUpcoming(DateOnly validFrom, DateOnly? validTo, DateOnly today) =>
+        !validTo.HasValue || validTo.Value >= today;
 
     public static void SoftDeleteSupplierProduct(SupplierProduct supplierProduct, DateTime now)
     {
@@ -271,5 +283,109 @@ public static class SupplierProductPriceHelper
                 tier.ValidTo = DateOnly.FromDateTime(now);
             }
         }
+    }
+
+    public static void ClearPreferentialPrices(SupplierProduct supplierProduct, DateTime now)
+    {
+        foreach (var history in supplierProduct.PriceHistories
+                     .Where(h =>
+                         h.DeletedAt == null &&
+                         h.PriceType == SupplierPriceHistoryType.PreferentialPrice &&
+                         (h.EffectiveTo == ActiveEffectiveTo || h.EffectiveTo > now))
+                     .ToList())
+        {
+            if (history.EffectiveTo == ActiveEffectiveTo || history.EffectiveTo > now)
+            {
+                history.EffectiveTo = now;
+            }
+        }
+
+        var today = DateOnly.FromDateTime(now);
+        foreach (var tier in supplierProduct.TierPrices.Where(t => t.DeletedAt == null))
+        {
+            tier.DeletedAt = now;
+            if (!tier.ValidTo.HasValue || tier.ValidTo.Value > today)
+            {
+                tier.ValidTo = today;
+            }
+        }
+
+        supplierProduct.LastPriceUpdate = now;
+    }
+
+    private static TierPriceDto? NormalizeSinglePreferential(IEnumerable<TierPriceDto>? tierPrices)
+    {
+        if (tierPrices is null)
+        {
+            return null;
+        }
+
+        var list = tierPrices.ToList();
+        return list.Count == 0 ? null : list[0];
+    }
+
+    private static void ApplyPreferentialReplacement(
+        SupplierProduct supplierProduct,
+        TierPriceDto tier,
+        Guid fallbackUnitMeasureId,
+        DateTime now,
+        bool isInitial)
+    {
+        var newEffectiveFrom = ResolvePreferentialEffectiveFrom(tier.ValidFrom, now);
+        var newEffectiveTo = ResolvePreferentialEffectiveTo(tier.ValidTo);
+        var preferentialCurrency = tier.Currency ?? supplierProduct.Currency;
+        var resolvedUnitMeasureId = tier.UnitMeasureId ?? fallbackUnitMeasureId;
+
+        var historyCloseAt = newEffectiveFrom > now ? newEffectiveFrom : now;
+
+        if (!isInitial)
+        {
+            foreach (var history in supplierProduct.PriceHistories
+                         .Where(h =>
+                             h.DeletedAt == null &&
+                             h.PriceType == SupplierPriceHistoryType.PreferentialPrice &&
+                             (h.EffectiveTo == ActiveEffectiveTo || h.EffectiveTo > historyCloseAt))
+                         .ToList())
+            {
+                history.EffectiveTo = historyCloseAt;
+            }
+
+            var today = DateOnly.FromDateTime(now);
+            var dayBeforeNew = DateOnly.FromDateTime(newEffectiveFrom).AddDays(-1);
+
+            foreach (var existing in supplierProduct.TierPrices.Where(t => t.DeletedAt == null).ToList())
+            {
+                if (newEffectiveFrom > now)
+                {
+                    existing.ValidTo = dayBeforeNew < existing.ValidFrom
+                        ? existing.ValidFrom
+                        : dayBeforeNew;
+
+                    if (existing.ValidTo < today)
+                    {
+                        existing.DeletedAt = now;
+                    }
+                }
+                else
+                {
+                    existing.DeletedAt = now;
+                    if (!existing.ValidTo.HasValue || existing.ValidTo.Value > today)
+                    {
+                        existing.ValidTo = today;
+                    }
+                }
+            }
+        }
+
+        supplierProduct.TierPrices.Add(CreateTierPrice(tier, resolvedUnitMeasureId));
+        supplierProduct.PriceHistories.Add(new HistoryPrices
+        {
+            PriceType = SupplierPriceHistoryType.PreferentialPrice,
+            Price = tier.PreferentialPrice,
+            MinQuantity = tier.MinQuantity,
+            Currency = preferentialCurrency,
+            EffectiveFrom = newEffectiveFrom,
+            EffectiveTo = newEffectiveTo
+        });
     }
 }

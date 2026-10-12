@@ -16,7 +16,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.SupplierLegalName, src => src.MapFrom(su => su.SuppliersLegalName))
                 .ForMember(dest => dest.ExclusiveStatus, src => src.MapFrom(su => su.SupplierDetails != null ? su.SupplierDetails.ExclusiveStatus : (ERP.Core.Database.Domain.Enums.SupplierExclusiveStatus?)null))
                 .ForMember(dest => dest.SupplierType, src => src.MapFrom(su => su.SupplierDetails != null ? su.SupplierDetails.SupplierType : (ERP.Core.Database.Domain.Enums.SupplierType?)null))
-                .ForPath(dest => dest.SupplierPaymentMethods, src => src.MapFrom(su => su.SupplierPaymentMethods));
+                .ForMember(dest => dest.SupplierPaymentMethods, src => src.MapFrom(su =>
+                    su.SupplierPaymentMethods.Where(pm => pm.IsActive && pm.DeletedAt == null)));
 
             CreateMap<SupplierPaymentMethod, SupplierPaymentMethods>();
 
@@ -26,14 +27,15 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Product.Code))
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
-                .ForMember(dest => dest.UnitMeasureId, opt => opt.MapFrom(src => src.Product.UnitMeasureId))
+                .ForMember(dest => dest.UnitMeasureId, opt => opt.MapFrom(src => src.UnitMeasureId))
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency))
                 .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
                 .ForMember(dest => dest.LastPriceUpdate, opt => opt.MapFrom(src => src.LastPriceUpdate))
-                .ForMember(dest => dest.TierPrices, opt => opt.MapFrom(src => src.TierPrices));
+                .ForMember(dest => dest.TierPrices, opt => opt.MapFrom(src => src.TierPrices.Where(t => t.DeletedAt == null)));
 
             CreateMap<SupplierProductTierPrice, TierPriceResponseDto>()
-                .ForMember(dest => dest.TierPriceId, opt => opt.MapFrom(src => src.Id));
+                .ForMember(dest => dest.TierPriceId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Currency, opt => opt.Ignore());
 
             CreateMap<Supplier, SupplierInformationDto>()
                 .IncludeBase<Supplier, SupplierDto>()

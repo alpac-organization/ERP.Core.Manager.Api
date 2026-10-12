@@ -68,6 +68,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
 
         public Guid? UnitMeasureId { get; set; }
         public Currency? Currency { get; set; }
-        public List<TierPriceDto>? TierPrices { get; set; } = [];
+
+        public List<TierPriceDto>? TierPrices { get; set; }
     }
 }

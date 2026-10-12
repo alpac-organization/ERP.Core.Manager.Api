@@ -23,6 +23,10 @@ public class RegisterProductValidator : BaseRequestValidator<RegisterProductComm
         RuleFor(x => x.ProductUsageType)
             .IsInEnum().WithMessage("El tipo de uso del producto es inválido.");
 
-        CatalogValidationRules.ApplyProductSupplierItemsRules(this, x => x.Suppliers, requireValidFrom: true);
+        CatalogValidationRules.ApplyProductSupplierItemsRules(
+            this,
+            x => x.Suppliers,
+            requireValidFrom: true,
+            requireValidFromNotInPast: true);
     }
 }

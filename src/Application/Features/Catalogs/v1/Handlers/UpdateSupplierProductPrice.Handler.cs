@@ -56,47 +56,59 @@ public class UpdateSupplierProductPriceHandler(
 
         var now = DateTime.UtcNow;
 
-        if (request.NewUnitPrice.HasValue)
+        var unitMeasureIdsToValidate = new List<Guid>();
+        if (request.UnitMeasureId.HasValue)
         {
-            SupplierProductPriceHelper.ApplyUnitPriceChange(supplierProduct, request.NewUnitPrice.Value, now);
+            unitMeasureIdsToValidate.Add(request.UnitMeasureId.Value);
         }
 
-        if (request.Currency.HasValue)
+        if (request.TierPrices is not null)
         {
-            supplierProduct.Currency = request.Currency.Value;
+            unitMeasureIdsToValidate.AddRange(
+                request.TierPrices
+                    .Where(t => t.UnitMeasureId.HasValue)
+                    .Select(t => t.UnitMeasureId!.Value));
         }
 
-        if (request.TierPrices is { Count: > 0 })
+        unitMeasureIdsToValidate = unitMeasureIdsToValidate.Distinct().ToList();
+
+        if (unitMeasureIdsToValidate.Count > 0)
         {
-            var unitMeasureIds = request.TierPrices
-                .Where(t => t.UnitMeasureId.HasValue)
-                .Select(t => t.UnitMeasureId!.Value)
-                .Distinct()
-                .ToList();
+            var existingUomCount = await _unitOfWork.UnitsMeasurement.Entities
+                .CountAsync(u => unitMeasureIdsToValidate.Contains(u.Id) && u.IsActive, cancellationToken);
 
-            if (unitMeasureIds.Count > 0)
+            if (existingUomCount != unitMeasureIdsToValidate.Count)
             {
-                var existingUomCount = await _unitOfWork.UnitsMeasurement.Entities
-                    .CountAsync(u => unitMeasureIds.Contains(u.Id) && u.IsActive, cancellationToken);
-
-                if (existingUomCount != unitMeasureIds.Count)
-                {
-                    return _errorManager.ThrowBadRequest<bool>(
-                        "Una o más unidades de medida no existen o no están activas.",
-                        "ERP:PRICE_03");
-                }
+                return _errorManager.ThrowBadRequest<bool>(
+                    "Una o más unidades de medida no existen o no están activas.",
+                    "ERP:PRICE_03");
             }
+        }
 
-            var overlapError = SupplierProductPriceHelper.ApplyTierPrices(
-                supplierProduct,
-                request.TierPrices,
-                product.UnitMeasureId,
-                now);
+        if (request.UnitMeasureId.HasValue)
+        {
+            supplierProduct.UnitMeasureId = request.UnitMeasureId.Value;
+        }
 
-            if (overlapError is not null)
-            {
-                return _errorManager.ThrowBadRequest<bool>(overlapError, "ERP:PRICE_02");
-            }
+        SupplierProductPriceHelper.ApplyUnitPriceOrCurrencyChange(
+            supplierProduct,
+            request.NewUnitPrice,
+            request.Currency,
+            now);
+
+        var fallbackUnitMeasureId = supplierProduct.UnitMeasureId != Guid.Empty
+            ? supplierProduct.UnitMeasureId
+            : product.UnitMeasureId;
+
+        var preferentialError = SupplierProductPriceHelper.ApplyPreferentialPrices(
+            supplierProduct,
+            request.TierPrices,
+            fallbackUnitMeasureId,
+            now);
+
+        if (preferentialError is not null)
+        {
+            return _errorManager.ThrowBadRequest<bool>(preferentialError, "ERP:PRICE_02");
         }
 
         await _unitOfWork.Products.UpdateAsync(product);

@@ -28,6 +28,9 @@ public class UpdateProductValidator : BaseRequestValidator<UpdateProductCommand>
             .IsInEnum()
             .When(x => x.ProductUsageType.HasValue);
 
-        CatalogValidationRules.ApplyProductSupplierItemsRules(this, x => x.Suppliers);
+        CatalogValidationRules.ApplyProductSupplierItemsRules(
+            this,
+            x => x.Suppliers,
+            requireValidFromNotInPast: true);
     }
 }

@@ -4,6 +4,7 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
@@ -65,38 +66,102 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
         }
 
         var totalCount = await suppliersQuery.CountAsync(cancellationToken);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var utcNow = DateTime.UtcNow;
 
         var suppliers = await suppliersQuery
             .OrderBy(sp => sp.Supplier.SuppliersLegalName)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(sp => new ProductSupplierDto
+            .Select(sp => new
             {
                 SupplierProductId = sp.Id,
-                SupplierId = sp.SupplierId,
+                sp.SupplierId,
                 SupplierLegalName = sp.Supplier.SuppliersLegalName,
                 CommercialName = sp.Supplier.CommercialName,
                 SupplierType = sp.Supplier.SupplierDetails != null
                     ? sp.Supplier.SupplierDetails.SupplierType
                     : SupplierType.Ordinary,
-                Currency = sp.Currency,
-                UnitPrice = sp.UnitPrice,
-                LastPriceUpdate = sp.LastPriceUpdate,
-                IsActive = sp.IsActive,
+                sp.Currency,
+                sp.UnitMeasureId,
+                sp.UnitPrice,
+                sp.LastPriceUpdate,
+                sp.IsActive,
                 TierPrices = sp.TierPrices
                     .Where(t => t.DeletedAt == null)
-                    .Select(t => new TierPriceResponseDto
+                    .Select(t => new
+                    {
+                        t.Id,
+                        t.MinQuantity,
+                        t.PreferentialPrice,
+                        t.ValidFrom,
+                        t.ValidTo,
+                        t.UnitMeasureId
+                    })
+                    .ToList(),
+                PreferentialHistories = sp.PriceHistories
+                    .Where(h =>
+                        h.DeletedAt == null &&
+                        h.PriceType == SupplierPriceHistoryType.PreferentialPrice)
+                    .Select(h => new
+                    {
+                        h.MinQuantity,
+                        h.Currency,
+                        h.EffectiveFrom,
+                        h.EffectiveTo,
+                        h.Price
+                    })
+                    .ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        var mappedSuppliers = suppliers.Select(sp =>
+        {
+            var tiers = sp.TierPrices
+                .Where(t => SupplierProductPriceHelper.IsTierActiveOrUpcoming(t.ValidFrom, t.ValidTo, today))
+                .OrderByDescending(t => SupplierProductPriceHelper.IsTierCurrentlyValid(t.ValidFrom, t.ValidTo, today))
+                .ThenBy(t => t.ValidFrom)
+                .Take(1)
+                .Select(t =>
+                {
+                    var matchingHistory = sp.PreferentialHistories
+                        .Where(h => h.MinQuantity == t.MinQuantity)
+                        .OrderByDescending(h => h.EffectiveFrom)
+                        .FirstOrDefault(h =>
+                            SupplierProductPriceHelper.IsCurrentPrice(
+                                h.EffectiveFrom,
+                                SupplierProductPriceHelper.ToApiEffectiveTo(h.EffectiveTo),
+                                utcNow)
+                            || h.EffectiveFrom > utcNow);
+
+                    return new TierPriceResponseDto
                     {
                         TierPriceId = t.Id,
                         MinQuantity = t.MinQuantity,
                         PreferentialPrice = t.PreferentialPrice,
                         ValidFrom = t.ValidFrom,
                         ValidTo = t.ValidTo,
-                        UnitMeasureId = t.UnitMeasureId
-                    })
-                    .ToList()
-            })
-            .ToListAsync(cancellationToken);
+                        UnitMeasureId = t.UnitMeasureId,
+                        Currency = matchingHistory?.Currency ?? sp.Currency
+                    };
+                })
+                .ToList();
+
+            return new ProductSupplierDto
+            {
+                SupplierProductId = sp.SupplierProductId,
+                SupplierId = sp.SupplierId,
+                SupplierLegalName = sp.SupplierLegalName,
+                CommercialName = sp.CommercialName,
+                SupplierType = sp.SupplierType,
+                Currency = sp.Currency,
+                UnitMeasureId = sp.UnitMeasureId,
+                UnitPrice = sp.UnitPrice,
+                LastPriceUpdate = sp.LastPriceUpdate,
+                IsActive = sp.IsActive,
+                TierPrices = tiers
+            };
+        }).ToList();
 
         return new ProductDetailDto
         {
@@ -116,7 +181,7 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
             ProductUsageType = product.ProductUsageType,
             IsTaxExempt = product.IsTaxExempt,
             Suppliers = new PagedResponse<ProductSupplierDto>(
-                suppliers,
+                mappedSuppliers,
                 request.PageNumber,
                 request.PageSize,
                 totalCount)

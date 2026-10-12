@@ -81,7 +81,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("Las marcas o líneas exclusivas no pueden exceder 500 caracteres.")
                 .When(x => !string.IsNullOrWhiteSpace(x.SupplierDetails.ExclusiveBrandsOrParts));
 
-            CatalogValidationRules.ApplySupplierProductItemsRules(this, x => x.Products);
+            CatalogValidationRules.ApplySupplierProductItemsRules(
+                this,
+                x => x.Products,
+                requireValidFrom: true,
+                requireValidFromNotInPast: true);
 
             RuleFor(x => x.SupplierDetails.CreditLimit)
                 .GreaterThanOrEqualTo(0)

@@ -18,6 +18,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
 
         public SupplierDetailsInformation SupplierDetails { get; set; } = new();
 
+        public List<PaymentMethodType>? PaymentMethods { get; set; }
+
         public List<SupplierProductItemDto> Products { get; set; } = [];
     }
 

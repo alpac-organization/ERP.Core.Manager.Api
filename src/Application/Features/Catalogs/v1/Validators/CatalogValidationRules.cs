@@ -20,7 +20,10 @@ internal static class CatalogValidationRules
             .NotEqual(Guid.Empty).WithMessage("El id del producto no es válido.");
     }
 
-    public static void ApplyTierPriceRules(InlineValidator<TierPriceDto> tier, bool requireValidFrom = false)
+    public static void ApplyTierPriceRules(
+        InlineValidator<TierPriceDto> tier,
+        bool requireValidFrom = false,
+        bool requireValidFromNotInPast = false)
     {
         tier.RuleFor(t => t.MinQuantity)
             .GreaterThan(0).WithMessage("La cantidad mínima debe ser mayor a cero.");
@@ -34,9 +37,20 @@ internal static class CatalogValidationRules
                 .NotEmpty().WithMessage("La fecha de inicio de vigencia es obligatoria.");
         }
 
+        if (requireValidFromNotInPast)
+        {
+            tier.RuleFor(t => t.ValidFrom)
+                .Must(from => from >= DateOnly.FromDateTime(DateTime.UtcNow))
+                .WithMessage("La fecha inicial del precio preferencial no puede ser anterior al día actual.");
+        }
+
         tier.RuleFor(t => t.UnitMeasureId)
             .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
             .When(t => t.UnitMeasureId.HasValue);
+
+        tier.RuleFor(t => t.Currency)
+            .IsInEnum().WithMessage("La moneda del precio preferencial no es válida.")
+            .When(t => t.Currency.HasValue);
 
         tier.RuleFor(t => t)
             .Must(t => !t.ValidTo.HasValue || t.ValidTo.Value >= t.ValidFrom)
@@ -46,7 +60,8 @@ internal static class CatalogValidationRules
     public static void ApplyProductSupplierItemsRules<T>(
         AbstractValidator<T> validator,
         Expression<Func<T, IEnumerable<ProductSupplierItemDto>>> selector,
-        bool requireValidFrom = false)
+        bool requireValidFrom = false,
+        bool requireValidFromNotInPast = false)
     {
         validator.RuleForEach(selector).ChildRules(supplier =>
         {
@@ -65,15 +80,20 @@ internal static class CatalogValidationRules
                 .IsInEnum().WithMessage("La moneda del vínculo no es válida.")
                 .When(s => s.Currency.HasValue);
 
+            supplier.RuleFor(s => s.TierPrices)
+                .Must(list => list is null || list.Count <= 1)
+                .WithMessage("Solo se permite un precio preferencial por vínculo proveedor-producto.");
+
             supplier.RuleForEach(s => s.TierPrices)
-                .ChildRules(tier => ApplyTierPriceRules(tier, requireValidFrom));
+                .ChildRules(tier => ApplyTierPriceRules(tier, requireValidFrom, requireValidFromNotInPast));
         });
     }
 
     public static void ApplySupplierProductItemsRules<T>(
         AbstractValidator<T> validator,
         Expression<Func<T, IEnumerable<SupplierProductItemDto>>> selector,
-        bool requireValidFrom = false)
+        bool requireValidFrom = false,
+        bool requireValidFromNotInPast = false)
     {
         validator.RuleForEach(selector).ChildRules(product =>
         {
@@ -92,8 +112,12 @@ internal static class CatalogValidationRules
                 .IsInEnum().WithMessage("La moneda del vínculo no es válida.")
                 .When(p => p.Currency.HasValue);
 
+            product.RuleFor(p => p.TierPrices)
+                .Must(list => list is null || list.Count <= 1)
+                .WithMessage("Solo se permite un precio preferencial por vínculo proveedor-producto.");
+
             product.RuleForEach(p => p.TierPrices)
-                .ChildRules(tier => ApplyTierPriceRules(tier, requireValidFrom));
+                .ChildRules(tier => ApplyTierPriceRules(tier, requireValidFrom, requireValidFromNotInPast));
         });
     }
 }

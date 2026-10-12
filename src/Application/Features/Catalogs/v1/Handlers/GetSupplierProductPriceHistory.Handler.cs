@@ -28,18 +28,13 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
             return access.ErrorResponse!;
         }
 
-        var supplierProduct = await _unitOfWork.Products.Entities
+        var linkExists = await _unitOfWork.Products.Entities
             .AsNoTracking()
             .Where(p => p.Id == request.ProductId && p.DeletedAt == null)
             .SelectMany(p => p.SupplierProducts)
-            .Where(sp => sp.SupplierId == request.SupplierId && sp.DeletedAt == null)
-            .Select(sp => new
-            {
-                Currency = sp.Currency
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+            .AnyAsync(sp => sp.SupplierId == request.SupplierId && sp.DeletedAt == null, cancellationToken);
 
-        if (supplierProduct is null)
+        if (!linkExists)
         {
             return _errorManager.ThrowBadRequest<PagedResponse<SupplierProductPriceHistoryDto>>(
                 "La relación proveedor-producto no existe.",
@@ -72,6 +67,7 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
                 h.PriceType,
                 h.Price,
                 h.MinQuantity,
+                h.Currency,
                 h.EffectiveFrom,
                 h.EffectiveTo
             })
@@ -87,7 +83,7 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
                     PriceType = h.PriceType,
                     Price = h.Price,
                     MinQuantity = h.MinQuantity,
-                    Currency = supplierProduct.Currency,
+                    Currency = h.Currency,
                     EffectiveFrom = h.EffectiveFrom,
                     EffectiveTo = effectiveTo,
                     IsCurrent = SupplierProductPriceHelper.IsCurrentPrice(h.EffectiveFrom, effectiveTo, utcNow)
