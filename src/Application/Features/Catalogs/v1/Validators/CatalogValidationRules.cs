@@ -1,60 +1,51 @@
 using System.Linq.Expressions;
-using FluentValidation;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
-
-namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators;
+using FluentValidation;
 
 internal static class CatalogValidationRules
 {
+    private static readonly TierPriceValidator TierFF = new(false, false);
+    private static readonly TierPriceValidator TierTF = new(true, false);
+    private static readonly TierPriceValidator TierFT = new(false, true);
+    private static readonly TierPriceValidator TierTT = new(true, true);
+
+    private static readonly SupplierProductItemValidator SuppProdFF = new(TierFF);
+    private static readonly SupplierProductItemValidator SuppProdTF = new(TierTF);
+    private static readonly SupplierProductItemValidator SuppProdFT = new(TierFT);
+    private static readonly SupplierProductItemValidator SuppProdTT = new(TierTT);
+
+    private static readonly ProductSupplierItemValidator ProdSuppFF = new(TierFF);
+    private static readonly ProductSupplierItemValidator ProdSuppTF = new(TierTF);
+    private static readonly ProductSupplierItemValidator ProdSuppFT = new(TierFT);
+    private static readonly ProductSupplierItemValidator ProdSuppTT = new(TierTT);
+
+    private static SupplierProductItemValidator GetSupplierProductValidator(bool reqValidFrom, bool reqValidFromNotInPast) =>
+        (reqValidFrom, reqValidFromNotInPast) switch
+        {
+            (false, false) => SuppProdFF,
+            (true, false)  => SuppProdTF,
+            (false, true)  => SuppProdFT,
+            (true, true)   => SuppProdTT
+        };
+
+    private static ProductSupplierItemValidator GetProductSupplierValidator(bool reqValidFrom, bool reqValidFromNotInPast) =>
+        (reqValidFrom, reqValidFromNotInPast) switch
+        {
+            (false, false) => ProdSuppFF,
+            (true, false)  => ProdSuppTF,
+            (false, true)  => ProdSuppFT,
+            (true, true)   => ProdSuppTT
+        };
+
     public static void ApplySupplierIdRules<T>(AbstractValidator<T> validator, Expression<Func<T, Guid>> selector)
     {
-        validator.RuleFor(selector)
-            .NotEmpty().WithMessage("El id del proveedor es requerido.")
-            .NotEqual(Guid.Empty).WithMessage("El id del proveedor no es válido.");
+        validator.RuleFor(selector).NotEmpty().WithMessage("El id del proveedor es requerido.");
     }
 
     public static void ApplyProductIdRules<T>(AbstractValidator<T> validator, Expression<Func<T, Guid>> selector)
     {
-        validator.RuleFor(selector)
-            .NotEmpty().WithMessage("El id del producto es requerido.")
-            .NotEqual(Guid.Empty).WithMessage("El id del producto no es válido.");
-    }
-
-    public static void ApplyTierPriceRules(
-        InlineValidator<TierPriceDto> tier,
-        bool requireValidFrom = false,
-        bool requireValidFromNotInPast = false)
-    {
-        tier.RuleFor(t => t.MinQuantity)
-            .GreaterThan(0).WithMessage("La cantidad mínima debe ser mayor a cero.");
-
-        tier.RuleFor(t => t.PreferentialPrice)
-            .GreaterThanOrEqualTo(0).WithMessage("El precio preferencial no puede ser negativo.");
-
-        if (requireValidFrom)
-        {
-            tier.RuleFor(t => t.ValidFrom)
-                .NotEmpty().WithMessage("La fecha de inicio de vigencia es obligatoria.");
-        }
-
-        if (requireValidFromNotInPast)
-        {
-            tier.RuleFor(t => t.ValidFrom)
-                .Must(from => from >= DateOnly.FromDateTime(DateTime.UtcNow))
-                .WithMessage("La fecha inicial del precio preferencial no puede ser anterior al día actual.");
-        }
-
-        tier.RuleFor(t => t.UnitMeasureId)
-            .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
-            .When(t => t.UnitMeasureId.HasValue);
-
-        tier.RuleFor(t => t.Currency)
-            .IsInEnum().WithMessage("La moneda del precio preferencial no es válida.")
-            .When(t => t.Currency.HasValue);
-
-        tier.RuleFor(t => t)
-            .Must(t => !t.ValidTo.HasValue || t.ValidTo.Value >= t.ValidFrom)
-            .WithMessage("La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.");
+        validator.RuleFor(selector).NotEmpty().WithMessage("El id del producto es requerido.");
     }
 
     public static void ApplyProductSupplierItemsRules<T>(
@@ -63,30 +54,7 @@ internal static class CatalogValidationRules
         bool requireValidFrom = false,
         bool requireValidFromNotInPast = false)
     {
-        validator.RuleForEach(selector).ChildRules(supplier =>
-        {
-            supplier.RuleFor(s => s.SupplierId)
-                .NotEmpty().WithMessage("El id del proveedor es obligatorio.")
-                .NotEqual(Guid.Empty).WithMessage("El id del proveedor no es válido.");
-
-            supplier.RuleFor(s => s.UnitPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
-
-            supplier.RuleFor(s => s.UnitMeasureId)
-                .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
-                .When(s => s.UnitMeasureId.HasValue);
-
-            supplier.RuleFor(s => s.Currency)
-                .IsInEnum().WithMessage("La moneda del vínculo no es válida.")
-                .When(s => s.Currency.HasValue);
-
-            supplier.RuleFor(s => s.TierPrices)
-                .Must(list => list is null || list.Count <= 1)
-                .WithMessage("Solo se permite un precio preferencial por vínculo proveedor-producto.");
-
-            supplier.RuleForEach(s => s.TierPrices)
-                .ChildRules(tier => ApplyTierPriceRules(tier, requireValidFrom, requireValidFromNotInPast));
-        });
+        validator.RuleForEach(selector).SetValidator(GetProductSupplierValidator(requireValidFrom, requireValidFromNotInPast));
     }
 
     public static void ApplySupplierProductItemsRules<T>(
@@ -95,29 +63,6 @@ internal static class CatalogValidationRules
         bool requireValidFrom = false,
         bool requireValidFromNotInPast = false)
     {
-        validator.RuleForEach(selector).ChildRules(product =>
-        {
-            product.RuleFor(p => p.ProductId)
-                .NotEmpty().WithMessage("El id del producto es obligatorio.")
-                .NotEqual(Guid.Empty).WithMessage("El id del producto no es válido.");
-
-            product.RuleFor(p => p.UnitPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("El precio unitario no puede ser negativo.");
-
-            product.RuleFor(p => p.UnitMeasureId)
-                .NotEmpty().WithMessage("El id de la unidad de medida no es válido.")
-                .When(p => p.UnitMeasureId.HasValue);
-
-            product.RuleFor(p => p.Currency)
-                .IsInEnum().WithMessage("La moneda del vínculo no es válida.")
-                .When(p => p.Currency.HasValue);
-
-            product.RuleFor(p => p.TierPrices)
-                .Must(list => list is null || list.Count <= 1)
-                .WithMessage("Solo se permite un precio preferencial por vínculo proveedor-producto.");
-
-            product.RuleForEach(p => p.TierPrices)
-                .ChildRules(tier => ApplyTierPriceRules(tier, requireValidFrom, requireValidFromNotInPast));
-        });
+        validator.RuleForEach(selector).SetValidator(GetSupplierProductValidator(requireValidFrom, requireValidFromNotInPast));
     }
 }

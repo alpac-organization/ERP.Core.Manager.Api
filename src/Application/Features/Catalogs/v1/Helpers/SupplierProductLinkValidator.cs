@@ -91,92 +91,77 @@ public static class SupplierProductLinkValidator
         string errorCode,
         CancellationToken cancellationToken)
     {
-        Dictionary<Guid, Guid> productUnitMeasures = [];
 
         if (products.Count == 0)
         {
-            return (null, productUnitMeasures);
+            return (null, []);
         }
 
-        var productIds = products.Select(p => p.ProductId).Distinct().ToList();
+        var productIds = new HashSet<Guid>(capacity: products.Count);
+        var unitMeasureIds = new HashSet<Guid>();
 
-        if (productIds.Count != products.Count)
+        foreach (var product in products)
         {
-            return (
-                new LinkValidationError(
-                    "No se puede relacionar el mismo producto más de una vez al proveedor.",
-                    errorCode),
-                productUnitMeasures);
-        }
-
-        if (alreadyLinkedProductIds is not null && productIds.Any(alreadyLinkedProductIds.Contains))
-        {
-            return (
-                new LinkValidationError(
-                    "Uno o más productos ya están vinculados a este proveedor.",
-                    errorCode),
-                productUnitMeasures);
-        }
-
-        var productRows = await unitOfWork.Products.Entities
-            .AsNoTracking()
-            .Where(p => productIds.Contains(p.Id) && p.DeletedAt == null)
-            .Select(p => new { p.Id, p.UnitMeasureId })
-            .ToListAsync(cancellationToken);
-
-        if (productRows.Count != productIds.Count)
-        {
-            return (
-                new LinkValidationError(
-                    "Uno o más productos seleccionados no existen.",
-                    errorCode),
-                productUnitMeasures);
-        }
-
-        productUnitMeasures = productRows.ToDictionary(p => p.Id, p => p.UnitMeasureId);
-
-        var unitMeasureIds = products
-            .SelectMany(p =>
+            if (!productIds.Add(product.ProductId))
             {
-                var ids = (p.TierPrices ?? [])
-                    .Where(t => t.UnitMeasureId.HasValue)
-                    .Select(t => t.UnitMeasureId!.Value);
+                return (new LinkValidationError( "No se puede relacionar el mismo producto más de una vez al proveedor.",errorCode), []);
+            }
 
-                return p.UnitMeasureId.HasValue
-                    ? ids.Append(p.UnitMeasureId.Value)
-                    : ids;
-            })
-            .Distinct()
-            .ToList();
-
-        var unitMeasureError = await ValidateUnitMeasuresAsync(
-            unitOfWork,
-            unitMeasureIds,
-            errorCode,
-            cancellationToken);
-
-        if (unitMeasureError is not null)
-        {
-            return (unitMeasureError, productUnitMeasures);
-        }
-
-        foreach (var productItem in products)
-        {
-            var overlapError = SupplierProductPriceHelper.ValidateTierPriceOverlaps(
-                productItem.TierPrices ?? []);
-
-            if (overlapError is not null)
+            if (alreadyLinkedProductIds is not null && alreadyLinkedProductIds.Contains(product.ProductId))
             {
-                return (new LinkValidationError(overlapError, errorCode), productUnitMeasures);
+                return (new LinkValidationError("Uno o más productos ya están vinculados a este proveedor.",errorCode), []);
+            }
+
+            if (product.TierPrices is {Count : > 0} tierPrices)
+            {
+                var overlapError = SupplierProductPriceHelper.ValidateTierPriceOverlaps(tierPrices);
+                if (overlapError is not null)
+            {
+                return (new LinkValidationError(overlapError, errorCode), []);
+            }
+
+            foreach (var tier in tierPrices)
+             {
+                if (tier.UnitMeasureId.HasValue)
+                {
+                    unitMeasureIds.Add(tier.UnitMeasureId.Value);
+                }
+             }
+            }
+
+            if (product.UnitMeasureId.HasValue)
+            {
+                    unitMeasureIds.Add(product.UnitMeasureId.Value);
             }
         }
+        
+            var productUnitMeasures = await unitOfWork.Products.Entities
+                                     .AsNoTracking()
+                                    .Where(p => productIds.Contains(p.Id) && p.DeletedAt == null)
+                                    .ToDictionaryAsync(p => p.Id, p => p.UnitMeasureId, cancellationToken);
 
-        return (null, productUnitMeasures);
+            if (productUnitMeasures.Count != productIds.Count)
+            {
+                return (new LinkValidationError("Uno o más productos seleccionados no existen.",errorCode), []);
+            }
+
+            if (unitMeasureIds.Count > 0)
+            {
+                var unitMeasureError = await ValidateUnitMeasuresAsync(unitOfWork,unitMeasureIds,errorCode,cancellationToken);
+
+            if (unitMeasureError is not null)
+            {
+                return (unitMeasureError, []);
+            }
+
+
+            }
+                return (null, productUnitMeasures);
     }
 
     private static async Task<LinkValidationError?> ValidateUnitMeasuresAsync(
         IUnitOfWork unitOfWork,
-        IReadOnlyList<Guid> unitMeasureIds,
+        IReadOnlyCollection<Guid> unitMeasureIds,
         string errorCode,
         CancellationToken cancellationToken)
     {
@@ -190,9 +175,7 @@ public static class SupplierProductLinkValidator
 
         if (existingUomCount != unitMeasureIds.Count)
         {
-            return new LinkValidationError(
-                "Una o más unidades de medida no existen o no están activas.",
-                errorCode);
+            return new LinkValidationError("Una o más unidades de medida no existen",errorCode);
         }
 
         return null;
