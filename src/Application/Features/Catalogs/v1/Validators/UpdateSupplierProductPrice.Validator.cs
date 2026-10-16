@@ -12,8 +12,8 @@ public class UpdateSupplierProductPriceValidator : BaseRequestValidator<UpdateSu
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
-        CatalogValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
-        CatalogValidationRules.ApplyProductIdRules(this, x => x.ProductId);
+        SupplierProductValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
+        SupplierProductValidationRules.ApplyProductIdRules(this, x => x.ProductId);
 
         RuleFor(x => x)
             .Must(x =>

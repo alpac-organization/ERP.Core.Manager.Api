@@ -8,7 +8,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
     {
         public UpdateSupplierInformationValidator()
         {
-            CatalogValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
+            SupplierProductValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
 
             RuleFor(x => x.SuppliersLegalName)
                 .MaximumLength(200)
@@ -116,7 +116,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .WithMessage("El método de pago preferido debe estar incluido en los métodos de pago habilitados.")
                 .When(x => x.PaymentMethods is not null && x.SupplierDetails.PreferredPaymentMethod.HasValue);
 
-            CatalogValidationRules.ApplySupplierProductItemsRules(
+            SupplierProductValidationRules.ApplySupplierProductItemsRules(
                 this,
                 x => x.Products,
                 requireValidFromNotInPast: true);

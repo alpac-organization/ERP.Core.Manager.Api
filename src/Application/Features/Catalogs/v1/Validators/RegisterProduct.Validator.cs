@@ -13,17 +13,15 @@ public class RegisterProductValidator : BaseRequestValidator<RegisterProductComm
             .MaximumLength(80).WithMessage("El nombre del producto no puede exceder los 80 caracteres.");
 
         RuleFor(x => x.CategoryId)
-            .NotEmpty().WithMessage("La categoría es obligatoria.")
-            .NotEqual(Guid.Empty).WithMessage("El id de la categoría no es válido.");
+            .NotEmpty().WithMessage("La categoría es obligatoria.");
 
         RuleFor(x => x.UnitMeasureId)
-            .NotEmpty().WithMessage("La unidad de medida es obligatoria.")
-            .NotEqual(Guid.Empty).WithMessage("El id de la unidad de medida no es válido.");
+            .NotEmpty().WithMessage("La unidad de medida es obligatoria.");
 
         RuleFor(x => x.ProductUsageType)
             .IsInEnum().WithMessage("El tipo de uso del producto es inválido.");
 
-        CatalogValidationRules.ApplyProductSupplierItemsRules(
+        SupplierProductValidationRules.ApplyProductSupplierItemsRules(
             this,
             x => x.Suppliers,
             requireValidFrom: true,

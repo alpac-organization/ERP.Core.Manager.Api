@@ -52,7 +52,7 @@ public class RegisterSupplierValidator : BaseRequestValidator<RegisterSupplierCo
         RuleForEach(x => x.BankAccounts)
             .SetValidator(BankValidator); 
 
-        CatalogValidationRules.ApplySupplierProductItemsRules(
+        SupplierProductValidationRules.ApplySupplierProductItemsRules(
             this,
             x => x.Products,
             requireValidFrom: true,
