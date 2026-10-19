@@ -149,6 +149,13 @@ public class UpdateProductHandler(
                     continue;
                 }
 
+                var missingPreferential = SupplierProductPriceHelper.MissingNewPreferentialMessage(
+                    supplierItem.TierPrices?.FirstOrDefault());
+                if (missingPreferential is not null)
+                {
+                    return _errorManager.ThrowBadRequest<bool>(missingPreferential, "ERP:PROD07");
+                }
+
                 product.SupplierProducts.Add(
                     SupplierProductPriceHelper.BuildSupplierProduct(
                         supplierItem.SupplierId,

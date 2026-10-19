@@ -77,6 +77,7 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
             .Select(h =>
             {
                 var effectiveTo = SupplierProductPriceHelper.ToApiEffectiveTo(h.EffectiveTo);
+                var status = SupplierProductPriceHelper.ResolvePriceWindowStatus(h.EffectiveFrom, effectiveTo, utcNow);
                 return new SupplierProductPriceHistoryDto
                 {
                     HistoryPriceId = h.Id,
@@ -86,7 +87,8 @@ public class GetSupplierProductPriceHistoryHandler(IUnitOfWork _unitOfWork, IErr
                     Currency = h.Currency,
                     EffectiveFrom = h.EffectiveFrom,
                     EffectiveTo = effectiveTo,
-                    IsCurrent = SupplierProductPriceHelper.IsCurrentPrice(h.EffectiveFrom, effectiveTo, utcNow)
+                    IsCurrent = status == PriceWindowStatus.Current,
+                    Status = status
                 };
             })
             .ToList();

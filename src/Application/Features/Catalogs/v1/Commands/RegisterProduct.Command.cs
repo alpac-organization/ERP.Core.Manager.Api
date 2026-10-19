@@ -30,9 +30,9 @@ public class ProductSupplierItemDto
 
 public class TierPriceDto
 {
-    public int MinQuantity { get; set; }
-    public decimal PreferentialPrice { get; set; }
-    public DateOnly ValidFrom { get; set; }
+    public int? MinQuantity { get; set; }
+    public decimal? PreferentialPrice { get; set; }
+    public DateOnly? ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
     public Guid? UnitMeasureId { get; set; }
     public Currency? Currency { get; set; }

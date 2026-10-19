@@ -5,15 +5,23 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
 {
 public class SupplierProductItemValidator : AbstractValidator<SupplierProductItemDto>
 {
-    public SupplierProductItemValidator(TierPriceValidator tierValidator)
+    public SupplierProductItemValidator(TierPriceValidator tierValidator, bool requireUnitPrice = false)
     {
         RuleFor(p => p.ProductId)
             .NotEmpty()
             .WithMessage("El id del producto es obligatorio.");
 
+        if (requireUnitPrice)
+        {
+            RuleFor(p => p.UnitPrice)
+                .NotNull()
+                .WithMessage("El precio unitario es obligatorio.");
+        }
+
         RuleFor(p => p.UnitPrice)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("El precio unitario no puede ser negativo.");
+            .WithMessage("El precio unitario no puede ser negativo.")
+            .When(p => p.UnitPrice.HasValue);
 
         RuleFor(p => p.UnitMeasureId)
             .NotEmpty()
