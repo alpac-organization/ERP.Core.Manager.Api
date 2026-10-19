@@ -154,9 +154,8 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
         var mappedSuppliers = suppliers.Select(sp =>
         {
             var tiers = sp.TierPrices
-                .Where(t => SupplierProductPriceHelper.IsTierActiveOrUpcoming(t.ValidFrom, t.ValidTo, today))
-                .OrderByDescending(t => SupplierProductPriceHelper.IsTierCurrentlyValid(t.ValidFrom, t.ValidTo, today))
-                .ThenBy(t => t.ValidFrom)
+                .Where(t => SupplierProductPriceHelper.IsTierCurrentlyValid(t.ValidFrom, t.ValidTo, today))
+                .OrderBy(t => t.ValidFrom)
                 .Take(1)
                 .Select(t =>
                 {
@@ -167,8 +166,7 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
                             SupplierProductPriceHelper.IsCurrentPrice(
                                 h.EffectiveFrom,
                                 SupplierProductPriceHelper.ToApiEffectiveTo(h.EffectiveTo),
-                                utcNow)
-                            || h.EffectiveFrom > utcNow);
+                                utcNow));
 
                     return new TierPriceResponseDto
                     {

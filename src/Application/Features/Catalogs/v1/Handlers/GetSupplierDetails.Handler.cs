@@ -141,9 +141,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 UnitPrice = sp.UnitPrice,
                 LastPriceUpdate = sp.LastPriceUpdate,
                 TierPrices = sp.TierPrices
-                    .Where(t => SupplierProductPriceHelper.IsTierActiveOrUpcoming(t.ValidFrom, t.ValidTo, today))
-                    .OrderByDescending(t => SupplierProductPriceHelper.IsTierCurrentlyValid(t.ValidFrom, t.ValidTo, today))
-                    .ThenBy(t => t.ValidFrom)
+                    .Where(t => SupplierProductPriceHelper.IsTierCurrentlyValid(t.ValidFrom, t.ValidTo, today))
+                    .OrderBy(t => t.ValidFrom)
                     .Take(1)
                     .Select(t =>
                     {
@@ -154,8 +153,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                                 SupplierProductPriceHelper.IsCurrentPrice(
                                     h.EffectiveFrom,
                                     SupplierProductPriceHelper.ToApiEffectiveTo(h.EffectiveTo),
-                                    utcNow)
-                                || h.EffectiveFrom > utcNow);
+                                    utcNow));
 
                         return new TierPriceResponseDto
                         {
