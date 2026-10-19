@@ -17,6 +17,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
     {
         public override async Task<SupplierInformationDto> Handle(GetSupplierDetailsQuery request, CancellationToken cancellationToken)
         {
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess)
+            {
+                return access.ErrorResponse!;
+            }
+
             var supplier = await _unitOfWork.Suppliers.Entities
                 .AsNoTracking()
                 .Include(sup => sup.SupplierDetails)

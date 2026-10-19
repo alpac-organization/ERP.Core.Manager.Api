@@ -192,10 +192,4 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
 
         return Ok();
     }
-
-    private Guid ResolveUserId()
-    {
-        var userIdStr = HttpContext.Items["UserId"] as string;
-        return Guid.TryParse(userIdStr, out var parseGuid) ? parseGuid : Guid.Empty;
-    }
 }

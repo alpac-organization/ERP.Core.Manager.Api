@@ -18,15 +18,21 @@ internal static class SupplierProductValidationRules
 
     public static void ApplyProductSupplierItemsRules<T>(AbstractValidator<T> validator,Expression<Func<T, IEnumerable<ProductSupplierItemDto>>> selector,
         bool requireValidFrom = false,
-        bool requireValidFromNotInPast = false)
+        bool requireValidFromNotInPast = false,
+        bool requireCoreFields = false)
     {
-        validator.RuleForEach(selector).SetValidator(new ProductSupplierItemValidator(new TierPriceValidator(requireValidFrom, requireValidFromNotInPast)));
+        validator.RuleForEach(selector).SetValidator(new ProductSupplierItemValidator(
+            new TierPriceValidator(requireValidFrom, requireValidFromNotInPast, requireCoreFields)));
     }
 
     public static void ApplySupplierProductItemsRules<T>(AbstractValidator<T> validator,Expression<Func<T, IEnumerable<SupplierProductItemDto>>> selector,
         bool requireValidFrom = false,
-        bool requireValidFromNotInPast = false)
+        bool requireValidFromNotInPast = false,
+        bool requireUnitPrice = false,
+        bool requireCoreFields = false)
     {
-        validator.RuleForEach(selector).SetValidator(new SupplierProductItemValidator(new TierPriceValidator(requireValidFrom, requireValidFromNotInPast)));
+        validator.RuleForEach(selector).SetValidator(new SupplierProductItemValidator(
+            new TierPriceValidator(requireValidFrom, requireValidFromNotInPast, requireCoreFields),
+            requireUnitPrice));
     }
 }

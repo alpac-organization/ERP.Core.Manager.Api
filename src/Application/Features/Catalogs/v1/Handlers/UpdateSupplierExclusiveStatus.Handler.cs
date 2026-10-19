@@ -23,12 +23,12 @@ public class UpdateSupplierExclusiveStatusHandler(
             return access.ErrorResponse;
         }
 
-        if (access.Role?.RoleType is RoleType.Operator or RoleType.Manager)
+        if (access.Role?.RoleType is not (RoleType.Administrator or RoleType.Supervisor))
         {
             _logger.LogWarning(
                 "Usuario {UserId} con rol {RoleType} intentó actualizar ExclusiveStatus del proveedor {SupplierId}",
                 request.UserId,
-                access.Role.RoleType,
+                access.Role?.RoleType,
                 request.SupplierId);
 
             return _errorManager.ThrowBadRequest<bool>(

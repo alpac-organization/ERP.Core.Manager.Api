@@ -31,6 +31,13 @@ public class RegisterProductHandler(
             return access.ErrorResponse;
         }
 
+        if (access.Role?.RoleType == RoleType.Supervisor)
+        {
+            return _errorManager.ThrowBadRequest<Guid>(
+                "No tienes permiso para registrar un producto.",
+                "ERP:01");
+        }
+
         var categoryExists = await _unitOfWork.CategoryProducts.Entities
             .AnyAsync(c => c.Id == request.CategoryId && c.IsActive && c.DeletedAt == null, cancellationToken);
 

@@ -122,16 +122,20 @@ public class UpdateProductHandler(
 
             foreach (var supplierItem in request.Suppliers)
             {
-                var existingLink = product.SupplierProducts
-                    .FirstOrDefault(sp =>
-                        sp.SupplierId == supplierItem.SupplierId &&
-                        sp.IsActive &&
-                        sp.DeletedAt == null);
+                var supplierLinks = product.SupplierProducts
+                    .Where(sp => sp.SupplierId == supplierItem.SupplierId)
+                    .ToList();
+
+                var existingLink = supplierLinks.FirstOrDefault(sp => sp.IsActive && sp.DeletedAt == null)
+                    ?? supplierLinks.FirstOrDefault();
 
                 var fallbackCurrency = supplierCurrencies.GetValueOrDefault(supplierItem.SupplierId, Currency.NIO);
 
                 if (existingLink is not null)
                 {
+                    existingLink.IsActive = true;
+                    existingLink.DeletedAt = null;
+
                     var applyError = SupplierProductPriceHelper.ApplyExistingLinkUpdate(
                         existingLink,
                         supplierItem.UnitPrice,

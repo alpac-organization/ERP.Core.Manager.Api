@@ -25,6 +25,7 @@ public class RegisterProductValidator : BaseRequestValidator<RegisterProductComm
             this,
             x => x.Suppliers,
             requireValidFrom: true,
-            requireValidFromNotInPast: true);
+            requireValidFromNotInPast: true,
+            requireCoreFields: true);
     }
 }
