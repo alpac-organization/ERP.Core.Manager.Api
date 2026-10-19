@@ -7,31 +7,48 @@ public static class SupplierPaymentMethodHelper
 {
     public static void SyncPaymentMethods(
         Supplier supplier,
-        IReadOnlyList<PaymentMethodType> paymentMethods,
+        IReadOnlyList<SupplierPaymentMethod> storedMethods,
+        IReadOnlyList<PaymentMethodType> requestedMethods,
         DateTime now)
     {
-        var desired = paymentMethods.Distinct().ToHashSet();
+        var desired = requestedMethods.Distinct().ToHashSet();
 
-        foreach (var existing in supplier.SupplierPaymentMethods.ToList())
+        foreach (var existing in storedMethods)
         {
             if (desired.Contains(existing.PaymentMethodType))
             {
-                existing.IsActive = true;
-                existing.DeletedAt = null;
+                if (!existing.IsActive)
+                {
+                    existing.IsActive = true;
+                }
+
+                if (existing.DeletedAt != null)
+                {
+                    existing.DeletedAt = null;
+                }
+
                 desired.Remove(existing.PaymentMethodType);
             }
-            else if (existing.DeletedAt == null || existing.IsActive)
+            else if (existing.IsActive || existing.DeletedAt == null)
             {
-                existing.IsActive = false;
-                existing.DeletedAt = now;
+                if (existing.IsActive)
+                {
+                    existing.IsActive = false;
+                }
+
+                if (existing.DeletedAt == null)
+                {
+                    existing.DeletedAt = now;
+                }
             }
         }
+
+        supplier.SupplierPaymentMethods ??= [];
 
         foreach (var paymentMethod in desired)
         {
             supplier.SupplierPaymentMethods.Add(new SupplierPaymentMethod
             {
-                Id = Guid.NewGuid(),
                 SupplierId = supplier.Id,
                 PaymentMethodType = paymentMethod,
                 IsActive = true

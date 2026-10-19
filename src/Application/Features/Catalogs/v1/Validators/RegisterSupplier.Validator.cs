@@ -56,6 +56,7 @@ public class RegisterSupplierValidator : BaseRequestValidator<RegisterSupplierCo
             this,
             x => x.Products,
             requireValidFrom: true,
-            requireValidFromNotInPast: true);
+            requireValidFromNotInPast: true,
+            requireUnitPrice: true);
     }
 }

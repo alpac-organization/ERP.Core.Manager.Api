@@ -84,7 +84,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .Select(p => SupplierProductPriceHelper.BuildSupplierProduct(
                     supplierEntity.Id,
                     p.ProductId,
-                    p.UnitPrice,
+                    p.UnitPrice!.Value,
                     p.TierPrices,
                     p.UnitMeasureId ?? productUnitMeasures.GetValueOrDefault(p.ProductId),
                     now,

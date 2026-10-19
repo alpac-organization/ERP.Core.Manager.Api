@@ -6,7 +6,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators;
 
 public class UpdateSupplierProductPriceValidator : BaseRequestValidator<UpdateSupplierProductPriceCommand>
 {
-    private static readonly TierPriceValidator TierValidator = new(requireValidFrom: true, requireValidFromNotInPast: true);
+    private static readonly TierPriceValidator TierValidator = new(requireValidFromNotInPast: true);
 
     public UpdateSupplierProductPriceValidator()
     {

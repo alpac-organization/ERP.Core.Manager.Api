@@ -8,25 +8,36 @@ internal static class CatalogValidationRules
     private static readonly TierPriceValidator TierFF = new(false, false);
     private static readonly TierPriceValidator TierTF = new(true, false);
     private static readonly TierPriceValidator TierFT = new(false, true);
-    private static readonly TierPriceValidator TierTT = new(true, true);
+    private static readonly TierPriceValidator TierTT = new(true, true, requireCoreFields: true);
 
     private static readonly SupplierProductItemValidator SuppProdFF = new(TierFF);
     private static readonly SupplierProductItemValidator SuppProdTF = new(TierTF);
     private static readonly SupplierProductItemValidator SuppProdFT = new(TierFT);
     private static readonly SupplierProductItemValidator SuppProdTT = new(TierTT);
+    private static readonly SupplierProductItemValidator SuppProdFFPrice = new(TierFF, true);
+    private static readonly SupplierProductItemValidator SuppProdTFPrice = new(TierTF, true);
+    private static readonly SupplierProductItemValidator SuppProdFTPrice = new(TierFT, true);
+    private static readonly SupplierProductItemValidator SuppProdTTPrice = new(TierTT, true);
 
     private static readonly ProductSupplierItemValidator ProdSuppFF = new(TierFF);
     private static readonly ProductSupplierItemValidator ProdSuppTF = new(TierTF);
     private static readonly ProductSupplierItemValidator ProdSuppFT = new(TierFT);
     private static readonly ProductSupplierItemValidator ProdSuppTT = new(TierTT);
 
-    private static SupplierProductItemValidator GetSupplierProductValidator(bool reqValidFrom, bool reqValidFromNotInPast) =>
-        (reqValidFrom, reqValidFromNotInPast) switch
+    private static SupplierProductItemValidator GetSupplierProductValidator(
+        bool reqValidFrom,
+        bool reqValidFromNotInPast,
+        bool requireUnitPrice) =>
+        (reqValidFrom, reqValidFromNotInPast, requireUnitPrice) switch
         {
-            (false, false) => SuppProdFF,
-            (true, false)  => SuppProdTF,
-            (false, true)  => SuppProdFT,
-            (true, true)   => SuppProdTT
+            (false, false, false) => SuppProdFF,
+            (true, false, false)  => SuppProdTF,
+            (false, true, false)  => SuppProdFT,
+            (true, true, false)   => SuppProdTT,
+            (false, false, true)  => SuppProdFFPrice,
+            (true, false, true)   => SuppProdTFPrice,
+            (false, true, true)   => SuppProdFTPrice,
+            (true, true, true)    => SuppProdTTPrice
         };
 
     private static ProductSupplierItemValidator GetProductSupplierValidator(bool reqValidFrom, bool reqValidFromNotInPast) =>
@@ -61,8 +72,10 @@ internal static class CatalogValidationRules
         AbstractValidator<T> validator,
         Expression<Func<T, IEnumerable<SupplierProductItemDto>>> selector,
         bool requireValidFrom = false,
-        bool requireValidFromNotInPast = false)
+        bool requireValidFromNotInPast = false,
+        bool requireUnitPrice = false)
     {
-        validator.RuleForEach(selector).SetValidator(GetSupplierProductValidator(requireValidFrom, requireValidFromNotInPast));
+        validator.RuleForEach(selector).SetValidator(
+            GetSupplierProductValidator(requireValidFrom, requireValidFromNotInPast, requireUnitPrice));
     }
 }
