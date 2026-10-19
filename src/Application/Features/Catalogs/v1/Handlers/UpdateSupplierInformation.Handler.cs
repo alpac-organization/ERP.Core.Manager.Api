@@ -39,14 +39,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No tienes permiso para actualizar este proveedor", "ERP:01");
             }
 
-            var userExists = await _unitOfWork.Users.Entities
-                .AnyAsync(user => user.Id == request.UserId, cancellationToken);
-
-            if (!userExists)
-            {
-                return _errorManager.ThrowBadRequest<bool>("Usuario desconocido!", "ERP:01");
-            }
-
             var supplier = await _unitOfWork.Suppliers.Entities
                 .FirstOrDefaultAsync(sup => sup.Id == request.SupplierId, cancellationToken);
 

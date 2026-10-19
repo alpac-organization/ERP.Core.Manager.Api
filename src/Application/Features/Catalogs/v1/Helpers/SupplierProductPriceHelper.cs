@@ -56,7 +56,7 @@ public static class SupplierProductPriceHelper
         return link;
     }
 
-    public static SupplierProductTierPrice CreateTierPrice(
+    private static SupplierProductTierPrice CreateTierPrice(
         TierPriceDto tier,
         Guid unitMeasureId) =>
         new()
@@ -68,13 +68,13 @@ public static class SupplierProductPriceHelper
             UnitMeasureId = unitMeasureId
         };
 
-    public static DateTime ResolvePreferentialEffectiveFrom(DateOnly validFrom, DateTime fallbackNow)
+    private static DateTime ResolvePreferentialEffectiveFrom(DateOnly validFrom, DateTime fallbackNow)
     {
         var from = validFrom.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
         return from > fallbackNow ? from : fallbackNow;
     }
 
-    public static DateTime ResolvePreferentialEffectiveTo(DateOnly? validTo) =>
+    private static DateTime ResolvePreferentialEffectiveTo(DateOnly? validTo) =>
         validTo.HasValue
             ? validTo.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)
             : ActiveEffectiveTo;
@@ -105,7 +105,7 @@ public static class SupplierProductPriceHelper
         return PriceWindowStatus.Current;
     }
 
-    public static void CloseActivePriceHistories(SupplierProduct supplierProduct, DateTime closedAt)
+    private static void CloseActivePriceHistories(SupplierProduct supplierProduct, DateTime closedAt)
     {
         foreach (var history in supplierProduct.PriceHistories
                      .Where(h => h.DeletedAt == null && h.EffectiveTo == ActiveEffectiveTo))
@@ -162,9 +162,6 @@ public static class SupplierProductPriceHelper
 
         supplierProduct.LastPriceUpdate = now;
     }
-
-    public static void ApplyUnitPriceChange(SupplierProduct supplierProduct, decimal newUnitPrice, DateTime now) =>
-        ApplyUnitPriceOrCurrencyChange(supplierProduct, newUnitPrice, null, now);
 
     public static string? ApplyPreferentialPrices(
         SupplierProduct supplierProduct,
@@ -247,13 +244,6 @@ public static class SupplierProductPriceHelper
         return null;
     }
 
-    public static string? ApplyTierPrices(
-        SupplierProduct supplierProduct,
-        IReadOnlyList<TierPriceDto> tierPrices,
-        Guid fallbackUnitMeasureId,
-        DateTime now) =>
-        ApplyPreferentialPrices(supplierProduct, tierPrices, fallbackUnitMeasureId, now);
-
     public static string? ApplyExistingLinkUpdate(
         SupplierProduct supplierProduct,
         decimal? unitPrice,
@@ -278,14 +268,7 @@ public static class SupplierProductPriceHelper
         return ApplyPreferentialPrices(supplierProduct, tierPrices, tierFallback, now);
     }
 
-    public static Currency ResolveLinkCurrency(
-        Currency? linkCurrency,
-        Currency? supplierDetailsCurrency) =>
-        linkCurrency
-        ?? supplierDetailsCurrency
-        ?? Currency.NIO;
-
-    public static string? ValidatePreferentialDates(TierPriceDto tier, DateTime utcNow)
+    private static string? ValidatePreferentialDates(TierPriceDto tier, DateTime utcNow)
     {
         var today = DateOnly.FromDateTime(utcNow);
 
@@ -322,13 +305,6 @@ public static class SupplierProductPriceHelper
         return null;
     }
 
-    public static bool DatesOverlap(DateOnly fromA, DateOnly? toA, DateOnly fromB, DateOnly? toB)
-    {
-        var endA = toA ?? DateOnly.MaxValue;
-        var endB = toB ?? DateOnly.MaxValue;
-        return fromA <= endB && fromB <= endA;
-    }
-
     public static bool IsTierCurrentlyValid(DateOnly validFrom, DateOnly? validTo, DateOnly today) =>
         validFrom <= today && (!validTo.HasValue || validTo.Value >= today);
 
@@ -351,7 +327,7 @@ public static class SupplierProductPriceHelper
         }
     }
 
-    public static void ClearPreferentialPrices(SupplierProduct supplierProduct, DateTime now)
+    private static void ClearPreferentialPrices(SupplierProduct supplierProduct, DateTime now)
     {
         foreach (var history in supplierProduct.PriceHistories
                      .Where(h =>
@@ -360,10 +336,7 @@ public static class SupplierProductPriceHelper
                          (h.EffectiveTo == ActiveEffectiveTo || h.EffectiveTo > now))
                      .ToList())
         {
-            if (history.EffectiveTo == ActiveEffectiveTo || history.EffectiveTo > now)
-            {
-                history.EffectiveTo = now;
-            }
+            history.EffectiveTo = now;
         }
 
         var today = DateOnly.FromDateTime(now);
