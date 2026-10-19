@@ -9,7 +9,7 @@ public class UpdateSupplierExclusiveStatusValidator : BaseRequestValidator<Updat
 {
     public UpdateSupplierExclusiveStatusValidator()
     {
-        CatalogValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
+        SupplierProductValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
 
         RuleFor(x => x.ExclusiveStatus)
             .Must(status => status is SupplierExclusiveStatus.Approved or SupplierExclusiveStatus.Rejected)

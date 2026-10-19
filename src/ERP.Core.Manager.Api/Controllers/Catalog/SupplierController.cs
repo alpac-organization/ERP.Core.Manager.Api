@@ -31,8 +31,6 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromQuery] string? commercial_name = null,
             [FromQuery] SupplierExclusiveStatus? exclusive_status = null)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             return await _mediator.Send(new GetSuppliersQuery()
             {
                 CompanyId = companie_id,
@@ -43,7 +41,7 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
                 IdentificationNumber = identification_number,
                 CommercialName = commercial_name,
                 ExclusiveStatus = exclusive_status,
-                UserId = Guid.Parse(userIdStr ?? "")
+                UserId = ResolveUserId()
             });
         }
 
@@ -57,11 +55,9 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromRoute] string module_code,
             [FromBody] RegisterSupplierCommand payload)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             payload.CompanyId = companie_id;
             payload.ModuleCode = module_code;
-            payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.UserId = ResolveUserId();
 
             return await _mediator.Send(payload);
         }
@@ -77,11 +73,9 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromRoute] Guid supplier_id,
             [FromBody] UpdateSupplierInformationCommand payload)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             payload.CompanyId = companie_id;
             payload.ModuleCode = module_code;
-            payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.UserId = ResolveUserId();
             payload.SupplierId = supplier_id;
 
             await _mediator.Send(payload);
@@ -100,11 +94,9 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromRoute] Guid supplier_id,
             [FromBody] UpdateSupplierExclusiveStatusCommand payload)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             payload.CompanyId = companie_id;
             payload.ModuleCode = module_code;
-            payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.UserId = ResolveUserId();
             payload.SupplierId = supplier_id;
 
             await _mediator.Send(payload);
@@ -126,11 +118,9 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromQuery] string? code = null,
             [FromQuery] Guid? unit_measure_id = null)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             return await _mediator.Send(new GetSupplierDetailsQuery()
             {
-                UserId = Guid.Parse(userIdStr ?? ""),
+                UserId = ResolveUserId(),
                 SupplierId = supplier_id,
                 CompanyId = companie_id,
                 ModuleCode = module_code,
@@ -151,14 +141,12 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromRoute] string module_code,
             [FromRoute] Guid supplier_id)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             return await _mediator.Send(new GetSupplierBankAccountsQuery()
             {
                 CompanyId = companie_id,
                 ModuleCode = module_code,
                 SupplierId = supplier_id,
-                UserId = Guid.Parse(userIdStr ?? "")
+                UserId = ResolveUserId()
             });
         }
 
@@ -173,12 +161,10 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromRoute] Guid supplier_id,
             [FromBody] AddSupplierBankAccountCommand payload)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             payload.CompanyId = companie_id;
             payload.ModuleCode = module_code;
             payload.SupplierId = supplier_id;
-            payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.UserId = ResolveUserId();
 
             return await _mediator.Send(payload);
         }
@@ -195,13 +181,11 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromRoute] Guid bank_account_id,
             [FromBody] UpdateSupplierBankAccountCommand payload)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             payload.CompanyId = companie_id;
             payload.ModuleCode = module_code;
             payload.SupplierId = supplier_id;
             payload.BankAccountId = bank_account_id;
-            payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.UserId = ResolveUserId();
 
             await _mediator.Send(payload);
 
@@ -219,15 +203,13 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromRoute] Guid supplier_id,
             [FromRoute] Guid bank_account_id)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             await _mediator.Send(new DeleteSupplierBankAccountCommand()
             {
                 CompanyId = companie_id,
                 ModuleCode = module_code,
                 SupplierId = supplier_id,
                 BankAccountId = bank_account_id,
-                UserId = Guid.Parse(userIdStr ?? "")
+                UserId = ResolveUserId()
             });
 
             return Ok();
@@ -245,13 +227,11 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
             [FromRoute] Guid product_id,
             [FromBody] UpdateSupplierProductPriceCommand payload)
         {
-            var userIdStr = HttpContext.Items["UserId"] as string;
-
             payload.CompanyId = companie_id;
             payload.ModuleCode = module_code;
             payload.SupplierId = supplier_id;
             payload.ProductId = product_id;
-            payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.UserId = ResolveUserId();
 
             await _mediator.Send(payload);
             return Ok();

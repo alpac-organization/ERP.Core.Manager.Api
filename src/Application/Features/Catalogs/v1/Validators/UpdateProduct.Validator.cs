@@ -8,7 +8,7 @@ public class UpdateProductValidator : BaseRequestValidator<UpdateProductCommand>
 {
     public UpdateProductValidator()
     {
-        CatalogValidationRules.ApplyProductIdRules(this, x => x.ProductId);
+        SupplierProductValidationRules.ApplyProductIdRules(this, x => x.ProductId);
 
         RuleFor(x => x.ProductName)
             .MaximumLength(80)
@@ -28,7 +28,7 @@ public class UpdateProductValidator : BaseRequestValidator<UpdateProductCommand>
             .IsInEnum()
             .When(x => x.ProductUsageType.HasValue);
 
-        CatalogValidationRules.ApplyProductSupplierItemsRules(
+        SupplierProductValidationRules.ApplyProductSupplierItemsRules(
             this,
             x => x.Suppliers,
             requireValidFromNotInPast: true);

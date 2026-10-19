@@ -39,6 +39,14 @@ public class SupplierProductPriceHistoryDto
     public DateTime EffectiveFrom { get; set; }
     public DateTime? EffectiveTo { get; set; }
     public bool IsCurrent { get; set; }
+    public PriceWindowStatus Status { get; set; }
+}
+
+public enum PriceWindowStatus
+{
+    Current = 1,
+    Scheduled = 2,
+    Historical = 3
 }
 
 public class ProductDetailDto

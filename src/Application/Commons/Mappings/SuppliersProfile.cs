@@ -1,5 +1,6 @@
 using AutoMapper;
 using ERP.Core.Database.Domain.Entities.Shopping;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 
 using Commands = ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
@@ -14,8 +15,10 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.SupplierId, src => src.MapFrom(su => su.Id))
                 .ForMember(dest => dest.CommercialName, src => src.MapFrom(su => su.CommercialName))
                 .ForMember(dest => dest.SupplierLegalName, src => src.MapFrom(su => su.SuppliersLegalName))
-                .ForMember(dest => dest.ExclusiveStatus, src => src.MapFrom(su => su.SupplierDetails != null ? su.SupplierDetails.ExclusiveStatus : (ERP.Core.Database.Domain.Enums.SupplierExclusiveStatus?)null))
-                .ForMember(dest => dest.SupplierType, src => src.MapFrom(su => su.SupplierDetails != null ? su.SupplierDetails.SupplierType : (ERP.Core.Database.Domain.Enums.SupplierType?)null))
+                .ForMember(dest => dest.ExclusiveStatus, src => src.MapFrom(su =>
+                    su.SupplierDetails == null ? null : (SupplierExclusiveStatus?)su.SupplierDetails.ExclusiveStatus))
+                .ForMember(dest => dest.SupplierType, src => src.MapFrom(su =>
+                    su.SupplierDetails == null ? null : (SupplierType?)su.SupplierDetails.SupplierType))
                 .ForMember(dest => dest.SupplierPaymentMethods, src => src.MapFrom(su =>
                     su.SupplierPaymentMethods.Where(pm => pm.IsActive && pm.DeletedAt == null)));
 
