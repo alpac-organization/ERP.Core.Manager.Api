@@ -7,7 +7,7 @@ public class DeactivateSupplierProductValidator : BaseRequestValidator<Deactivat
 {
     public DeactivateSupplierProductValidator()
     {
-        CatalogValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
-        CatalogValidationRules.ApplyProductIdRules(this, x => x.ProductId);
+        SupplierProductValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
+        SupplierProductValidationRules.ApplyProductIdRules(this, x => x.ProductId);
     }
 }

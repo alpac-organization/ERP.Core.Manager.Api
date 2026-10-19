@@ -1,14 +1,16 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
+using ERP.Core.Database.Domain.Entities.Shopping;
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+
+using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
-using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Database.Application.Commons.Interfaces.Bases;
-using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
@@ -17,15 +19,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
     {
         public override async Task<SupplierInformationDto> Handle(GetSupplierDetailsQuery request, CancellationToken cancellationToken)
         {
-            var supplier = await _unitOfWork.Suppliers.Entities
-                .AsNoTracking()
-                .Include(sup => sup.SupplierDetails)
-                .Include(sup => sup.SupplierBankAccounts)
-                .Include(sup => sup.SupplierPaymentMethods)
-                .Include(sup => sup.User)
-                .Where(sup => sup.IsActive && sup.DeletedAt == null)
-                .Where(sup => sup.Id == request.SupplierId)
-                .FirstOrDefaultAsync(cancellationToken);
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess)
+            {
+                return access.ErrorResponse!;
+            }
+
+            var supplier = await LoadSupplierAsync(request.SupplierId, cancellationToken);
 
             if (supplier is null)
             {
@@ -43,6 +44,27 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 })
                 .ToList();
 
+            result.Products = await LoadProductsAsync(request, cancellationToken);
+
+            return result;
+        }
+
+        private async Task<Supplier?> LoadSupplierAsync(Guid supplierId, CancellationToken cancellationToken)
+        {
+            return await _unitOfWork.Suppliers.Entities
+                .AsNoTracking()
+                .Include(sup => sup.SupplierDetails)
+                .Include(sup => sup.SupplierBankAccounts.Where(account => account.DeletedAt == null))
+                .Include(sup => sup.SupplierPaymentMethods.Where(method => method.IsActive && method.DeletedAt == null))
+                .Where(sup => sup.IsActive && sup.DeletedAt == null)
+                .Where(sup => sup.Id == supplierId)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        private async Task<PagedResponse<SupplierLinkedProductDto>> LoadProductsAsync(
+            GetSupplierDetailsQuery request,
+            CancellationToken cancellationToken)
+        {
             var productsQuery = _unitOfWork.Suppliers.Entities
                 .AsNoTracking()
                 .Where(sup => sup.Id == request.SupplierId)
@@ -60,6 +82,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             var totalCount = await productsQuery.CountAsync(cancellationToken);
+
+            if (totalCount == 0)
+            {
+                return new PagedResponse<SupplierLinkedProductDto>([], request.PageNumber, request.PageSize, 0);
+            }
+
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var utcNow = DateTime.UtcNow;
 
@@ -113,9 +141,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 UnitPrice = sp.UnitPrice,
                 LastPriceUpdate = sp.LastPriceUpdate,
                 TierPrices = sp.TierPrices
-                    .Where(t => SupplierProductPriceHelper.IsTierActiveOrUpcoming(t.ValidFrom, t.ValidTo, today))
-                    .OrderByDescending(t => SupplierProductPriceHelper.IsTierCurrentlyValid(t.ValidFrom, t.ValidTo, today))
-                    .ThenBy(t => t.ValidFrom)
+                    .Where(t => SupplierProductPriceHelper.IsTierCurrentlyValid(t.ValidFrom, t.ValidTo, today))
+                    .OrderBy(t => t.ValidFrom)
                     .Take(1)
                     .Select(t =>
                     {
@@ -126,8 +153,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                                 SupplierProductPriceHelper.IsCurrentPrice(
                                     h.EffectiveFrom,
                                     SupplierProductPriceHelper.ToApiEffectiveTo(h.EffectiveTo),
-                                    utcNow)
-                                || h.EffectiveFrom > utcNow);
+                                    utcNow));
 
                         return new TierPriceResponseDto
                         {
@@ -143,13 +169,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     .ToList()
             }).ToList();
 
-            result.Products = new PagedResponse<SupplierLinkedProductDto>(
+            return new PagedResponse<SupplierLinkedProductDto>(
                 mappedProducts,
                 request.PageNumber,
                 request.PageSize,
                 totalCount);
-
-            return result;
         }
     }
 }

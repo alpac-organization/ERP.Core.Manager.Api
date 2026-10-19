@@ -6,10 +6,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators;
 
 public class UpdateSupplierProductPriceValidator : BaseRequestValidator<UpdateSupplierProductPriceCommand>
 {
+    private static readonly TierPriceValidator TierValidator = new(requireValidFromNotInPast: true);
+
     public UpdateSupplierProductPriceValidator()
     {
-        CatalogValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
-        CatalogValidationRules.ApplyProductIdRules(this, x => x.ProductId);
+        RuleLevelCascadeMode = CascadeMode.Stop;
+
+        SupplierProductValidationRules.ApplySupplierIdRules(this, x => x.SupplierId);
+        SupplierProductValidationRules.ApplyProductIdRules(this, x => x.ProductId);
 
         RuleFor(x => x)
             .Must(x =>
@@ -35,13 +39,11 @@ public class UpdateSupplierProductPriceValidator : BaseRequestValidator<UpdateSu
             .WithMessage("El id de la unidad de medida no es válido.");
 
         RuleFor(x => x.TierPrices)
-            .Must(list => list is null || list.Count <= 1)
-            .WithMessage("Solo se permite un precio preferencial por vínculo proveedor-producto.");
+            .Must(list => list is { Count: <= 1 })
+            .WithMessage("Solo se permite un precio preferencial por vínculo proveedor-producto.")
+            .When(x => x.TierPrices is not null);
 
         RuleForEach(x => x.TierPrices)
-            .ChildRules(tier => CatalogValidationRules.ApplyTierPriceRules(
-                tier,
-                requireValidFrom: true,
-                requireValidFromNotInPast: true));
+            .SetValidator(TierValidator);
     }
 }

@@ -14,6 +14,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
     {
         public override async Task<List<SupplierBankAccountDto>> Handle(GetSupplierBankAccountsQuery request, CancellationToken cancellationToken)
         {
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+
+            if (!access.IsSuccess)
+            {
+                return access.ErrorResponse!;
+            }
+
             var supplier = await _unitOfWork.Suppliers.Entities
                 .Include(s => s.SupplierBankAccounts)
                 .Where(s => s.IsActive && s.Id == request.SupplierId)

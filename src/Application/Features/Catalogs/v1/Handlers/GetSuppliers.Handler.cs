@@ -7,6 +7,7 @@ using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Application.Commons.Interfaces;
+using AutoMapper.QueryableExtensions;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
@@ -23,11 +24,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             var suppliersQuery = _unitOfWork.Suppliers.Entities
-                .Include(sup => sup.User)
-                .Include(sup => sup.SupplierPaymentMethods)
-                .Include(sup => sup.SupplierDetails)
-                .Where(sup => sup.IsActive && sup.DeletedAt == null)
-                .AsNoTracking();
+                .AsNoTracking()
+                .Where(sup => sup.IsActive && sup.DeletedAt == null);
 
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {
@@ -59,16 +57,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             var totalCount = await suppliersQuery.CountAsync(cancellationToken);
 
+            if(totalCount == 0)
+            {
+                return new PagedResponse<SupplierDto>([], request.PageNumber, request.PageSize, 0);
+            }
             var suppliers = await suppliersQuery
                 .OrderByDescending(sup => sup.CreatedAt)
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
+                .ProjectTo<SupplierDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
 
-            var suppliersMapped = _mapper.Map<List<SupplierDto>>(suppliers);
 
             return new PagedResponse<SupplierDto>(
-                suppliersMapped,
+                suppliers,
                 request.PageNumber,
                 request.PageSize,
                 totalCount

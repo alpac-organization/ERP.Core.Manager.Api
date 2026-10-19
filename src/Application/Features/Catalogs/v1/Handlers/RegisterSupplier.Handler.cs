@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
@@ -22,33 +21,15 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
         public override async Task<RegisterSupplierDto> Handle(RegisterSupplierCommand request, CancellationToken cancellationToken)
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
-
             if (!access.IsSuccess)
             {
                 return access.ErrorResponse!;
             }
 
-            if (access.Role?.RoleType == RoleType.Supervisor)
+            var rejection = RejectInvalidRequest(access.Role?.RoleType, request);
+            if (rejection is not null)
             {
-                return _errorManager.ThrowBadRequest<RegisterSupplierDto>("No tienes permiso para registrar un proveedor", "ERP:01");
-            }
-
-            if (request.BankAccounts.Count(b => b.IsPrimary) > 1)
-            {
-                return _errorManager.ThrowBadRequest<RegisterSupplierDto>("Solo se puede definir una cuenta bancaria como principal", "ERP:ERROR_REGISTER");
-            }
-
-            if (request.SupplierDetails.ExclusiveStatus is not SupplierExclusiveStatus.None
-                and not SupplierExclusiveStatus.PendingReview)
-            {
-                return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
-                    "Al registrar un proveedor solo se permite ExclusiveStatus None o PendingReview.",
-                    "ERP:ERROR_REGISTER");
-            }
-
-            if (request.SupplierDetails.HasCredit && request.SupplierDetails.CreditDays < 1)
-            {
-                return _errorManager.ThrowBadRequest<RegisterSupplierDto>("Los dias de creditos deben contener almenos un dia", "ERP:ERROR_REGISTER");
+                return rejection;
             }
 
             var (linkError, productUnitMeasures) = await SupplierProductLinkValidator.ValidateProductsToLinkAsync(
@@ -63,45 +44,78 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return _errorManager.ThrowBadRequest<RegisterSupplierDto>(linkError.Message, linkError.Code);
             }
 
-            var resolvedSupplierType = request.SupplierType ?? request.SupplierDetails.SupplierType;
-            if (!resolvedSupplierType.HasValue)
+            var supplierType = request.SupplierType ?? request.SupplierDetails.SupplierType;
+            if (!supplierType.HasValue)
             {
                 return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
                     "El tipo de proveedor es obligatorio (supplier_type o supplier_details.supplier_type).",
                     "ERP:ERROR_REGISTER");
             }
 
-            request.SupplierDetails.SupplierType = resolvedSupplierType.Value;
+            request.SupplierDetails.SupplierType = supplierType.Value;
 
             _logger.LogInformation(
                 "Iniciando proceso de registro de proveedor. SupplierType={SupplierType}",
-                resolvedSupplierType.Value);
+                supplierType.Value);
 
             var now = DateTime.UtcNow;
-            var supplierEntity = SupplierMapper.ToSupplierEntity(request, access.User.Fullname ?? "unknow user");
-
-            supplierEntity.SupplierProducts = request.Products
-                .Select(p => SupplierProductPriceHelper.BuildSupplierProduct(
-                    supplierEntity.Id,
-                    p.ProductId,
-                    p.UnitPrice,
-                    p.TierPrices,
-                    p.UnitMeasureId ?? productUnitMeasures.GetValueOrDefault(p.ProductId),
+            var supplier = SupplierMapper.ToSupplierEntity(request, access.User.Fullname ?? "unknow user");
+            supplier.SupplierProducts = request.Products
+                .Select(product => SupplierProductPriceHelper.BuildSupplierProduct(
+                    supplier.Id,
+                    product.ProductId,
+                    product.UnitPrice!.Value,
+                    product.TierPrices,
+                    product.UnitMeasureId ?? productUnitMeasures.GetValueOrDefault(product.ProductId),
                     now,
-                    p.Currency ?? request.SupplierDetails.Currency))
+                    product.Currency ?? request.SupplierDetails.Currency))
                 .ToList();
 
-            await _unitOfWork.Suppliers.RegisterSupplier(supplierEntity);
+            await _unitOfWork.Suppliers.RegisterSupplier(supplier);
 
-            var supplierDetailsEntity = SupplierMapper.ToSupplierDetails(request.SupplierDetails, supplierEntity.Id);
-            supplierDetailsEntity.SupplierType = resolvedSupplierType.Value;
-            await _unitOfWork.SuppliersDetails.RegisterSupplierDetails(supplierDetailsEntity);
+            var supplierDetails = SupplierMapper.ToSupplierDetails(request.SupplierDetails, supplier.Id);
+            supplierDetails.SupplierType = supplierType.Value;
+            await _unitOfWork.SuppliersDetails.RegisterSupplierDetails(supplierDetails);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Registro de proveedor finalizado con exito");
 
-            return new RegisterSupplierDto { SupplierId = supplierEntity.Id };
+            return new RegisterSupplierDto { SupplierId = supplier.Id };
+        }
+
+        private RegisterSupplierDto? RejectInvalidRequest(RoleType? roleType, RegisterSupplierCommand request)
+        {
+            if (roleType == RoleType.Supervisor)
+            {
+                return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
+                    "No tienes permiso para registrar un proveedor",
+                    "ERP:01");
+            }
+
+            if (request.BankAccounts.Count(account => account.IsPrimary) > 1)
+            {
+                return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
+                    "Solo se puede definir una cuenta bancaria como principal",
+                    "ERP:ERROR_REGISTER");
+            }
+
+            if (request.SupplierDetails.ExclusiveStatus is not SupplierExclusiveStatus.None
+                and not SupplierExclusiveStatus.PendingReview)
+            {
+                return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
+                    "Al registrar un proveedor solo se permite ExclusiveStatus None o PendingReview.",
+                    "ERP:ERROR_REGISTER");
+            }
+
+            if (request.SupplierDetails.HasCredit && request.SupplierDetails.CreditDays < 1)
+            {
+                return _errorManager.ThrowBadRequest<RegisterSupplierDto>(
+                    "Los dias de creditos deben contener almenos un dia",
+                    "ERP:ERROR_REGISTER");
+            }
+
+            return null;
         }
     }
 }

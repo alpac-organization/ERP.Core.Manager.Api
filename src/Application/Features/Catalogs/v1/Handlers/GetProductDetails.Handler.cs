@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Entities.Warehouse;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
@@ -26,17 +27,47 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
             return access.ErrorResponse!;
         }
 
-        var product = await _unitOfWork.Products.Entities
-            .AsNoTracking()
-            .Include(p => p.Category)
-            .Include(p => p.UnitMeasure)
-            .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.DeletedAt == null, cancellationToken);
+        var product = await LoadProductAsync(request.ProductId, cancellationToken);
 
         if (product is null)
         {
             return _errorManager.ThrowBadRequest<ProductDetailDto>("El producto no existe.", "ERP:PROD_NOT_FOUND");
         }
 
+        return new ProductDetailDto
+        {
+            ProductId = product.Id,
+            Code = product.Code,
+            ProductName = product.ProductName!,
+            Description = product.Description,
+            CategoryId = product.CategoryId,
+            Category = new ProductCategoryDto
+            {
+                Name = product.Category.Name!,
+                Code = product.Category.Code,
+                IsActive = product.Category.IsActive
+            },
+            UnitMeasureId = product.UnitMeasureId,
+            UnitMeasureName = product.UnitMeasure?.Name,
+            ProductUsageType = product.ProductUsageType,
+            IsTaxExempt = product.IsTaxExempt,
+            Suppliers = await LoadSuppliersAsync(request, cancellationToken)
+        };
+    }
+
+    private async Task<Product?> LoadProductAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        return await _unitOfWork.Products.Entities
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Include(p => p.UnitMeasure)
+            .FirstOrDefaultAsync(p => p.Id == productId && p.DeletedAt == null, cancellationToken);
+    }
+
+    private async Task<PagedResponse<ProductSupplierDto>> LoadSuppliersAsync(
+        GetProductDetailsQuery request,
+        CancellationToken cancellationToken)
+    {
         var suppliersQuery = _unitOfWork.Products.Entities
             .AsNoTracking()
             .Where(p => p.Id == request.ProductId)
@@ -66,6 +97,12 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
         }
 
         var totalCount = await suppliersQuery.CountAsync(cancellationToken);
+
+        if (totalCount == 0)
+        {
+            return new PagedResponse<ProductSupplierDto>([], request.PageNumber, request.PageSize, 0);
+        }
+
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var utcNow = DateTime.UtcNow;
 
@@ -108,8 +145,7 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
                         h.MinQuantity,
                         h.Currency,
                         h.EffectiveFrom,
-                        h.EffectiveTo,
-                        h.Price
+                        h.EffectiveTo
                     })
                     .ToList()
             })
@@ -118,9 +154,8 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
         var mappedSuppliers = suppliers.Select(sp =>
         {
             var tiers = sp.TierPrices
-                .Where(t => SupplierProductPriceHelper.IsTierActiveOrUpcoming(t.ValidFrom, t.ValidTo, today))
-                .OrderByDescending(t => SupplierProductPriceHelper.IsTierCurrentlyValid(t.ValidFrom, t.ValidTo, today))
-                .ThenBy(t => t.ValidFrom)
+                .Where(t => SupplierProductPriceHelper.IsTierCurrentlyValid(t.ValidFrom, t.ValidTo, today))
+                .OrderBy(t => t.ValidFrom)
                 .Take(1)
                 .Select(t =>
                 {
@@ -131,8 +166,7 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
                             SupplierProductPriceHelper.IsCurrentPrice(
                                 h.EffectiveFrom,
                                 SupplierProductPriceHelper.ToApiEffectiveTo(h.EffectiveTo),
-                                utcNow)
-                            || h.EffectiveFrom > utcNow);
+                                utcNow));
 
                     return new TierPriceResponseDto
                     {
@@ -163,28 +197,10 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
             };
         }).ToList();
 
-        return new ProductDetailDto
-        {
-            ProductId = product.Id,
-            Code = product.Code,
-            ProductName = product.ProductName!,
-            Description = product.Description,
-            CategoryId = product.CategoryId,
-            Category = new ProductCategoryDto
-            {
-                Name = product.Category.Name!,
-                Code = product.Category.Code,
-                IsActive = product.Category.IsActive
-            },
-            UnitMeasureId = product.UnitMeasureId,
-            UnitMeasureName = product.UnitMeasure?.Name,
-            ProductUsageType = product.ProductUsageType,
-            IsTaxExempt = product.IsTaxExempt,
-            Suppliers = new PagedResponse<ProductSupplierDto>(
-                mappedSuppliers,
-                request.PageNumber,
-                request.PageSize,
-                totalCount)
-        };
+        return new PagedResponse<ProductSupplierDto>(
+            mappedSuppliers,
+            request.PageNumber,
+            request.PageSize,
+            totalCount);
     }
 }
