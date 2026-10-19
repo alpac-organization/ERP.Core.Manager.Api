@@ -1,5 +1,6 @@
 
 
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos;
@@ -23,7 +24,9 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
       [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
       public async Task<PagedResponse<FaultCatalogDto>> GetFaultCatalogsAsync(
          [FromRoute] Guid company_id,
-         [FromRoute] Guid module_code,
+         [FromRoute] string module_code,
+         [FromQuery] FaultSeverity? severity,
+         [FromQuery] string? code = "",
          [FromQuery] int page_size = 10,
          [FromQuery] int page_number = 1
       )
@@ -32,8 +35,11 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
          return await _mediator.Send(new GetFaultCatalogQuery
          {
+            UserId = Guid.Parse(userIdStr ?? ""),
             CompanyId = company_id,
             ModuleCode = module_code,
+            Code = code,
+            FaultSeverity = severity,
             PageNumber = page_number,
             PageSize = page_size
          });
