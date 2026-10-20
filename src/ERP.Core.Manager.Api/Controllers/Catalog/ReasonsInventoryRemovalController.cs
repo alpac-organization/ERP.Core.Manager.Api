@@ -1,10 +1,11 @@
 using MediatR;
-using Amazon.Runtime.Internal;
 using Microsoft.AspNetCore.Mvc;
 
+using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Infrastructure.Attributes;
 
 using ERP.Core.Manager.Api.Controllers.ApiBase;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
@@ -36,5 +37,25 @@ public class ReasonsInventoryRemovalController(IMediator _mediator) : ApiControl
             PageSize = page_size,
             UserId = Guid.Parse(userIdStr ?? "")
         });
+    }
+
+    [HttpPost("companies/{company_id}/modules/{module_code}/inventory/reasons-removals")]
+    [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<CreatedResult> RegisterReasonsInventoryRemovalAsync(
+        [FromRoute] Guid company_id,
+        [FromRoute] string module_code,
+        [FromBody] RegisterReasonsInventoryRemovalCommand payload,
+        CancellationToken cancellationToken)
+    {
+        var userIdStr = HttpContext.Items["UserId"] as string;
+        payload.CompanyId = company_id;
+        payload.ModuleCode = module_code;
+        payload.UserId = Guid.Parse(userIdStr ?? "");
+
+        await _mediator.Send(payload, cancellationToken);
+
+        return Created();
     }
 }
