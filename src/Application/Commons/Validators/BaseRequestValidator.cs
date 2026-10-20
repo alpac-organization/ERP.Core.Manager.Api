@@ -1,5 +1,5 @@
 using FluentValidation;
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Validators;
 

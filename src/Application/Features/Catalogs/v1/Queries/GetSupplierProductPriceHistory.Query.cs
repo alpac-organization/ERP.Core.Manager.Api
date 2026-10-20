@@ -1,6 +1,7 @@
-using System.Text.Json.Serialization;
 using MediatR;
+using System.Text.Json.Serialization;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 

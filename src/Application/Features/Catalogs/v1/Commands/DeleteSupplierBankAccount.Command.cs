@@ -1,5 +1,5 @@
 using MediatR;
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Domain.Entities.Bases;
 using System.Text.Json.Serialization;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
