@@ -23,8 +23,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
          }
 
 
-
-
          return true;
       }
    }

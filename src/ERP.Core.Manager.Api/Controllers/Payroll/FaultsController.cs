@@ -47,7 +47,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
       }
 
       [Tags("Faltas Disciplinarias")]
-      [HttpGet("companies/{company_id}/modules/{module_code}/faults")]
+      [HttpPost("companies/{company_id}/modules/{module_code}/faults")]
       [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status201Created)]
       [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
       [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
