@@ -8,6 +8,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public string? FullName{ get; set; }
         public string? CollaboratorCode { get; set; }
         public string? WorkPosition { get; set; }
+        public bool IsTimeClockExempt { get; set; }
 
         public WorkingInformationDto  WorkingInformation { get; set; } = new();
         public PersonalInformationDto PersonalInformation { get; set; } = new();
