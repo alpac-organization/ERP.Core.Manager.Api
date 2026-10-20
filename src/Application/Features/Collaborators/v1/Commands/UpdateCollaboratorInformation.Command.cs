@@ -14,6 +14,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         public string? FirstSurname { get; set; }
         public string? SecondSurname { get; set; }
         public string? CodeCollaborator { get; set; }
+        
+        /// <summary>
+        /// Habilita al colaborador de estar exento del marcado del reloj
+        /// </summary>
+        public bool? IsTimeClockExempt { get; set; }
 
         public PInformation? PersonalInformation { get; set; } = new ();
         public WInformation? WorkingInformation { get; set; } = new();

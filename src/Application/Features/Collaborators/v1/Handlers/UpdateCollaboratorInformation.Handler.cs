@@ -42,6 +42,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
                 collaborator.FirstLastname = request.FirstSurname ?? collaborator.FirstLastname;
                 collaborator.SecondLastname = request.SecondSurname ?? collaborator.SecondLastname;
                 collaborator.CollaboratorCode = request.CodeCollaborator ?? collaborator.CollaboratorCode;
+                collaborator.IsTimeClockExempt = request.IsTimeClockExempt ?? collaborator.IsTimeClockExempt;
 
                 if (request.WorkingInformation != null)
                 {

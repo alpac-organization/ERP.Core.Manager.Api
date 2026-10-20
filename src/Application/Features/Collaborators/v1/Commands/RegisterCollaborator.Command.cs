@@ -11,6 +11,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands
         /// </summary>
         public bool DoesWorkSaturday { get; set; } = false;
 
+        /// <summary>
+        /// Habilita al colaborador de estar exento del marcado del reloj
+        /// </summary>
+        public bool IsTimeClockExempt { get; set; } = false;
+
         public string? FirstName { get; set; }
         public string? SecondName { get; set; }
         public string? ThirdName { get; set; }
