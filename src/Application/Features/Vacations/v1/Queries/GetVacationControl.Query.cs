@@ -1,5 +1,6 @@
 using MediatR;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Dtos;
 using ERP.Core.Manager.Api.Domain.Enums;
 
