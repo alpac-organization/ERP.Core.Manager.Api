@@ -52,8 +52,8 @@ namespace ERP.Core.Manager.Api.Tests.Common
             }
 
             await Factory.ResetDatabaseAsync();
-
-using var scope = Services.CreateScope();
+            using var scope = Services.CreateScope();
+            
             var dbContext = scope.ServiceProvider.GetRequiredService<ErpDbContext>();
             await ErpDatabaseSeeder.SeedAsync(dbContext, ErpSeedDataFactory.CreateScenario());
 
