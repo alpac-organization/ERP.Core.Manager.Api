@@ -52,6 +52,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src)))
             .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkingInformation.JobPosition.JobPositionName))
+            .ForMember(dest => dest.IsTimeClockExempt, opt => opt.MapFrom(src => src.IsTimeClockExempt))
 
             .ForMember(dest => dest.PersonalInformation, opt => opt.MapFrom(src => src.PersonalInformation))
             .ForMember(dest => dest.WorkingInformation, opt => opt.MapFrom(src => src.WorkingInformation))
@@ -82,6 +83,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             Status = CollaboratorStatus.Active,
             CollaboratorCode = generatedCode,
             DoesWorkSaturdays = command.DoesWorkSaturday,
+            IsTimeClockExempt = command.IsTimeClockExempt,
             IsFirstTimeRegister = true,
             PictureUrl = null
          };
