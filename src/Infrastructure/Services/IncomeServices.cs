@@ -400,6 +400,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                break;
          }
       }
+
       public async Task<bool> ApplyMedicalSubsidy(Collaborator collaborator, Salary salary, Payroll period, RegisterSubsidyCommmand subsidyData)
       {
          _logger.LogInformation("🚩Iniciando proceso de subsidio médico para el colaborador: {identification}",
@@ -737,6 +738,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
       //✅ Aplicar calculo de bono.
       public async Task<bool> ApplyIncomeBonus(Collaborator collaboratorInformation, Salary salaryInformation, decimal amountBonus, Currency currency, Guid payrollId, Guid incomeTypeId)
       {
+
+         #region Validador inicial
          var ordinaryPayrollInfo = await _unitOfWork.OrdinaryPayrolls.Entities
             .Include(ord => ord.Payroll)
             .Where(ord => ord.PayrollId == payrollId)
@@ -748,6 +751,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             _logger.LogInformation("No se encontro registro del colaborador con identificación {identification} en la nomina", collaboratorInformation.IdentificationNumber);
             return false;
          }
+         #endregion
 
          var lastIncomeTax = await _unitOfWork.IncomeTaxAccrual.Entities
              .Where(income => income.CollaboratorId == collaboratorInformation.Id && income.PayrollId == payrollId)
@@ -764,11 +768,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          DateOnly payrollStart = ordinaryPayrollInfo.Payroll.StartDate;
          DateOnly payrollEnd = ordinaryPayrollInfo.Payroll.EndDate;
 
+         #region Mandar a un utils
          if (entryDate > payrollStart) daysWorked = payrollEnd.DayNumber - entryDate.DayNumber + 1;
          else daysWorked = 15;
 
          if (daysWorked < 0) daysWorked = 0;
          if (daysWorked > 15) daysWorked = 15;
+         #endregion
 
          decimal salaryDaily = salaryInformation.AmountInLocal / 30;
          decimal salaryProportional = salaryDaily * daysWorked;
