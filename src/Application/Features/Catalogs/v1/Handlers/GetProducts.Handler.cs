@@ -31,6 +31,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             if (request.CategoryProductId.HasValue)
                 query = query.Where(c => c.CategoryId == request.CategoryProductId.Value);
 
+            if (request.BranchId.HasValue)
+                query = query.Where(c => c.CategoryId == request.BranchId.Value);
+
 
             var totalCount = await query.CountAsync(cancellationToken);
 
@@ -42,6 +45,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 {
                     ProductId = p.Id,
                     Code = p.Code,
+                    BranchId = p.BranchId,
                     ProductName = p.ProductName!,
                     Description = p.Description,
                     CategoryId = p.CategoryId,

@@ -10,6 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries
     {
 
         public Guid? CategoryProductId { get; set; }
+        public Guid? BranchId { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
