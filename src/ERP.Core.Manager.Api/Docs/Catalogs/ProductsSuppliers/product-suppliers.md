@@ -73,7 +73,7 @@ Product ──► Branch   (control de productos por sucursal: Corinto / Managua
 
 **Respuesta (resumen):** lista paginada con `product_id`, `code`, `product_name`, `category`, `unit_measure_id`, `branch_id`, `suppliers_count`.
 
-```json
+``` json
 {
   "data": [
     {

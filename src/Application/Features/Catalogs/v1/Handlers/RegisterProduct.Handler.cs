@@ -70,8 +70,9 @@ public class RegisterProductHandler(
             return _errorManager.ThrowBadRequest<Guid>(linkError.Message, linkError.Code);
         }
 
+        
         var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
-            request.CompanyId,
+            access.Profile.BranchId,
             request.CategoryId,
             cancellationToken);
 
