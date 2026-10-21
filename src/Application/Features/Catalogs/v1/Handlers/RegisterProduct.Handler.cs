@@ -69,18 +69,6 @@ public class RegisterProductHandler(
             return _errorManager.ThrowBadRequest<Guid>(linkError.Message, linkError.Code);
         }
 
-        var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
-            request.CompanyId,
-            request.CategoryId,
-            cancellationToken);
-
-        if (!isSuccess || string.IsNullOrWhiteSpace(code))
-        {
-            return _errorManager.ThrowBadRequest<Guid>(
-                "No se pudo generar el código del producto.",
-                "ERP:PROD01");
-        }
-
         _logger.LogInformation("Iniciando registro de producto: {ProductName}", request.ProductName);
 
         var supplierCurrencies = new Dictionary<Guid, Currency>();
@@ -94,33 +82,55 @@ public class RegisterProductHandler(
         }
 
         var now = DateTime.UtcNow;
+        Guid productId = Guid.Empty;
 
-        var productEntity = new Product
+        await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
         {
-            Code = code,
-            ProductName = request.ProductName,
-            Description = request.Description,
-            CategoryId = request.CategoryId,
-            UnitMeasureId = request.UnitMeasureId,
-            ProductUsageType = request.ProductUsageType,
-            IsTaxExempt = request.IsTaxExempt,
-            SupplierProducts = request.Suppliers
-                .Select(s => SupplierProductPriceHelper.BuildSupplierProduct(
-                    s.SupplierId,
-                    productId: null,
-                    s.UnitPrice,
-                    s.TierPrices,
-                    s.UnitMeasureId ?? request.UnitMeasureId,
-                    now,
-                    s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))
-                .ToList()
-        };
+            var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
+                request.CompanyId,
+                request.CategoryId,
+                token);
 
-        await _unitOfWork.Products.InsertProduct(productEntity);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (!isSuccess || string.IsNullOrWhiteSpace(code))
+            {
+                _errorManager.ThrowBadRequest<Guid>(
+                    "No se pudo generar el código del producto.",
+                    "ERP:PROD01");
+                return;
+            }
 
-        _logger.LogInformation("Producto {ProductId} registrado exitosamente con código {Code}", productEntity.Id, productEntity.Code);
+            var productEntity = new Product
+            {
+                Code = code,
+                ProductName = request.ProductName,
+                Description = request.Description,
+                CategoryId = request.CategoryId,
+                UnitMeasureId = request.UnitMeasureId,
+                ProductUsageType = request.ProductUsageType,
+                IsTaxExempt = request.IsTaxExempt,
+                SupplierProducts = request.Suppliers
+                    .Select(s => SupplierProductPriceHelper.BuildSupplierProduct(
+                        s.SupplierId,
+                        productId: null,
+                        s.UnitPrice,
+                        s.TierPrices,
+                        s.UnitMeasureId ?? request.UnitMeasureId,
+                        now,
+                        s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))
+                    .ToList()
+            };
 
-        return productEntity.Id;
+            await _unitOfWork.Products.InsertProduct(productEntity);
+            await _unitOfWork.SaveChangesAsync(token);
+
+            productId = productEntity.Id;
+
+            _logger.LogInformation(
+                "Producto {ProductId} registrado exitosamente con código {Code}",
+                productEntity.Id,
+                productEntity.Code);
+        }, cancellationToken);
+
+        return productId;
     }
 }
