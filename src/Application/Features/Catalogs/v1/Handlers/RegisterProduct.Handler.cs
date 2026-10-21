@@ -8,7 +8,6 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
-using ERP.Core.Database.Domain.Entities.Auth;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 
@@ -70,19 +69,6 @@ public class RegisterProductHandler(
             return _errorManager.ThrowBadRequest<Guid>(linkError.Message, linkError.Code);
         }
 
-        
-        var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
-            access.Profile.BranchId,
-            request.CategoryId,
-            cancellationToken);
-
-        if (!isSuccess || string.IsNullOrWhiteSpace(code))
-        {
-            return _errorManager.ThrowBadRequest<Guid>(
-                "No se pudo generar el código del producto.",
-                "ERP:PROD01");
-        }
-
         _logger.LogInformation("Iniciando registro de producto: {ProductName}", request.ProductName);
 
         var supplierCurrencies = new Dictionary<Guid, Currency>();
@@ -101,7 +87,7 @@ public class RegisterProductHandler(
         await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
         {
             var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
-                request.CompanyId,
+                access.Profile.BranchId,
                 request.CategoryId,
                 token);
 
@@ -113,26 +99,26 @@ public class RegisterProductHandler(
                 return;
             }
 
-        var productEntity = new Product
-        {
-            Code = code,
-            BranchId = access.Profile.BranchId,
-            ProductName = request.ProductName,
-            Description = request.Description,
-            CategoryId = request.CategoryId,
-            UnitMeasureId = request.UnitMeasureId,
-            ProductUsageType = request.ProductUsageType,
-            IsTaxExempt = request.IsTaxExempt,
-            SupplierProducts = [.. request.Suppliers
-                .Select(s => SupplierProductPriceHelper.BuildSupplierProduct(
-                    s.SupplierId,
-                    productId: null,
-                    s.UnitPrice,
-                    s.TierPrices,
-                    s.UnitMeasureId ?? request.UnitMeasureId,
-                    now,
-                    s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))]
-        };
+            var productEntity = new Product
+            {
+                Code = code,
+                BranchId = access.Profile.BranchId,
+                ProductName = request.ProductName,
+                Description = request.Description,
+                CategoryId = request.CategoryId,
+                UnitMeasureId = request.UnitMeasureId,
+                ProductUsageType = request.ProductUsageType,
+                IsTaxExempt = request.IsTaxExempt,
+                SupplierProducts = [.. request.Suppliers
+                    .Select(s => SupplierProductPriceHelper.BuildSupplierProduct(
+                        s.SupplierId,
+                        productId: null,
+                        s.UnitPrice,
+                        s.TierPrices,
+                        s.UnitMeasureId ?? request.UnitMeasureId,
+                        now,
+                        s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))]
+            };
 
             await _unitOfWork.Products.InsertProduct(productEntity);
             await _unitOfWork.SaveChangesAsync(token);
