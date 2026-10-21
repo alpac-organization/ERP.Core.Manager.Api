@@ -8,6 +8,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
+using ERP.Core.Database.Domain.Entities.Auth;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 
@@ -98,13 +99,14 @@ public class RegisterProductHandler(
         var productEntity = new Product
         {
             Code = code,
+            BranchId = access.Profile.BranchId,
             ProductName = request.ProductName,
             Description = request.Description,
             CategoryId = request.CategoryId,
             UnitMeasureId = request.UnitMeasureId,
             ProductUsageType = request.ProductUsageType,
             IsTaxExempt = request.IsTaxExempt,
-            SupplierProducts = request.Suppliers
+            SupplierProducts = [.. request.Suppliers
                 .Select(s => SupplierProductPriceHelper.BuildSupplierProduct(
                     s.SupplierId,
                     productId: null,
@@ -112,8 +114,7 @@ public class RegisterProductHandler(
                     s.TierPrices,
                     s.UnitMeasureId ?? request.UnitMeasureId,
                     now,
-                    s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))
-                .ToList()
+                    s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))]
         };
 
         await _unitOfWork.Products.InsertProduct(productEntity);

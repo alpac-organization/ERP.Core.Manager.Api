@@ -10,6 +10,8 @@ public class RegisterProductCommand : BaseRequest, IRequest<Guid>
     public string? Description { get; set; }
     public Guid CategoryId { get; set; }
     public Guid UnitMeasureId { get; set; }
+    public Guid BranchId { get; set; }
+
 
     public ProductUsageType ProductUsageType { get; set; }
     public bool IsTaxExempt { get; set; }
