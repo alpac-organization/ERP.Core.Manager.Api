@@ -96,6 +96,22 @@ public class RegisterProductHandler(
         }
 
         var now = DateTime.UtcNow;
+        Guid productId = Guid.Empty;
+
+        await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
+        {
+            var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
+                request.CompanyId,
+                request.CategoryId,
+                token);
+
+            if (!isSuccess || string.IsNullOrWhiteSpace(code))
+            {
+                _errorManager.ThrowBadRequest<Guid>(
+                    "No se pudo generar el código del producto.",
+                    "ERP:PROD01");
+                return;
+            }
 
         var productEntity = new Product
         {
@@ -118,11 +134,17 @@ public class RegisterProductHandler(
                     s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))]
         };
 
-        await _unitOfWork.Products.InsertProduct(productEntity);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.Products.InsertProduct(productEntity);
+            await _unitOfWork.SaveChangesAsync(token);
 
-        _logger.LogInformation("Producto {ProductId} registrado exitosamente con código {Code}", productEntity.Id, productEntity.Code);
+            productId = productEntity.Id;
 
-        return productEntity.Id;
+            _logger.LogInformation(
+                "Producto {ProductId} registrado exitosamente con código {Code}",
+                productEntity.Id,
+                productEntity.Code);
+        }, cancellationToken);
+
+        return productId;
     }
 }
