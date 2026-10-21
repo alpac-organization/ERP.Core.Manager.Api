@@ -223,7 +223,7 @@ namespace ERP.Core.Manager.Api.Tests.Common
 
         private static async Task EnsureDefaultUnitMeasurementExists(ErpDbContext dbContext)
         {
-            if (!dbContext.UnitMeasures.Any())
+            if (!dbContext.UnitsMeasurement.Any())
             {
                 var defaultUnit = new UnitMeasure
                 {
@@ -234,7 +234,7 @@ namespace ERP.Core.Manager.Api.Tests.Common
                     IsActive = true
                 };
 
-                dbContext.UnitMeasures.Add(defaultUnit);
+                dbContext.UnitsMeasurement.Add(defaultUnit);
                 await dbContext.SaveChangesAsync();
             }
         }
