@@ -1,5 +1,6 @@
 using Respawn;
 using System.Data;
+using System.Linq;
 using Testcontainers.PostgreSql;
 
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ERP.Core.Manager.Api.Tests.Common.Services;
 using ERP.Core.Application.Commons.Interfaces.AWS;
 using ERP.Core.Database.Infrastructure.Persistence.Context;
+using ERP.Core.Database.Domain.Entities.Catalogs;
 
 namespace ERP.Core.Manager.Api.Tests.Common
 {
@@ -93,6 +95,9 @@ namespace ERP.Core.Manager.Api.Tests.Common
                 var dbContext = scope.ServiceProvider.GetRequiredService<ErpDbContext>();
                 await dbContext.Database.EnsureDeletedAsync();
                 await dbContext.Database.MigrateAsync();
+
+                // Ensure default unit measurement exists to avoid FK constraint issues
+                await EnsureDefaultUnitMeasurementExists(dbContext);
 
                 IsDockerAvailable = true;
             }
@@ -214,6 +219,24 @@ namespace ERP.Core.Manager.Api.Tests.Common
             Environment.SetEnvironmentVariable("AwsSns__Region", "us-east-1");
             Environment.SetEnvironmentVariable("AwsSns__PlatformApplicationArn", "arn:aws:sns:us-east-1:000000000000:app/GCM/test");
             Environment.SetEnvironmentVariable("AwsSns__DefaultTopicArn", "");
+        }
+
+        private static async Task EnsureDefaultUnitMeasurementExists(ErpDbContext dbContext)
+        {
+            if (!dbContext.UnitMeasures.Any())
+            {
+                var defaultUnit = new UnitMeasure
+                {
+                    Id = Guid.NewGuid(),
+                    Code = "UN",
+                    Name = "Unidad",
+                    Description = "Unidad por defecto para pruebas",
+                    IsActive = true
+                };
+
+                dbContext.UnitMeasures.Add(defaultUnit);
+                await dbContext.SaveChangesAsync();
+            }
         }
     }
 }

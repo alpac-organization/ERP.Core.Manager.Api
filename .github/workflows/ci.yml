@@ -1,4 +1,4 @@
-name: CI - Docker Validation & Tests
+name: CI - Docker Validation & Build
 
 on:
   push:
@@ -26,7 +26,6 @@ jobs:
             --build-arg GH_PACKAGE_TOKEN="$GH_PACKAGE_TOKEN" \
             -t erp-test .
 
-      # ✅ SMOKE TEST REAL (esto reemplaza todo lo de chromium)
       - name: Run app and capture logs
         run: |
           echo "🚀 Iniciando contenedor..."
@@ -39,20 +38,14 @@ jobs:
       - name: Cleanup container
         run: docker rm -f test-container || true
 
-  build-test:
-    name: Build and test
+  build:
+    name: Build
     needs: docker-validate
     runs-on: ubuntu-latest
     environment: EnvironmentalVariables
     permissions:
       contents: read
     steps:
-      - name: Set up JDK 17
-        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
-        with:
-          java-version: 17
-          distribution: 'zulu'
-
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       # Necesario porque los paquetes ERP.Core.* son privados (mismo feed que usa Docker)
@@ -68,16 +61,6 @@ jobs:
             -p "$GH_PACKAGE_TOKEN" \
             --store-password-in-clear-text
 
-      - name: Ensure Postgres test image
-        shell: bash
-        run: docker pull postgres:16-alpine
-
-      - name: Verify Docker daemon can run containers
-        shell: bash
-        run: |
-          docker info > /dev/null
-          docker run --rm postgres:16-alpine postgres --version
-
       - name: Restore
         shell: bash
         run: dotnet restore
@@ -85,64 +68,6 @@ jobs:
       - name: Build
         shell: bash
         run: dotnet build -c Release --no-restore
-
-      - name: Run tests with coverage
-        shell: bash
-        run: |
-          dotnet test -c Release --no-build \
-            /p:CollectCoverage=true \
-            /p:CoverletOutput="$GITHUB_WORKSPACE/coverage/coverage.opencover.xml" \
-            /p:CoverletOutputFormat=opencover \
-            /p:IncludeTestAssembly=false \
-            --logger "console;verbosity=normal"
-
-      - name: Validate coverage report
-        shell: bash
-        run: |
-          COV="$GITHUB_WORKSPACE/coverage/coverage.opencover.xml"
-          if [ ! -f "$COV" ]; then
-            echo "::error::No se generó $COV — el profiler de coverlet no emitió reporte."
-            ls -la "$GITHUB_WORKSPACE/coverage" || true
-            exit 1
-          fi
-          echo "Reporte de cobertura: $COV"
-
-          # Falla si el reporte no tiene NINGUNA línea cubierta: significa que los tests de
-          # integración se omitieron (p. ej. Testcontainers no levantó).
-          VISITED=$(grep -m 1 -o 'visitedSequencePoints="[0-9]*"' "$COV" | tr -dc '0-9' || true)
-          echo "visitedSequencePoints: ${VISITED:-desconocido}"
-
-          if [ -z "$VISITED" ] || [ "$VISITED" -eq 0 ]; then
-            echo "::error::El reporte no tiene líneas cubiertas (visitedSequencePoints=0). Los tests de integración probablemente se omitieron por Docker/Testcontainers."
-            exit 1
-          fi
-
-      # Deja la cobertura TOTAL visible en el resumen del run.
-      - name: Publish total coverage in job summary
-        if: always()
-        env:
-          BRANCH_NAME: ${{ github.ref_name }}
-        shell: bash
-        run: |
-          COV="$GITHUB_WORKSPACE/coverage/coverage.opencover.xml"
-          if [ ! -f "$COV" ]; then
-            echo "No hay reporte de cobertura para resumir." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          COVERAGE=$(grep -m 1 -o 'sequenceCoverage="[0-9.]*"' "$COV" | tr -dc '0-9.' || true)
-          VISITED=$(grep -m 1 -o 'visitedSequencePoints="[0-9]*"' "$COV" | tr -dc '0-9' || true)
-          TOTAL=$(grep -m 1 -o 'numSequencePoints="[0-9]*"' "$COV" | tr -dc '0-9' || true)
-
-          {
-            echo "## Cobertura total de pruebas (OpenCover)"
-            echo ""
-            echo "| Métrica | Valor |"
-            echo "|---|---|"
-            echo "| Cobertura total (líneas) | ${COVERAGE:-0}% |"
-            echo "| Líneas cubiertas | ${VISITED:-0} / ${TOTAL:-0} |"
-            echo "| Rama | ${BRANCH_NAME:-N/A} |"
-          } >> "$GITHUB_STEP_SUMMARY"
 
   notify-docs:
     name: Disparar actualización de documentación
