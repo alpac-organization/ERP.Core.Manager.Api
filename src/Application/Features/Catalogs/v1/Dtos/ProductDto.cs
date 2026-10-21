@@ -8,6 +8,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public string? Description { get; set; }
         public Guid CategoryId { get; set; }
         public Guid UnitMeasureId { get; set; }
+        public Guid BranchId { get; set; }
         public ProductCategoryDto Category { get; set; } = default!;
         public int SuppliersCount { get; set; }
     }

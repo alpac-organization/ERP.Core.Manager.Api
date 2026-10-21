@@ -87,7 +87,7 @@ public class RegisterProductHandler(
         await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
         {
             var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
-                request.CompanyId,
+                access.Profile.BranchId,
                 request.CategoryId,
                 token);
 
@@ -102,13 +102,14 @@ public class RegisterProductHandler(
             var productEntity = new Product
             {
                 Code = code,
+                BranchId = access.Profile.BranchId,
                 ProductName = request.ProductName,
                 Description = request.Description,
                 CategoryId = request.CategoryId,
                 UnitMeasureId = request.UnitMeasureId,
                 ProductUsageType = request.ProductUsageType,
                 IsTaxExempt = request.IsTaxExempt,
-                SupplierProducts = request.Suppliers
+                SupplierProducts = [.. request.Suppliers
                     .Select(s => SupplierProductPriceHelper.BuildSupplierProduct(
                         s.SupplierId,
                         productId: null,
@@ -116,8 +117,7 @@ public class RegisterProductHandler(
                         s.TierPrices,
                         s.UnitMeasureId ?? request.UnitMeasureId,
                         now,
-                        s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))
-                    .ToList()
+                        s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))]
             };
 
             await _unitOfWork.Products.InsertProduct(productEntity);
