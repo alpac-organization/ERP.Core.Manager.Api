@@ -25,6 +25,7 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
         [FromRoute] Guid companie_id,
         [FromRoute] string module_code,
         [FromQuery] Guid? category_product_id,
+        [FromQuery] Guid? branch_id = null,
         [FromQuery] int page_number = 1,
         [FromQuery] int page_size = 10)
     {
@@ -36,6 +37,7 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
             ModuleCode = module_code,
             UserId = userId,
             CategoryProductId = category_product_id,
+            BranchId = branch_id,
             PageNumber = page_number,
             PageSize = page_size
         });
