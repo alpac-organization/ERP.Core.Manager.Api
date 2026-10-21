@@ -1,3 +1,6 @@
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
+
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
 {
     public class ProductDto
@@ -6,16 +9,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public string Code { get; set; } = string.Empty;
         public string ProductName { get; set; } = null!;
         public string? Description { get; set; }
+        public ProductUsageType UsageType { get; set; }
+
+        public Guid BranchId { get; set; }
         public Guid CategoryId { get; set; }
         public Guid UnitMeasureId { get; set; }
-        public Guid BranchId { get; set; }
-        public ProductCategoryDto Category { get; set; } = default!;
         public int SuppliersCount { get; set; }
+
+        public CostCenterDto? CostCenterInformation { get; set; }
+        public ProductCategoryDto Category { get; set; } = default!;
     }
 
     public class ProductCategoryDto
     {
-        public string Name { get; set; } = null!;
+        public string? Name { get; set; }
         public string? Code { get; set; }
         public bool IsActive { get; set; }
     }
