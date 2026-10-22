@@ -7,7 +7,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 public class RegisterProductCommand : BaseRequest, IRequest<Guid>
 {
     public string? Description { get; set; }
-    public string ProductName { get; set; } = null!;
+    public string? ProductName { get; set; }
     public Guid CategoryId { get; set; }
     public Guid UnitMeasureId { get; set; }
 
@@ -15,6 +15,7 @@ public class RegisterProductCommand : BaseRequest, IRequest<Guid>
     public ProductUsageType ProductUsageType { get; set; }
     public List<ProductSupplierItemDto> Suppliers { get; set; } = [];
 
+    //Información para inventario...
     public ConfigurationStockToInventory? ConfigurationStock { get; set; }
 }
 

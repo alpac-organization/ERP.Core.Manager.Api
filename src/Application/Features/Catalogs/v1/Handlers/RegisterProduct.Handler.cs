@@ -3,13 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Database.Domain.Entities.Warehouse;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
+using ERP.Core.Manager.Api.Application.Commons.Mappings;
+using ERP.Core.Database.Domain.Entities.Auth;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
@@ -81,69 +82,60 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     .ToDictionaryAsync(d => d.SupplierId, d => d.Currency, cancellationToken);
             }
 
-            var now = DateTime.UtcNow;
-            Guid productId = Guid.Empty;
+            var productEntity = ProductMapper.ToProductEntity(request, supplierCurrencies);
+            
+            productEntity.BranchId = access.Profile.BranchId;
+            productEntity.CostCenterId = access.Profile.CostCenterId;
 
-            await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
+            if (request.ProductUsageType == ProductUsageType.Administrative)
             {
-                var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
-                    access.Profile.BranchId,
-                    request.CategoryId,
-                    token);
+                var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(access.Profile.BranchId, request.CategoryId, cancellationToken);
 
                 if (!isSuccess || string.IsNullOrWhiteSpace(code))
                 {
-                    _errorManager.ThrowBadRequest<Guid>(
+                    return _errorManager.ThrowBadRequest<Guid>(
                         "No se pudo generar el código del producto.",
-                        "ERP:PROD01");
-                    return;
+                        "ERP:PROD01"
+                    );
                 }
 
-                var productEntity = new Product
+                productEntity.Code = code;
+            }
+            else
+            {
+                var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, cancellationToken);
+                
+                if (!IsSuccess || string.IsNullOrWhiteSpace(Code))
                 {
-                    Code = code,
-                    BranchId = access.Profile.BranchId,
-                    CostCenterId = request.ProductUsageType == ProductUsageType.Operational ? access.Profile.CostCenterId : null,
-                    ProductName = request.ProductName,
-                    CategoryId = request.CategoryId,
-                    Description = request.Description,
-                    IsTaxExempt = request.IsTaxExempt,
-                    UnitMeasureId = request.UnitMeasureId,
-                    ProductUsageType = request.ProductUsageType,
-
-                    SupplierProducts = [.. request.Suppliers
-                        .Select(s => SupplierProductPriceHelper.BuildSupplierProduct(
-                            s.SupplierId,
-                            productId: null,
-                            s.UnitPrice,
-                            s.TierPrices,
-                            s.UnitMeasureId ?? request.UnitMeasureId,
-                            now,
-                            s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))
-                        ]
-                };
-
-                await _unitOfWork.Products.InsertProduct(productEntity);
-
-                //Registrar producto en stock
-                if (request.ProductUsageType == ProductUsageType.Operational)
-                {
-                    
+                    return _errorManager.ThrowBadRequest<Guid>(
+                        "No se pudo generar el código del producto.",
+                        "ERP:PROD01"
+                    );
                 }
 
-                await _unitOfWork.SaveChangesAsync(token);
+                productEntity.Code = Code;
+            }
 
-                productId = productEntity.Id;
+            await _unitOfWork.Products.InsertProduct(productEntity);
 
-                _logger.LogInformation(
-                    "Producto {ProductId} registrado exitosamente con código {Code}",
-                    productEntity.Id,
-                    productEntity.Code
-                );
+            if (request.ProductUsageType == ProductUsageType.Operational && request.ConfigurationStock is not null)
+            {
+                //Control de existencia dentro del inventario operacional.
 
-            }, cancellationToken);
+                await _unitOfWork.ProductStocks.RegisterProductStock(new()
+                {
+                    IsActive = true,
+                    AvailableQuantity = 0,
+                    ProductId = productEntity.Id,
+                    CostCenterId = access.Profile.CostCenterId,
+                    MaximumStock = request.ConfigurationStock.MaximumStock,
+                    MinimumStock = request.ConfigurationStock.MinimumStock
+                });
+            }
 
-            return productId;
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return productEntity.Id;
         }
     }
 }
