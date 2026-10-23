@@ -1,136 +1,141 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
+
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Database.Domain.Entities.Warehouse;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
-using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
+using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
+using ERP.Core.Manager.Api.Application.Commons.Mappings;
+using ERP.Core.Database.Domain.Entities.Auth;
 
-namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
-
-public class RegisterProductHandler(
-    IUnitOfWork _unitOfWork,
-    ILogger<RegisterProductHandler> _logger,
-    IErrorManager _errorManager,
-    ICodeGenerator _codeGenerator)
-    : BaseValidatorHandler<RegisterProductCommand, Guid>(_unitOfWork, _errorManager)
+namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
-    public override async Task<Guid> Handle(RegisterProductCommand request, CancellationToken cancellationToken)
+    public class RegisterProductHandler(IUnitOfWork _unitOfWork, ILogger<RegisterProductHandler> _logger, IErrorManager _errorManager, ICodeGenerator _codeGenerator)
+        : BaseValidatorHandler<RegisterProductCommand, Guid>(_unitOfWork, _errorManager)
     {
-        var access = await ValidateAccessAsync(
-            request.UserId,
-            request.CompanyId,
-            request.ModuleCode!,
-            cancellationToken);
-
-        if (!access.IsSuccess)
+        public override async Task<Guid> Handle(RegisterProductCommand request, CancellationToken cancellationToken)
         {
-            return access.ErrorResponse;
-        }
+            var access = await ValidateAccessAsync(
+                request.UserId,
+                request.CompanyId,
+                request.ModuleCode!,
+                cancellationToken);
 
-        if (access.Role?.RoleType == RoleType.Supervisor)
-        {
-            return _errorManager.ThrowBadRequest<Guid>(
-                "No tienes permiso para registrar un producto.",
-                "ERP:01");
-        }
-
-        var categoryExists = await _unitOfWork.CategoryProducts.Entities
-            .AnyAsync(c => c.Id == request.CategoryId && c.IsActive && c.DeletedAt == null, cancellationToken);
-
-        if (!categoryExists)
-        {
-            return _errorManager.ThrowBadRequest<Guid>(
-                "La categoría seleccionada no existe o no está activa.",
-                "ERP:002");
-        }
-
-        var unitMeasureExists = await _unitOfWork.UnitsMeasurement.Entities
-            .AnyAsync(u => u.Id == request.UnitMeasureId && u.IsActive, cancellationToken);
-
-        if (!unitMeasureExists)
-        {
-            return _errorManager.ThrowBadRequest<Guid>(
-                "La unidad de medida seleccionada no existe.",
-                "ERP:PROD02");
-        }
-
-        var linkError = await SupplierProductLinkValidator.ValidateSuppliersToLinkAsync(
-            _unitOfWork,
-            request.Suppliers,
-            alreadyLinkedSupplierIds: null,
-            cancellationToken);
-
-        if (linkError is not null)
-        {
-            return _errorManager.ThrowBadRequest<Guid>(linkError.Message, linkError.Code);
-        }
-
-        _logger.LogInformation("Iniciando registro de producto: {ProductName}", request.ProductName);
-
-        var supplierCurrencies = new Dictionary<Guid, Currency>();
-        if (request.Suppliers.Count > 0)
-        {
-            var supplierIds = request.Suppliers.Select(s => s.SupplierId).Distinct().ToList();
-            supplierCurrencies = await _unitOfWork.SuppliersDetails.Entities
-                .AsNoTracking()
-                .Where(d => supplierIds.Contains(d.SupplierId))
-                .ToDictionaryAsync(d => d.SupplierId, d => d.Currency, cancellationToken);
-        }
-
-        var now = DateTime.UtcNow;
-        Guid productId = Guid.Empty;
-
-        await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
-        {
-            var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
-                access.Profile.BranchId,
-                request.CategoryId,
-                token);
-
-            if (!isSuccess || string.IsNullOrWhiteSpace(code))
+            if (!access.IsSuccess)
             {
-                _errorManager.ThrowBadRequest<Guid>(
-                    "No se pudo generar el código del producto.",
-                    "ERP:PROD01");
-                return;
+                return access.ErrorResponse;
             }
 
-            var productEntity = new Product
+            if (access.Role?.RoleType == RoleType.Supervisor)
             {
-                Code = code,
-                BranchId = access.Profile.BranchId,
-                ProductName = request.ProductName,
-                Description = request.Description,
-                CategoryId = request.CategoryId,
-                UnitMeasureId = request.UnitMeasureId,
-                ProductUsageType = request.ProductUsageType,
-                IsTaxExempt = request.IsTaxExempt,
-                SupplierProducts = [.. request.Suppliers
-                    .Select(s => SupplierProductPriceHelper.BuildSupplierProduct(
-                        s.SupplierId,
-                        productId: null,
-                        s.UnitPrice,
-                        s.TierPrices,
-                        s.UnitMeasureId ?? request.UnitMeasureId,
-                        now,
-                        s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO)))]
-            };
+                return _errorManager.ThrowBadRequest<Guid>(
+                    "No tienes permiso para registrar un producto.",
+                    "ERP:01");
+            }
+
+            var categoryExists = await _unitOfWork.CategoryProducts.Entities
+                .AnyAsync(c => c.Id == request.CategoryId && c.IsActive && c.DeletedAt == null, cancellationToken);
+
+            if (!categoryExists)
+            {
+                return _errorManager.ThrowBadRequest<Guid>(
+                    "La categoría seleccionada no existe o no está activa.",
+                    "ERP:002");
+            }
+
+            var unitMeasureExists = await _unitOfWork.UnitsMeasurement.Entities
+                .AnyAsync(u => u.Id == request.UnitMeasureId && u.IsActive, cancellationToken);
+
+            if (!unitMeasureExists)
+            {
+                return _errorManager.ThrowBadRequest<Guid>(
+                    "La unidad de medida seleccionada no existe.",
+                    "ERP:PROD02");
+            }
+
+            var linkError = await SupplierProductLinkValidator.ValidateSuppliersToLinkAsync(
+                _unitOfWork,
+                request.Suppliers,
+                alreadyLinkedSupplierIds: null,
+                cancellationToken);
+
+            if (linkError is not null)
+            {
+                return _errorManager.ThrowBadRequest<Guid>(linkError.Message, linkError.Code);
+            }
+
+            _logger.LogInformation("Iniciando registro de producto: {ProductName}", request.ProductName);
+
+            var supplierCurrencies = new Dictionary<Guid, Currency>();
+
+            if (request.Suppliers.Count > 0)
+            {
+                var supplierIds = request.Suppliers.Select(s => s.SupplierId).Distinct().ToList();
+
+                supplierCurrencies = await _unitOfWork.SuppliersDetails.Entities
+                    .AsNoTracking()
+                    .Where(d => supplierIds.Contains(d.SupplierId))
+                    .ToDictionaryAsync(d => d.SupplierId, d => d.Currency, cancellationToken);
+            }
+
+            var productEntity = ProductMapper.ToProductEntity(request, supplierCurrencies);
+            
+            productEntity.BranchId = access.Profile.BranchId;
+            productEntity.CostCenterId = access.Profile.CostCenterId;
+
+            if (request.ProductUsageType == ProductUsageType.Administrative)
+            {
+                var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(access.Profile.BranchId, request.CategoryId, cancellationToken);
+
+                if (!isSuccess || string.IsNullOrWhiteSpace(code))
+                {
+                    return _errorManager.ThrowBadRequest<Guid>(
+                        "No se pudo generar el código del producto.",
+                        "ERP:PROD01"
+                    );
+                }
+
+                productEntity.Code = code;
+            }
+            else
+            {
+                var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, cancellationToken);
+                
+                if (!IsSuccess || string.IsNullOrWhiteSpace(Code))
+                {
+                    return _errorManager.ThrowBadRequest<Guid>(
+                        "No se pudo generar el código del producto.",
+                        "ERP:PROD01"
+                    );
+                }
+
+                productEntity.Code = Code;
+            }
 
             await _unitOfWork.Products.InsertProduct(productEntity);
-            await _unitOfWork.SaveChangesAsync(token);
 
-            productId = productEntity.Id;
+            if (request.ProductUsageType == ProductUsageType.Operational && request.ConfigurationStock is not null)
+            {
+                //Control de existencia dentro del inventario operacional.
 
-            _logger.LogInformation(
-                "Producto {ProductId} registrado exitosamente con código {Code}",
-                productEntity.Id,
-                productEntity.Code);
-        }, cancellationToken);
+                await _unitOfWork.ProductStocks.RegisterProductStock(new()
+                {
+                    IsActive = true,
+                    AvailableQuantity = 0,
+                    ProductId = productEntity.Id,
+                    CostCenterId = access.Profile.CostCenterId,
+                    MaximumStock = request.ConfigurationStock.MaximumStock,
+                    MinimumStock = request.ConfigurationStock.MinimumStock
+                });
+            }
 
-        return productId;
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return productEntity.Id;
+        }
     }
 }
