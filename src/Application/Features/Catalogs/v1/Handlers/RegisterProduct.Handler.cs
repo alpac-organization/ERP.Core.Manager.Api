@@ -103,6 +103,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
             else
             {
+                //Validar producto operacional por parte de las areas.
                 var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, cancellationToken);
                 
                 if (!IsSuccess || string.IsNullOrWhiteSpace(Code))
@@ -121,16 +122,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             if (request.ProductUsageType == ProductUsageType.Operational && request.ConfigurationStock is not null)
             {
                 //Control de existencia dentro del inventario operacional.
+                var inventoryStockEntity = ProductMapper.ToProductStockEntity(request, productEntity.Id);
+                inventoryStockEntity.CostCenterId = access.Profile.CostCenterId;
 
-                await _unitOfWork.ProductStocks.RegisterProductStock(new()
-                {
-                    IsActive = true,
-                    AvailableQuantity = 0,
-                    ProductId = productEntity.Id,
-                    CostCenterId = access.Profile.CostCenterId,
-                    MaximumStock = request.ConfigurationStock.MaximumStock,
-                    MinimumStock = request.ConfigurationStock.MinimumStock
-                });
+                await _unitOfWork.ProductStocks.RegisterProductStock(inventoryStockEntity);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

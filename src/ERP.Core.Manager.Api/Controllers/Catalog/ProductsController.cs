@@ -80,10 +80,7 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> RegisterProductAsync(
-        [FromRoute] Guid companie_id,
-        [FromRoute] string module_code,
-        [FromBody] RegisterProductCommand command)
+    public async Task<IActionResult> RegisterProductAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromBody] RegisterProductCommand command)
     {
         var userId = ResolveUserId();
 
