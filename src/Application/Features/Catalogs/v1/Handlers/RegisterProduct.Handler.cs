@@ -10,7 +10,6 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
-using ERP.Core.Database.Domain.Entities.Auth;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
@@ -89,7 +88,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             if (request.ProductUsageType == ProductUsageType.Administrative)
             {
-                var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(access.Profile.BranchId, request.CategoryId, cancellationToken);
+                var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(access.Profile, request.CategoryId, cancellationToken);
 
                 if (!isSuccess || string.IsNullOrWhiteSpace(code))
                 {
@@ -98,7 +97,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                         "ERP:PROD01"
                     );
                 }
-
+                
                 productEntity.Code = code;
             }
             else
