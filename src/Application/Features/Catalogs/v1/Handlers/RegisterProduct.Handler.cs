@@ -83,52 +83,53 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             var productEntity = ProductMapper.ToProductEntity(request, supplierCurrencies);
-            
+
             productEntity.BranchId = access.Profile.BranchId;
             productEntity.CostCenterId = access.Profile.CostCenterId;
 
-            if (request.ProductUsageType == ProductUsageType.Administrative)
+            await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
             {
-                var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(access.Profile.BranchId, request.CategoryId, cancellationToken);
-
-                if (!isSuccess || string.IsNullOrWhiteSpace(code))
+                if (request.ProductUsageType == ProductUsageType.Administrative)
                 {
-                    return _errorManager.ThrowBadRequest<Guid>(
-                        "No se pudo generar el código del producto.",
-                        "ERP:PROD01"
-                    );
+                    var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(access.Profile, request.CategoryId, token);
+
+                    if (!isSuccess || string.IsNullOrWhiteSpace(code))
+                    {
+                        _errorManager.ThrowBadRequest<Guid>(
+                            "No se pudo generar el código del producto.",
+                            "ERP:PROD01");
+                        return;
+                    }
+
+                    productEntity.Code = code;
+                }
+                else
+                {
+                    var (isSuccess, code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, token);
+
+                    if (!isSuccess || string.IsNullOrWhiteSpace(code))
+                    {
+                        _errorManager.ThrowBadRequest<Guid>(
+                            "No se pudo generar el código del producto.",
+                            "ERP:PROD01");
+                        return;
+                    }
+
+                    productEntity.Code = code;
                 }
 
-                productEntity.Code = code;
-            }
-            else
-            {
-                //Validar producto operacional por parte de las areas.
-                var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, cancellationToken);
-                
-                if (!IsSuccess || string.IsNullOrWhiteSpace(Code))
+                await _unitOfWork.Products.InsertProduct(productEntity);
+
+                if (request.ProductUsageType == ProductUsageType.Operational && request.ConfigurationStock is not null)
                 {
-                    return _errorManager.ThrowBadRequest<Guid>(
-                        "No se pudo generar el código del producto.",
-                        "ERP:PROD01"
-                    );
+                    var inventoryStockEntity = ProductMapper.ToProductStockEntity(request, productEntity.Id);
+                    inventoryStockEntity.CostCenterId = access.Profile.CostCenterId;
+
+                    await _unitOfWork.ProductStocks.RegisterProductStock(inventoryStockEntity);
                 }
 
-                productEntity.Code = Code;
-            }
-
-            await _unitOfWork.Products.InsertProduct(productEntity);
-
-            if (request.ProductUsageType == ProductUsageType.Operational && request.ConfigurationStock is not null)
-            {
-                //Control de existencia dentro del inventario operacional.
-                var inventoryStockEntity = ProductMapper.ToProductStockEntity(request, productEntity.Id);
-                inventoryStockEntity.CostCenterId = access.Profile.CostCenterId;
-
-                await _unitOfWork.ProductStocks.RegisterProductStock(inventoryStockEntity);
-            }
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.SaveChangesAsync(token);
+            }, cancellationToken);
 
             return productEntity.Id;
         }

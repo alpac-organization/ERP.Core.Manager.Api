@@ -159,7 +159,7 @@ public class UpdateProductHandler(
             await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
             {
                 var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
-                    request.CompanyId,
+                    access.Profile,
                     newCategoryId,
                     token);
 
