@@ -1,20 +1,28 @@
-using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using MediatR;
+using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 
 public class RegisterProductCommand : BaseRequest, IRequest<Guid>
 {
-    public string ProductName { get; set; } = null!;
     public string? Description { get; set; }
+    public string? ProductName { get; set; }
     public Guid CategoryId { get; set; }
     public Guid UnitMeasureId { get; set; }
 
-    public ProductUsageType ProductUsageType { get; set; }
     public bool IsTaxExempt { get; set; }
-
+    public ProductUsageType ProductUsageType { get; set; }
     public List<ProductSupplierItemDto> Suppliers { get; set; } = [];
+
+    //Información para inventario...
+    public ConfigurationStockToInventory? ConfigurationStock { get; set; }
+}
+
+public class ConfigurationStockToInventory
+{
+    public int MinimumStock { get; set; }
+    public int MaximumStock { get; set; }
 }
 
 public class ProductSupplierItemDto

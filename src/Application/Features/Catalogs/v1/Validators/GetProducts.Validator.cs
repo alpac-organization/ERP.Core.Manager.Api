@@ -20,6 +20,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators
                 .NotEmpty()
                 .WithMessage("El código del módulo es requerido.");
 
+            RuleFor(x => x.ProductUsageType)
+                .NotEmpty()
+                .WithMessage("Los tipos de productos son obligatorio");
+
             RuleFor(x => x.PageNumber)
                 .GreaterThan(0)
                 .WithMessage("El número de página debe ser mayor que 0.");

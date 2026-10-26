@@ -27,6 +27,22 @@ Product  ←→  SupplierProduct  ←→  Supplier
 - Si el producto **cambia de categoría**, se regenera el código.
 - Al desactivar un vínculo proveedor–producto se cierra el historial activo.
 
+### Control por sucursal (branch)
+
+Cada producto pertenece a una sucursal (`Product.BranchId` → `Branch`, columna `products.branch_id`).
+
+```
+Product ──► Branch   (control de productos por sucursal: Corinto / Managua)
+```
+
+| Aspecto | Comportamiento |
+|---|---|
+| Asignación | **Automática** al registrar: se toma de la sucursal del **perfil del usuario autenticado** (`access.Profile.BranchId`) en la empresa de `companie_id`. |
+| Body de `POST /products` | Acepta `branch_id`, pero el backend **lo ignora** y siempre usa la sucursal del perfil. |
+| Listado | `GET /products` filtra por `branch_id` y devuelve la sucursal de cada producto (`branch_id`). |
+| Detalle | `GET /products/{product_id}` **no** devuelve `branch_id`. |
+| Edición | `PATCH /products/{product_id}` **no** permite cambiar la sucursal del producto. |
+
 ### Enums relevantes
 
 | Enum | Valores |
@@ -51,10 +67,40 @@ Product  ←→  SupplierProduct  ←→  Supplier
 | Parámetro | Tipo | Requerido | Descripción |
 |---|:---:|:---:|---|
 | `category_product_id` | `guid` | No | Filtra por categoría |
+| `branch_id` | `guid` | No | Filtra por sucursal (ver [Control por sucursal](#control-por-sucursal-branch)) |
 | `page_number` | `int` | No | Default `1` |
 | `page_size` | `int` | No | Default `10` |
 
-**Respuesta (resumen):** lista paginada con `product_id`, `code`, `product_name`, `category`, `unit_measure_id`, `suppliers_count`.
+**Respuesta (resumen):** lista paginada con `product_id`, `code`, `product_name`, `category`, `unit_measure_id`, `branch_id`, `suppliers_count`.
+
+``` json
+{
+  "data": [
+    {
+      "product_id": "00000000-0000-0000-0000-000000000010",
+      "code": "ALP-01-001",
+      "product_name": "Lapicero azul",
+      "description": "Bolígrafo punta fina",
+      "category_id": "00000000-0000-0000-0000-000000000001",
+      "unit_measure_id": "00000000-0000-0000-0000-000000000002",
+      "branch_id": "00000000-0000-0000-0000-000000000005",
+      "category": {
+        "name": "Oficina",
+        "code": "01",
+        "is_active": true
+      },
+      "suppliers_count": 2
+    }
+  ],
+  "page_size": 10,
+  "page_number": 1,
+  "total_records": 1,
+  "total_active": 0,
+  "total_on_vacation": 0,
+  "total_on_subsidy": 0,
+  "total_collaborators": 0
+}
+```
 
 ---
 
@@ -66,6 +112,8 @@ Product  ←→  SupplierProduct  ←→  Supplier
 | **Ruta** | `/products/{product_id}` |
 
 Incluye proveedores activos vinculados, precio unitario vigente y `tier_prices`.
+
+> **Nota:** la respuesta **no** incluye `branch_id` (la sucursal solo se expone en el listado `GET /products`).
 
 ---
 
@@ -107,6 +155,7 @@ Incluye proveedores activos vinculados, precio unitario vigente y `tier_prices`.
 | `description` | `string` | No | Descripción |
 | `category_id` | `guid` | Sí | Categoría activa |
 | `unit_measure_id` | `guid` | Sí | Unidad de medida activa |
+| `branch_id` | `guid` | No | **Ignorado por el backend** (ver nota abajo) |
 | `product_usage_type` | `enum` | Sí | `Insumo` / `OperationalUse` |
 | `is_tax_exempt` | `bool` | No | Exento de impuestos |
 | `suppliers` | `array` | No | Proveedores iniciales + precios |
@@ -118,6 +167,7 @@ Incluye proveedores activos vinculados, precio unitario vigente y `tier_prices`.
 - Crea `SupplierProduct` + historial inicial (`UnitPrice` / `PreferentialPrice`).
 - No se permite el mismo `supplier_id` duplicado en el payload.
 - Los tiers con el mismo `min_quantity` no pueden traslaparse en fechas.
+- La sucursal del producto (`branch_id`) se asigna **automáticamente** con la sucursal del **perfil del usuario autenticado** en el `companie_id` indicado. Enviar `branch_id` en el body **no tiene efecto**: el backend lo descarta y siempre usa la del perfil.
 
 ---
 
@@ -141,7 +191,10 @@ Incluye proveedores activos vinculados, precio unitario vigente y `tier_prices`.
 
 Todos los campos del body son opcionales. Si se envía un `category_id` distinto al actual, **se regenera el código**.
 
+> **Nota:** el body **no** acepta `branch_id`; la sucursal del producto no se puede cambiar por API.
+
 ---
+
 
 ### 5. Actualizar precios proveedor–producto
 
@@ -379,7 +432,7 @@ Actualiza datos generales y detalle (crédito, contacto, etc.). **No** aprueba/r
 | `GET` | `/category-products` | Select de categoría al crear/editar producto |
 | `GET` | `/units-measurement` | Select de unidad de medida |
 | `GET` | `/suppliers` | Multiselect de proveedores al crear producto |
-| `GET` | `/products` | Multiselect de productos al crear proveedor |
+| `GET` | `/products` | Multiselect de productos al crear proveedor (admite `branch_id`) |
 
 ---
 
@@ -387,11 +440,12 @@ Actualiza datos generales y detalle (crédito, contacto, etc.). **No** aprueba/r
 
 1. Cargar categorías y unidades de medida.
 2. Registrar proveedor (opcional: solicitar exclusividad con `PendingReview`).
-3. Registrar producto seleccionando uno o más proveedores + precio.
+3. Registrar producto seleccionando uno o más proveedores + precio. La sucursal se asigna sola con el perfil del usuario; no enviar `branch_id`.
 4. Ver detalle de producto / proveedor para validar la relación N:N.
 5. Actualizar precios → consultar historial.
 6. Pantalla de revisión: filtrar `exclusive_status=PendingReview` → aprobar/rechazar.
 7. Si cambia la categoría del producto, refrescar el detalle para mostrar el nuevo `code`.
+8. Al cambiar de sucursal, refrescar el listado con `GET /products?branch_id={branch_id}`; el `branch_id` de cada item indica a qué sucursal pertenece.
 
 ---
 
@@ -406,6 +460,7 @@ Actualiza datos generales y detalle (crédito, contacto, etc.). **No** aprueba/r
 | Aprobar exclusividad sin estar en `PendingReview` | `400` |
 | Aprobar exclusividad como Operator/Manager | `400` permiso |
 | Vínculo proveedor–producto inexistente al actualizar precio | `400` |
+| Usuario sin sucursal asignada en su perfil | El producto se crea con `branch_id` en `Guid.Empty` (no se rechaza la operación) |
 
 ---
 

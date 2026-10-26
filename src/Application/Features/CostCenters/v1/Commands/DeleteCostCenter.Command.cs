@@ -1,4 +1,4 @@
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Domain.Entities.Bases;
 using MediatR;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Commands

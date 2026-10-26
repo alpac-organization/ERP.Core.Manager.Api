@@ -4,10 +4,10 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
-using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Controllers.Catalog;
 
@@ -21,10 +21,10 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
     [ProducesResponseType(typeof(PagedResponse<ProductDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<PagedResponse<ProductDto>> GetProductsAsync(
-        [FromRoute] Guid companie_id,
-        [FromRoute] string module_code,
+    public async Task<PagedResponse<ProductDto>> GetProductsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
+        [FromQuery] ProductUsageType product_usage_type,
         [FromQuery] Guid? category_product_id,
+        [FromQuery] Guid? branch_id = null,
         [FromQuery] int page_number = 1,
         [FromQuery] int page_size = 10)
     {
@@ -36,6 +36,8 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
             ModuleCode = module_code,
             UserId = userId,
             CategoryProductId = category_product_id,
+            ProductUsageType = product_usage_type,
+            BranchId = branch_id,
             PageNumber = page_number,
             PageSize = page_size
         });

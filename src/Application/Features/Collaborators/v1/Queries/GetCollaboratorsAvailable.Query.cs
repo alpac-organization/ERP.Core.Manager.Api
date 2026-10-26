@@ -2,7 +2,7 @@ using MediatR;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 
-using BaseRequest = ERP.Core.Manager.Api.Domain.Entities.Bases.BaseRequest;
+using ERP.Core.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries
 {

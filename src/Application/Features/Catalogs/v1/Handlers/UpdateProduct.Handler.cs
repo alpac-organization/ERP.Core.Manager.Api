@@ -44,10 +44,11 @@ public class UpdateProductHandler(
             return _errorManager.ThrowBadRequest<bool>("El producto no existe.", "ERP:PROD_NOT_FOUND");
         }
 
-        if (request.CategoryId.HasValue && request.CategoryId.Value != product.CategoryId)
+        var categoryChanged = request.CategoryId.HasValue && request.CategoryId.Value != product.CategoryId;
+        if (categoryChanged)
         {
             var categoryExists = await _unitOfWork.CategoryProducts.Entities
-                .AnyAsync(c => c.Id == request.CategoryId.Value && c.IsActive && c.DeletedAt == null, cancellationToken);
+                .AnyAsync(c => c.Id == request.CategoryId!.Value && c.IsActive && c.DeletedAt == null, cancellationToken);
 
             if (!categoryExists)
             {
@@ -55,29 +56,6 @@ public class UpdateProductHandler(
                     "La categoría seleccionada no existe o no está activa.",
                     "ERP:002");
             }
-
-            var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
-                request.CompanyId,
-                request.CategoryId.Value,
-                cancellationToken);
-
-            if (!isSuccess || string.IsNullOrWhiteSpace(code))
-            {
-                return _errorManager.ThrowBadRequest<bool>(
-                    "No se pudo regenerar el código del producto para la nueva categoría.",
-                    "ERP:PROD01");
-            }
-
-            _logger.LogInformation(
-                "Producto {ProductId} cambia de categoría {OldCategory} -> {NewCategory}. Código {OldCode} -> {NewCode}",
-                product.Id,
-                product.CategoryId,
-                request.CategoryId.Value,
-                product.Code,
-                code);
-
-            product.CategoryId = request.CategoryId.Value;
-            product.Code = code;
         }
 
         if (request.UnitMeasureId.HasValue && request.UnitMeasureId.Value != product.UnitMeasureId)
@@ -172,8 +150,47 @@ public class UpdateProductHandler(
             }
         }
 
-        await _unitOfWork.Products.UpdateAsync(product);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        if (categoryChanged)
+        {
+            var newCategoryId = request.CategoryId!.Value;
+            var oldCategoryId = product.CategoryId;
+            var oldCode = product.Code;
+
+            await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
+            {
+                var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
+                    request.CompanyId,
+                    newCategoryId,
+                    token);
+
+                if (!isSuccess || string.IsNullOrWhiteSpace(code))
+                {
+                    _errorManager.ThrowBadRequest<bool>(
+                        "No se pudo regenerar el código del producto para la nueva categoría.",
+                        "ERP:PROD01");
+                    return;
+                }
+
+                _logger.LogInformation(
+                    "Producto {ProductId} cambia de categoría {OldCategory} -> {NewCategory}. Código {OldCode} -> {NewCode}",
+                    product.Id,
+                    oldCategoryId,
+                    newCategoryId,
+                    oldCode,
+                    code);
+
+                product.CategoryId = newCategoryId;
+                product.Code = code;
+
+                await _unitOfWork.Products.UpdateAsync(product);
+                await _unitOfWork.SaveChangesAsync(token);
+            }, cancellationToken);
+        }
+        else
+        {
+            await _unitOfWork.Products.UpdateAsync(product);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
 
         _logger.LogInformation("Usuario {UserId} actualizó el producto {ProductId}", request.UserId, product.Id);
 

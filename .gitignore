@@ -4,5 +4,5 @@ nuget.config
 **/bin/
 **/obj/
 
-.vscode
+.vscode/launch.json
 .vs

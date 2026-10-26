@@ -1,5 +1,6 @@
 using MediatR;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
+using ERP.Core.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Queries
