@@ -2,6 +2,7 @@ using AutoMapper;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Queries;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
@@ -14,7 +15,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
    {
       public override async Task<PagedResponse<FaultCatalogDto>> Handle(GetFaultCatalogQuery request, CancellationToken cancellationToken)
       {
-
          var access = await ValidateAccessAsync(
             request.UserId,
             request.CompanyId,
@@ -47,16 +47,30 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
 
          var totalCount = await faultCatalogQuery.CountAsync(cancellationToken);
 
-         var faultCatalogs = await faultCatalogQuery
-            .OrderByDescending(fc => fc.CreatedAt)
-            .Skip((request.PageNumber - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .ToListAsync(cancellationToken);
+         List<FaultCatalog> faultCatalogs;
+
+         if (request.PageSize.HasValue)
+         {
+            faultCatalogs = await faultCatalogQuery
+               .OrderByDescending(fc => fc.CreatedAt)
+               .ThenByDescending(fc => fc.FaultSeverity)
+               .ThenBy(fc => fc.Code)
+               .Skip((request.PageNumber - 1) * request.PageSize.Value)
+               .Take(request.PageSize.Value)
+               .ToListAsync(cancellationToken);
+         }
+         else
+         {
+            faultCatalogs = await faultCatalogQuery.ToListAsync(cancellationToken);
+         }
 
          var mappedFaultCatalogs = _mapper.Map<List<FaultCatalogDto>>(faultCatalogs);
 
          return new PagedResponse<FaultCatalogDto>(
-            mappedFaultCatalogs, request.PageNumber, request.PageSize, totalCount
+            mappedFaultCatalogs,
+            request.PageNumber,
+            request.PageSize ?? totalCount,
+            totalCount
          );
       }
    }

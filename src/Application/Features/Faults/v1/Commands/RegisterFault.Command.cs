@@ -15,12 +15,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Commands
       public Guid CollaboratorId { get; set; }
       public Guid FaultCatalogId { get; set; }
       public DateOnly OccurrenceDate { get; set; }
-      public FaultSeverity Severity { get; set; }
-      public FaultSource Source { get; set; }
-      public FaultStatus Status { get; set; }
-      public Guid RegisteredBy { get; set; }
-      public Guid? ParentFaultId { get; set; }      
-      public List<Evidence> Evidences {get; set; } = [];
+      public FaultSource Source { get; set; }      
+      public Guid? ParentFaultId { get; set; }
+      public List<Evidence> Evidences { get; set; } = [];
    }
 
    public class Evidence

@@ -9,7 +9,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Queries
    {
       public string? Code { get; set; }
       public FaultSeverity? FaultSeverity { get; set; }
-      public int PageSize { get; set; }
+      public int? PageSize { get; set; }
       public int PageNumber { get; set; }
    }
 }

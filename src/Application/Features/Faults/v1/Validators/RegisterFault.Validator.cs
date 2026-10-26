@@ -34,18 +34,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Validators
             .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
             .WithMessage("La fecha de ocurrencia no puede ser futura.");
 
-         RuleFor(x => x.Severity)
-            .IsInEnum().WithMessage("La severidad de la falta no es válida.");
-
          RuleFor(x => x.Source)
             .IsInEnum().WithMessage("El origen de la falta no es válido.");
-
-         RuleFor(x => x.Status)
-            .IsInEnum().WithMessage("El estado de la falta no es válido.");
-
-         RuleFor(x => x.RegisteredBy)
-            .NotEmpty().WithMessage("El id de quien registra la falta es requerido.")
-            .NotEqual(Guid.Empty).WithMessage("El id de quien registra la falta no es válido.");
 
          RuleFor(x => x.ParentFaultId)
             .Must(id => id == null || id != Guid.Empty)
