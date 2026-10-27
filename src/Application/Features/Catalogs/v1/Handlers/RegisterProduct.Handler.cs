@@ -13,8 +13,7 @@ using ERP.Core.Manager.Api.Application.Commons.Mappings;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
-    public class RegisterProductHandler(IUnitOfWork _unitOfWork, ILogger<RegisterProductHandler> _logger, IErrorManager _errorManager, ICodeGenerator _codeGenerator)
-        : BaseValidatorHandler<RegisterProductCommand, Guid>(_unitOfWork, _errorManager)
+    public class RegisterProductHandler(IUnitOfWork _unitOfWork, ILogger<RegisterProductHandler> _logger, IErrorManager _errorManager, ICodeGenerator _codeGenerator) : BaseValidatorHandler<RegisterProductCommand, Guid>(_unitOfWork, _errorManager)
     {
         public override async Task<Guid> Handle(RegisterProductCommand request, CancellationToken cancellationToken)
         {
@@ -69,6 +68,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             _logger.LogInformation("Iniciando registro de producto: {ProductName}", request.ProductName);
 
+            var configuration = await _unitOfWork.CategoryAllowedUnitMeasures.Entities
+                .Where(configuration => configuration.IsActive)
+                .Where(configuration => configuration.CategoryId == request.CategoryId)
+                .Where(configuration => configuration.UnitMeasureId == request.UnitMeasureId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (configuration is null)
+            {
+                return _errorManager.ThrowBadRequest<Guid>("Esta unidad de medida no es permitida para la categoria de producto seleccionada", "ERP:CONFIGURATION_INVALID");
+            }
+            
             var supplierCurrencies = new Dictionary<Guid, Currency>();
 
             if (request.Suppliers.Count > 0)
