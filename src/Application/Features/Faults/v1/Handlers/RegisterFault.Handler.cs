@@ -1,7 +1,9 @@
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Commands;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +14,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
    public class RegisterFaultHandler(
       IUnitOfWork _unitOfWork,
       IErrorManager _errorManager,
-      ILogger<RegisterFaultHandler> _logger)
+      ILogger<RegisterFaultHandler> _logger,
+      IDisciplinaryEscalation _disciplinaryEscalation)
       : BaseValidatorHandler<RegisterFaultCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(RegisterFaultCommand request, CancellationToken cancellationToken)
@@ -81,6 +84,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
          _logger.LogInformation("🚩Iniciando proceso de registro de faltas disciplinaria");
 
          var faultsCatalogDictionary = existingFaultCatalogs.ToDictionary(fc => fc.Id, fc => fc.FaultSeverity);
+         var registeredFaults = new List<DisciplinaryFault>();
 
          foreach (var fault in faults)
          {
@@ -93,9 +97,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
 
             var faultDisciplinary = fault.ToDisciplinaryFaultEntity(faultSeverity, request.UserId);
             await _unitOfWork.DisciplinaryFaults.RegisterDisciplinaryFault(faultDisciplinary);
+            registeredFaults.Add(faultDisciplinary);
          }
 
          await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+         var escalationTargets = registeredFaults
+            .GroupBy(f => new
+            {
+               f.CollaboratorId,
+               f.Severity,
+               Month = new DateOnly(f.OccurrenceDate.Year, f.OccurrenceDate.Month, 1)
+            })
+            .Select(g => g.First());
+
+         foreach (var registeredFault in escalationTargets)
+         {
+            await _disciplinaryEscalation.ExecuteEscalationProcess(registeredFault, cancellationToken);
+         }
 
          _logger.LogInformation("✅ Se agrego con exito el registro de faltas disciplinarias.");
 

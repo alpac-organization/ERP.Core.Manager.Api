@@ -1,8 +1,12 @@
 
+using ERP.Core.Database.Domain.Entities.Payrolls;
+
 namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 {
-   public class IDisciplinaryEscalation
+   public interface IDisciplinaryEscalation
    {
-      // Task<bool> ExecuteEscalationProcess();
+      public Task<bool> ExecuteEscalationProcess(DisciplinaryFault disciplinaryFault, CancellationToken cancellationToken);
+
+      public (DateOnly Start, DateOnly End) GetMonthBoundaries(DateOnly OccurrenceDate);
    }
 }

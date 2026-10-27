@@ -35,6 +35,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
 
    public class EvidenceDto
    {
+      public string? FileName { get; set; }
       public string? ImageBase64 { get; set; }
       public string? ContentType { get; set; } // o ImageUrl si más adelante subes a S3
    }

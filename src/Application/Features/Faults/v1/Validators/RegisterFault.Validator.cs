@@ -41,6 +41,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Validators
             .Must(id => id == null || id != Guid.Empty)
             .WithMessage("El id de la falta padre no es válido.");
 
+         // Evidencias opcionales: si vienen ítems, cada uno se valida completo
          RuleForEach(x => x.Evidences)
             .SetValidator(new EvidenceValidator());
       }
@@ -56,8 +57,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Validators
          "image/webp"
       ];
 
+      private static readonly Dictionary<string, string[]> ContentTypeExtensions = new(StringComparer.OrdinalIgnoreCase)
+      {
+         ["image/jpeg"] = [".jpg", ".jpeg"],
+         ["image/jpg"] = [".jpg", ".jpeg"],
+         ["image/png"] = [".png"],
+         ["image/webp"] = [".webp"]
+      };
+
       public EvidenceValidator()
       {
+         RuleFor(x => x.FileName)
+            .NotEmpty()
+            .WithMessage("El nombre del archivo es requerido.")
+            .Must(BeSafeFileName)
+            .WithMessage("El nombre del archivo no es válido.")
+            .MaximumLength(255)
+            .WithMessage("El nombre del archivo no puede exceder 255 caracteres.");
+
          RuleFor(x => x.ImageBase64)
             .NotEmpty()
             .WithMessage("La imagen en base64 es requerida.");
@@ -67,6 +84,32 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Validators
             .WithMessage("El tipo de contenido de la imagen es requerido.")
             .Must(contentType => AllowedContentTypes.Contains(contentType!, StringComparer.OrdinalIgnoreCase))
             .WithMessage("El tipo de contenido debe ser una imagen válida (jpeg, jpg, png o webp).");
+
+         RuleFor(x => x)
+            .Must(HaveMatchingExtension)
+            .WithMessage("La extensión del archivo no coincide con el tipo de contenido.")
+            .When(x => !string.IsNullOrWhiteSpace(x.FileName) && !string.IsNullOrWhiteSpace(x.ContentType));
+      }
+
+      private static bool BeSafeFileName(string? fileName)
+      {
+         if (string.IsNullOrWhiteSpace(fileName))
+            return false;
+
+         var sanitized = Path.GetFileName(fileName);
+         return !string.IsNullOrWhiteSpace(sanitized)
+            && sanitized == fileName.Trim()
+            && sanitized.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+      }
+
+      private static bool HaveMatchingExtension(Evidence evidence)
+      {
+         if (!ContentTypeExtensions.TryGetValue(evidence.ContentType!, out var extensions))
+            return false;
+
+         var extension = Path.GetExtension(evidence.FileName);
+         return !string.IsNullOrWhiteSpace(extension)
+            && extensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
       }
    }
 }

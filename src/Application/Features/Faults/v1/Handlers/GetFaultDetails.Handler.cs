@@ -1,4 +1,3 @@
-using System.Security;
 using AutoMapper;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
@@ -31,9 +30,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
             .Include(df => df.Collaborator)
             .Include(df => df.FaultCatalog)
             .Include(df => df.ParentFault)
-            .Include(df => df.User)
+            .Include(df => df.User)            
             .FirstOrDefaultAsync(df =>
                df.Id == request.FaultId &&
+               df.Collaborator.CompanyId == request.CompanyId &&
                df.DeletedAt == null,
                cancellationToken);
 

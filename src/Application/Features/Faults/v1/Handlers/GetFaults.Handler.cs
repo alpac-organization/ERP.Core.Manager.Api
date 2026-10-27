@@ -41,6 +41,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                .Where(f => f.FaultCatalog.Code != null && f.FaultCatalog.Code.Contains(code));
          }
 
+         if (request.CollaboratorId.HasValue)
+         {
+            faultsQuery = faultsQuery
+               .Where(f => f.CollaboratorId == request.CollaboratorId.Value);
+         }
+
          if (request.Severity.HasValue)
          {
             faultsQuery = faultsQuery

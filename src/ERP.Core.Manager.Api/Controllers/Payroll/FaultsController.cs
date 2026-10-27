@@ -77,6 +77,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromRoute] Guid company_id,
             [FromRoute] string module_code,
             [FromQuery] string? code,
+            [FromQuery] Guid? collaborator_id,
             [FromQuery] FaultSeverity? severity,
             [FromQuery] FaultStatus? status,
             [FromQuery] FaultSource? source,
@@ -92,6 +93,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             CompanyId = company_id,
             ModuleCode = module_code,
             Code = code,
+            CollaboratorId = collaborator_id,
             Severity = severity,
             Status = status,
             Source = source,
@@ -114,6 +116,52 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
          var userIdStr = HttpContext.Items["UserId"] as string;
 
          return await _mediator.Send(new GetFaultDetailsQuery
+         {
+            UserId = Guid.Parse(userIdStr ?? ""),
+            CompanyId = company_id,
+            ModuleCode = module_code,
+            FaultId = fault_id
+         });
+      }
+
+      [Tags("Faltas Disciplinarias")]
+      [HttpDelete("companies/{company_id}/modules/{module_code}/faults/{fault_id}")]
+      [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status204NoContent)]
+      [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+      [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+      public async Task<NoContentResult> CancelFaultAsync(
+         [FromRoute] Guid company_id,
+         [FromRoute] string module_code,
+         [FromRoute] Guid fault_id
+      )
+      {
+         var userIdStr = HttpContext.Items["UserId"] as string;
+
+         await _mediator.Send(new CancelFaultCommand
+         {
+            UserId = Guid.Parse(userIdStr ?? ""),
+            CompanyId = company_id,
+            ModuleCode = module_code,
+            FaultId = fault_id
+         });
+
+         return NoContent();
+      }
+
+      [Tags("Sanciones Sugeridas")]
+      [HttpGet("companies/{company_id}/modules/{module_code}/faults/{fault_id}/suggested-sanction")]
+      [ProducesResponseType(typeof(SuggestedSanctionDto), StatusCodes.Status200OK)]
+      [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+      [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+      public async Task<SuggestedSanctionDto> GetSuggestedSanctionAsync(
+      [FromRoute] Guid company_id,
+      [FromRoute] string module_code,
+      [FromRoute] Guid fault_id
+   )
+      {
+         var userIdStr = HttpContext.Items["UserId"] as string;
+
+         return await _mediator.Send(new GetSuggestedSanctionQuery
          {
             UserId = Guid.Parse(userIdStr ?? ""),
             CompanyId = company_id,

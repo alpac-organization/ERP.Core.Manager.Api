@@ -1,12 +1,13 @@
-using ERP.Core.Database.Domain.Enums;
+using System.Text.Json.Serialization;
+using ERP.Core.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos;
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using MediatR;
 
 namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Queries
 {
    public class GetFaultDetailsQuery : BaseRequest, IRequest<FaultDetailDto>
    {
+      [JsonIgnore]
       public Guid FaultId { get; set; }
    }
 }

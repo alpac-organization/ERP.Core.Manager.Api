@@ -5,6 +5,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
    public class FaultDto
    {
       public Guid FaultId { get; set; }
+      public Guid CollaboratorId { get; set; }
       public string CollaboratorName { get; set; } = string.Empty;
       public FaultCatalogReference FaultCatalog { get; set; } = new();
       public DateOnly OccurrenceDate { get; set; }

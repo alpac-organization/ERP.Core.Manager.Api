@@ -21,6 +21,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 
          CreateMap<DisciplinaryFault, FaultDto>()
             .ForMember(dest => dest.FaultId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.CollaboratorId))
             .ForMember(dest => dest.CollaboratorName, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)))
             .ForMember(dest => dest.FaultCatalog, opt => opt.MapFrom(src => src.FaultCatalog));
 
