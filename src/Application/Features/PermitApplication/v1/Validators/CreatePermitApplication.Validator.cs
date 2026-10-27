@@ -44,6 +44,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                 RuleFor(x => x.PermitApplicationMedicalAppointment)
                     .NotNull().WithMessage("Los datos de la solicitud de donación son obligatorios.")
                     .SetValidator(new PermitApplicationMedicalAppointmentValidator());
+                
             });
 
             When(x => x.PermitApplicationType == PermitApplicationType.Vacation, () =>
@@ -59,6 +60,18 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                 RuleFor(x => x.PermitApplicationVacationPay)
                     .NotNull().WithMessage("Los datos de la solicitud de pagos de vacaciones.")
                     .SetValidator(new PermitApplicationVacationPayValidator());
+            });
+
+            When(x=> x.PermitApplicationType == PermitApplicationType.BereavementLeave 
+                    || x.PermitApplicationType == PermitApplicationType.JudicialAppointment
+                    || x.PermitApplicationType == PermitApplicationType.BirthLeave
+                    || x.PermitApplicationType == PermitApplicationType.MarriageLeave, ()=>
+            {
+                RuleFor(x=>x.PermitApplicationLeave)
+                    .NotNull()
+                    .WithMessage("los datos del permiso son obligatorios")
+                    .SetValidator(new PermitApplicationLeaveValidator());
+                        
             });
         }
 
@@ -89,7 +102,50 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                         .WithMessage("La hora de finalización debe ser posterior a la hora de inicio.");
             }
         }
+        public class PermitApplicationLeaveValidator : AbstractValidator<PermitApplicationLeave?>
+        {
+            public PermitApplicationLeaveValidator()
+            {
+                RuleFor(x=>x)
+                    .NotNull()
+                    .WithMessage("La informacion del permiso es obligatoria");
 
+                RuleFor(x => x.StartDate)
+                    .NotEmpty()
+                    .WithMessage("El fecha de inicio es obligatorio.");
+
+                RuleFor(x => x.EndDate)
+                    .NotEmpty()
+                    .WithMessage("El fecha de fin es obligatorio.")
+                    .GreaterThanOrEqualTo(x=> x.StartDate);
+                
+                RuleFor(x => x.BeneficiaryScope)
+                .IsInEnum()
+                .WithMessage("El alcance del beneficiario no es válido.")
+                .NotEqual(PermitBeneficiaryScope.None)
+                .WithMessage("Debe indicar si el permiso es propio o de núcleo familiar.");
+
+                RuleFor(x => x.FamilyRelationship)
+                    .Equal(FamilyRelationship.None)
+                    .When(x => x.BeneficiaryScope == PermitBeneficiaryScope.Own)
+                    .WithMessage("Un permiso propio no lleva parentesco.");
+
+                RuleFor(x => x.FamilyRelationship)
+                    .NotEqual(FamilyRelationship.None)
+                    .When(x => x.BeneficiaryScope == PermitBeneficiaryScope.FamilyNucleus)
+                    .WithMessage("Debe indicar el parentesco.");
+
+                RuleFor(x => x.RelatedPerson)
+                    .NotEmpty()
+                    .When(x => x.BeneficiaryScope == PermitBeneficiaryScope.FamilyNucleus)
+                    .WithMessage("Debe indicar el nombre de la persona relacionada.");
+
+                RuleFor(x => x.EndTime)
+                    .GreaterThan(x => x.StartTime)
+                    .When(x => x.StartTime.HasValue && x.EndTime.HasValue)
+                    .WithMessage("La hora de fin debe ser posterior a la hora de inicio."); 
+            } 
+        }
         public class PermitApplicationVacationPayValidator: AbstractValidator<PermitApplicationVacationPay?>
         {
             public PermitApplicationVacationPayValidator()
