@@ -1,8 +1,10 @@
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Application.Commons.Interfaces.AWS;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Commands;
@@ -15,7 +17,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
       IUnitOfWork _unitOfWork,
       IErrorManager _errorManager,
       ILogger<RegisterFaultHandler> _logger,
-      IDisciplinaryEscalation _disciplinaryEscalation)
+      IDisciplinaryEscalation _disciplinaryEscalation,
+      IS3StorageService _s3StorageService)
       : BaseValidatorHandler<RegisterFaultCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(RegisterFaultCommand request, CancellationToken cancellationToken)
@@ -95,7 +98,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                   "ERP:NOT_FOUND");
             }
 
-            var faultDisciplinary = fault.ToDisciplinaryFaultEntity(faultSeverity, request.UserId);
+            var evidenceJson = await DisciplinaryEvidenceHelper.BuildEvidenceJsonAsync(
+               _s3StorageService,
+               fault.Evidences,
+               "DisciplinaryFaults",
+               cancellationToken);
+
+            var faultDisciplinary = fault.ToDisciplinaryFaultEntity(
+               faultSeverity, request.UserId, evidenceJson);
             await _unitOfWork.DisciplinaryFaults.RegisterDisciplinaryFault(faultDisciplinary);
             registeredFaults.Add(faultDisciplinary);
          }

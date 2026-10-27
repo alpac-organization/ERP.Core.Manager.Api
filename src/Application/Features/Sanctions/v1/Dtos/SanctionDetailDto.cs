@@ -1,4 +1,5 @@
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Dtos

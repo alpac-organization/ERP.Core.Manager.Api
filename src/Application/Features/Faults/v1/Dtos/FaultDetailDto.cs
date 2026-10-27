@@ -1,6 +1,5 @@
-using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Application.Features.Users.v1.Dtos;
+using ERP.Core.Manager.Api.Application.Commons.Helpers;
 
 namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
 {
@@ -31,13 +30,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
       // Auditoría
       public RegisterUserDto? RegisteredBy { get; set; }
       public DateTime CreatedAt { get; set; }
-   }
-
-   public class EvidenceDto
-   {
-      public string? FileName { get; set; }
-      public string? ImageBase64 { get; set; }
-      public string? ContentType { get; set; } // o ImageUrl si más adelante subes a S3
    }
 
    public class FaultReference

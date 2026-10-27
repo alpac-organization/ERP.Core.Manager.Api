@@ -1,4 +1,5 @@
 using FluentValidation;
+using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using ERP.Core.Manager.Api.Application.Commons.Validators;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Commands;
 
@@ -47,7 +48,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Validators
       }
    }
 
-   public class EvidenceValidator : AbstractValidator<Evidence>
+   public class EvidenceValidator : AbstractValidator<EvidenceInput>
    {
       private static readonly string[] AllowedContentTypes =
       [
@@ -102,7 +103,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Validators
             && sanitized.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
       }
 
-      private static bool HaveMatchingExtension(Evidence evidence)
+      private static bool HaveMatchingExtension(EvidenceInput evidence)
       {
          if (!ContentTypeExtensions.TryGetValue(evidence.ContentType!, out var extensions))
             return false;

@@ -1,6 +1,6 @@
-
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Bases;
+using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using MediatR;
 
 namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Commands
@@ -17,13 +17,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Commands
       public DateOnly OccurrenceDate { get; set; }
       public FaultSource Source { get; set; }
       public Guid? ParentFaultId { get; set; }
-      public List<Evidence> Evidences { get; set; } = [];
-   }
-
-   public class Evidence
-   {
-      public string? FileName { get; set; }
-      public string? ImageBase64 { get; set; }
-      public string? ContentType { get; set; }
+      public List<EvidenceInput> Evidences { get; set; } = [];
    }
 }

@@ -1,5 +1,6 @@
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Bases;
+using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using MediatR;
 
 namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Commands
@@ -11,13 +12,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Commands
       public string Reason { get; set; } = string.Empty;
       public DateOnly? SuspensionStartDate { get; set; }
       public DateOnly? SuspensionEndDate { get; set; }
-      public List<Evidence> Evidences { get; set; } = [];
-   }
-
-   public class Evidence
-   {
-      public string? FileName { get; set; }
-      public string? ImageBase64 { get; set; }
-      public string? ContentType { get; set; }
+      public List<EvidenceInput> Evidences { get; set; } = [];
    }
 }

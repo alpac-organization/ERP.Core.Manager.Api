@@ -1,5 +1,6 @@
 using FluentValidation;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using ERP.Core.Manager.Api.Application.Commons.Validators;
 using ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Commands;
 
@@ -51,15 +52,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Validators
       }      
    }
 
-   public class SanctionEvidenceValidator : AbstractValidator<Evidence>
+   public class SanctionEvidenceValidator : AbstractValidator<EvidenceInput>
    {
       private static readonly string[] AllowedContentTypes =
       [
          "image/jpeg",
          "image/jpg",
          "image/png",
-         "image/webp",
-         "application/pdf"
+         "image/webp"
       ];
 
       private static readonly Dictionary<string, string[]> ContentTypeExtensions = new(StringComparer.OrdinalIgnoreCase)
@@ -67,8 +67,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Validators
          ["image/jpeg"] = [".jpg", ".jpeg"],
          ["image/jpg"] = [".jpg", ".jpeg"],
          ["image/png"] = [".png"],
-         ["image/webp"] = [".webp"],
-         ["application/pdf"] = [".pdf"]
+         ["image/webp"] = [".webp"]
       };
 
       public SanctionEvidenceValidator()
@@ -89,7 +88,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Validators
             .NotEmpty()
             .WithMessage("El tipo de contenido es requerido.")
             .Must(contentType => AllowedContentTypes.Contains(contentType!, StringComparer.OrdinalIgnoreCase))
-            .WithMessage("El tipo de contenido debe ser imagen (jpeg, png, webp) o PDF.");
+            .WithMessage("El tipo de contenido debe ser una imagen válida (jpeg, jpg, png o webp).");
 
          RuleFor(x => x)
             .Must(HaveMatchingExtension)
@@ -108,7 +107,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Validators
             && sanitized.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
       }
 
-      private static bool HaveMatchingExtension(Evidence evidence)
+      private static bool HaveMatchingExtension(EvidenceInput evidence)
       {
          if (!ContentTypeExtensions.TryGetValue(evidence.ContentType!, out var extensions))
             return false;

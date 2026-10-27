@@ -1,7 +1,9 @@
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Application.Commons.Interfaces.AWS;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Commands;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +14,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
    public class RegisterSanctionHandler(
       IUnitOfWork _unitOfWork,
       IErrorManager _errorManager,
-      ILogger<RegisterSanctionHandler> _logger)
+      ILogger<RegisterSanctionHandler> _logger,
+      IS3StorageService _s3StorageService)
       : BaseValidatorHandler<RegisterSanctionCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(RegisterSanctionCommand request, CancellationToken cancellationToken)
@@ -84,7 +87,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
 
          _logger.LogInformation("🚩Iniciando registro de sanción disciplinaria para falta {FaultId}", request.FaultId);
 
-         var sanction = request.ToDisciplinarySanctionEntity();
+         var evidenceJson = await DisciplinaryEvidenceHelper.BuildEvidenceJsonAsync(
+            _s3StorageService,
+            request.Evidences,
+            "DisciplinarySanctions",
+            cancellationToken);
+
+         var sanction = request.ToDisciplinarySanctionEntity(evidenceJson);
          await _unitOfWork.DisciplinarySanctions.RegisterDisciplinarySanction(sanction);
 
          fault.Status = FaultStatus.SanctionApplied;
