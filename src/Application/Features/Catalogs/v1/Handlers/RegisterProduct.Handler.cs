@@ -10,12 +10,10 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
-using ERP.Core.Database.Domain.Entities.Auth;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
-    public class RegisterProductHandler(IUnitOfWork _unitOfWork, ILogger<RegisterProductHandler> _logger, IErrorManager _errorManager, ICodeGenerator _codeGenerator)
-        : BaseValidatorHandler<RegisterProductCommand, Guid>(_unitOfWork, _errorManager)
+    public class RegisterProductHandler(IUnitOfWork _unitOfWork, ILogger<RegisterProductHandler> _logger, IErrorManager _errorManager, ICodeGenerator _codeGenerator) : BaseValidatorHandler<RegisterProductCommand, Guid>(_unitOfWork, _errorManager)
     {
         public override async Task<Guid> Handle(RegisterProductCommand request, CancellationToken cancellationToken)
         {
@@ -70,6 +68,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             _logger.LogInformation("Iniciando registro de producto: {ProductName}", request.ProductName);
 
+            var configuration = await _unitOfWork.CategoryAllowedUnitMeasures.Entities
+                .Where(configuration => configuration.IsActive)
+                .Where(configuration => configuration.CategoryId == request.CategoryId)
+                .Where(configuration => configuration.UnitMeasureId == request.UnitMeasureId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (configuration is null)
+            {
+                return _errorManager.ThrowBadRequest<Guid>("Esta unidad de medida no es permitida para la categoria de producto seleccionada", "ERP:CONFIGURATION_INVALID");
+            }
+            
             var supplierCurrencies = new Dictionary<Guid, Currency>();
 
             if (request.Suppliers.Count > 0)
@@ -89,7 +98,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             if (request.ProductUsageType == ProductUsageType.Administrative)
             {
-                var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(access.Profile.BranchId, request.CategoryId, cancellationToken);
+                var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(access.Profile, request.CategoryId, cancellationToken);
 
                 if (!isSuccess || string.IsNullOrWhiteSpace(code))
                 {
@@ -98,11 +107,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                         "ERP:PROD01"
                     );
                 }
-
+                
                 productEntity.Code = code;
             }
             else
             {
+                //Validar producto operacional por parte de las areas.
                 var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, cancellationToken);
                 
                 if (!IsSuccess || string.IsNullOrWhiteSpace(Code))
@@ -121,16 +131,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             if (request.ProductUsageType == ProductUsageType.Operational && request.ConfigurationStock is not null)
             {
                 //Control de existencia dentro del inventario operacional.
+                var inventoryStockEntity = ProductMapper.ToProductStockEntity(request, productEntity.Id);
+                inventoryStockEntity.CostCenterId = access.Profile.CostCenterId;
 
-                await _unitOfWork.ProductStocks.RegisterProductStock(new()
-                {
-                    IsActive = true,
-                    AvailableQuantity = 0,
-                    ProductId = productEntity.Id,
-                    CostCenterId = access.Profile.CostCenterId,
-                    MaximumStock = request.ConfigurationStock.MaximumStock,
-                    MinimumStock = request.ConfigurationStock.MinimumStock
-                });
+                await _unitOfWork.ProductStocks.RegisterProductStock(inventoryStockEntity);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -8,6 +8,7 @@ using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 
 using Commands = ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
+using ERP.Core.Database.Domain.Entities.Inventory;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 {    
@@ -70,6 +71,21 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                         s.Currency ?? supplierCurrencies.GetValueOrDefault(s.SupplierId, Currency.NIO))
                     )
                 ]
+            };
+        }
+
+        public static ProductStock ToProductStockEntity(this Commands.RegisterProductCommand command, Guid productId)
+        {
+            return new()
+            {
+                MaximumStock = command.ConfigurationStock!.MaximumStock,
+                MinimumStock = command.ConfigurationStock.MinimumStock,
+                UnitMeasureId = command.UnitMeasureId,
+                WeightedAverageCost = 0.0m,
+                Status = ProductStockStatus.Empty,
+                ProductId = productId,
+                AvailableQuantity = 0,
+                IsActive = true
             };
         }
     }
