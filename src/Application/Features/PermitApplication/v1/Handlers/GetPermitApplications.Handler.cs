@@ -7,8 +7,6 @@ using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
-using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
-using Microsoft.VisualBasic;
 
 //✅Obtener solicitudes de permisos realizadas por empresas.
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers

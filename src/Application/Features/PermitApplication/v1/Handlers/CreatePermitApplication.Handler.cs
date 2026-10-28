@@ -444,6 +444,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     EndTime = permitApplication.EndTime,
                     Description = permitApplication.Description,
                     Type = permitApplication.Type,
+                    BeneficiaryScope = permitApplication.BeneficiaryScope,
+                    FamilyRelationship = permitApplication.FamilyRelationship,
+                    RelatedPersonName = permitApplication.RelatedPersonName,
                     RequestedBy = ManagerUtils.FromSliceToCollaboratorFullname(collaborator),
                     IsActive = true
                 });
@@ -471,6 +474,14 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     endDate >= p.StartDate,
                     ct
                 );
+
+            if (overlapExists)
+            {
+                return (
+                    true,
+                    "Ya existe una solicitud (pendiente o aprobada) para las fechas seleccionadas. No se permite duplicar solicitudes el mismo día."
+                );
+            }
 
             return (false, string.Empty);
         }
