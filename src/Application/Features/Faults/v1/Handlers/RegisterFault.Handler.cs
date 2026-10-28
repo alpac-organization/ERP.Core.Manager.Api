@@ -27,6 +27,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
 
          if (!access.IsSuccess) return access.ErrorResponse!;
 
+         if (access.Role?.RoleType is not (RoleType.Administrator or RoleType.Manager))
+         {
+            return _errorManager.ThrowUnauthorized<bool>(
+               "Solo el Gerente General, Gerente de Recursos Humanos o Jefe Inmediato pueden registrar faltas disciplinarias.",
+               "ERP:INVALID_ACCESS");
+         }
+
          _logger.LogInformation("🚩Iniciando proceso de validación de registro de faltas disciplinaria");
 
          var faults = request.Faults;

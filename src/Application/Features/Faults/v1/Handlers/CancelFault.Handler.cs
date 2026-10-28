@@ -30,6 +30,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
             return access.ErrorResponse!;
          }
 
+         if (access.Role?.RoleType is not (RoleType.Administrator or RoleType.Manager))
+         {
+            return _errorManager.ThrowUnauthorized<Unit>(
+               "Solo el Gerente General, Gerente de Recursos Humanos o Jefe Inmediato pueden anular faltas disciplinarias.",
+               "ERP:INVALID_ACCESS");
+         }
+
          var fault = await _unitOfWork.DisciplinaryFaults.Entities
             .Include(f => f.Collaborator)
             .FirstOrDefaultAsync(f =>

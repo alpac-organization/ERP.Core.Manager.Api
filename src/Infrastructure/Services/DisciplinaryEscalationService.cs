@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Entities.Payrolls;
@@ -10,6 +11,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
    public class DisciplinaryEscalationService(IUnitOfWork _unitOfWork, IErrorManager _errorManager) : IDisciplinaryEscalation
    {
       private const int EscalationThreshold = 3;
+
+      private static readonly FrozenDictionary<(string Alias, FaultSeverity Severity), string> RepeatFaultCodesByCompany =
+         new Dictionary<(string, FaultSeverity), string>
+         {
+            [("ALPAC", FaultSeverity.Serious)] = "FG-ALP-01",
+            [("ALPAC", FaultSeverity.VerySerious)] = "FMG-ALP-01",
+            [("AVASA", FaultSeverity.Serious)] = "FG-AVS-01",
+            [("AVASA", FaultSeverity.VerySerious)] = "FMG-AVS-01",
+         }.ToFrozenDictionary();
 
       public async Task<bool> ExecuteEscalationProcess(DisciplinaryFault targetFault, CancellationToken cancellationToken)
       {
@@ -44,33 +54,46 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          var faultsToLink = eligibleFaults.Take(EscalationThreshold).ToList();
 
-         var companyId = await _unitOfWork.Collaborators.Entities
+         var company = await _unitOfWork.Collaborators.Entities
             .AsNoTracking()
             .Where(c => c.Id == targetFault.CollaboratorId)
-            .Select(c => c.CompanyId)
+            .Select(c => new
+            {
+               c.CompanyId,
+               c.Company.Alias
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-         if (companyId == Guid.Empty)
+         if (company is null || company.CompanyId == Guid.Empty)
          {
             return _errorManager.ThrowBadRequest<bool>(
                "No se encontró la empresa del colaborador para escalar la falta.",
                "ERP:NotFound");
          }
 
+         if (string.IsNullOrWhiteSpace(company.Alias)
+            || !RepeatFaultCodesByCompany.TryGetValue((company.Alias, nextSeverity.Value), out var repeatFaultCode))
+         {
+            return _errorManager.ThrowBadRequest<bool>(
+               $"No hay código de falta por reincidencia configurado para la empresa '{company.Alias}'.",
+               "ERP:NotFound");
+         }
+
          var escalationCatalog = await _unitOfWork.FaultCatalogs.Entities
             .AsNoTracking()
             .Where(fc =>
-               fc.CompanyId == companyId
+               fc.CompanyId == company.CompanyId
                && fc.FaultSeverity == nextSeverity
                && fc.IsActive
-               && fc.DeletedAt == null)
+               && fc.DeletedAt == null
+               && fc.Code == repeatFaultCode)
             .OrderBy(fc => fc.Code)
             .FirstOrDefaultAsync(cancellationToken);
 
          if (escalationCatalog is null)
          {
             return _errorManager.ThrowBadRequest<bool>(
-               $"No existe un catálogo activo de severidad {nextSeverity} para registrar la falta por reincidencia.",
+               $"No hay código de falta por reincidencia configurado para '{company.Alias}' / '{nextSeverity}'.",
                "ERP:NotFound");
          }
 
