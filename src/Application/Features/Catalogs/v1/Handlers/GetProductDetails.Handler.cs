@@ -1,18 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Database.Domain.Entities.Warehouse;
+
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Database.Domain.Entities.Warehouse;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+
+using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 
-public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager)
-    : BaseValidatorHandler<GetProductDetailsQuery, ProductDetailDto>(_unitOfWork, _errorManager)
+public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager) : BaseValidatorHandler<GetProductDetailsQuery, ProductDetailDto>(_unitOfWork, _errorManager)
 {
     public override async Task<ProductDetailDto> Handle(GetProductDetailsQuery request, CancellationToken cancellationToken)
     {
@@ -41,7 +42,7 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
             ProductName = product.ProductName!,
             Description = product.Description,
             CategoryId = product.CategoryId,
-            Category = new ProductCategoryDto
+            Category = new CategoryProductDto
             {
                 Name = product.Category.Name!,
                 Code = product.Category.Code,

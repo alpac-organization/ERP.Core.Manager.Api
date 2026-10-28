@@ -56,7 +56,7 @@ public class ProductDetailDto
     public string ProductName { get; set; } = null!;
     public string? Description { get; set; }
     public Guid CategoryId { get; set; }
-    public ProductCategoryDto Category { get; set; } = default!;
+    public CategoryProductDto Category { get; set; } = default!;
     public Guid UnitMeasureId { get; set; }
     public string? UnitMeasureName { get; set; }
     public ProductUsageType ProductUsageType { get; set; }

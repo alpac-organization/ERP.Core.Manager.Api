@@ -127,10 +127,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             await _unitOfWork.Products.InsertProduct(productEntity);
-
             if (request.ProductUsageType == ProductUsageType.Operational && request.ConfigurationStock is not null)
             {
-                //Control de existencia dentro del inventario operacional.
+                var configurationInventory = await _unitOfWork.InventoryAllowedCategories.Entities
+                    .Where(configuration => configuration.IsActive)
+                    .Where(configuration => configuration.CategoryId == request.CategoryId)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (configurationInventory is null)
+                {
+                    return _errorManager.ThrowBadRequest<Guid>("La categoria de este producto no esta permitido para estar dentro de inventario", "ERP:01");
+                }
+                
                 var inventoryStockEntity = ProductMapper.ToProductStockEntity(request, productEntity.Id);
                 inventoryStockEntity.CostCenterId = access.Profile.CostCenterId;
 

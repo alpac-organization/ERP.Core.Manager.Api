@@ -17,13 +17,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public int SuppliersCount { get; set; }
 
         public CostCenterDto? CostCenterInformation { get; set; }
-        public ProductCategoryDto Category { get; set; } = default!;
-    }
-
-    public class ProductCategoryDto
-    {
-        public string? Name { get; set; }
-        public string? Code { get; set; }
-        public bool IsActive { get; set; }
+        public CategoryProductDto Category { get; set; } = default!;
     }
 }

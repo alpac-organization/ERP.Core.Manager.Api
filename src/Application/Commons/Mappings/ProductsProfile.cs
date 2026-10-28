@@ -27,12 +27,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.UnitMeasureId, opt => opt.MapFrom(src => src.UnitMeasureId))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
                 .ForMember(dest => dest.SuppliersCount, opt => opt.MapFrom(src => src.SupplierProducts.Count))
-                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => new ProductCategoryDto
-                {
-                    Name = src.Category.Name,
-                    Code = src.Category.Code,
-                    IsActive = src.Category.IsActive
-                }))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
                 .ForMember(dest => dest.CostCenterInformation, opt => opt.MapFrom(src => src.CostCenter != null ? new CostCenterDto
                 {
                     CostCenterId = src.CostCenter.Id,
