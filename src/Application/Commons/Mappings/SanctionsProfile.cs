@@ -19,10 +19,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                ManagerUtils.FromSliceToCollaboratorFullname(src.Fault.Collaborator)));
 
          CreateMap<DisciplinarySanction, SanctionDetailDto>()
-            .ForMember(dest => dest.SanctionId, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Fault.CollaboratorId))
-            .ForMember(dest => dest.CollaboratorName, opt => opt.MapFrom(src =>
-               ManagerUtils.FromSliceToCollaboratorFullname(src.Fault.Collaborator)))
+            .IncludeBase<DisciplinarySanction, SanctionDto>()
             .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.Fault.Collaborator.IdentificationNumber))
             .ForMember(dest => dest.FaultCatalog, opt => opt.MapFrom(src => src.Fault.FaultCatalog))
             .ForMember(dest => dest.OccurrenceDate, opt => opt.MapFrom(src => src.Fault.OccurrenceDate))
