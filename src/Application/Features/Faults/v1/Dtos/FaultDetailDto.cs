@@ -3,23 +3,25 @@ using ERP.Core.Manager.Api.Application.Commons.Helpers;
 
 namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
 {
-   public class FaultDetailDto
+   public class FaultDetailDto : FaultDto
    {
-      public Guid FaultId { get; set; }
+      /*       public Guid FaultId { get; set; }
 
-      // Colaborador
-      public Guid CollaboratorId { get; set; }
-      public string CollaboratorName { get; set; } = string.Empty;
+            // Colaborador
+            public Guid CollaboratorId { get; set; }
+            public string CollaboratorName { get; set; } = string.Empty;
+            public string? IdentificationNumber { get; set; }
+
+            // Catálogo
+            public FaultCatalogReference FaultCatalog { get; set; } = new();
+
+            // Datos de la falta
+            public DateOnly OccurrenceDate { get; set; }
+            public FaultSeverity Severity { get; set; }
+            public FaultSource Source { get; set; }
+            public FaultStatus Status { get; set; } */
+
       public string? IdentificationNumber { get; set; }
-
-      // Catálogo
-      public FaultCatalogReference FaultCatalog { get; set; } = new();
-
-      // Datos de la falta
-      public DateOnly OccurrenceDate { get; set; }
-      public FaultSeverity Severity { get; set; }
-      public FaultSource Source { get; set; }
-      public FaultStatus Status { get; set; }
 
       // Evidencia (jsonb deserializado o string)
       public List<EvidenceDto> Evidences { get; set; } = [];
@@ -42,7 +44,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
 
    public class RegisterUserDto
    {
-      public Guid UserId { get; set; }      
+      public Guid UserId { get; set; }
       public string? FullName { get; set; }
       public string? Email { get; set; }
       public string? Status { get; set; }

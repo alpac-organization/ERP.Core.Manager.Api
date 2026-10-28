@@ -36,10 +36,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UserStatus.ToString()));
 
          CreateMap<DisciplinaryFault, FaultDetailDto>()
-            .ForMember(dest => dest.FaultId, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.CollaboratorName, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src.Collaborator)))
+            .IncludeBase<DisciplinaryFault, FaultDto>()
             .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.Collaborator.IdentificationNumber))
-            .ForMember(dest => dest.FaultCatalog, opt => opt.MapFrom(src => src.FaultCatalog))
             .ForMember(dest => dest.Evidences, opt => opt.MapFrom(src => DisciplinaryEvidenceHelper.Deserialize(src.Evidence)))
             .ForMember(dest => dest.ParentFault, opt => opt.MapFrom(src => src.ParentFault))
             .ForMember(dest => dest.RegisteredBy, opt => opt.MapFrom(src => src.User));
