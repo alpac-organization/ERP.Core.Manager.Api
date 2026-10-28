@@ -1,16 +1,11 @@
 using System.Text.Json;
 using ERP.Core.Application.Commons.Interfaces.AWS;
+using ERP.Core.Application.Commons.Utils;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Helpers
 {
    public static class DisciplinaryEvidenceHelper
    {
-      private static readonly JsonSerializerOptions JsonOptions = new()
-      {
-         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-         PropertyNameCaseInsensitive = true
-      };
-
       public static async Task<string> BuildEvidenceJsonAsync(
          IS3StorageService s3,
          IEnumerable<EvidenceInput>? evidences,
@@ -42,7 +37,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Helpers
             });
          }
 
-         return JsonSerializer.Serialize(stored, JsonOptions);
+         return JsonSerializer.Serialize(stored, JsonManager.SnakeCaseOptions);
       }
 
       public static List<EvidenceDto> Deserialize(string? json)
@@ -52,7 +47,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Helpers
 
          try
          {
-            return JsonSerializer.Deserialize<List<EvidenceDto>>(json, JsonOptions) ?? [];
+            return JsonSerializer.Deserialize<List<EvidenceDto>>(json, JsonManager.SnakeCaseOptions) ?? [];
          }
          catch (JsonException)
          {
