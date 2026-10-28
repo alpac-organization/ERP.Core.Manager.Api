@@ -7,6 +7,8 @@ using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
+using Microsoft.VisualBasic;
 
 //✅Obtener solicitudes de permisos realizadas por empresas.
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
@@ -16,12 +18,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
         public override async Task<PagedResponse<PermitApplicationDto>> Handle(GetPermitApplicationsQuery request, CancellationToken cancellationToken)
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
-
             if(!access.IsSuccess)
             {
                 return access.ErrorResponse!;
             }
-
             var permitQuery = _unitOfWork.PermitApplications.Entities
                 .Include(permit => permit.Payroll)
                 .Include(permit => permit.Collaborator)
@@ -51,7 +51,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 permitQuery = permitQuery
                     .Where(permit => permit.Status == request.Status);
             }
-
             //✅Contar el total de solicitudes en base a los filtros
             var totalPermitApplications = await permitQuery.CountAsync(cancellationToken);
             

@@ -161,7 +161,8 @@ public class UpdateProductHandler(
                 var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(
                     access.Profile,
                     newCategoryId,
-                    token);
+                    token
+                );
 
                 if (!isSuccess || string.IsNullOrWhiteSpace(code))
                 {

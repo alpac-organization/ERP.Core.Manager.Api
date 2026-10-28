@@ -268,6 +268,14 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     return true;
                     #endregion
                 }
+                case PermitApplicationType.BereavementLeave:
+                case PermitApplicationType.BirthLeave:
+                case PermitApplicationType.MarriageLeave:
+                case PermitApplicationType.JudicialAppointment:
+                    {
+                        
+                        break;
+                    }
                 default:
                 {
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible", "ERP:001");
