@@ -22,6 +22,13 @@
         "showReuseMessage": false
       },
       "problemMatcher": []
-    }
+    },
+    {
+      "type": "dotnet",
+      "task": "build",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "build"
+    },
   ]
 }

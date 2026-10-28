@@ -318,6 +318,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                                 }
                             }
                         }
+
                         if (vacationControl.AvailableVacations < totalDays)
                         {
                             return _errorManager.ThrowBadRequest<bool>(
@@ -325,6 +326,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                                 "ERP:04"
                             );
                         }
+                        if (totalDays > 2 && totalDays % 7 != 0)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                "Si la solicitud supera los 2 días, debe solicitar obligatoriamente los 7 días continuos de vacaciones.",
+                                "ERP:05"
+                            );
+                        } 
 
                         permitApplication.AmountDays = totalDays;
                         permitApplication.IsWithRangeDate = true;

@@ -37,6 +37,7 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<ITemplateServices, TemplateServices>();
             services.AddScoped<IPdfGeneratorServices, PdfGeneratorServices>();
             services.AddScoped<IAuthServices, AuthServices>();
+            services.AddScoped<IDisciplinaryEscalation, DisciplinaryEscalationService>();
 
             // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
