@@ -5,22 +5,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
 {
    public class FaultDetailDto : FaultDto
    {
-      /*       public Guid FaultId { get; set; }
-
-            // Colaborador
-            public Guid CollaboratorId { get; set; }
-            public string CollaboratorName { get; set; } = string.Empty;
-            public string? IdentificationNumber { get; set; }
-
-            // Catálogo
-            public FaultCatalogReference FaultCatalog { get; set; } = new();
-
-            // Datos de la falta
-            public DateOnly OccurrenceDate { get; set; }
-            public FaultSeverity Severity { get; set; }
-            public FaultSource Source { get; set; }
-            public FaultStatus Status { get; set; } */
-
       public string? IdentificationNumber { get; set; }
 
       // Evidencia (jsonb deserializado o string)
