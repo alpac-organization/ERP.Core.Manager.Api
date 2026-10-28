@@ -17,11 +17,7 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
 {
     public override async Task<ProductDetailDto> Handle(GetProductDetailsQuery request, CancellationToken cancellationToken)
     {
-        var access = await ValidateAccessAsync(
-            request.UserId,
-            request.CompanyId,
-            request.ModuleCode!,
-            cancellationToken);
+        var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
         if (!access.IsSuccess)
         {
@@ -34,6 +30,8 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
         {
             return _errorManager.ThrowBadRequest<ProductDetailDto>("El producto no existe.", "ERP:PROD_NOT_FOUND");
         }
+        
+        //Cambiar a mapeo..
 
         return new ProductDetailDto
         {
@@ -44,9 +42,11 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
             CategoryId = product.CategoryId,
             Category = new CategoryProductDto
             {
+                CategoryId = product.Category.ParentId,
                 Name = product.Category.Name!,
                 Code = product.Category.Code,
-                IsActive = product.Category.IsActive
+                IsActive = product.Category.IsActive,
+                Id = product.Category.Id
             },
             UnitMeasureId = product.UnitMeasureId,
             UnitMeasureName = product.UnitMeasure?.Name,
