@@ -14,7 +14,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
    {
       public CollaboratorProfile()
       {
-
         #region Mapeo de listado de colaboradores
 
          CreateMap<Collaborator, CollaboratorDto>()
@@ -49,10 +48,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 
         CreateMap<Collaborator, CollaboratorDetailsDto>()
             .ForMember(dest => dest.CollaboratorId, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.CollaboratorCode, opt => opt.MapFrom(src => src.CollaboratorCode))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => ManagerUtils.FromSliceToCollaboratorFullname(src)))
             .ForMember(dest => dest.WorkPosition, opt => opt.MapFrom(src => src.WorkingInformation.JobPosition.JobPositionName))
-            .ForMember(dest => dest.IsTimeClockExempt, opt => opt.MapFrom(src => src.IsTimeClockExempt))
 
             .ForMember(dest => dest.PersonalInformation, opt => opt.MapFrom(src => src.PersonalInformation))
             .ForMember(dest => dest.WorkingInformation, opt => opt.MapFrom(src => src.WorkingInformation))
