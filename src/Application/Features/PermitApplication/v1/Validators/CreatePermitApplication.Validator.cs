@@ -110,39 +110,39 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                     .NotNull()
                     .WithMessage("La informacion del permiso es obligatoria");
 
-                RuleFor(x => x.StartDate)
+                RuleFor(x => x!.StartDate)
                     .NotEmpty()
                     .WithMessage("El fecha de inicio es obligatorio.");
 
-                RuleFor(x => x.EndDate)
+                RuleFor(x => x!.EndDate)
                     .NotEmpty()
                     .WithMessage("El fecha de fin es obligatorio.")
-                    .GreaterThanOrEqualTo(x=> x.StartDate);
+                    .GreaterThanOrEqualTo(x=> x!.StartDate);
                 
-                RuleFor(x => x.BeneficiaryScope)
+                RuleFor(x => x!.BeneficiaryScope)
                 .IsInEnum()
                 .WithMessage("El alcance del beneficiario no es válido.")
                 .NotEqual(PermitBeneficiaryScope.None)
                 .WithMessage("Debe indicar si el permiso es propio o de núcleo familiar.");
 
-                RuleFor(x => x.FamilyRelationship)
+                RuleFor(x => x!.FamilyRelationship)
                     .Equal(FamilyRelationship.None)
-                    .When(x => x.BeneficiaryScope == PermitBeneficiaryScope.Own)
+                    .When(x => x!.BeneficiaryScope == PermitBeneficiaryScope.Own)
                     .WithMessage("Un permiso propio no lleva parentesco.");
 
-                RuleFor(x => x.FamilyRelationship)
+                RuleFor(x => x!.FamilyRelationship)
                     .NotEqual(FamilyRelationship.None)
-                    .When(x => x.BeneficiaryScope == PermitBeneficiaryScope.FamilyNucleus)
+                    .When(x => x!.BeneficiaryScope == PermitBeneficiaryScope.FamilyNucleus)
                     .WithMessage("Debe indicar el parentesco.");
 
-                RuleFor(x => x.RelatedPerson)
+                RuleFor(x => x!.RelatedPerson)
                     .NotEmpty()
-                    .When(x => x.BeneficiaryScope == PermitBeneficiaryScope.FamilyNucleus)
+                    .When(x => x!.BeneficiaryScope == PermitBeneficiaryScope.FamilyNucleus)
                     .WithMessage("Debe indicar el nombre de la persona relacionada.");
 
-                RuleFor(x => x.EndTime)
-                    .GreaterThan(x => x.StartTime)
-                    .When(x => x.StartTime.HasValue && x.EndTime.HasValue)
+                RuleFor(x => x!.EndTime)
+                    .GreaterThan(x => x!.StartTime)
+                    .When(x => x!.StartTime.HasValue && x!.EndTime.HasValue)
                     .WithMessage("La hora de fin debe ser posterior a la hora de inicio."); 
             } 
         }

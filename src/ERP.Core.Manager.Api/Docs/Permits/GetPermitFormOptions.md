@@ -2,7 +2,7 @@
 
 Devuelve los enums que el formulario de políticas usa como dropdown: tipo, alcance y parentesco.
 
-## Información General
+## Obtener opciones de permisos para registrar  una politica
 
 | Campo | Valor |
 |---|---|
@@ -42,23 +42,23 @@ Este endpoint no recibe query params.
 ```json
 {
   "permit_types": [
-    { "value": 10, "name": "MarriageLeave", "label": "Matrimonio" }
+    { "name": "MarriageLeave", "value": 10 }
   ],
   "beneficiary_scopes": [
-    { "value": 1, "name": "Own", "label": "Propio" },
-    { "value": 2, "name": "FamilyNucleus", "label": "Núcleo familiar" }
+    { "name": "Own", "value": 1 },
+    { "name": "FamilyNucleus", "value": 2 }
   ],
   "family_relationships": [
-    { "value": 0, "name": "None", "label": "Ninguno" },
-    { "value": 1, "name": "Spouse", "label": "Conyugue" },
-    { "value": 2, "name": "Child", "label": "Hijo" },
-    { "value": 3, "name": "Parent", "label": "Padre" },
-    { "value": 4, "name": "Sibling", "label": "Hermano" }
+    { "name": "None", "value": 0 },
+    { "name": "Spouse", "value": 1 },
+    { "name": "Child", "value": 2 },
+    { "name": "Parent", "value": 3 },
+    { "name": "Sibling", "value": 4 }
   ]
 }
 ```
 
-`None` no aparece en `beneficiary_scopes`. Sí aparece en `family_relationships`, porque matrimonio, nacimiento y cita judicial se registran con parentesco ninguno.
+Cada opción solo trae `name` (nombre del enum) y `value` (entero). `None` no aparece en `beneficiary_scopes`. Sí aparece en `family_relationships`, porque matrimonio, nacimiento y cita judicial se registran con parentesco ninguno.
 
 ### 400 Bad Request
 
