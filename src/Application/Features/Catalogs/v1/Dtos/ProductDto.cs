@@ -12,6 +12,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public string? Description { get; set; }
         public ProductUsageType UsageType { get; set; }
 
+        public Guid CategoryId { get; set; }
+        public Guid UnitMeasureId { get; set; }
+        public bool IsTaxExempt { get; set; }
+
         public int SuppliersCount { get; set; }
 
         public BranchesDto? BranchInformation { get; set; }
