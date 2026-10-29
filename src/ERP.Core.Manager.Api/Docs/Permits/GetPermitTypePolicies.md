@@ -2,7 +2,7 @@
 
 Devuelve las políticas registradas. Con `only_active=true` es el dropdown que usa el colaborador al solicitar un permiso.
 
-## Información General
+## Listar politicas de permisos  
 
 | Campo | Valor |
 |---|---|
@@ -48,11 +48,8 @@ Devuelve las políticas registradas. Con `only_active=true` es el dropdown que u
   {
     "permit_type_policy_id": "c6319544-db83-4bd5-b786-f5f811edc238",
     "permit_application_type": "MarriageLeave",
-    "permit_application_type_label": "Matrimonio",
     "permit_beneficiary_scope": "Own",
-    "permit_beneficiary_label": "Propio",
     "family_relationship": "None",
-    "family_relationship_label": "Ninguno",
     "max_amount_days": 3.0000,
     "max_evidence_count": 3,
     "min_evidence_count": 1,

@@ -10,7 +10,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Dtos
 
    public class EnumOptionsDtos
    {
-      public string Label {get; set;} = string.Empty;
       public string Name {get; set;} = string.Empty;
       public int Value {get; set;}
    }

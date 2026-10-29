@@ -2,7 +2,7 @@
 
 Crea una fila de `PermitTypePolicy`. El alta de una solicitud de cita judicial, matrimonio, nacimiento o fallecimiento exige una política activa para la misma combinación de tipo, alcance y parentesco.
 
-## Información General
+## Registrar un tipo de politica de permiso 
 
 | Campo | Valor |
 |---|---|

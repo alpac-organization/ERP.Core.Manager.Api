@@ -2,7 +2,7 @@
 
 Aprueba o rechaza un paso. Para cita judicial, matrimonio, nacimiento y fallecimiento el cierre aprobado solo descuenta viáticos. No mueve el saldo de vacaciones.
 
-## Información General
+## Procesar un tipo de permiso 
 
 | Campo | Valor |
 |---|---|
