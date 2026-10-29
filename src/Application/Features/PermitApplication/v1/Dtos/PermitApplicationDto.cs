@@ -33,6 +33,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos
 
         public PermitApplicationStatus Status { get; set; }
         public PermitApplicationType Type { get; set; }
+
+        public string? RelatedPersonName { get; set; }
+        public PermitBeneficiaryScope BeneficiaryScope { get; set; }
+        public FamilyRelationship FamilyRelationship { get; set; }
     }
 
     public class SteptStatus

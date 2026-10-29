@@ -137,7 +137,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             var permitApplications = await _unitOfWork.PermitApplications.Entities
                 .Where(permit => permit.Status == PermitApplicationStatus.Approved)
                 .Where(permit => permit.CollaboratorId == collaboratorInformation.Id)
-                .Where(permit => permit.Type == PermitApplicationType.Vacation || permit.Type == PermitApplicationType.MedicalAppointment)
+                .Where(permit =>
+                    permit.Type == PermitApplicationType.Vacation ||
+                    permit.Type == PermitApplicationType.MedicalAppointment ||
+                    permit.Type == PermitApplicationType.JudicialAppointment ||
+                    permit.Type == PermitApplicationType.MarriageLeave ||
+                    permit.Type == PermitApplicationType.BirthLeave ||
+                    permit.Type == PermitApplicationType.BereavementLeave)
                 .Include(permit => permit.Collaborator)
                     .ThenInclude(col => col.WorkingInformation)
                 .ToListAsync(default);
