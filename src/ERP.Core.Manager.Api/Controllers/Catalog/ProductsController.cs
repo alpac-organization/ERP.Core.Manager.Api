@@ -45,18 +45,10 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
 
     [Tags("Productos")]
     [HttpGet("companies/{companie_id}/modules/{module_code}/products/{product_id}")]
-    [ProducesResponseType(typeof(ProductDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProductDetailsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ProductDetailDto> GetProductDetailsAsync(
-        [FromRoute] Guid companie_id,
-        [FromRoute] string module_code,
-        [FromRoute] Guid product_id,
-        [FromQuery] int page_size = 10,
-        [FromQuery] int page_number = 1,
-        [FromQuery] string? commercial_name = null,
-        [FromQuery] string? identification_number = null,
-        [FromQuery] SupplierExclusiveStatus? exclusive_status = null)
+    public async Task<ProductDetailsDto> GetProductDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid product_id)
     {
         var userId = ResolveUserId();
 
@@ -65,12 +57,7 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
             CompanyId = companie_id,
             ModuleCode = module_code,
             UserId = userId,
-            ProductId = product_id,
-            PageSize = page_size,
-            PageNumber = page_number,
-            CommercialName = commercial_name,
-            IdentificationNumber = identification_number,
-            ExclusiveStatus = exclusive_status
+            ProductId = product_id
         });
     }
 

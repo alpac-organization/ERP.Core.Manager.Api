@@ -5,10 +5,11 @@ using ERP.Core.Database.Domain.Entities.Warehouse;
 
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
-using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 
 using Commands = ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
+
 using ERP.Core.Database.Domain.Entities.Inventory;
+using ERP.Core.Database.Domain.Entities.Shopping;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
 {    
@@ -16,34 +17,47 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
     {
         public ProductsProfile()
         {
+            DateOnly today = default;
+
             CreateMap<Product, ProductDto>()
                 .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductName))
-                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
-                .ForMember(dest => dest.UsageType, opt => opt.MapFrom(src => src.ProductUsageType))
-                .ForMember(dest => dest.BranchId, opt => opt.MapFrom(src => src.BranchId))
-                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
-                .ForMember(dest => dest.UnitMeasureId, opt => opt.MapFrom(src => src.UnitMeasureId))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
-                .ForMember(dest => dest.SuppliersCount, opt => opt.MapFrom(src => src.SupplierProducts.Count))
-                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => new ProductCategoryDto
-                {
-                    Name = src.Category.Name,
-                    Code = src.Category.Code,
-                    IsActive = src.Category.IsActive
-                }))
-                .ForMember(dest => dest.CostCenterInformation, opt => opt.MapFrom(src => src.CostCenter != null ? new CostCenterDto
-                {
-                    CostCenterId = src.CostCenter.Id,
-                    CostCenterName = src.CostCenter.CostCenterName,
-                    CostCenterCode = src.CostCenter.CostCenterCode
-                } : null));
+                .ForMember(dest => dest.UsageType, opt => opt.MapFrom(src => src.ProductUsageType))
+                .ForMember(dest => dest.BranchInformation, opt => opt.MapFrom(src => src.Branch))
+                .ForMember(dest => dest.CostCenterInformation, opt => opt.MapFrom(src => src.CostCenter))
+                .ForMember(dest => dest.UnitMeasureInformation, opt => opt.MapFrom(src => src.UnitMeasure))
+                .ForMember(dest => dest.SuppliersCount, opt => opt.MapFrom(src => src.SupplierProducts.Count));
 
+            CreateMap<Product, ProductDetailsDto>()
+                .IncludeBase<Product, ProductDto>();
+                
             CreateMap<CategoryProducts, CategoryProductDto>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.ParentId))
-                .ForMember(dest => dest.SubCategory, opt => opt.MapFrom(src => src.Children.Where(c => c.IsActive).ToList()));
+                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.Id));
+
+            // SupplierProduct
+            CreateMap<SupplierProduct, ProductSupplierDto>()
+                .ForMember(d => d.SupplierProductId, o => o.MapFrom(s => s.Id))
+                .ForMember(d => d.SupplierLegalName, o => o.MapFrom(s => s.Supplier.SuppliersLegalName))
+                .ForMember(d => d.CommercialName, o => o.MapFrom(s => s.Supplier.CommercialName))
+                .ForMember(d => d.SupplierType, o => o.MapFrom(s => s.Supplier.SupplierDetails != null
+                        ? s.Supplier.SupplierDetails.SupplierType
+                        : SupplierType.Ordinary
+                    )
+                )
+                .ForMember(d => d.TierPrices, o => o.MapFrom(s =>
+                    s.TierPrices
+                        .Where(t => t.DeletedAt == null
+                            && t.ValidFrom <= today
+                            && (t.ValidTo == null || t.ValidTo >= today)
+                        )
+                        .OrderBy(t => t.ValidFrom)
+                        .Take(1)
+                    )
+                );
+
+            CreateMap<SupplierProductTierPrice, TierPriceResponseDto>()
+                .ForMember(d => d.TierPriceId, o => o.MapFrom(s => s.Id))
+                .ForMember(d => d.Currency, o => o.MapFrom(s => s.SupplierProduct.Currency));
         }
     }
     
