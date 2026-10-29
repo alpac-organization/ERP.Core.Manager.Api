@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 
@@ -6,16 +7,16 @@ using ERP.Core.Database.Domain.Entities.Warehouse;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
+using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 
-public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager) : BaseValidatorHandler<GetProductDetailsQuery, ProductDetailDto>(_unitOfWork, _errorManager)
+public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper) : BaseValidatorHandler<GetProductDetailsQuery, ProductDetailsDto>(_unitOfWork, _errorManager)
 {
-    public override async Task<ProductDetailDto> Handle(GetProductDetailsQuery request, CancellationToken cancellationToken)
+    public override async Task<ProductDetailsDto> Handle(GetProductDetailsQuery request, CancellationToken cancellationToken)
     {
         var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
@@ -24,49 +25,55 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
             return access.ErrorResponse!;
         }
 
-        var product = await LoadProductAsync(request.ProductId, cancellationToken);
+        var product = await LoadProductAsync(request, cancellationToken);
 
         if (product is null)
         {
-            return _errorManager.ThrowBadRequest<ProductDetailDto>("El producto no existe.", "ERP:PROD_NOT_FOUND");
+            return _errorManager.ThrowBadRequest<ProductDetailsDto>("El producto no existe.", "ERP:PROD_NOT_FOUND");
         }
+
+
+        //Crear un mapeo para detalles de producto
+        var productDetailsMapped = _mapper.Map<ProductDetailsDto>(product);
+        
+
+
+        return productDetailsMapped;
         
         //Cambiar a mapeo..
-
-        return new ProductDetailDto
-        {
-            ProductId = product.Id,
-            Code = product.Code,
-            ProductName = product.ProductName!,
-            Description = product.Description,
-            CategoryId = product.CategoryId,
-            Category = new CategoryProductDto
-            {
-                Name = product.Category.Name!,
-                Code = product.Category.Code,
-                IsActive = product.Category.IsActive,
-                Id = product.Category.Id
-            },
-            UnitMeasureId = product.UnitMeasureId,
-            UnitMeasureName = product.UnitMeasure?.Name,
-            ProductUsageType = product.ProductUsageType,
-            IsTaxExempt = product.IsTaxExempt,
-            Suppliers = await LoadSuppliersAsync(request, cancellationToken)
+        // return new ProductDetailDto
+        // {
+        //     ProductId = product.Id,
+        //     Code = product.Code,
+        //     ProductName = product.ProductName!,
+        //     Description = product.Description,
+        //     CategoryId = product.CategoryId,
+        //     Category = new CategoryProductDto
+        //     {
+        //         Name = product.Category.Name!,
+        //         Code = product.Category.Code,
+        //         IsActive = product.Category.IsActive,
+        //         Id = product.Category.Id
+        //     },
+        //     UnitMeasureId = product.UnitMeasureId,
+        //     UnitMeasureName = product.UnitMeasure?.Name,
+        //     ProductUsageType = product.ProductUsageType,
+        //     IsTaxExempt = product.IsTaxExempt,
+        //     Suppliers = await LoadSuppliersAsync(request, cancellationToken)
         };
     }
 
-    private async Task<Product?> LoadProductAsync(Guid productId, CancellationToken cancellationToken)
+    private async Task<Product?> LoadProductAsync(GetProductDetailsQuery request, CancellationToken cancellationToken)
     {
         return await _unitOfWork.Products.Entities
             .AsNoTracking()
             .Include(p => p.Category)
             .Include(p => p.UnitMeasure)
-            .FirstOrDefaultAsync(p => p.Id == productId && p.DeletedAt == null, cancellationToken);
+            .Include(p => p.SupplierProducts)
+            .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.DeletedAt == null, cancellationToken);
     }
 
-    private async Task<PagedResponse<ProductSupplierDto>> LoadSuppliersAsync(
-        GetProductDetailsQuery request,
-        CancellationToken cancellationToken)
+    private async Task<PagedResponse<ProductSupplierDto>> LoadSuppliersAsync(GetProductDetailsQuery request, CancellationToken cancellationToken)
     {
         var suppliersQuery = _unitOfWork.Products.Entities
             .AsNoTracking()

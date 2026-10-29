@@ -94,7 +94,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             var productEntity = ProductMapper.ToProductEntity(request, supplierCurrencies);
-            
+
             productEntity.BranchId = access.Profile.BranchId;
             productEntity.CostCenterId = access.Profile.CostCenterId;
 

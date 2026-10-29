@@ -57,15 +57,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             #endregion
             
             #region Control de vacaciones
-            
+
             var vacationInformationSolicitante = await _unitOfWork.Vacations.Entities
                 .Where(v => v.CollaboratorId == permitApplication.CollaboratorId)
                 .FirstOrDefaultAsync(cancellationToken);
-
-            if (vacationInformationSolicitante is null)
-            {
-                return _errorManager.ThrowBadRequest<bool>("😐No se encontro registro de vacaciones del solicitante", "ERP:02");
-            }
 
             #endregion
 
@@ -89,6 +84,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
             {
                 case PermitApplicationType.VacationPay:
                 {
+                    if (vacationInformationSolicitante is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("😐No se encontro registro de vacaciones del solicitante", "ERP:02");
+                    }
+
                     #region Primer proceso de aprobación
                     var (authorized, updateFirstStep) = ProcessFirstStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
 
@@ -134,6 +134,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 }
                 case PermitApplicationType.MedicalAppointment:
                 {
+                    if (vacationInformationSolicitante is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("😐No se encontro registro de vacaciones del solicitante", "ERP:02");
+                    }
+
                     #region Primero proceso de aprobación
                     
                     var (authorized, updateFirstStep) = ProcessFirstStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
@@ -197,6 +202,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 }
                 case PermitApplicationType.Vacation:
                 {
+                    if (vacationInformationSolicitante is null)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>("😐No se encontro registro de vacaciones del solicitante", "ERP:02");
+                    }
+
                     #region Primero proceso de aprobación
                     
                     var (authorized, updateFirstStep) = ProcessFirstStepOfPermitApplication(permitApplication, access.Role!.RoleType, request.IsApproved, user.Fullname ?? "unknow user");
@@ -268,6 +278,59 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     return true;
                     #endregion
                 }
+                case PermitApplicationType.BereavementLeave:
+                case PermitApplicationType.BirthLeave:
+                case PermitApplicationType.MarriageLeave:
+                case PermitApplicationType.JudicialAppointment:
+                {
+                    var (authorized, updateFirstStep) = ProcessFirstStepOfPermitApplication(
+                        permitApplication,
+                        access.Role!.RoleType,
+                        request.IsApproved,
+                        user.Fullname ?? "unknow user");
+
+                    if (authorized is false)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>(
+                            "No tienes permiso para aprobar o rechazar esta solicitud",
+                            "ERP:01");
+                    }
+
+                    if (authorized && updateFirstStep)
+                    {
+                        await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        return true;
+                    }
+
+                    var (isAuthorized, continueProcess) = ProcessSecondStepOfPermitApplication(
+                        permitApplication,
+                        access.Role!.RoleType,
+                        request.IsApproved,
+                        user.Fullname ?? "unknow user");
+
+                    if (isAuthorized is false)
+                    {
+                        return _errorManager.ThrowBadRequest<bool>(
+                            "No tienes permisos para realizar esta operación, no eres administrador",
+                            "ERP:03");
+                    }
+
+                    await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    if (isAuthorized && continueProcess && permitApplication.Status == PermitApplicationStatus.Approved)
+                    {
+                        await _deductionServices.ApplyDeductionTravelExpenses(
+                            permitApplication.Collaborator,
+                            salaryInformation,
+                            permitApplication.PayrolId);
+
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    }
+
+                    return true;
+                }
                 default:
                 {
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible", "ERP:001");
@@ -278,42 +341,33 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
         #region Función Manejadora de aprobar, rechazar el primer paso del traking.
         private static (bool, bool) ProcessFirstStepOfPermitApplication(Database.Domain.Entities.Payrolls.PermitApplication permitApplication, RoleType roleType, bool isApproved, string userFullname)
         {
-            bool authorized   = true;
+            bool authorized = true;
             bool updateFirstStep = false;
+
+            if (roleType != RoleType.Manager && roleType != RoleType.Administrator)
+            {
+                return (false, false);
+            }
 
             //Jefe directo aprueba la solicitud realizada por el colaborador
             if (permitApplication.FirtsStepApproved is null && isApproved is true)
             {
-                if (roleType != RoleType.Supervisor || roleType != RoleType.Operator)
-                {
-                    permitApplication.FirtsStepApproved = true;
-                    permitApplication.ManagerFullname = $"{userFullname}";
+                permitApplication.FirtsStepApproved = true;
+                permitApplication.ManagerFullname = $"{userFullname}";
 
-                    updateFirstStep = true;
-
-                    return (authorized, updateFirstStep);
-                }
-
-                authorized = false;
+                updateFirstStep = true;
 
                 return (authorized, updateFirstStep);
             }
             //Jefe directo rechaza la solicitud de realizada por el colaborador
-            else if(permitApplication.FirtsStepApproved is null && isApproved is false)
+            else if (permitApplication.FirtsStepApproved is null && isApproved is false)
             {
-                if (roleType != RoleType.Supervisor || roleType != RoleType.Operator)
-                {
-                    permitApplication.FirtsStepApproved = false;
-                    permitApplication.ManagerFullname = $"{userFullname}";
+                permitApplication.FirtsStepApproved = false;
+                permitApplication.ManagerFullname = $"{userFullname}";
 
-                    updateFirstStep = true;
+                updateFirstStep = true;
 
-                    return (authorized, updateFirstStep);
-                }
-
-                authorized = false;
-
-                return (authorized, updateFirstStep);  
+                return (authorized, updateFirstStep);
             }
 
             return (authorized, updateFirstStep);

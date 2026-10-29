@@ -16,12 +16,10 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
         public override async Task<PagedResponse<PermitApplicationDto>> Handle(GetPermitApplicationsQuery request, CancellationToken cancellationToken)
         {
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
-
             if(!access.IsSuccess)
             {
                 return access.ErrorResponse!;
             }
-
             var permitQuery = _unitOfWork.PermitApplications.Entities
                 .Include(permit => permit.Payroll)
                 .Include(permit => permit.Collaborator)
@@ -51,7 +49,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 permitQuery = permitQuery
                     .Where(permit => permit.Status == request.Status);
             }
-
             //✅Contar el total de solicitudes en base a los filtros
             var totalPermitApplications = await permitQuery.CountAsync(cancellationToken);
             

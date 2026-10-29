@@ -34,15 +34,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 .Where(user => user.Id == request.UserId)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (user is null)
-            {
-                return _errorManager.ThrowBadRequest<bool>(
-                    $"Ocurrio un error, este usuario no existe",
-                    "ERP:003"
-                );
-            }
-
-            if (user.IdentificationNumber == request.IdentificationNumber && (request.Channel != Channels.PersonalPanel))
+            
+            if (user!.IdentificationNumber == request.IdentificationNumber && (request.Channel != Channels.PersonalPanel))
             {
                 return _errorManager.ThrowBadRequest<bool>(
                     $"Ocurrio un error no puedes registrar esta solicitud desde este panel, realiza tu solicitud personal desde el panel de solicitudes en gestion de colaboradores",
@@ -70,31 +63,19 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                 return _errorManager.ThrowBadRequest<bool>("Ya se encuentra un solicitud pendiente, cancelar la solicitud o esperar aprobación", "ERP:02");
             }
 
-            DateOnly? startToValidate =
-                 request.PermitApplicationType == PermitApplicationType.MedicalAppointment
-                     ? request.PermitApplicationMedicalAppointment?.StartDate
-                     : request.PermitApplicationVacation?.StartDate;
 
-            DateOnly? endToValidate =
-                request.PermitApplicationType == PermitApplicationType.MedicalAppointment
-                    ? request.PermitApplicationMedicalAppointment?.StartDate
-                    : request.PermitApplicationVacation?.EndDate;
-
-            if (startToValidate.HasValue && endToValidate.HasValue)
+            var (startDateToValidate, endDateToValidate) = ResolveRequestDates(request);
+            if(startDateToValidate.HasValue && endDateToValidate.HasValue)
             {
-                var (hasOverlap, overlapMessage) = await ValidateOverlapAsync(
-                    collaborator.Id,
-                    startToValidate.Value,
-                    endToValidate.Value,
-                    cancellationToken);
-
+                var (hasOverlap,overlapMessage) = await ValidateOverlapAsync(collaborator.Id,startDateToValidate.Value,endDateToValidate.Value,cancellationToken);
                 if (hasOverlap)
                 {
-                    return _errorManager.ThrowBadRequest<bool>(
-                        overlapMessage,
-                        "ERP:DATE_OVERLAP");
+                    return _errorManager.ThrowBadRequest<bool>(overlapMessage,"ERP:DATE_OVERLAP");
                 }
             }
+
+
+
 
             if (access.Role!.RoleType == RoleType.Operator && request.Channel == Channels.AdministrativePanel)
             {
@@ -337,6 +318,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                                 }
                             }
                         }
+
                         if (vacationControl.AvailableVacations < totalDays)
                         {
                             return _errorManager.ThrowBadRequest<bool>(
@@ -344,6 +326,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                                 "ERP:04"
                             );
                         }
+                        if (totalDays > 2 && totalDays % 7 != 0)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>(
+                                "Si la solicitud supera los 2 días, debe solicitar obligatoriamente los 7 días continuos de vacaciones.",
+                                "ERP:05"
+                            );
+                        } 
 
                         permitApplication.AmountDays = totalDays;
                         permitApplication.IsWithRangeDate = true;
@@ -351,6 +340,88 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                     break;
                 }
+                case PermitApplicationType.JudicialAppointment:
+                case PermitApplicationType.BereavementLeave:
+                case PermitApplicationType.BirthLeave:
+                case PermitApplicationType.MarriageLeave:
+                    {
+                        var leave = request.PermitApplicationLeave;
+
+                        if(leave is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("Los datos del permiso son obligatorios", "ERP:LEAVE");
+                        }
+
+                        var policy = await _unitOfWork.PermitTypePolicyRepository.Entities
+                            .Where(item=>item.IsActive)
+                            .Where(item=>item.PermitApplicationType == request.PermitApplicationType)
+                            .Where(item=> item.BeneficiaryScope == leave.BeneficiaryScope)
+                            .Where(item=> item.FamilyRelationship == leave.FamilyRelationship)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (policy is null) 
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No existe un tipo de politica para este tipo de permiso", "ERP:POLICY");
+                        }
+
+                       var evidence = leave.Images
+                           .Where(image=> !string.IsNullOrWhiteSpace(image.ImageBase64))
+                           .ToList();
+
+                        
+                        if (policy.RequiresEvidence && evidence.Count < policy.MinEvidenceCount)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>($"Este permiso requiere al menos {policy.MinEvidenceCount} para ser considerado", "ERP:EVIDENCE");
+                        }
+
+                        if (evidence.Count > policy.MaxEvidenceCount)
+                        {
+                            
+                            return _errorManager.ThrowBadRequest<bool>($"Este permiso tiene como maximo {policy.MaxEvidenceCount} para ser correcto", "ERP:EVIDENCE");
+                        }
+
+                        var amountDays = CalculateLeaveDays(leave.StartDate,leave.EndDate,leave.StartTime,leave.EndTime,collaborator.DoesWorkSaturdays);
+                        if (amountDays <= 0)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>($"La cantidad de dias no puede ser negativo y no genera dias de permiso", "ERP:DAYS");
+                        }
+
+                        if (policy.MaxAmountDays.HasValue && amountDays > policy.MaxAmountDays)
+                        {
+
+                            return _errorManager.ThrowBadRequest<bool>($"Este permiso admite como maximo la cantidad de {policy.MaxAmountDays} dias", "ERP:DAYS");
+                        }
+
+                        permitApplication.Type = request.PermitApplicationType;
+                        permitApplication.StartDate = leave.StartDate;
+                        permitApplication.EndDate = leave.EndDate;
+                        permitApplication.BeneficiaryScope = leave.BeneficiaryScope;
+                        permitApplication.FamilyRelationship = leave.FamilyRelationship;
+                        permitApplication.RelatedPersonName = leave.RelatedPerson;
+                        permitApplication.AmountDays = amountDays;
+                        permitApplication.IsWithRangeDate = leave.StartDate != leave.EndDate;
+                        permitApplication.StartTime = leave.StartTime;
+                        permitApplication.EndTime = leave.EndTime;
+
+                        AdditionalData.LeaveEvidenceData = new LeaveEvidenceData
+                        {
+                            IsPaid = policy.IsPaid,
+                            Evidence = evidence,
+                            ConsumesVacationBalance = policy.ConsumesVacationBalance,
+                            RequireApprovalSteps = policy.RequiredApprovalSteps,
+                            
+                        };
+                        if (policy.RequiredApprovalSteps <= 1)
+                        {
+                            permitApplication.FirtsStepApproved = true;
+                            permitApplication.ManagerFullname = user.Fullname;
+                        }
+                        else
+                        {
+                            MappingRecords(request.Channel,permitApplication,access.Role.RoleType, user.Fullname);
+                        }
+                        break;
+                    }
                 default:
                 {
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de solicitud no se encuentra disponible de momento", "ERP:ErrorRequest");
@@ -373,6 +444,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                     EndTime = permitApplication.EndTime,
                     Description = permitApplication.Description,
                     Type = permitApplication.Type,
+                    BeneficiaryScope = permitApplication.BeneficiaryScope,
+                    FamilyRelationship = permitApplication.FamilyRelationship,
+                    RelatedPersonName = permitApplication.RelatedPersonName,
                     RequestedBy = ManagerUtils.FromSliceToCollaboratorFullname(collaborator),
                     IsActive = true
                 });
@@ -411,7 +485,75 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
             return (false, string.Empty);
         }
+        private static  (DateOnly? Start, DateOnly? End) ResolveRequestDates(CreatePermitApplicationCommand requestPermit)
+        {
+            return requestPermit.PermitApplicationType switch
+            {
+                PermitApplicationType.MedicalAppointment => (
+                    requestPermit.PermitApplicationMedicalAppointment?.StartDate,
+                    requestPermit.PermitApplicationMedicalAppointment?.StartDate
+                ),
 
+                PermitApplicationType.Vacation => (
+                    requestPermit.PermitApplicationVacation?.StartDate,
+                    requestPermit.PermitApplicationVacation?.EndDate
+                ),
+                PermitApplicationType.VacationPay => (
+                    requestPermit.PermitApplicationVacationPay?.RequestDate,
+                    requestPermit.PermitApplicationVacationPay?.RequestDate
+                ),
+
+                PermitApplicationType.BereavementLeave 
+                or PermitApplicationType.BirthLeave
+                or PermitApplicationType.JudicialAppointment 
+                or PermitApplicationType.MarriageLeave => (
+                    requestPermit.PermitApplicationLeave?.StartDate,
+                    requestPermit.PermitApplicationLeave?.EndDate
+                ),
+                _ => (null,null)    
+            };
+            
+        }
+
+        private static decimal CalculateLeaveDays (DateOnly StartDate, DateOnly EndDate, TimeOnly? StartTime, TimeOnly? EndTime, bool doesWorkSaturday){
+            if(StartDate == EndDate && StartTime.HasValue && EndTime.HasValue)
+            {
+                int totalHours = EndTime.Value.Hour - StartTime.Value.Hour;
+                return totalHours switch
+                {
+                    1 => 0.1m,
+                    2 => 0.2m,
+                    3 => 0.3m,
+                    4 => 0.4m,
+                    5 => 0.5m,
+                    6 => 0.6m,
+                    7 => 0.7m,
+                    >= 8 => 1.0m,
+                    _ => 0.0m
+                };
+            }
+
+            decimal totalDays = 0;
+
+            for (var date = StartDate; date <= EndDate; date = date.AddDays(1))
+            {
+                if (date.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    continue;    
+                }
+
+                if (date.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    if (doesWorkSaturday)
+                    {
+                        totalDays += 0.5m;
+                    }
+                }
+
+                totalDays+= 1;
+            }
+            return totalDays;
+        }
         public static void MappingRecords(Channels channels, PermitApplicationEntity entity, RoleType role, string? userFullname)
         {
             if (channels == Channels.AdministrativePanel && role == RoleType.Administrator)

@@ -12,12 +12,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
         public Channels Channel { get; set; }
         public string? Description { get; set; }
         public string? IdentificationNumber { get; set; }
-        public PermitApplicationType PermitApplicationType { get; set; }
-        
-               
+        public PermitApplicationType PermitApplicationType { get; set; } 
         public PermitApplicationVacationPay? PermitApplicationVacationPay { get; set; }
         public PermitApplicationVacation? PermitApplicationVacation { get; set; }
         public PermitApplicationMedicalAppointment? PermitApplicationMedicalAppointment { get; set; }
+
+
+        public PermitApplicationLeave? PermitApplicationLeave {get; set;}
     }
     public class PermitApplicationVacationPay
     {
@@ -36,7 +37,25 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Command
         public bool IsItMidday { get; set; } = false;
         public bool WithRangeHours { get; set; } = false;
     }
+    
+    public class PermitApplicationLeave
+    {
+        public DateOnly StartDate {get; set;}
 
+        public DateOnly EndDate {get; set;}
+
+        public TimeOnly? StartTime {get; set;}
+        public TimeOnly? EndTime {get; set;}
+
+        public PermitBeneficiaryScope BeneficiaryScope {get; set;} = PermitBeneficiaryScope.Own;
+
+        public FamilyRelationship FamilyRelationship {get; set;} = FamilyRelationship.None;
+
+        public string? RelatedPerson {get; set;}
+
+        public List<ImageData> Images {get; set;} = [];
+
+    }
     public class PermitApplicationMedicalAppointment
     {
         //Fecha de solicitud

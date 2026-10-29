@@ -24,8 +24,13 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
                 .ForMember(dest => dest.CostCenterInformation, opt => opt.MapFrom(src => src.CostCenter));
 
+            CreateMap<Product, ProductDetailDto>()
+                .IncludeBase<Product, ProductDto>()
+                
+            ;
+
             CreateMap<CategoryProducts, CategoryProductDto>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
+                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.Id));
         }
     }
     
