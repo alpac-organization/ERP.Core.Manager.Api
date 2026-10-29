@@ -1,4 +1,3 @@
-using MediatR;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
@@ -9,11 +8,7 @@ using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 
-public class GetCategoryProductsTreeHandler(
-    IUnitOfWork _unitOfWork,
-    IErrorManager _errorManager,
-    IMapper mapper)
-    : BaseValidatorHandler<GetCategoryProductsQuery, List<CategoryProductDto>>(_unitOfWork, _errorManager)
+public class GetCategoryProductsTreeHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper mapper) : BaseValidatorHandler<GetCategoryProductsQuery, List<CategoryProductDto>>(_unitOfWork, _errorManager)
 {
     public override async Task<List<CategoryProductDto>> Handle(GetCategoryProductsQuery request, CancellationToken cancellationToken)
     {
@@ -21,7 +16,8 @@ public class GetCategoryProductsTreeHandler(
             request.UserId,
             request.CompanyId,
             request.ModuleCode,
-            cancellationToken);
+            cancellationToken
+        );
 
         if (!access.IsSuccess)
             return access.ErrorResponse!;
@@ -38,20 +34,6 @@ public class GetCategoryProductsTreeHandler(
         // Construir el árbol usando un diccionario
         var dict = categoryDtos.ToDictionary(c => c.Id);
         var rootCategories = new List<CategoryProductDto>();
-
-        foreach (var dto in categoryDtos)
-        {
-            if (dto.CategoryId.HasValue && dict.ContainsKey(dto.CategoryId.Value))
-            {
-                // Es hijo de otro → agregar a la lista de hijos del padre
-                dict[dto.CategoryId.Value].SubCategory.Add(dto);
-            }
-            else
-            {
-                // Es raíz (sin padre o padre inactivo)
-                rootCategories.Add(dto);
-            }
-        }
 
         return rootCategories;
     }

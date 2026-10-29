@@ -41,6 +41,7 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader();
     });
 });
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

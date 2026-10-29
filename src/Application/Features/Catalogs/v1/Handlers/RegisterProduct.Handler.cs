@@ -7,9 +7,9 @@ using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
+using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
-using ERP.Core.Manager.Api.Application.Commons.Mappings;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
@@ -21,7 +21,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 request.UserId,
                 request.CompanyId,
                 request.ModuleCode!,
-                cancellationToken);
+                cancellationToken
+            );
 
             if (!access.IsSuccess)
             {
@@ -32,7 +33,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             {
                 return _errorManager.ThrowBadRequest<Guid>(
                     "No tienes permiso para registrar un producto.",
-                    "ERP:01");
+                    "ERP:01"
+                );
             }
 
             var categoryExists = await _unitOfWork.CategoryProducts.Entities
@@ -96,6 +98,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             productEntity.BranchId = access.Profile.BranchId;
             productEntity.CostCenterId = access.Profile.CostCenterId;
 
+
             if (request.ProductUsageType == ProductUsageType.Administrative)
             {
                 var (isSuccess, code) = await _codeGenerator.GenerateUniqueProductCode(access.Profile, request.CategoryId, cancellationToken);
@@ -107,11 +110,26 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                         "ERP:PROD01"
                     );
                 }
-                
+
                 productEntity.Code = code;
+                await _unitOfWork.Products.InsertProduct(productEntity);
             }
             else
             {
+                //Validar si el area de origen es permitida para registro producto operacional
+                var configurationAreaPermited = await _unitOfWork.InventoryAreasPermissions.Entities
+                    .Where(configuration => configuration.IsActive)
+                    .Where(configuration => configuration.WorkAreaId == access.Profile.AreaId)
+                    .FirstOrDefaultAsync(cancellationToken);
+                    
+                if (configurationAreaPermited is null)
+                {
+                    return _errorManager.ThrowBadRequest<Guid>(
+                        "El area al que pertence no tiene permitido el registro de productos operacionales",
+                        "ERP:01"
+                    );
+                }
+
                 //Validar producto operacional por parte de las areas.
                 var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, cancellationToken);
                 
@@ -124,29 +142,25 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 }
 
                 productEntity.Code = Code;
-            }
+                await _unitOfWork.Products.InsertProduct(productEntity);
 
-            await _unitOfWork.Products.InsertProduct(productEntity);
-            if (request.ProductUsageType == ProductUsageType.Operational && request.ConfigurationStock is not null)
-            {
+                //Verificar si la categoria, si es diferentes de servicios, u otras cosas que no sean un categoria de producto real.
                 var configurationInventory = await _unitOfWork.InventoryAllowedCategories.Entities
                     .Where(configuration => configuration.IsActive)
                     .Where(configuration => configuration.CategoryId == request.CategoryId)
                     .FirstOrDefaultAsync(cancellationToken);
 
-                if (configurationInventory is null)
+                //Entrada a stock de inventario...
+                if (configurationInventory is not null)
                 {
-                    return _errorManager.ThrowBadRequest<Guid>("La categoria de este producto no esta permitido para estar dentro de inventario", "ERP:01");
-                }
-                
-                var inventoryStockEntity = ProductMapper.ToProductStockEntity(request, productEntity.Id);
-                inventoryStockEntity.CostCenterId = access.Profile.CostCenterId;
+                    var inventoryStockEntity = ProductMapper.ToProductStockEntity(request, productEntity.Id);
+                    inventoryStockEntity.CostCenterId = access.Profile.CostCenterId;
 
-                await _unitOfWork.ProductStocks.RegisterProductStock(inventoryStockEntity);
+                    await _unitOfWork.ProductStocks.RegisterProductStock(inventoryStockEntity);
+                }
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
             return productEntity.Id;
         }
     }

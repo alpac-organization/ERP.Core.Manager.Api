@@ -6,7 +6,5 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public string Name {get; set;} = null!;
         public string? Code {get; set;}
         public bool IsActive {get; set;}
-        public Guid? CategoryId {get; set;}
-        public List<CategoryProductDto> SubCategory {get;set;} = [];
     }
 }

@@ -42,7 +42,6 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
             CategoryId = product.CategoryId,
             Category = new CategoryProductDto
             {
-                CategoryId = product.Category.ParentId,
                 Name = product.Category.Name!,
                 Code = product.Category.Code,
                 IsActive = product.Category.IsActive,
