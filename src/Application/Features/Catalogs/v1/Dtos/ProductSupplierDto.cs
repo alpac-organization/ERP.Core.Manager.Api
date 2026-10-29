@@ -1,5 +1,4 @@
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 
@@ -47,19 +46,4 @@ public enum PriceWindowStatus
     Current = 1,
     Scheduled = 2,
     Historical = 3
-}
-
-public class ProductDetailDto
-{
-    public Guid ProductId { get; set; }
-    public string Code { get; set; } = string.Empty;
-    public string ProductName { get; set; } = null!;
-    public string? Description { get; set; }
-    public Guid CategoryId { get; set; }
-    public CategoryProductDto Category { get; set; } = default!;
-    public Guid UnitMeasureId { get; set; }
-    public string? UnitMeasureName { get; set; }
-    public ProductUsageType ProductUsageType { get; set; }
-    public bool IsTaxExempt { get; set; }
-    public PagedResponse<ProductSupplierDto> Suppliers { get; set; } = new([], 1, 10);
 }

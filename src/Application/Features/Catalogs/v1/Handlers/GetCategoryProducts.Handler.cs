@@ -30,11 +30,7 @@ public class GetCategoryProductsTreeHandler(IUnitOfWork _unitOfWork, IErrorManag
 
         // Mapear a DTOs
         var categoryDtos = mapper.Map<List<CategoryProductDto>>(allCategories);
-
-        // Construir el árbol usando un diccionario
-        var dict = categoryDtos.ToDictionary(c => c.Id);
-        var rootCategories = new List<CategoryProductDto>();
-
-        return rootCategories;
+        
+        return categoryDtos;
     }
 }

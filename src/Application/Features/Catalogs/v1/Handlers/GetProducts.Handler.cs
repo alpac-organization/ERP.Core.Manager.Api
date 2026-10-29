@@ -29,10 +29,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             var query = _unitOfWork.Products.Entities
                 .AsNoTracking()
+                .AsSplitQuery()
+
+                .Include(product => product.Branch)
                 .Include(product => product.Category)
-                    .ThenInclude(category => category.Children.Where(child => child.IsActive))
                 .Include(product => product.CostCenter)
+                .Include(product => product.UnitMeasure)
                 .Include(product => product.SupplierProducts)
+
                 .Where(product => !product.DeletedAt.HasValue)
                 .Where(product => product.BranchId == access.Profile.BranchId)
                 .Where(product => product.ProductUsageType == request.ProductUsageType);

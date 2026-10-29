@@ -10,10 +10,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries
     {
         public int PageSize { get; set; }
         public int PageNumber { get; set; }
+        public Guid? ProductId { get; set; }
+        
 
+        public string? CommercialName { get; set; }
         public string? IdentificationNumber { get; set; }
         public ConstitutionType? ConstitutionType { get; set; }
-        public string? CommercialName { get; set; }
         public SupplierExclusiveStatus? ExclusiveStatus { get; set; }
     }
 }
