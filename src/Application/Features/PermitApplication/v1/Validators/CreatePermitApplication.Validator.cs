@@ -117,7 +117,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Validat
                 RuleFor(x => x!.EndDate)
                     .NotEmpty()
                     .WithMessage("El fecha de fin es obligatorio.")
-                    .GreaterThanOrEqualTo(x=> x.StartDate);
+                    .GreaterThanOrEqualTo(x=> x!.StartDate);
                 
                 RuleFor(x => x!.BeneficiaryScope)
                 .IsInEnum()
