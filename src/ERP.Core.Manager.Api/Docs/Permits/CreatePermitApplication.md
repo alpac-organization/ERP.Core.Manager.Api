@@ -2,7 +2,7 @@
 
 Registra una solicitud. Para cita judicial, matrimonio, nacimiento y fallecimiento el cuerpo es `permit_application_leave`. Vacaciones, pago de vacaciones y cita médica siguen usando su propio bloque.
 
-## Información General
+##  Creacion de permiso 
 
 | Campo | Valor |
 |---|---|

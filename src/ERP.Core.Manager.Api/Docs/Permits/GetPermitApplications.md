@@ -2,7 +2,7 @@
 
 Devuelve las solicitudes de la compañía, paginadas. El identificador para aprobar o cancelar es `permit_apllication_id`.
 
-## Información General
+## Obtener permisos 
 
 | Campo | Valor |
 |---|---|

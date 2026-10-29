@@ -2,7 +2,7 @@
 
 Cancela una solicitud que sigue en estado pendiente.
 
-## Información General
+##  Cancelacion de permiso 
 
 | Campo | Valor |
 |---|---|
