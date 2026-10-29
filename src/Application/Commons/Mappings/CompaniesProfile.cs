@@ -9,7 +9,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         public CompaniesProfile()
         {
             CreateMap<Company, CompanyDto>()
-                .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.Id));
+                .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.CompanieName));
         }
     }
 }
