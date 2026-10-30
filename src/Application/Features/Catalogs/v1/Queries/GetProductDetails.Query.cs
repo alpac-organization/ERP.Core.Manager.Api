@@ -6,7 +6,7 @@ using ERP.Core.Domain.Entities.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 
-public class GetProductDetailsQuery : BaseRequest, IRequest<ProductDetailDto>
+public class GetProductDetailsQuery : BaseRequest, IRequest<ProductDetailsDto>
 {
     [JsonIgnore]
     public Guid ProductId { get; set; }

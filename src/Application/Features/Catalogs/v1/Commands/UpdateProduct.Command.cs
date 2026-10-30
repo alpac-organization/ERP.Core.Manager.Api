@@ -9,7 +9,7 @@ public class UpdateProductCommand : BaseRequest, IRequest<bool>
 {
     [JsonIgnore]
     public Guid ProductId { get; set; }
-
+    
     public string? ProductName { get; set; }
     public string? Description { get; set; }
     public Guid? CategoryId { get; set; }
