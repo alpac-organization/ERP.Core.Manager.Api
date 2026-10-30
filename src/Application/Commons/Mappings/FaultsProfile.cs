@@ -65,5 +65,23 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             Evidence = string.IsNullOrWhiteSpace(evidenceJson) ? "{}" : evidenceJson
          };
       }
+
+      public static DisciplinaryFault ToDisciplinaryFaultEntity(
+         this Absence absence,
+         Guid faultCatalogId,
+         FaultSeverity severity,
+         Guid registeredBy,
+         string evidenceJson = "{}")
+      {
+         var fault = new Commands.Fault
+         {
+            CollaboratorId = absence.CollaboratorId,
+            FaultCatalogId = faultCatalogId,
+            OccurrenceDate = absence.Date,
+            Source = FaultSource.Manual
+         };
+
+         return fault.ToDisciplinaryFaultEntity(severity, registeredBy, evidenceJson);
+      }
    }
 }
