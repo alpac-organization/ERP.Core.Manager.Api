@@ -26,6 +26,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public GenderType Gender { get; set; }
         public MaritalStatus MaritalStatus { get; set; }
         public string? IdentificationNumber { get; set; }
+
     }
 
     public class WorkingInformationDto
@@ -37,6 +38,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public string? InssNumber { get; set; }
         public string? WorkPhoneNumber { get; set; }
         public string? BankAccountNumber { get; set; }
+        public Guid BranchId { get; set; }
+        public string? Branch { get; set; }
+        public PayrollType? PayrollType { get; set; }
 
         public string? WorkArea { get; set; }
         public string? JobPosition { get; set; }
