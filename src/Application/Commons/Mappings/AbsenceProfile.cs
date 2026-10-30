@@ -1,6 +1,8 @@
 using AutoMapper;
 using ERP.Core.Database.Domain.Entities.Payrolls;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
+using ERP.Core.Manager.Api.Application.Features.Absences.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Absences.v1.Dtos;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Mappings
@@ -36,6 +38,24 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.DisciplinaryFaultId, opt => opt.MapFrom(src => src.DisciplinaryFaultId))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.DeletedAt, opt => opt.MapFrom(src => src.DeletedAt));
+        }
+    }
+
+    public static class AbsenceMapper
+    {
+        public static Absence ToAbsenceEntity(
+            this RegisterAbsenceCommand command,
+            AbsenceStatus status = AbsenceStatus.Pending)
+        {
+            return new Absence
+            {
+                CollaboratorId = command.CollaboratorId,
+                Date = command.Date,
+                Status = status,
+                Source = command.Source,
+                Reason = command.Reason,
+                RegisteredBy = command.UserId
+            };
         }
     }
 }

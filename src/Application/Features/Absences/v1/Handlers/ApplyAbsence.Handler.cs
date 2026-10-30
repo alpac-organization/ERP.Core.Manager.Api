@@ -3,6 +3,7 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Absences.v1.Commands;
 using ERP.Core.Database.Domain.Entities.Payrolls;
@@ -100,17 +101,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
                 return _errorManager.ThrowNotFound<bool>("No se encontró en el catálogo de faltas la falta disciplinaria leve por ausencia injustificada para esta empresa.", "ERP:004");
             }
 
-            var disciplinaryFault = new DisciplinaryFault
-            {
-                CollaboratorId = absence.CollaboratorId,
-                FaultCatalogId = faultCatalog.Id,
-                OccurrenceDate = absence.Date,
-                Severity = FaultSeverity.Minor,
-                Source = FaultSource.Manual,
-                Status = FaultStatus.Open,
-                RegisteredBy = request.UserId,
-                Evidence = "{}"
-            };
+            var disciplinaryFault = absence.ToDisciplinaryFaultEntity(
+                faultCatalog.Id,
+                FaultSeverity.Minor,
+                request.UserId);
 
             await _unitOfWork.DisciplinaryFaults.RegisterDisciplinaryFault(disciplinaryFault);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

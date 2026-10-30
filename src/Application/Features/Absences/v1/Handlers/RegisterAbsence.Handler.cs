@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
+using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Absences.v1.Commands;
-using AbsenceEntity = ERP.Core.Database.Domain.Entities.Payrolls.Absence;
 
 namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
 {
@@ -52,16 +52,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("El colaborador cuenta con un permiso aprobado en la fecha indicada.", "ERP:006");
             }
 
-            // 3. Crear inasistencia en estado Pending (en bandeja de RRHH)
-            var absence = new AbsenceEntity
-            {
-                CollaboratorId = collaborator.Id,
-                Date = request.Date,
-                Status = AbsenceStatus.Pending,
-                Source = request.Source,
-                Reason = request.Reason,
-                RegisteredBy = request.UserId
-            };
+            // 3. Crear inasistencia en estado Pending
+            var absence = request.ToAbsenceEntity();
 
             await _unitOfWork.Absences.RegisterAbsence(absence);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
