@@ -37,6 +37,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos
         public string? InssNumber { get; set; }
         public string? WorkPhoneNumber { get; set; }
         public string? BankAccountNumber { get; set; }
+        public string? Branch { get; set; }
 
         public string? WorkArea { get; set; }
         public string? JobPosition { get; set; }

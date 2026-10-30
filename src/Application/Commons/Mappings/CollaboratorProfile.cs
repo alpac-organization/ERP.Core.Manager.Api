@@ -37,6 +37,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             .ForMember(dest => dest.WorkArea, opt => opt.MapFrom(src => src.Area.WorkAreaName))
             .ForMember(dest => dest.CostCenter, opt => opt.MapFrom(src => src.CostCenter.CostCenterName))
             .ForMember(dest => dest.JobPosition, opt => opt.MapFrom(src => src.JobPosition.JobPositionName))
+            .ForMember(dest => dest.Branch, opt => opt.MapFrom(src => src.Branch.BranchName))
          ;
 
         CreateMap<Salary, SalaryInformationDto>()
