@@ -38,7 +38,7 @@ public class RegisterPermitTypePolicyHandler(IUnitOfWork _unitOfWork, IErrorMana
 
       logger.LogInformation("Registrando politica de permiso {Type}", req.PermitApplicationType);
 
-      await _unitOfWork.PermitTypePolicyRepository.RegisterPermitTypePolicy(new()
+      var permitTypePolicy = await _unitOfWork.PermitTypePolicyRepository.RegisterPermitTypePolicy(new()
       {
          PermitApplicationType = req.PermitApplicationType,
          BeneficiaryScope = req.PermitBeneficiaryScope,
@@ -52,6 +52,7 @@ public class RegisterPermitTypePolicyHandler(IUnitOfWork _unitOfWork, IErrorMana
          MaxAmountDays = req.MaxAmountDays,
          IsActive = true
       });
+         permitTypePolicy.CompanyId = access.Company.Id;
 
          await _unitOfWork.SaveChangesAsync(cancellationToken);
 
