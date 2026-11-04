@@ -354,6 +354,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         var policy = await _unitOfWork.PermitTypePolicyRepository.Entities
                             .Where(item=>item.IsActive)
+                            .Where(item=>item.CompanyId == request.CompanyId)
                             .Where(item=>item.PermitApplicationType == request.PermitApplicationType)
                             .Where(item=> item.BeneficiaryScope == leave.BeneficiaryScope)
                             .Where(item=> item.FamilyRelationship == leave.FamilyRelationship)

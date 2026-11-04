@@ -22,7 +22,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Handlers
             return access.ErrorResponse!;
          }
 
-         var queryPermitTypePolicies = _unitOfWork.PermitTypePolicyRepository.Entities.AsNoTracking();
+         var queryPermitTypePolicies = _unitOfWork.PermitTypePolicyRepository.Entities
+            .AsNoTracking()
+            .Where(policy => policy.CompanyId == request.CompanyId);
 
 
          if (request.OnlyActive)

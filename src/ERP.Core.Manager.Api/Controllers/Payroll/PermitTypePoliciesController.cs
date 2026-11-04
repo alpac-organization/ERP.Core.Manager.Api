@@ -74,5 +74,28 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
             return Created();
         }
+
+        [Tags("Permisos")]
+        [HttpPatch("companies/{company_id}/modules/{module_code}/permit-type-policies/{policy_id}")]
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<OkResult> UpdatePermitTypePolicyAsync(
+            [FromRoute] Guid company_id,
+            [FromRoute] string module_code,
+            [FromRoute] Guid policy_id,
+            [FromBody] UpdatePermitTypePolicyCommand payload)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            payload.CompanyId = company_id;
+            payload.ModuleCode = module_code;
+            payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.PermitTypePolicyId = policy_id;
+
+            await mediator.Send(payload);
+
+            return Ok();
+        }
     }
 }
