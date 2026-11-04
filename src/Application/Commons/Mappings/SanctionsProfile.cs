@@ -33,12 +33,14 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
    {
       public static DisciplinarySanction ToDisciplinarySanctionEntity(
          this RegisterSanctionCommand command,
+         string code,
          string evidenceJson = "{}")
       {
          return new DisciplinarySanction
          {
             // PayrollId se enlaza después con efectos de nómina
             FaultId = command.FaultId,
+            Code = code,
             SanctionType = command.SanctionType,
             SanctionStatus = SanctionStatus.Applied,
             SuspensionStartDate = command.SanctionType == SanctionType.Suspension ? command.SuspensionStartDate : null,

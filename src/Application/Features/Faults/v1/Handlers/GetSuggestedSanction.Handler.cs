@@ -16,6 +16,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
       IDisciplinaryEscalation _disciplinaryEscalation)
       : BaseValidatorHandler<GetSuggestedSanctionQuery, SuggestedSanctionDto>(_unitOfWork, _errorManager)
    {
+      private const int MaxEscalationDepth = 2; // Tope de saltos de profundidad: leve → grave → muy grave
+
       public override async Task<SuggestedSanctionDto> Handle(
          GetSuggestedSanctionQuery request,
          CancellationToken cancellationToken)
@@ -43,44 +45,36 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
          }
 
          var requestedFaultId = fault.Id;
-         var parentFaultId = fault.ParentFaultId;
-         var isCoveredByEscalation = false;
+         var isCoveredByEscalation = fault.ParentFaultId.HasValue;
          DisciplinaryFault targetFault = fault;
 
-         if (fault.ParentFaultId.HasValue)
+         if (isCoveredByEscalation)
          {
-            var parentFault = await _unitOfWork.DisciplinaryFaults.Entities
-               .AsNoTracking()
-               .Include(f => f.Collaborator)
-               .FirstOrDefaultAsync(f =>
-                  f.Id == fault.ParentFaultId.Value
-                  && f.DeletedAt == null
-                  && f.Collaborator.CompanyId == request.CompanyId,
-                  cancellationToken);
+            var rootFault = await ResolveSanctionRootAsync(
+               fault, request.CompanyId, cancellationToken);
 
-            if (parentFault is null)
+            if (rootFault is null)
             {
                return _errorManager.ThrowBadRequest<SuggestedSanctionDto>(
                   "Esta falta está vinculada a una reincidencia que no se encontró o fue eliminada.",
                   "ERP:NotFound");
             }
 
-            if (parentFault.Status == FaultStatus.SanctionApplied)
+            if (rootFault.Status == FaultStatus.SanctionApplied)
             {
                return _errorManager.ThrowBadRequest<SuggestedSanctionDto>(
                   "La falta escalada ya tiene una sanción aplicada.",
                   "ERP:InvalidOperation");
             }
 
-            if (parentFault.Status == FaultStatus.Prescribed)
+            if (rootFault.Status == FaultStatus.Prescribed)
             {
                return _errorManager.ThrowBadRequest<SuggestedSanctionDto>(
                   "No se puede sugerir sanción para una falta prescrita.",
                   "ERP:InvalidOperation");
             }
 
-            targetFault = parentFault;
-            isCoveredByEscalation = true;
+            targetFault = rootFault;
          }
          else
          {
@@ -107,6 +101,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                f.DeletedAt == null
                && f.CollaboratorId == targetFault.CollaboratorId
                && f.Severity == targetFault.Severity
+               && f.ParentFaultId == null
                && f.OccurrenceDate >= monthStart
                && f.OccurrenceDate < monthEnd,
                cancellationToken);
@@ -117,13 +112,49 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
          {
             FaultId = requestedFaultId,
             SanctionTargetFaultId = targetFault.Id,
-            ParentFaultId = parentFaultId,
+            ParentFaultId = isCoveredByEscalation ? targetFault.Id : null,
+            ParentFaultCode = isCoveredByEscalation ? targetFault.Code : null,
             IsCoveredByEscalation = isCoveredByEscalation,
             Severity = targetFault.Severity,
             CountOccurrenceInMonth = countOccurrenceInMonth,
             SuggestedSanctionType = suggested,
-            AllowedSanctionTypes = allowed
+            AllowedSanctionTypes = allowed,
          };
+      }
+
+      /// <summary>
+      /// Sube la cadena ParentFaultId hasta la raíz sancionable
+      /// (p. ej. leve → grave → muy grave).
+      /// </summary>
+      private async Task<DisciplinaryFault?> ResolveSanctionRootAsync(
+         DisciplinaryFault fault,
+         Guid companyId,
+         CancellationToken cancellationToken)
+      {
+         var current = fault;
+         var depth = 0;
+
+         while (current.ParentFaultId.HasValue)
+         {
+            if (++depth > MaxEscalationDepth)
+               return null;
+
+            var parent = await _unitOfWork.DisciplinaryFaults.Entities
+               .AsNoTracking()
+               .Include(f => f.Collaborator)
+               .FirstOrDefaultAsync(f =>
+                  f.Id == current.ParentFaultId.Value
+                  && f.DeletedAt == null
+                  && f.Collaborator.CompanyId == companyId,
+                  cancellationToken);
+
+            if (parent is null)
+               return null;
+
+            current = parent;
+         }
+
+         return current;
       }
 
       private static (SanctionType Suggested, List<SanctionType> Allowed) Suggest(

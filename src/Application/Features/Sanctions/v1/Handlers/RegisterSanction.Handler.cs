@@ -2,8 +2,10 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Application.Commons.Interfaces.AWS;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Helpers;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Commands;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +17,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
       IUnitOfWork _unitOfWork,
       IErrorManager _errorManager,
       ILogger<RegisterSanctionHandler> _logger,
-      IS3StorageService _s3StorageService)
+      IS3StorageService _s3StorageService,
+      ICodeGenerator _codeGenerator,
+      IDisciplinaryEscalation _disciplinaryEscalation)
       : BaseValidatorHandler<RegisterSanctionCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(RegisterSanctionCommand request, CancellationToken cancellationToken)
@@ -44,6 +48,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
 
          var fault = await _unitOfWork.DisciplinaryFaults.Entities
             .Include(f => f.Collaborator)
+            .Include(f => f.ParentFault)
             .FirstOrDefaultAsync(f =>
                f.Id == request.FaultId
                && f.DeletedAt == null
@@ -59,8 +64,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
 
          if (fault.ParentFaultId.HasValue)
          {
+            var parentRef = !string.IsNullOrWhiteSpace(fault.ParentFault?.Code)
+                ? fault.ParentFault.Code
+                : "";
+
             return _errorManager.ThrowBadRequest<bool>(
-               "Esta falta ya fue absorbida por una falta escalada. Debe sancionar la falta padre.",
+               $"Esta falta ya fue absorbida por una falta escalada. Debe sancionar la falta padre: {parentRef}.",
                "ERP:InvalidOperation");
          }
 
@@ -100,13 +109,33 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
             "DisciplinarySanctions",
             cancellationToken);
 
-         var sanction = request.ToDisciplinarySanctionEntity(evidenceJson);
-         await _unitOfWork.DisciplinarySanctions.RegisterDisciplinarySanction(sanction);
 
-         fault.Status = FaultStatus.SanctionApplied;
-         await _unitOfWork.DisciplinaryFaults.UpdateAsync(fault);
+         await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
+         {
+            var (IsSuccess, sanctionCode) = await _codeGenerator.GenerateUniqueDisciplinarySanctionCodeAsync(
+               request.CompanyId,
+               DateOnly.FromDateTime(DateTime.UtcNow),
+               token
+            );
 
-         await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (!IsSuccess || string.IsNullOrWhiteSpace(sanctionCode))
+            {
+               _errorManager.ThrowBadRequest<bool>(
+                  "No se pudo generar el código sanción disciplinaria.",
+                  "ERP:SANCTION_CODE_GENERATION_FAILED");
+               return;
+            }
+
+            var sanction = request.ToDisciplinarySanctionEntity(sanctionCode, evidenceJson);
+            await _unitOfWork.DisciplinarySanctions.RegisterDisciplinarySanction(sanction);
+
+            fault.Status = FaultStatus.SanctionApplied;
+            await _unitOfWork.DisciplinaryFaults.UpdateAsync(fault);
+            await _disciplinaryEscalation.MarkLinkedFaultsAsSanctionApplied(fault, token);
+
+            await _unitOfWork.SaveChangesAsync(token);
+
+         }, cancellationToken);
 
          _logger.LogInformation("✅ Se agregó con éxito el registro de sanción disciplinaria.");
 

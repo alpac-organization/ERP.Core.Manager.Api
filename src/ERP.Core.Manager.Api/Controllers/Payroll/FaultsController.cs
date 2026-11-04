@@ -132,18 +132,18 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
       public async Task<NoContentResult> CancelFaultAsync(
          [FromRoute] Guid company_id,
          [FromRoute] string module_code,
-         [FromRoute] Guid fault_id
+         [FromRoute] Guid fault_id,
+         [FromBody] CancelFaultCommand payload
       )
       {
          var userIdStr = HttpContext.Items["UserId"] as string;
 
-         await _mediator.Send(new CancelFaultCommand
-         {
-            UserId = Guid.Parse(userIdStr ?? ""),
-            CompanyId = company_id,
-            ModuleCode = module_code,
-            FaultId = fault_id
-         });
+         payload.UserId = Guid.Parse(userIdStr ?? "");
+         payload.CompanyId = company_id;
+         payload.ModuleCode = module_code;
+         payload.FaultId = fault_id;
+
+         await _mediator.Send(payload);
 
          return NoContent();
       }

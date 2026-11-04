@@ -21,6 +21,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
    public class FaultReference
    {
       public Guid FaultId { get; set; }
+      public string Code { get; set; } = string.Empty;
       public DateOnly OccurrenceDate { get; set; }
       public FaultSeverity Severity { get; set; }
       public FaultStatus Status { get; set; }

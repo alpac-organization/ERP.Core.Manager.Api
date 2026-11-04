@@ -8,5 +8,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Commands
    {
       [JsonIgnore]
       public Guid FaultId { get; set; }
+
+      public string CancellationReason { get; set; } = string.Empty;
    }
 }

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using AutoMapper;
 using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Database.Domain.Entities.Payrolls;
@@ -48,6 +47,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
    {
       public static DisciplinaryFault ToDisciplinaryFaultEntity(
          this Commands.Fault fault,
+         string code,
          FaultSeverity severity,
          Guid registeredBy,
          string evidenceJson = "{}")
@@ -55,6 +55,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
          return new DisciplinaryFault
          {
             CollaboratorId = fault.CollaboratorId,
+            Code = code,
             FaultCatalogId = fault.FaultCatalogId,
             OccurrenceDate = fault.OccurrenceDate,
             Severity = severity,
@@ -64,6 +65,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             ParentFaultId = fault.ParentFaultId,
             Evidence = string.IsNullOrWhiteSpace(evidenceJson) ? "{}" : evidenceJson
          };
-      }
+      }      
    }
 }
