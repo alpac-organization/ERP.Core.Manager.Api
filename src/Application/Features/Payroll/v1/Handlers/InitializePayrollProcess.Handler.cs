@@ -85,7 +85,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
          {
             case PayrollType.Ordinary:
             {
-               var collaborators = await _payrollServices.ObtainsCollaboratorByType(SalaryType.Fixed, request.CompanyId, request.BranchId);
+               var collaborators = await _payrollServices.ObtainsCollaboratorByType(PayrollTypeMap.ToSalaryType(request.Type), request.CompanyId, request.BranchId);
 
                foreach (var collaborator in collaborators)
                {
@@ -104,7 +104,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
             case PayrollType.ProfessionalServices:
                {
-                  var collaborators = await _payrollServices.ObtainsCollaboratorByType(SalaryType.ProfessionalServices, request.CompanyId, request.BranchId);
+                  var collaborators = await _payrollServices.ObtainsCollaboratorByType(PayrollTypeMap.ToSalaryType(request.Type), request.CompanyId, request.BranchId);
 
                   switch (branch.Company.Alias)
                   {

@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Queries;
 
@@ -49,7 +50,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 
             var mapped = _mapper.Map<CollaboratorDetailsDto>(collaborator);
             mapped.PersonalInformation.IdentificationNumber = request.IdentificationNumber;
-            
+
+            if (mapped.WorkingInformation is not null)
+            {
+                mapped.WorkingInformation.PayrollType = PayrollTypeMap.FromSalaryType(collaborator.Salaries.FirstOrDefault()?.SalaryType);
+            }
+
             return mapped;
         }
     }

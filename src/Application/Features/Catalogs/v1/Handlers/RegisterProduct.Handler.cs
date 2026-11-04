@@ -8,8 +8,8 @@ using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
-using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Helpers;
+using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 {
@@ -97,7 +97,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             productEntity.BranchId = access.Profile.BranchId;
             productEntity.CostCenterId = access.Profile.CostCenterId;
-
 
             if (request.ProductUsageType == ProductUsageType.Administrative)
             {
