@@ -71,11 +71,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                .ThenBy(fc => fc.Code)
                .Skip((request.PageNumber - 1) * request.PageSize.Value)
                .Take(request.PageSize.Value)
+               .OrderBy(fc => fc.FaultSeverity)
                .ToListAsync(cancellationToken);
          }
          else
          {
-            faultCatalogs = await faultCatalogQuery.ToListAsync(cancellationToken);
+            faultCatalogs = await faultCatalogQuery
+               .OrderBy(fc => fc.FaultSeverity)
+               .ToListAsync(cancellationToken);
          }
 
          var mappedFaultCatalogs = _mapper.Map<List<FaultCatalogDto>>(faultCatalogs);

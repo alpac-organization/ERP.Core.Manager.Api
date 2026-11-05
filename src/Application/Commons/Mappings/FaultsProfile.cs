@@ -82,7 +82,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             Source = FaultSource.Manual
          };
 
-         return fault.ToDisciplinaryFaultEntity(severity, registeredBy, evidenceJson);
+         return fault.ToDisciplinaryFaultEntity("", severity, registeredBy, evidenceJson);
       }
    }
 }
