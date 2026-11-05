@@ -36,7 +36,7 @@ Endpoint para listar (con paginación y filtros) las sanciones disciplinarias re
 | `collaborator_id`   | `guid`                     | No        | `null`  | Filtra por colaborador. |
 | `fault_id`          | `guid`                     | No        | `null`  | Filtra por falta. |
 | `sanction_type`     | `enum (SanctionType)`      | No        | `null`  | Filtra por tipo de sanción. |
-| `sanction_status`   | `enum (SanctionStatus)`    | No        | `null`  | Filtra por estado de la sanción. |
+| `sanction_status`   | `enum (SanctionStatus)`    | No        | `null`  | Filtra por estado (`Pending`, `Applied`, `Cancelled`). |
 | `page_size`         | `integer`                  | No        | `10`    | Cantidad de registros por página. |
 | `page_number`       | `integer`                  | No        | `1`     | Número de página a consultar. |
 
@@ -58,7 +58,7 @@ Retorna un `PagedResponse<SanctionDto>`.
       "collaborator_id": "ee702059-9d26-4464-9900-c95b616d55c9",
       "collaborator_name": "Juan Perez Gomez",
       "sanction_type": "Memorandum",
-      "sanction_status": "Applied",
+      "sanction_status": "Pending",
       "reason": "Segunda falta leve en el mes",
       "suspension_start_date": null,
       "suspension_end_date": null,
@@ -88,8 +88,8 @@ Retorna un `PagedResponse<SanctionDto>`.
 |---|---|---|
 | `sanction_id` | `guid` | Identificador de la sanción. |
 | `code` | `string` | Código de instancia de la sanción (ej. `SAN-ALP-2026-001`). |
-| `fault_id` | `guid` | Falta a la que se aplicó. |
-| `collaborator_id` | `guid` | Colaborador sancionado. |
+| `fault_id` | `guid` | Falta asociada. |
+| `collaborator_id` | `guid` | Colaborador. |
 | `collaborator_name` | `string` | Nombre completo del colaborador. |
 | `sanction_type` | `string` | Tipo como **texto** del enum `SanctionType`. |
 | `sanction_status` | `string` | Estado como **texto** del enum `SanctionStatus`. |
@@ -114,8 +114,9 @@ Retorna un `PagedResponse<SanctionDto>`.
 
 | Valor | Nombre | Traducción |
 |---|---|---|
-| `1` | Applied | Aplicada |
-| `2` | Cancelled | Cancelada |
+| `1` | Applied | Aplicada (aprobada por RRHH) |
+| `2` | Cancelled | Cancelada / rechazada |
+| `3` | Pending | Pendiente de aprobación de RRHH |
 
 ### ❌ 400 Bad Request
 

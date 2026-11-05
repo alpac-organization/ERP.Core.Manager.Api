@@ -14,7 +14,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
       public FaultReference? ParentFault { get; set; }
 
       // Auditoría
-      public RegisterUserDto? RegisteredBy { get; set; }
+      public DisciplinaryInformationUserDto? RegisteredBy { get; set; }
       public DateTime CreatedAt { get; set; }
    }
 
@@ -27,7 +27,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
       public FaultStatus Status { get; set; }
    }
 
-   public class RegisterUserDto
+   public class DisciplinaryInformationUserDto
    {
       public Guid UserId { get; set; }
       public string? FullName { get; set; }

@@ -28,7 +28,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
          CreateMap<DisciplinaryFault, FaultReference>()
             .ForMember(dest => dest.FaultId, opt => opt.MapFrom(src => src.Id));
 
-         CreateMap<User, RegisterUserDto>()
+         CreateMap<User, DisciplinaryInformationUserDto>()
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Fullname))
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))

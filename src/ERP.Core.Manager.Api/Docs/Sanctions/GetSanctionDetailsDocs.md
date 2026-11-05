@@ -8,7 +8,7 @@ Endpoint para obtener el detalle completo de una sanción disciplinaria específ
 |-----------|-------|
 | **Método**      | `GET` |
 | **Endpoint**    | `/api/v1/companies/{company_id}/modules/{module_code}/sanctions/{sanction_id}` |
-| **Descripción** | Retorna la información detallada de una sanción: falta asociada, colaborador, evidencias y quien la emitió. |
+| **Descripción** | Retorna la sanción con falta asociada, colaborador, evidencias, quien la propuso y quien la aprobó (si aplica). |
 
 ---
 
@@ -64,6 +64,15 @@ Retorna un `SanctionDetailDto`.
     "email": "maria.lopez@empresa.com",
     "status": "Active"
   },
+  "approved_by": "22222222-2222-2222-2222-222222222222",
+  "approved_by_user": {
+    "user_id": "22222222-2222-2222-2222-222222222222",
+    "full_name": "Ana Ruiz",
+    "email": "ana.ruiz@empresa.com",
+    "status": "Active"
+  },
+  "approved_at": "2026-10-17T09:30:00Z",
+  "cancellation_reason": null,
   "evidences": [
     {
       "file_name": "evidencia.jpg",
@@ -82,22 +91,26 @@ Retorna un `SanctionDetailDto`.
 | Campo | Tipo | Descripción |
 |---|---|---|
 | `sanction_id` | `guid` | Identificador de la sanción. |
-| `code` | `string` | Código de instancia de la sanción (ej. `SAN-ALP-2026-001`). |
-| `fault_id` | `guid` | Falta sancionada. |
-| `collaborator_id` | `guid` | Colaborador sancionado. |
+| `code` | `string` | Código de instancia (ej. `SAN-ALP-2026-001`). |
+| `fault_id` | `guid` | Falta asociada. |
+| `collaborator_id` | `guid` | Colaborador. |
 | `collaborator_name` | `string` | Nombre completo. |
 | `identification_number` | `string \| null` | Cédula / identificación. |
 | `fault_catalog` | `object` | Catálogo de la falta asociada. |
 | `occurrence_date` | `date (YYYY-MM-DD)` | Fecha de la falta. |
 | `fault_severity` | `string` | Severidad de la falta (texto enum). |
 | `sanction_type` | `string` | Tipo de sanción (texto enum). |
-| `sanction_status` | `string` | Estado de la sanción (texto enum). |
-| `reason` | `string` | Motivo. |
+| `sanction_status` | `string` | `Pending`, `Applied` o `Cancelled`. |
+| `reason` | `string` | Motivo de la propuesta. |
 | `suspension_start_date` | `date \| null` | Inicio de suspensión. |
 | `suspension_end_date` | `date \| null` | Fin de suspensión. |
 | `payroll_id` | `guid \| null` | Nómina vinculada (si aplica; efectos pendientes). |
-| `issued_by` | `guid` | Usuario que emitió la sanción. |
-| `issued_by_user` | `object \| null` | Detalle del emisor. |
+| `issued_by` | `guid` | Usuario que registró/propuso la sanción. |
+| `issued_by_user` | `object \| null` | Detalle del proponente (`DisciplinaryInformationUserDto`). |
+| `approved_by` | `guid \| null` | Usuario RRHH que aplicó (null si aún `Pending` o cancelada sin aplicar). |
+| `approved_by_user` | `object \| null` | Detalle del aprobador. |
+| `approved_at` | `datetime \| null` | Fecha/hora de aprobación. |
+| `cancellation_reason` | `string \| null` | Motivo si `Cancelled` (rechazo). |
 | `evidences` | `array (EvidenceDto)` | Evidencias con URL S3. |
 | `created_at` | `datetime (ISO 8601)` | Fecha/hora de creación. |
 
@@ -117,7 +130,7 @@ Retorna un `SanctionDetailDto`.
 | `content_type` | `string \| null` | MIME type. |
 | `image_url` | `string \| null` | URL pública en S3. |
 
-#### `issued_by_user`
+#### `issued_by_user` / `approved_by_user`
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -126,7 +139,7 @@ Retorna un `SanctionDetailDto`.
 | `email` | `string \| null` | Correo. |
 | `status` | `string \| null` | Estado del usuario. |
 
-> ℹ️ En este endpoint de **detalle**, los enums vienen como **texto**. Las evidencias exponen `image_url`, no `image_base64`.
+> ℹ️ En detalle, los enums vienen como **texto**. Las evidencias exponen `image_url`, no `image_base64`.
 
 ### ❌ 400 Bad Request
 
@@ -135,7 +148,7 @@ Retorna un `SanctionDetailDto`.
   "status": 400,
   "error": {
     "type_error": "ValidationError",
-    "description": "La sanción disciplinaria no existe."
+    "description": "Detalle de sanción disciplinaria no fue encontrado."
   },
   "created_at": "2026-09-09 10:00:00"
 }

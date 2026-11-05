@@ -91,5 +91,33 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
 
          return Created();
       }
+
+      [Tags("Sanciones Disciplinarias")]
+      [HttpPost("companies/{company_id}/modules/{module_code}/sanctions/{sanction_id}/process")]
+      [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+      [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+      [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+      [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+      public async Task<IActionResult> ProcessDisciplinarySanction(
+         [FromRoute] Guid company_id,
+         [FromRoute] string module_code,
+         [FromRoute] Guid sanction_id,
+         [FromBody] ProcessSanctionCommand payload
+      )
+      {
+         var userIdStr = HttpContext.Items["UserId"] as string;
+
+         await _mediator.Send(new ProcessSanctionCommand
+         {
+            UserId = Guid.Parse(userIdStr ?? ""),
+            CompanyId = company_id,
+            ModuleCode = module_code,
+            SanctionId = sanction_id,
+            IsApproved = payload.IsApproved,
+            CancellationReason = payload.CancellationReason
+         });
+
+         return Ok();
+      }
    }
 }

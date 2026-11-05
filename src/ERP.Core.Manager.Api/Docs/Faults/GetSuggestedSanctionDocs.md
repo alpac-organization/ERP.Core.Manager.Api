@@ -156,4 +156,4 @@ Si la falta consultada está en una cadena (p. ej. leve → grave → muy grave)
 
 - El conteo mensual (`count_occurrence_in_month`) solo incluye faltas **sin** `parent_fault_id` (no absorbidas por reincidencia), alineado con el escalado.
 - Si la falta consultada es hija (o nieta), la sugerencia se calcula sobre la **raíz** de la cadena (`sanction_target_fault_id`), p. ej. leve → grave → muy grave.
-- Al registrar la sanción sobre esa raíz, el estado `SanctionApplied` se propaga a hijas y nietas.
+- Al **registrar** la sanción sobre esa raíz queda `Pending`. Al **aprobarla** (Process), la falta raíz pasa a `SanctionApplied` y ese estado se propaga a hijas y nietas.

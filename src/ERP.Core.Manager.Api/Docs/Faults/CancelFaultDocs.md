@@ -8,7 +8,7 @@ Endpoint para anular una falta disciplinaria pendiente de sanción (`DeletedAt` 
 |-----------|-------|
 | **Método**      | `DELETE` |
 | **Endpoint**    | `/api/v1/companies/{company_id}/modules/{module_code}/faults/{fault_id}` |
-| **Descripción** | Anula la falta indicada con un motivo obligatorio. Si es falta padre de reincidencia, anula también las faltas hijas vinculadas (mismo motivo). No permite anular faltas hijas, sancionadas o prescritas. Roles: `Administrator` o `Manager`. |
+| **Descripción** | Anula la falta indicada con un motivo obligatorio. Si es falta padre de reincidencia, anula también las faltas hijas vinculadas (mismo motivo). No permite anular faltas hijas, sancionadas, prescritas, ni con sanción `Pending`/`Applied`. Roles: `Administrator` o `Manager`. |
 
 ---
 
@@ -55,6 +55,7 @@ Endpoint para anular una falta disciplinaria pendiente de sanción (`DeletedAt` 
 | Falta padre (reincidencia) | Se anula el padre y, en cascada, las hijas activas vinculadas (mismo motivo). |
 | Falta hija (`parent_fault_id` con valor) | **Bloqueado.** Debe anularse la falta padre (el error indica el código del padre). |
 | Estado `SanctionApplied` o `Prescribed` | **Bloqueado.** |
+| Tiene sanción `Pending` o `Applied` | **Bloqueado.** Debe procesar o cancelar la sanción primero. |
 | Sin `cancellation_reason` | **Bloqueado** (validación). |
 
 ---
@@ -87,6 +88,7 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
 Otros mensajes frecuentes:
 - `Esta falta está absorbida por una reincidencia. Debe anular la falta padre con código: FLT-ALP-2026-010.`
 - `No se puede anular una falta que ya tiene sanción aplicada.`
+- `No se puede anular la falta: tiene una sanción pendiente o aplicada. Debe procesar o cancelar la sanción primero.`
 - `No se puede anular una falta prescrita.`
 - `La falta disciplinaria no existe o ya fue anulada.`
 

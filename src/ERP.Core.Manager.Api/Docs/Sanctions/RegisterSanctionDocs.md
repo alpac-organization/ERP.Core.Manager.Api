@@ -1,6 +1,6 @@
 ## Registrar Sanción Disciplinaria
 
-Endpoint para aplicar una sanción sobre una falta disciplinaria. La sanción queda en estado `Applied` (definitiva) y la falta pasa a `SanctionApplied`.
+Endpoint para **registrar/proponer** una sanción sobre una falta disciplinaria. La sanción queda en estado `Pending`. La falta permanece `Open` hasta que RRHH la procese con [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).
 
 ## Información General
 
@@ -8,7 +8,7 @@ Endpoint para aplicar una sanción sobre una falta disciplinaria. La sanción qu
 |-----------|-------|
 | **Método**      | `POST` |
 | **Endpoint**    | `/api/v1/companies/{company_id}/modules/{module_code}/sanctions` |
-| **Descripción** | Aplica sanción directa. Roles: `Administrator` (Gerente General / RRHH) o `Manager` (Jefe Inmediato). |
+| **Descripción** | Registra sanción pendiente. Roles: `Administrator` (Gerente General / RRHH) o `Manager` (Jefe Inmediato). |
 
 > 🔗 Antes de registrar, consultar [Sugerir sanción](/src/ERP.Core.Manager.Api/Docs/Faults/GetSuggestedSanctionDocs.md) y usar `sanction_target_fault_id` como `fault_id` del body.
 
@@ -132,6 +132,12 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
 }
 ```
 
+Otros mensajes frecuentes:
+
+- `No se puede sancionar una falta prescrita, aplicada o cancelada.`
+- `Ya existe una sanción pendiente o aplicada para esta falta.`
+- `La suspensión debe durar entre 3 y 7 días.`
+
 ### ❌ 401 Unauthorized
 
 ```json
@@ -139,7 +145,7 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
   "status": 401,
   "error": {
     "type_error": "Unauthorized",
-    "description": "Solo el Gerente General, Gerente de Recursos Humanos o Jefe Inmediato pueden aplicar sanciones."
+    "description": "Solo el Gerente General, Gerente de Recursos Humanos o Jefe Inmediato pueden registrar sanciones."
   },
   "created_at": "2026-09-09 10:00:00"
 }
@@ -164,7 +170,7 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
 
 | Código | Descripción |
 |---|---|
-| `201` | Sanción registrada exitosamente. |
+| `201` | Sanción registrada exitosamente (`Pending`). |
 | `400` | Error de validación, falta inválida, suspensión fuera de rango, etc. (`ErrorResponse`). |
 | `401` | Rol no autorizado (`ErrorResponse`). |
 | `500` | Error interno del servidor (`ErrorResponse`). |
@@ -174,7 +180,8 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
 ## Notas
 
 - Cada sanción registrada recibe un código de instancia (`SAN-{CODE}-{YEAR}-###`).
-- La sanción queda `Applied` y no se cancela por API.
-- Si la falta sancionada es padre de reincidencia, las faltas hijas (y nietas) absorbidas pasan a `SanctionApplied`. No se crea una sanción por cada hija; solo se propaga el estado.
+- La sanción queda `Pending`. Para aplicar o cancelar usar [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).
+- No se permite otra sanción `Pending` o `Applied` activa sobre la misma falta.
+- No se marca la falta como `SanctionApplied` en este paso; eso ocurre al aprobar en Process.
 - Evidencias: carpeta S3 `Manager/DisciplinarySanctions/`.
-- Efectos de nómina (`ApplySansion` / `payroll_id`) pendientes de implementación.
+- Efectos de nómina (`payroll_id`) pendientes de implementación.

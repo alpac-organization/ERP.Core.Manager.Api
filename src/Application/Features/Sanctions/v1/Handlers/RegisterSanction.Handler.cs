@@ -5,7 +5,6 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Helpers;
-using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Commands;
 using Microsoft.EntityFrameworkCore;
@@ -18,8 +17,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
       IErrorManager _errorManager,
       ILogger<RegisterSanctionHandler> _logger,
       IS3StorageService _s3StorageService,
-      ICodeGenerator _codeGenerator,
-      IDisciplinaryEscalation _disciplinaryEscalation)
+      ICodeGenerator _codeGenerator)
       : BaseValidatorHandler<RegisterSanctionCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(RegisterSanctionCommand request, CancellationToken cancellationToken)
@@ -32,7 +30,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
          if (access.Role?.RoleType is not (RoleType.Administrator or RoleType.Manager))
          {
             return _errorManager.ThrowUnauthorized<bool>(
-               "Solo el Gerente General, Gerente de Recursos Humanos o Jefe Inmediato pueden aplicar sanciones.",
+               "Solo el Gerente General, Gerente de Recursos Humanos o Jefe Inmediato pueden registrar sanciones.",
                "ERP:INVALID_ACCESS");
          }
 
@@ -73,31 +71,30 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
                "ERP:InvalidOperation");
          }
 
-         if (fault.Status == FaultStatus.Prescribed)
+         if (
+            fault.Status == FaultStatus.Prescribed ||
+            fault.Status == FaultStatus.SanctionApplied ||
+            fault.Status == FaultStatus.Cancelled)
          {
             return _errorManager.ThrowBadRequest<bool>(
-               "No se puede sancionar una falta prescrita.",
+               "No se puede sancionar una falta prescrita, aplicada o cancelada.",
                "ERP:InvalidOperation");
          }
-
-         if (fault.Status == FaultStatus.SanctionApplied)
-         {
-            return _errorManager.ThrowBadRequest<bool>(
-               "La falta ya tiene una sanción aplicada.",
-               "ERP:InvalidOperation");
-         }
-
+         
          var hasActiveSanction = await _unitOfWork.DisciplinarySanctions.Entities
             .AnyAsync(s =>
                s.FaultId == request.FaultId
                && s.DeletedAt == null
-               && s.SanctionStatus == SanctionStatus.Applied,
+               && (
+                  s.SanctionStatus == SanctionStatus.Pending ||
+                  s.SanctionStatus == SanctionStatus.Applied
+               ),
                cancellationToken);
 
          if (hasActiveSanction)
          {
             return _errorManager.ThrowBadRequest<bool>(
-               "Ya existe una sanción aplicada para esta falta.",
+               "Ya existe una sanción pendiente o aplicada para esta falta.",
                "ERP:InvalidOperation");
          }
 
@@ -108,7 +105,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
             request.Evidences,
             "DisciplinarySanctions",
             cancellationToken);
-
 
          await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
          {
@@ -126,12 +122,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
                return;
             }
 
-            var sanction = request.ToDisciplinarySanctionEntity(sanctionCode, evidenceJson);
+            var sanction = request.ToDisciplinarySanctionEntity(sanctionCode, SanctionStatus.Pending, evidenceJson);
             await _unitOfWork.DisciplinarySanctions.RegisterDisciplinarySanction(sanction);
-
-            fault.Status = FaultStatus.SanctionApplied;
-            await _unitOfWork.DisciplinaryFaults.UpdateAsync(fault);
-            await _disciplinaryEscalation.MarkLinkedFaultsAsSanctionApplied(fault, token);
 
             await _unitOfWork.SaveChangesAsync(token);
 

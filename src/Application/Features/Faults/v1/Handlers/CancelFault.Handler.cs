@@ -80,6 +80,21 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                "ERP:InvalidOperation");
          }
 
+         var hasActiveSanction = await _unitOfWork.DisciplinarySanctions.Entities
+            .AnyAsync(s =>
+               s.FaultId == fault.Id
+               && s.DeletedAt == null
+               && (s.SanctionStatus == SanctionStatus.Pending
+                   || s.SanctionStatus == SanctionStatus.Applied),
+               cancellationToken);
+
+         if (hasActiveSanction)
+         {
+            return _errorManager.ThrowBadRequest<Unit>(
+               "No se puede anular la falta: tiene una sanción pendiente o aplicada. Debe procesar o cancelar la sanción primero.",
+               "ERP:InvalidOperation");
+         }
+
          fault.DeletedAt = DateTime.UtcNow;
          fault.Status = FaultStatus.Cancelled;
          fault.CancellationReason = request.CancellationReason.Trim();
