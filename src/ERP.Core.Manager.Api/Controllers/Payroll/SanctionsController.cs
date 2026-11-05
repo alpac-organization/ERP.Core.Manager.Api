@@ -24,6 +24,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
       public async Task<PagedResponse<SanctionDto>> GetSanctionsAsync(
          [FromRoute] Guid company_id,
          [FromRoute] string module_code,
+         [FromQuery] string? code,
          [FromQuery] Guid? collaborator_id,
          [FromQuery] Guid? fault_id,
          [FromQuery] SanctionType? sanction_type,
@@ -39,6 +40,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             UserId = Guid.Parse(userIdStr ?? ""),
             CompanyId = company_id,
             ModuleCode = module_code,
+            Code = code,
             CollaboratorId = collaborator_id,
             FaultId = fault_id,
             SanctionType = sanction_type,

@@ -33,12 +33,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
             .Include(f => f.FaultCatalog)
             .Where(f => f.DeletedAt == null && f.Collaborator.CompanyId == request.CompanyId);
 
+         if (!string.IsNullOrWhiteSpace(request.CatalogCode))
+         {
+            var code = request.CatalogCode.Trim();
+
+            faultsQuery = faultsQuery
+               .Where(f => f.FaultCatalog.Code != null && f.FaultCatalog.Code.Contains(code));
+         }
+
          if (!string.IsNullOrWhiteSpace(request.Code))
          {
             var code = request.Code.Trim();
 
             faultsQuery = faultsQuery
-               .Where(f => f.FaultCatalog.Code != null && f.FaultCatalog.Code.Contains(code));
+               .Where(f => f.Code != null && f.Code.Contains(code));
          }
 
          if (request.CollaboratorId.HasValue)

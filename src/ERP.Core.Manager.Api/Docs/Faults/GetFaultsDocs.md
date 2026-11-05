@@ -8,7 +8,7 @@ Endpoint para listar (con paginación y filtros) las faltas disciplinarias regis
 |-----------|-------|
 | **Método**      | `GET` |
 | **Endpoint**    | `/api/v1/companies/{company_id}/modules/{module_code}/faults` |
-| **Descripción** | Retorna un listado paginado de faltas disciplinarias, con filtros por colaborador, severidad, estado, origen y código de catálogo. |
+| **Descripción** | Retorna un listado paginado de faltas disciplinarias, con filtros por código de instancia, código de catálogo, colaborador, severidad, estado y origen. |
 
 ---
 
@@ -33,7 +33,8 @@ Endpoint para listar (con paginación y filtros) las faltas disciplinarias regis
 
 | Parámetro          | Tipo                     | Requerido | Default | Descripción |
 |--------------------|--------------------------|-----------|---------|-------------|
-| `code`             | `string`                 | No        | `null`  | Filtra por código del catálogo de falta. |
+| `code`             | `string`                 | No        | `null`  | Filtra por código de instancia de la falta (ej. `FLT-ALP-2026-001`). |
+| `catalog_code`     | `string`                 | No        | `null`  | Filtra por código del catálogo de falta (ej. `FL-ALP-01`). |
 | `collaborator_id`  | `guid`                   | No        | `null`  | Filtra faltas del colaborador indicado. |
 | `severity`          | `enum (FaultSeverity)`   | No        | `null`  | Filtra por severidad. |
 | `status`           | `enum (FaultStatus)`     | No        | `null`  | Filtra por estado de la falta. |
