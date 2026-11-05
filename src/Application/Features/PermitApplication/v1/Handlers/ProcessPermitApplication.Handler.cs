@@ -316,11 +316,40 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             "ERP:03");
                     }
 
+                    var additionalInformation = string.IsNullOrWhiteSpace(permitApplication.AdditionalData)
+                        ? null
+                        : JsonSerializer.Deserialize<AdditionalDataPermitApplication>(permitApplication.AdditionalData);
+
+                    var consumesVacation = additionalInformation?.LeaveEvidenceData.ConsumesVacationBalance == true;
+                    var amountDays = permitApplication.AmountDays ?? 0.0m;
+
+                    if (continueProcess && permitApplication.Status == PermitApplicationStatus.Approved && consumesVacation)
+                    {
+                        if (vacationInformationSolicitante is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No se encontro registro de vacaciones del solicitante", "ERP:02");
+                        }
+
+                        if (vacationInformationSolicitante.AvailableVacations < amountDays)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No posees la cantidad sufientes de vacaciones para realizar esta solicitud", "ERP:01");
+                        }
+                    }
+
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                     if (isAuthorized && continueProcess && permitApplication.Status == PermitApplicationStatus.Approved)
                     {
+                        if (consumesVacation)
+                        {
+                            vacationInformationSolicitante!.AvailableVacations -= amountDays;
+                            vacationInformationSolicitante.EnjoyedVacation += amountDays;
+
+                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
+                            await _reportingServices.ApplyVacationMovement(permitApplication.Collaborator, permitApplication.PayrolId);
+                        }
+
                         await _deductionServices.ApplyDeductionTravelExpenses(
                             permitApplication.Collaborator,
                             salaryInformation,

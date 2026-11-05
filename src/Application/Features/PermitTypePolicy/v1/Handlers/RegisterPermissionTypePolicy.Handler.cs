@@ -27,6 +27,7 @@ public class RegisterPermitTypePolicyHandler(IUnitOfWork _unitOfWork, IErrorMana
       
       var exists = await _unitOfWork.PermitTypePolicyRepository.Entities
          .AnyAsync(policy=> 
+         policy.CompanyId == req.CompanyId &&
          policy.PermitApplicationType == req.PermitApplicationType &&
          policy.BeneficiaryScope == req.PermitBeneficiaryScope && 
          policy.FamilyRelationship == req.FamilyRelationship,cancellationToken);
@@ -40,17 +41,17 @@ public class RegisterPermitTypePolicyHandler(IUnitOfWork _unitOfWork, IErrorMana
 
       await _unitOfWork.PermitTypePolicyRepository.RegisterPermitTypePolicy(new()
       {
+         CompanyId = req.CompanyId,
          PermitApplicationType = req.PermitApplicationType,
          BeneficiaryScope = req.PermitBeneficiaryScope,
          FamilyRelationship = req.FamilyRelationship,
-         IsPaid = req.IsPaid,
          ConsumesVacationBalance = req.ConsumesVacationBalance,
          RequiresEvidence = req.RequiresEvidence,
-         MinEvidenceCount = req.MinEvidenceCount,
-         MaxEvidenceCount = req.MaxEvidenceCount,
+         MinEvidenceCount = req.RequiresEvidence ? req.MinEvidenceCount : 0,
+         MaxEvidenceCount = req.RequiresEvidence ? req.MaxEvidenceCount : 0,
          RequiredApprovalSteps = req.RequiredApprovalSteps,
          MaxAmountDays = req.MaxAmountDays,
-         IsActive = true
+         IsActive = req.IsActive 
       });
 
          await _unitOfWork.SaveChangesAsync(cancellationToken);

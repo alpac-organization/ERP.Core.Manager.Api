@@ -354,6 +354,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         var policy = await _unitOfWork.PermitTypePolicyRepository.Entities
                             .Where(item=>item.IsActive)
+                            .Where(item=>item.CompanyId == request.CompanyId)
                             .Where(item=>item.PermitApplicationType == request.PermitApplicationType)
                             .Where(item=> item.BeneficiaryScope == leave.BeneficiaryScope)
                             .Where(item=> item.FamilyRelationship == leave.FamilyRelationship)
@@ -374,9 +375,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             return _errorManager.ThrowBadRequest<bool>($"Este permiso requiere al menos {policy.MinEvidenceCount} para ser considerado", "ERP:EVIDENCE");
                         }
 
-                        if (evidence.Count > policy.MaxEvidenceCount)
+                        if (policy.RequiresEvidence && evidence.Count > policy.MaxEvidenceCount)
                         {
-                            
                             return _errorManager.ThrowBadRequest<bool>($"Este permiso tiene como maximo {policy.MaxEvidenceCount} para ser correcto", "ERP:EVIDENCE");
                         }
 
@@ -392,6 +392,23 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             return _errorManager.ThrowBadRequest<bool>($"Este permiso admite como maximo la cantidad de {policy.MaxAmountDays} dias", "ERP:DAYS");
                         }
 
+                        if (policy.ConsumesVacationBalance)
+                        {
+                            var vacationControl = await _unitOfWork.Vacations.Entities
+                                .Where(vac => vac.CollaboratorId == collaborator.Id)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (vacationControl is null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>("No se encontro el registro de vacaciones de este colaborador", "ERP:01");
+                            }
+
+                            if (vacationControl.AvailableVacations < amountDays)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>("No posees la cantidad sufientes de vacaciones para realizar esta solicitud", "ERP:01");
+                            }
+                        }
+
                         permitApplication.Type = request.PermitApplicationType;
                         permitApplication.StartDate = leave.StartDate;
                         permitApplication.EndDate = leave.EndDate;
@@ -405,11 +422,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         AdditionalData.LeaveEvidenceData = new LeaveEvidenceData
                         {
-                            IsPaid = policy.IsPaid,
                             Evidence = evidence,
                             ConsumesVacationBalance = policy.ConsumesVacationBalance,
                             RequireApprovalSteps = policy.RequiredApprovalSteps,
-                            
                         };
                         if (policy.RequiredApprovalSteps <= 1)
                         {

@@ -55,7 +55,7 @@ Devuelve las solicitudes de la compañía, paginadas. El identificador para apro
       "permit_apllication_id": "c6319544-db83-4bd5-b786-f5f811edc238",
       "description": "Permiso por matrimonio",
       "requested_by": "Nombre del colaborador",
-      "additional_data": "{\"MedicalAppointmentData\":{\"IsFullDay\":false,\"ImagesAttached\":[]},\"LeaveEvidenceData\":{\"IsPaid\":true,\"Evidence\":[],\"RequireApprovalSteps\":2,\"ConsumesVacationBalance\":false}}",
+      "additional_data": "{\"MedicalAppointmentData\":{\"IsFullDay\":false,\"ImagesAttached\":[]},\"LeaveEvidenceData\":{\"Evidence\":[],\"RequireApprovalSteps\":2,\"ConsumesVacationBalance\":false}}",
       "collaborator_code": "KXX-YMDH",
       "fullname": "Nombre del colaborador",
       "first_step_status": {

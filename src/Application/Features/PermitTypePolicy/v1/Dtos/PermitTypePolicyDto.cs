@@ -16,8 +16,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Dtos
       public int MaxEvidenceCount {get; set;}
       public int MinEvidenceCount {get; set;}
 
-      public bool IsPaid {get; set;}
-
       public bool IsActive {get; set;}
 
       public bool ConsumesVacationBalance {get; set;}

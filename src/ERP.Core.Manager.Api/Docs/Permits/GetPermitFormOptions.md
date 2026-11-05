@@ -42,7 +42,10 @@ Este endpoint no recibe query params.
 ```json
 {
   "permit_types": [
-    { "name": "MarriageLeave", "value": 10 }
+    { "name": "JudicialAppointment", "value": 9 },
+    { "name": "MarriageLeave", "value": 10 },
+    { "name": "BirthLeave", "value": 11 },
+    { "name": "BereavementLeave", "value": 12 }
   ],
   "beneficiary_scopes": [
     { "name": "Own", "value": 1 },
@@ -53,12 +56,13 @@ Este endpoint no recibe query params.
     { "name": "Spouse", "value": 1 },
     { "name": "Child", "value": 2 },
     { "name": "Parent", "value": 3 },
-    { "name": "Sibling", "value": 4 }
+    { "name": "Sibling", "value": 4 },
+    { "name": "Other", "value": 5 }
   ]
 }
 ```
 
-Cada opción solo trae `name` (nombre del enum) y `value` (entero). `None` no aparece en `beneficiary_scopes`. Sí aparece en `family_relationships`, porque matrimonio, nacimiento y cita judicial se registran con parentesco ninguno.
+Cada opción solo trae `name` (nombre del enum) y `value` (entero). `permit_types` solo incluye cita judicial, matrimonio, nacimiento y fallecimiento. `None` no aparece en `beneficiary_scopes`. Sí aparece en `family_relationships`, porque un permiso propio se registra con parentesco ninguno. `Other` (`5`) es un parentesco de núcleo familiar y exige su propia política.
 
 ### 400 Bad Request
 

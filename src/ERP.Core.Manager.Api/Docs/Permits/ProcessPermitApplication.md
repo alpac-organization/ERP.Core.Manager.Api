@@ -1,6 +1,6 @@
 # Procesar solicitud de permiso
 
-Aprueba o rechaza un paso. Para cita judicial, matrimonio, nacimiento y fallecimiento el cierre aprobado solo descuenta viáticos. No mueve el saldo de vacaciones.
+Aprueba o rechaza un paso. Para cita judicial, matrimonio, nacimiento y fallecimiento el cierre aprobado descuenta viáticos. El saldo de vacaciones se mueve solo si la solicitud guardó `consumes_vacation_balance` en `true`.
 
 ## Procesar un tipo de permiso 
 
@@ -53,8 +53,10 @@ El identificador no va en el body.
 - El segundo paso lo hace solo `Administrator`.
 - Si la política pedía un solo paso, el create ya deja el primero aprobado y este endpoint entra al cierre.
 - `is_approved: false` en el segundo paso deja la solicitud en `Rejected` y no descuenta viáticos.
-- `is_approved: true` en el segundo paso deja la solicitud en `Approved` y llama el descuento de viáticos.
-- El descuento usa el rango `start_date` / `end_date`. No usa `max_amount_days`. Domingo no descuenta. Sábado descuenta un día completo solo si el colaborador trabaja sábados.
+- `is_approved: true` en el segundo paso deja la solicitud en `Approved`, descuenta viáticos y, si la copia de `consumes_vacation_balance` es `true`, resta `amount_days` del saldo de vacaciones.
+- El descuento de viáticos usa el rango `start_date` / `end_date`. No usa `max_amount_days`. Domingo no descuenta. Sábado descuenta un día completo solo si el colaborador trabaja sábados.
+- El descuento de vacaciones usa los días calculados al crear y el flag guardado en la solicitud. No vuelve a leer la política.
+- Si ese flag es `true` y el saldo ya no alcanza, el cierre se rechaza.
 - Vacaciones, pago de vacaciones y cita médica siguen su propio efecto al aprobarse.
 
 Hay que llamar el endpoint dos veces cuando `required_approval_steps` es `2`: primero con el token del jefe y después con el del administrador.
