@@ -11,6 +11,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
       public Guid SanctionTargetFaultId { get; set; }
 
       public Guid? ParentFaultId { get; set; }
+      public string? ParentFaultCode { get; set; } = string.Empty;
       public bool IsCoveredByEscalation { get; set; }
 
       public int CountOccurrenceInMonth { get; set; }

@@ -14,19 +14,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos
       public FaultReference? ParentFault { get; set; }
 
       // Auditoría
-      public RegisterUserDto? RegisteredBy { get; set; }
+      public DisciplinaryInformationUserDto? RegisteredBy { get; set; }
       public DateTime CreatedAt { get; set; }
    }
 
    public class FaultReference
    {
       public Guid FaultId { get; set; }
+      public string Code { get; set; } = string.Empty;
       public DateOnly OccurrenceDate { get; set; }
       public FaultSeverity Severity { get; set; }
       public FaultStatus Status { get; set; }
    }
 
-   public class RegisterUserDto
+   public class DisciplinaryInformationUserDto
    {
       public Guid UserId { get; set; }
       public string? FullName { get; set; }

@@ -2,6 +2,7 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
    public class CancelFaultHandler(
       IUnitOfWork _unitOfWork,
       IErrorManager _errorManager,
-      ILogger<CancelFaultHandler> _logger)
+      ILogger<CancelFaultHandler> _logger,
+      IDisciplinaryEscalation _disciplinaryEscalation)
       : BaseValidatorHandler<CancelFaultCommand, Unit>(_unitOfWork, _errorManager)
    {
       public override async Task<Unit> Handle(CancelFaultCommand request, CancellationToken cancellationToken)
@@ -39,6 +41,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
 
          var fault = await _unitOfWork.DisciplinaryFaults.Entities
             .Include(f => f.Collaborator)
+            .Include(f => f.ParentFault)
             .FirstOrDefaultAsync(f =>
                f.Id == request.FaultId
                && f.DeletedAt == null
@@ -66,9 +69,40 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                "ERP:InvalidOperation");
          }
 
+         if (fault.ParentFaultId.HasValue)
+         {
+            var parentRef = !string.IsNullOrWhiteSpace(fault.ParentFault?.Code)
+                ? fault.ParentFault.Code
+                : "";
+
+            return _errorManager.ThrowBadRequest<Unit>(
+               $"Esta falta está absorbida por una reincidencia. Debe anular la falta padre con código: {parentRef}.",
+               "ERP:InvalidOperation");
+         }
+
+         var hasActiveSanction = await _unitOfWork.DisciplinarySanctions.Entities
+            .AnyAsync(s =>
+               s.FaultId == fault.Id
+               && s.DeletedAt == null
+               && (s.SanctionStatus == SanctionStatus.Pending
+                   || s.SanctionStatus == SanctionStatus.Applied),
+               cancellationToken);
+
+         if (hasActiveSanction)
+         {
+            return _errorManager.ThrowBadRequest<Unit>(
+               "No se puede anular la falta: tiene una sanción pendiente o aplicada. Debe procesar o cancelar la sanción primero.",
+               "ERP:InvalidOperation");
+         }
+
          fault.DeletedAt = DateTime.UtcNow;
+         fault.Status = FaultStatus.Cancelled;
+         fault.CancellationReason = request.CancellationReason.Trim();
 
          await _unitOfWork.DisciplinaryFaults.UpdateAsync(fault);
+
+         await _disciplinaryEscalation.CancelLinkedFaults(fault, cancellationToken);
+
          await _unitOfWork.SaveChangesAsync(cancellationToken);
 
          _logger.LogInformation("✅ Falta disciplinaria {FaultId} anulada (DeletedAt)", request.FaultId);

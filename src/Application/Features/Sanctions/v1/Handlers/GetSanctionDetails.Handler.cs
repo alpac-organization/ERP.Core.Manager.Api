@@ -2,7 +2,6 @@ using AutoMapper;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Queries;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +32,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
                .ThenInclude(f => f.Collaborator)
             .Include(s => s.Fault)
                .ThenInclude(f => f.FaultCatalog)
+            .Include(s => s.User)
+            .Include(s => s.ApprovedByUser)
             .FirstOrDefaultAsync(s =>
                s.Id == request.SanctionId
                && s.DeletedAt == null
@@ -47,18 +48,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
                "ERP:NotFound");
          }
 
-         var detail = _mapper.Map<SanctionDetailDto>(sanction);
-
-         var issuedByUser = await _unitOfWork.Users.Entities
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == sanction.IssuedBy && u.DeletedAt == null, cancellationToken);
-
-         if (issuedByUser is not null)
-         {
-            detail.IssuedByUser = _mapper.Map<RegisterUserDto>(issuedByUser);
-         }
-
-         return detail;
+         return _mapper.Map<SanctionDetailDto>(sanction);
       }
    }
 }
