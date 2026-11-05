@@ -84,7 +84,7 @@ Registra una solicitud. Para cita judicial, matrimonio, nacimiento y fallecimien
 ## Reglas
 
 - Debe existir una política activa para tipo + alcance + parentesco.
-- Si la política exige evidencia, la cantidad de imágenes con `image_base64` debe estar entre el mínimo y el máximo.
+- Si la política exige evidencia, la cantidad de imágenes con `image_base64` debe estar entre el mínimo y el máximo. Si no la exige, la cantidad de imágenes no se valida.
 - Si `max_amount_days` de la política tiene valor, los días calculados no pueden superarlo. Si es `null`, no hay tope.
 - Domingo no cuenta. Sábado cuenta `0.5` solo si el colaborador trabaja sábados.
 - No se permite otra solicitud pendiente del mismo colaborador, ni solapamiento de fechas con una pendiente o aprobada.

@@ -73,6 +73,12 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Handlers
          var minEvidence = request.MinEvidenceCount ?? policy.MinEvidenceCount;
          var maxEvidence = request.MaxEvidenceCount ?? policy.MaxEvidenceCount;
 
+         if (!requiresEvidence)
+         {
+            minEvidence = 0;
+            maxEvidence = 0;
+         }
+
          if (minEvidence < 0)
          {
             return _errorManager.ThrowBadRequest<bool>("El mínimo de evidencias no puede ser negativo.", "ERP:07");

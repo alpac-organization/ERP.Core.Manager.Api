@@ -53,7 +53,7 @@ Crea una fila de `PermitTypePolicy`. El alta de una solicitud de cita judicial, 
 | `permit_beneficiary_scope` | `enum` | Sí | `1` propio, `2` núcleo familiar. `0` no es válido. |
 | `family_relationship` | `enum` | Sí | `0` si el alcance es propio. Distinto de `0` si es núcleo familiar, incluido `5` otro. |
 | `is_active` | `bool` | Sí | Se guarda el valor enviado. |
-| `requires_evidence` | `bool` | Sí | Si es `true`, `min_evidence_count` debe ser al menos 1. |
+| `requires_evidence` | `bool` | Sí | Si es `false`, el mínimo y el máximo se guardan en `0`. Si es `true`, el mínimo debe ser al menos 1 y el máximo no puede ser menor. |
 | `consumes_vacation_balance` | `bool` | Sí | Si es `true`, el alta exige saldo y la aprobación descuenta esos días. |
 | `min_evidence_count` | `int` | Sí | Mínimo de imágenes. No puede ser negativo. |
 | `max_evidence_count` | `int` | Sí | Máximo de imágenes. No puede ser menor al mínimo. |

@@ -40,6 +40,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.validato
 
          RuleFor(x => x.MaxEvidenceCount)
             .GreaterThanOrEqualTo(x => x.MinEvidenceCount)
+            .When(x => x.RequiresEvidence)
             .WithMessage("El máximo de evidencias no puede ser menor al mínimo.");
 
          RuleFor(x => x.RequiredApprovalSteps)

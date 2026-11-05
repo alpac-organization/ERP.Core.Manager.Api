@@ -47,8 +47,8 @@ public class RegisterPermitTypePolicyHandler(IUnitOfWork _unitOfWork, IErrorMana
          FamilyRelationship = req.FamilyRelationship,
          ConsumesVacationBalance = req.ConsumesVacationBalance,
          RequiresEvidence = req.RequiresEvidence,
-         MinEvidenceCount = req.MinEvidenceCount,
-         MaxEvidenceCount = req.MaxEvidenceCount,
+         MinEvidenceCount = req.RequiresEvidence ? req.MinEvidenceCount : 0,
+         MaxEvidenceCount = req.RequiresEvidence ? req.MaxEvidenceCount : 0,
          RequiredApprovalSteps = req.RequiredApprovalSteps,
          MaxAmountDays = req.MaxAmountDays,
          IsActive = req.IsActive 
