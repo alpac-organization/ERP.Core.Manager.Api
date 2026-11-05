@@ -1,10 +1,11 @@
 using MediatR;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+
 using ERP.Core.Manager.Api.Application.Features.Companies.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Companies.v1.Dtos;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 
 namespace ERP.Core.Manager.Api.Application.Features.Companies.v1.Handlers
 {
@@ -16,6 +17,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Companies.v1.Handlers
 
             var companies = await _unitOfWork.Companies.Entities
                 .Where(comp => comp.IsActive)
+                .OrderBy(comp => comp.Alias)
                 .ToListAsync(cancellationToken);
 
             _logger.LogInformation("Empresas con exito ✅");
