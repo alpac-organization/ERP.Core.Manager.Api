@@ -8,6 +8,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Queries
 {
    public class GetSanctionsQuery : BaseRequest, IRequest<PagedResponse<SanctionDto>>
    {
+      public string? Code { get; set; }
       public Guid? CollaboratorId { get; set; }
       public Guid? FaultId { get; set; }
       public SanctionType? SanctionType { get; set; }

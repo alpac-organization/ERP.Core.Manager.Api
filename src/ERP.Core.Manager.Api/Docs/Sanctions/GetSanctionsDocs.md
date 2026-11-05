@@ -8,7 +8,7 @@ Endpoint para listar (con paginación y filtros) las sanciones disciplinarias re
 |-----------|-------|
 | **Método**      | `GET` |
 | **Endpoint**    | `/api/v1/companies/{company_id}/modules/{module_code}/sanctions` |
-| **Descripción** | Retorna un listado paginado de sanciones, con filtros por colaborador, falta, tipo y estado. |
+| **Descripción** | Retorna un listado paginado de sanciones, con filtros por código, colaborador, falta, tipo y estado. |
 
 ---
 
@@ -33,6 +33,7 @@ Endpoint para listar (con paginación y filtros) las sanciones disciplinarias re
 
 | Parámetro           | Tipo                       | Requerido | Default | Descripción |
 |---------------------|----------------------------|-----------|---------|-------------|
+| `code`              | `string`                   | No        | `null`  | Filtra por código de instancia de la sanción (ej. `SAN-ALP-2026-001`). |
 | `collaborator_id`   | `guid`                     | No        | `null`  | Filtra por colaborador. |
 | `fault_id`          | `guid`                     | No        | `null`  | Filtra por falta. |
 | `sanction_type`     | `enum (SanctionType)`      | No        | `null`  | Filtra por tipo de sanción. |
