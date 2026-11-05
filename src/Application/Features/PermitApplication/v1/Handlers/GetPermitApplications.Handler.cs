@@ -1,17 +1,16 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
-
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Queries;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 //✅Obtener solicitudes de permisos realizadas por empresas.
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class GetPermitApplicationsRequestHandler(IUnitOfWork _unitOfWork, IMapper  _mapper, IErrorManager _errorManager) : AlpacBaseHandler<GetPermitApplicationsQuery, PagedResponse<PermitApplicationDto>>(_unitOfWork, _errorManager)
+    public class GetPermitApplicationsRequestHandler(IUnitOfWork _unitOfWork, IMapper  _mapper, IErrorManager _errorManager) : BaseValidatorHandler<GetPermitApplicationsQuery, PagedResponse<PermitApplicationDto>>(_unitOfWork, _errorManager)
     {
         public override async Task<PagedResponse<PermitApplicationDto>> Handle(GetPermitApplicationsQuery request, CancellationToken cancellationToken)
         {

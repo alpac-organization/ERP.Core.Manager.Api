@@ -3,16 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Reports.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 namespace ERP.Core.Manager.Api.Application.Features.Reports.v1.Handlers
 {
-   public class GetReportsByTypeHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper, IReportingServices _reportingServices) : AlpacBaseHandler<GetReportsByTypeQuery, ReportsDto>(_unitOfWork, _errorManager)
+   public class GetReportsByTypeHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper, IReportingServices _reportingServices) : BaseValidatorHandler<GetReportsByTypeQuery, ReportsDto>(_unitOfWork, _errorManager)
    {
       public override async Task<ReportsDto> Handle(GetReportsByTypeQuery request, CancellationToken cancellationToken)
       {

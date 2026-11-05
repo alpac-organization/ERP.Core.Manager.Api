@@ -1,23 +1,21 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-
 using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
-
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
-
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 //Alias
 using PermitApplicationEntity = ERP.Core.Database.Domain.Entities.Payrolls.PermitApplication;
 
+
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class CreatePermitApplicationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<CreatePermitApplicationHandler> _logger) : AlpacBaseHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
+    public class CreatePermitApplicationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<CreatePermitApplicationHandler> _logger) : BaseValidatorHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(CreatePermitApplicationCommand request, CancellationToken cancellationToken)
         {

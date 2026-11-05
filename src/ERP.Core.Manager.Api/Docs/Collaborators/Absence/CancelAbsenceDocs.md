@@ -8,7 +8,7 @@ Endpoint para descartar o cancelar una inasistencia cuando se llega a un acuerdo
 |---|---|
 | **Método** | `POST` |
 | **Endpoint** | `/api/v1/companies/{company_id}/modules/{module_code}/absences/{absence_id}/cancel` |
-| **Descripción** | Pasa la inasistencia a estado `Cancelled`, revierte a `0.00` todas las deducciones calculadas y guarda de forma obligatoria el motivo de cancelación para auditoría. |
+| **Descripción** | Pasa la inasistencia a estado `Cancelled`, revierte a `0.00` todas las deducciones calculadas, anula la falta disciplinaria generada (si estaba aplicada) y guarda de forma obligatoria el motivo de cancelación para auditoría. |
 
 ---
 
@@ -52,7 +52,10 @@ Endpoint para descartar o cancelar una inasistencia cuando se llega a un acuerdo
 1. **Motivo Obligatorio:** Es estrictamente obligatorio ingresar el `cancellation_reason` para asegurar la transparencia en auditorías laborales.
 2. **Ciclo de Nómina:** No se puede cancelar una inasistencia si ya fue liquidada en un ciclo de nómina cerrado (`Closed` o `Completed`).
 3. **Reversión Monetaria:** Las deducciones por salario, 7mo día y viáticos se ponen automáticamente en `0.00`.
-4. **Registro de Auditoría:** Queda guardado el usuario de RRHH que ejecutó la cancelación (`reviewed_by`) y el momento exacto (`reviewed_at`).
+4. **Anulación de Falta Disciplinaria:** Si la inasistencia ya había sido aplicada y tenía una falta disciplinaria leve generada, dicha falta se anula lógicamente (`deleted_at = Now`) para no perjudicar el historial del colaborador.
+5. **Reversión de Escalamiento:** Si la inasistencia había sido una de las 3 inasistencias que activaron una falta muy grave (`FMG-*-04`), la falta padre escalada se anula lógicamente y las inasistencias restantes quedan liberadas (`ParentFaultId = null`) como faltas leves pendientes.
+6. **Protección de Sanciones Firmes:** Si la falta disciplinaria (o la falta escalada por acumulación) ya tiene una sanción aplicada (`FaultStatus.SanctionApplied` o con sanciones registradas), no se permite cancelar la inasistencia.
+7. **Registro de Auditoría:** Queda guardado el usuario de RRHH que ejecutó la cancelación (`reviewed_by`) y el momento exacto (`reviewed_at`).
 
 ---
 
@@ -85,6 +88,17 @@ HTTP/1.1 200 OK
   "error": {
     "type_error": "BadRequest",
     "description": "No se puede cancelar una inasistencia que ya fue liquidada en un ciclo de nómina cerrado."
+  },
+  "created_at": "2026-10-29 16:00:00"
+}
+```
+
+```json
+{
+  "status": 400,
+  "error": {
+    "type_error": "BadRequest",
+    "description": "No se puede cancelar la inasistencia porque su falta disciplinaria ya cuenta con una sanción aplicada."
   },
   "created_at": "2026-10-29 16:00:00"
 }

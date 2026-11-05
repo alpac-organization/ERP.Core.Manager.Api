@@ -65,9 +65,13 @@ Endpoint para registrar una inasistencia de un colaborador, reportada por el jef
 
 ## Validaciones y Reglas de Negocio
 
-1. **Unicidad por fecha:** No se permite registrar más de una inasistencia activa o pendiente para el mismo colaborador en la misma fecha.
-2. **Permisos Aprobados:** Valida que el colaborador no cuente con una solicitud de permiso aprobada (`PermitApplication`) que cubra la fecha indicada.
-3. **Estado Inicial:** Toda inasistencia recién registrada nace con estado `Pending` (`1`), deducciones en `0.00` y sin falta disciplinaria asociada, a la espera de la resolución de RRHH.
+1. **Días de Descanso Obligatorio (Domingo):** No se permite registrar una inasistencia en día domingo (descanso semanal obligatorio por ley).
+2. **Jornada Laboral (Sábados):** Si el colaborador tiene jornada de Lunes a Viernes (`DoesWorkSaturdays = false`), se rechaza el registro en día sábado.
+3. **Días Feriados (`Holidays`):** Valida contra la tabla `holidays` que la fecha no coincida con un feriado nacional (`IsGlobal = true`) ni con un asueto local de su sucursal (`BranchId`). En días feriados no procede inasistencia al ser descansos remunerados obligatorios.
+4. **Unicidad por fecha:** No se permite registrar más de una inasistencia activa o pendiente para el mismo colaborador en la misma fecha.
+5. **Permisos Aprobados:** Valida que el colaborador no cuente con una solicitud de permiso aprobada (`PermitApplication`) que cubra la fecha indicada.
+6. **Subsidios Médicos:** Valida que el colaborador no tenga un subsidio médico activo (`Subsidies`) que cubra la fecha.
+7. **Estado Inicial:** Toda inasistencia recién registrada nace con estado `Pending` (`1`), deducciones en `0.00` y sin falta disciplinaria asociada, a la espera de la resolución de RRHH.
 
 ---
 
