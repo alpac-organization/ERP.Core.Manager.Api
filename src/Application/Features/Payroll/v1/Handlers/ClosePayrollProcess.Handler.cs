@@ -54,6 +54,35 @@ namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 
             #endregion
 
+            #region Validar inasistencias pendientes en el periodo
+            var pendingAbsencesQuery = _unitOfWork.Absences.Entities
+                .Where(a => a.Status == AbsenceStatus.Pending
+                         && a.DeletedAt == null
+                         && a.Date >= payroll.StartDate
+                         && a.Date <= payroll.EndDate);
+
+            if (payroll.OrdinaryPayrolls.Count != 0)
+            {
+                var collaboratorIds = payroll.OrdinaryPayrolls.Select(op => op.CollaboratorId).ToList();
+                pendingAbsencesQuery = pendingAbsencesQuery.Where(a => collaboratorIds.Contains(a.CollaboratorId));
+            }
+            else
+            {
+                pendingAbsencesQuery = pendingAbsencesQuery
+                    .Where(a => a.Collaborator.CompanyId == request.CompanyId
+                             && a.Collaborator.WorkingInformation.BranchId == request.BranchId);
+            }
+
+            var pendingAbsencesCount = await pendingAbsencesQuery.CountAsync(cancellationToken);
+
+            if (pendingAbsencesCount > 0)
+            {
+                return _errorManager.ThrowBadRequest<bool>(
+                    $"No se puede cerrar la nómina. Existen {pendingAbsencesCount} inasistencia(s) en estado 'Pendiente' en el periodo del {payroll.StartDate:dd/MM/yyyy} al {payroll.EndDate:dd/MM/yyyy}. Recursos Humanos debe Aplicarlas o Cancelarlas antes de proceder.",
+                    "ERP:PendingAbsencesFound");
+            }
+            #endregion
+
             payroll.Status = PayrollStatus.Closed;
             await _unitOfWork.Payrolls.UpdateAsync(payroll);
 
