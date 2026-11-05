@@ -37,7 +37,6 @@ Crea una fila de `PermitTypePolicy`. El alta de una solicitud de cita judicial, 
   "permit_application_type": 10,
   "permit_beneficiary_scope": 1,
   "family_relationship": 0,
-  "is_paid": true,
   "is_active": true,
   "requires_evidence": true,
   "consumes_vacation_balance": false,
@@ -50,13 +49,12 @@ Crea una fila de `PermitTypePolicy`. El alta de una solicitud de cita judicial, 
 
 | Campo | Tipo | Requerido | Descripción |
 |---|---|:---:|---|
-| `permit_application_type` | `enum` | Sí | Tipo de permiso. |
+| `permit_application_type` | `enum` | Sí | Solo `9`, `10`, `11` o `12`. Otro tipo se rechaza. |
 | `permit_beneficiary_scope` | `enum` | Sí | `1` propio, `2` núcleo familiar. `0` no es válido. |
-| `family_relationship` | `enum` | Sí | `0` si el alcance es propio. Distinto de `0` si es núcleo familiar. |
-| `is_paid` | `bool` | Sí | Indica si el día se paga en salario. |
-| `is_active` | `bool` | No | El handler guarda la política como activa. |
+| `family_relationship` | `enum` | Sí | `0` si el alcance es propio. Distinto de `0` si es núcleo familiar, incluido `5` otro. |
+| `is_active` | `bool` | Sí | Se guarda el valor enviado. |
 | `requires_evidence` | `bool` | Sí | Si es `true`, `min_evidence_count` debe ser al menos 1. |
-| `consumes_vacation_balance` | `bool` | Sí | Para estos cuatro tipos se envía `false`. El process no descuenta vacaciones. |
+| `consumes_vacation_balance` | `bool` | Sí | Si es `true`, el alta exige saldo y la aprobación descuenta esos días. |
 | `min_evidence_count` | `int` | Sí | Mínimo de imágenes. No puede ser negativo. |
 | `max_evidence_count` | `int` | Sí | Máximo de imágenes. No puede ser menor al mínimo. |
 | `required_approval_steps` | `int` | Sí | `1` o `2`. |
@@ -71,7 +69,7 @@ Crea una fila de `PermitTypePolicy`. El alta de una solicitud de cita judicial, 
 | `11` | `BirthLeave` |
 | `12` | `BereavementLeave` |
 
-Fallecimiento necesita una fila por parentesco: `1` cónyuge, `2` hijo, `3` padre, `4` hermano.
+Fallecimiento necesita una fila por parentesco: `1` cónyuge, `2` hijo, `3` padre, `4` hermano, `5` otro. Vacaciones, pago de vacaciones y cita médica no usan esta política.
 
 ---
 

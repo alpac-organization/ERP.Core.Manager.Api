@@ -90,7 +90,7 @@ Registra una solicitud. Para cita judicial, matrimonio, nacimiento y fallecimien
 - No se permite otra solicitud pendiente del mismo colaborador, ni solapamiento de fechas con una pendiente o aprobada.
 - El colaborador no puede registrar su propia solicitud desde el panel administrativo.
 - `required_approval_steps = 1` deja el primer paso aprobado al crear. `2` usa el flujo de jefe y administrador.
-- Estos tipos no descuentan vacaciones al crearse.
+- Estos tipos no descuentan vacaciones al crearse. Si `consumes_vacation_balance` de la política es `true`, el saldo disponible debe cubrir los días calculados; el descuento ocurre al aprobar.
 
 ---
 

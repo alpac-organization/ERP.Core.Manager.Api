@@ -1,6 +1,7 @@
 using FluentValidation;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Validators;
+using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1;
 using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.validator
@@ -15,7 +16,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.validato
          When(x => x.PermitApplicationType.HasValue, () =>
          {
             RuleFor(x => x.PermitApplicationType)
-               .IsInEnum().WithMessage("El tipo de permiso no es válido.");
+               .IsInEnum().WithMessage("El tipo de permiso no es válido.")
+               .Must(type => type.HasValue && PermitTypePolicyRules.IsAllowed(type.Value))
+               .WithMessage("La politica solo aplica a cita judicial, matrimonio, nacimiento y fallecimiento.");
          });
 
          When(x => x.PermitBeneficiaryScope.HasValue, () =>

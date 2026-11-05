@@ -2,6 +2,7 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Enums;
+using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1;
 using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.commands;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +34,11 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Handlers
          }
 
          var type = request.PermitApplicationType ?? policy.PermitApplicationType;
+         if (!PermitTypePolicyRules.IsAllowed(type))
+         {
+            return _errorManager.ThrowBadRequest<bool>("La politica solo aplica a cita judicial, matrimonio, nacimiento y fallecimiento.", "ERP:TYPE");
+         }
+
          var scope = request.PermitBeneficiaryScope ?? policy.BeneficiaryScope;
          var relationship = request.FamilyRelationship ?? policy.FamilyRelationship;
 
@@ -85,7 +91,6 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Handlers
          policy.PermitApplicationType = type;
          policy.BeneficiaryScope = scope;
          policy.FamilyRelationship = relationship;
-         policy.IsPaid = request.IsPaid ?? policy.IsPaid;
          policy.IsActive = request.IsActive ?? policy.IsActive;
          policy.RequiresEvidence = requiresEvidence;
          policy.ConsumesVacationBalance = request.ConsumesVacationBalance ?? policy.ConsumesVacationBalance;

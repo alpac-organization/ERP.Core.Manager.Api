@@ -45,14 +45,13 @@ public class RegisterPermitTypePolicyHandler(IUnitOfWork _unitOfWork, IErrorMana
          PermitApplicationType = req.PermitApplicationType,
          BeneficiaryScope = req.PermitBeneficiaryScope,
          FamilyRelationship = req.FamilyRelationship,
-         IsPaid = req.IsPaid,
          ConsumesVacationBalance = req.ConsumesVacationBalance,
          RequiresEvidence = req.RequiresEvidence,
          MinEvidenceCount = req.MinEvidenceCount,
          MaxEvidenceCount = req.MaxEvidenceCount,
          RequiredApprovalSteps = req.RequiredApprovalSteps,
          MaxAmountDays = req.MaxAmountDays,
-         IsActive = true
+         IsActive = req.IsActive 
       });
 
          await _unitOfWork.SaveChangesAsync(cancellationToken);
