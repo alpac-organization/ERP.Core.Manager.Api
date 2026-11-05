@@ -1,7 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Absences.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Absences.v1.Queries;
@@ -9,7 +9,7 @@ using ERP.Core.Manager.Api.Application.Features.Absences.v1.Queries;
 namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
 {
     public class GetAbsenceByIdRequestHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IErrorManager _errorManager)
-        : AlpacBaseHandler<GetAbsenceByIdQuery, AbsenceDetailDto?>(_unitOfWork, _errorManager)
+        : BaseValidatorHandler<GetAbsenceByIdQuery, AbsenceDetailDto?>(_unitOfWork, _errorManager)
     {
         public override async Task<AbsenceDetailDto?> Handle(GetAbsenceByIdQuery request, CancellationToken cancellationToken)
         {

@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
-
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Commands;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class ClosePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<ClosePayrollProcessHandler> _logger) : AlpacBaseHandler<ClosePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
+    public class ClosePayrollProcessHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<ClosePayrollProcessHandler> _logger) : BaseValidatorHandler<ClosePayrollProcessCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(ClosePayrollProcessCommand request, CancellationToken cancellationToken)
         {

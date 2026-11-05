@@ -1,16 +1,15 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
-
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class ObtainPayrollPeriodsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<ObtainPayrollPeriodsQuery, List<PayrollPeriodDto>>(_unitOfWork, _errorManager)
+    public class ObtainPayrollPeriodsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): BaseValidatorHandler<ObtainPayrollPeriodsQuery, List<PayrollPeriodDto>>(_unitOfWork, _errorManager)
     {
         public override async Task<List<PayrollPeriodDto>> Handle(ObtainPayrollPeriodsQuery request, CancellationToken cancellationToken)
         {

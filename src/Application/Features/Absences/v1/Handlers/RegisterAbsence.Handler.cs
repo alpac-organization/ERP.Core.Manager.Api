@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Absences.v1.Commands;
@@ -9,7 +9,7 @@ using ERP.Core.Manager.Api.Application.Features.Absences.v1.Commands;
 namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
 {
     public class RegisterAbsenceHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager)
-        : AlpacBaseHandler<RegisterAbsenceCommand, bool>(_unitOfWork, _errorManager)
+        : BaseValidatorHandler<RegisterAbsenceCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterAbsenceCommand request, CancellationToken cancellationToken)
         {

@@ -56,7 +56,6 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 [sourceFiles]
 Commons/Bases/
  AdditionalDataeEntities.cs
- AlpacBaseHandler.cs
  IrCalculationResult.cs
  UserValidateHandlerBase.cs
 Commons/Interfaces/

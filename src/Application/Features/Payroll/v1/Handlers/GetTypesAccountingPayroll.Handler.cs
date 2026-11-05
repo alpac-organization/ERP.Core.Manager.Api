@@ -1,16 +1,15 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 //Obtener solicitudes de vacaciones registradas durante el periodo de nomina
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class GetTypesAccountingPayrollHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GetTypesAccountingPayrollQuery, List<TypesAccountingPayrollDto>>(_unitOfWork, _errorManager)
+    public class GetTypesAccountingPayrollHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): BaseValidatorHandler<GetTypesAccountingPayrollQuery, List<TypesAccountingPayrollDto>>(_unitOfWork, _errorManager)
     {
         public override async Task<List<TypesAccountingPayrollDto>> Handle(GetTypesAccountingPayrollQuery request, CancellationToken cancellationToken)
         {
