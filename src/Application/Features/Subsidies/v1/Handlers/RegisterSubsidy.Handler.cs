@@ -4,14 +4,14 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Commands;
 using Microsoft.Extensions.Logging;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
 {
-    public class RegisterSubsidyHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IIncomeServices _incomeServices, ILogger<RegisterSubsidyHandler> _logger) : AlpacBaseHandler<RegisterSubsidyCommmand, bool>(_unitOfWork, _errorManager)
+    public class RegisterSubsidyHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IIncomeServices _incomeServices, ILogger<RegisterSubsidyHandler> _logger) : BaseValidatorHandler<RegisterSubsidyCommmand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(RegisterSubsidyCommmand request, CancellationToken cancellationToken)
         {

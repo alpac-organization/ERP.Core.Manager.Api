@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Deductions.v1.Queries;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
 {
-    public class GetDeductionsPaymentsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GetDeductionPaymentsQuery, PagedResponseDeduction<DeductionPaymentsDto>>(_unitOfWork, _errorManager)
+    public class GetDeductionsPaymentsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): BaseValidatorHandler<GetDeductionPaymentsQuery, PagedResponseDeduction<DeductionPaymentsDto>>(_unitOfWork, _errorManager)
     {
         public override async Task<PagedResponseDeduction<DeductionPaymentsDto>> Handle(GetDeductionPaymentsQuery request, CancellationToken cancellationToken)
         {

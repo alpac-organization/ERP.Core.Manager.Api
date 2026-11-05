@@ -24,7 +24,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
         }
 
-        public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal biweeklySalary, decimal inssLabor, decimal? patronalInatecBase = null)
+        public async Task ApplyInssReporting(string period, Guid payrollId, Collaborator collaborator, decimal biweeklySalary, decimal inssLabor, decimal? patronalInatecBase = null, decimal absences = 0m, int daysAbsence = 0)
         {
             int countCollaborators = await _unitOfWork.Collaborators.Entities
                 .Where(col => col.Status != CollaboratorStatus.Inactive)
@@ -63,8 +63,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     Inatec = inatecCalc,
                     InssPatronal = inssPatronalCalc,
                     Total = total,
-                    Absence = 0,
-                    DaysAbsence = 0,
+                    Absence = absences,
+                    DaysAbsence = daysAbsence,
                     Income = incomeRounded
                 });
             }
@@ -75,6 +75,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 existingRecord.InssPatronal = inssPatronalCalc;
                 existingRecord.Total = total;
                 existingRecord.Income = incomeRounded;
+                existingRecord.Absence = absences;
+                existingRecord.DaysAbsence = daysAbsence;
 
                 await _unitOfWork.InssAccountingInformation.UpdateAsync(existingRecord);
             }

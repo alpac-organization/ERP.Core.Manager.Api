@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Dtos;
 using Microsoft.Extensions.Logging;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
 {
@@ -13,7 +13,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Subsidies.v1.Handlers
         IUnitOfWork _unitOfWork,
         IErrorManager _errorManager,
         ILogger<GetSubsidiesHistoryHandler> _logger)
-        : AlpacBaseHandler<GetSubsidiesHistoryQuery, PagedResponse<SubsidyHistoryDto>>(_unitOfWork, _errorManager)
+        : BaseValidatorHandler<GetSubsidiesHistoryQuery, PagedResponse<SubsidyHistoryDto>>(_unitOfWork, _errorManager)
     {
         public override async Task<PagedResponse<SubsidyHistoryDto>> Handle(
             GetSubsidiesHistoryQuery request,

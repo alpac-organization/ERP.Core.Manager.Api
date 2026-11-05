@@ -8,6 +8,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Interfaces
 
       public (DateOnly Start, DateOnly End) GetMonthBoundaries(DateOnly OccurrenceDate);
 
+      public Task<DisciplinaryFault?> CheckAndEscalateAbsencesAsync(Guid collaboratorId, DateOnly occurrenceDate, Guid userId, CancellationToken cancellationToken);
+
       public Task CancelLinkedFaults(DisciplinaryFault parentFault, CancellationToken cancellationToken);
 
       public Task MarkLinkedFaultsAsSanctionApplied(DisciplinaryFault parentFault, CancellationToken cancellationToken);

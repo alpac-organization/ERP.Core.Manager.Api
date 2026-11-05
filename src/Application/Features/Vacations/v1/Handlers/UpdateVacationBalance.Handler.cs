@@ -1,14 +1,13 @@
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Vacations.v1.Commands;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Vacations.v1.Handlers
 {
-    public class UpdateVacationBalanceHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): AlpacBaseHandler<UpdateVacationBalanceCommand,bool>(_unitOfWork, _errorManager)
+    public class UpdateVacationBalanceHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager): BaseValidatorHandler<UpdateVacationBalanceCommand,bool>(_unitOfWork, _errorManager)
     {
        public override async Task<bool> Handle(UpdateVacationBalanceCommand request, CancellationToken cancellationToken)
         {
