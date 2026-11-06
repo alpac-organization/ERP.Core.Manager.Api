@@ -12,6 +12,8 @@ using ERP.Core.Database.Infrastructure.Services;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Clock.Database.Infrastructure;
 using ERP.Core.Infrastructure;
+using ERP.Core.Notification.Infrastructure;
+using ERP.Core.Notification.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
@@ -38,6 +40,9 @@ namespace ERP.Core.Manager.Api.Infrastructure
             services.AddScoped<IPdfGeneratorServices, PdfGeneratorServices>();
             services.AddScoped<IAuthServices, AuthServices>();
             services.AddScoped<IDisciplinaryEscalation, DisciplinaryEscalationService>();
+            
+            // Registrar el servicio de notificaciones por correo
+            services.AddNotificationServices(configuration);
 
             // services.AddJobScheduling();
             services.AddErpDatabaseServices(configuration);
