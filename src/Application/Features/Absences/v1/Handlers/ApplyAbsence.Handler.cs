@@ -1,12 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Bases;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
-using ERP.Core.Manager.Api.Application.Commons.Mappings;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Absences.v1.Commands;
-using ERP.Core.Database.Domain.Entities.Payrolls;
 
 namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
 {
@@ -14,7 +12,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
         IUnitOfWork _unitOfWork, 
         IErrorManager _errorManager, 
         IDisciplinaryEscalation _disciplinaryEscalation)
-        : AlpacBaseHandler<ApplyAbsenceCommand, bool>(_unitOfWork, _errorManager)
+        : BaseValidatorHandler<ApplyAbsenceCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(ApplyAbsenceCommand request, CancellationToken cancellationToken)
         {
@@ -48,7 +46,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
                 return _errorManager.ThrowBadRequest<bool>("No se puede aplicar una inasistencia que se encuentra cancelada.", "ERP:005");
             }
 
-            // 1. Obtener salario activo y calcular deducción de salario ordinario y séptimo día
+            // 1. Obtener salario activo y calcular deducción de salario ordinario
             var activeSalary = absence.Collaborator.Salaries
                 .Where(s => s.EndDate == null)
                 .OrderByDescending(s => s.StartDate)
@@ -58,7 +56,31 @@ namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
             {
                 var dailySalary = activeSalary.AmountSalary / 30m;
                 absence.SalaryDeduction = Math.Round(dailySalary, 2);
-                absence.SeventhDayDeduction = Math.Round(dailySalary, 2);
+
+                // Regla del Séptimo Día (Criterio A: Tope Semanal de 1 Séptimo Día en la semana Lunes a Domingo)
+                int diff = (7 + (absence.Date.DayOfWeek - DayOfWeek.Monday)) % 7;
+                var weekStart = absence.Date.AddDays(-diff);
+                var weekEnd = weekStart.AddDays(6);
+
+                var alreadyDeductedSeventhDay = await _unitOfWork.Absences.Entities
+                    .AnyAsync(a => a.CollaboratorId == absence.CollaboratorId
+                                && a.Id != absence.Id
+                                && a.Status == AbsenceStatus.Applied
+                                && a.DeletedAt == null
+                                && a.Date >= weekStart
+                                && a.Date <= weekEnd
+                                && a.SeventhDayDeduction > 0, cancellationToken);
+
+                if (alreadyDeductedSeventhDay)
+                {
+                    // Tope alcanzado: el descanso semanal ya fue deducido por otra inasistencia en la misma semana
+                    absence.SeventhDayDeduction = 0.0m;
+                }
+                else
+                {
+                    // Primera inasistencia en la semana: deduce el séptimo día completo
+                    absence.SeventhDayDeduction = Math.Round(dailySalary, 2);
+                }
             }
 
             // 2. Calcular deducción de viáticos asignados activos
@@ -76,45 +98,24 @@ namespace ERP.Core.Manager.Api.Application.Features.Absences.v1.Handlers
             absence.ReviewedBy = request.UserId;
             absence.ReviewedAt = DateTime.Now;
 
-            // 4. Integrar con el Módulo de Faltas Disciplinarias (Registrar Falta Leve por inasistencia)
-            FaultCatalog? faultCatalog = null;
-
-            if (request.FaultCatalogId.HasValue)
-            {
-                faultCatalog = await _unitOfWork.FaultCatalogs.Entities
-                    .FirstOrDefaultAsync(fc => fc.Id == request.FaultCatalogId.Value 
-                                            && fc.CompanyId == request.CompanyId 
-                                            && fc.IsActive
-                                            && fc.DeletedAt == null, cancellationToken);
-            }
-
-            // Buscar en el catálogo de faltas leves de la empresa por coincidencia en el nombre ("Ausencia")
-            faultCatalog ??= await _unitOfWork.FaultCatalogs.Entities
-                .FirstOrDefaultAsync(fc => fc.CompanyId == request.CompanyId 
-                                        && fc.IsActive 
-                                        && fc.DeletedAt == null
-                                        && fc.FaultSeverity == FaultSeverity.Minor
-                                        && (fc.Name.Contains("Ausencia") || fc.Name.Contains("ausencia")), cancellationToken);
-
-            if (faultCatalog is null)
-            {
-                return _errorManager.ThrowNotFound<bool>("No se encontró en el catálogo de faltas la falta disciplinaria leve por ausencia injustificada para esta empresa.", "ERP:004");
-            }
-
-            var disciplinaryFault = absence.ToDisciplinaryFaultEntity(
-                faultCatalog.Id,
-                FaultSeverity.Minor,
-                request.UserId);
-
-            await _unitOfWork.DisciplinaryFaults.RegisterDisciplinaryFault(disciplinaryFault);
+            await _unitOfWork.Absences.UpdateAsync(absence);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            absence.DisciplinaryFaultId = disciplinaryFault.Id;
+            // 4. Verificar acumulación de 3 inasistencias en el mes calendario (continuas o discontinuas)
+            // Si el colaborador acumula 3 o más inasistencias en el mes calendario, se genera directamente
+            // la Falta Muy Grave (FMG-ALP-04 / FMG-AVS-04). No se crean faltas leves intermedias.
+            var escalatedFault = await _disciplinaryEscalation.CheckAndEscalateAbsencesAsync(
+                absence.CollaboratorId,
+                absence.Date,
+                request.UserId,
+                cancellationToken);
 
-            // Ejecutar el proceso de escalamiento existente (3 faltas leves en el mes = 1 falta grave automática)
-            await _disciplinaryEscalation.ExecuteEscalationProcess(disciplinaryFault, cancellationToken);
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (escalatedFault != null)
+            {
+                absence.DisciplinaryFaultId = escalatedFault.Id;
+                await _unitOfWork.Absences.UpdateAsync(absence);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
 
             return true;
         }

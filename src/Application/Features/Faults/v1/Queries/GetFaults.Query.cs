@@ -10,6 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Queries
    public class GetFaultsQuery : BaseRequest, IRequest<PagedResponse<FaultDto>>
    {
       public string? Code { get; set; }
+      public string? CatalogCode { get; set; }
 
       [JsonIgnore]
       public Guid? CollaboratorId { get; set; }

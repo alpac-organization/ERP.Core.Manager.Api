@@ -37,6 +37,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
                && s.Fault.DeletedAt == null
                && s.Fault.Collaborator.CompanyId == request.CompanyId);
 
+         if (!string.IsNullOrWhiteSpace(request.Code))
+         {
+            var code = request.Code.Trim();
+
+            sanctionsQuery = sanctionsQuery
+               .Where(s => s.Code != null && s.Code.Contains(code));
+         }
+
          if (request.CollaboratorId.HasValue)
          {
             sanctionsQuery = sanctionsQuery

@@ -77,6 +77,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             [FromRoute] Guid company_id,
             [FromRoute] string module_code,
             [FromQuery] string? code,
+            [FromQuery] string? catalog_code,
             [FromQuery] Guid? collaborator_id,
             [FromQuery] FaultSeverity? severity,
             [FromQuery] FaultStatus? status,
@@ -93,6 +94,7 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             CompanyId = company_id,
             ModuleCode = module_code,
             Code = code,
+            CatalogCode = catalog_code,
             CollaboratorId = collaborator_id,
             Severity = severity,
             Status = status,
@@ -132,18 +134,18 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
       public async Task<NoContentResult> CancelFaultAsync(
          [FromRoute] Guid company_id,
          [FromRoute] string module_code,
-         [FromRoute] Guid fault_id
+         [FromRoute] Guid fault_id,
+         [FromBody] CancelFaultCommand payload
       )
       {
          var userIdStr = HttpContext.Items["UserId"] as string;
 
-         await _mediator.Send(new CancelFaultCommand
-         {
-            UserId = Guid.Parse(userIdStr ?? ""),
-            CompanyId = company_id,
-            ModuleCode = module_code,
-            FaultId = fault_id
-         });
+         payload.UserId = Guid.Parse(userIdStr ?? "");
+         payload.CompanyId = company_id;
+         payload.ModuleCode = module_code;
+         payload.FaultId = fault_id;
+
+         await _mediator.Send(payload);
 
          return NoContent();
       }

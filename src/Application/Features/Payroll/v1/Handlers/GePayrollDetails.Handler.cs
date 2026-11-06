@@ -1,17 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
-
-
-using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Payroll.v1.Queries;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Enums;
 using AutoMapper;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.Payroll.v1.Handlers
 {
-    public class GetPayrollDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): AlpacBaseHandler<GePayrollDetaillsQuery, PayrollDetailsDto>(_unitOfWork, _errorManager)
+    public class GetPayrollDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IMapper _mapper): BaseValidatorHandler<GePayrollDetaillsQuery, PayrollDetailsDto>(_unitOfWork, _errorManager)
     {
         public override async Task<PayrollDetailsDto> Handle(GePayrollDetaillsQuery request, CancellationToken cancellationToken)
         {

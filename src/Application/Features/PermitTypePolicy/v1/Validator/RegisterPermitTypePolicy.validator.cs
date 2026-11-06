@@ -1,6 +1,7 @@
 using FluentValidation;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Validators;
+using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1;
 using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.validator
@@ -10,7 +11,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.validato
       public RegisterPermitTypePolicyValidator()
       {
          RuleFor(x => x.PermitApplicationType)
-            .IsInEnum().WithMessage("El tipo de permiso no es válido.");
+            .IsInEnum().WithMessage("El tipo de permiso no es válido.")
+            .Must(PermitTypePolicyRules.IsAllowed)
+            .WithMessage("La politica solo aplica a cita judicial, matrimonio, nacimiento y fallecimiento.");
 
          RuleFor(x => x.PermitBeneficiaryScope)
             .IsInEnum().WithMessage("El alcance no es válido.")
@@ -36,7 +39,13 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.validato
             .WithMessage("Si exige evidencia, el mínimo debe ser al menos 1.");
 
          RuleFor(x => x.MaxEvidenceCount)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.MaxEvidenceCount.HasValue)
+            .WithMessage("El máximo de evidencias no puede ser negativo.");
+
+         RuleFor(x => x.MaxEvidenceCount)
             .GreaterThanOrEqualTo(x => x.MinEvidenceCount)
+            .When(x => x.RequiresEvidence && x.MaxEvidenceCount.HasValue)
             .WithMessage("El máximo de evidencias no puede ser menor al mínimo.");
 
          RuleFor(x => x.RequiredApprovalSteps)

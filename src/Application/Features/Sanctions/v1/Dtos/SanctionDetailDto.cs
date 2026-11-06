@@ -12,7 +12,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Dtos
       public FaultSeverity FaultSeverity { get; set; }
       public Guid? PayrollId { get; set; }
       public Guid IssuedBy { get; set; }
-      public RegisterUserDto? IssuedByUser { get; set; }
+      public DisciplinaryInformationUserDto? IssuedByUser { get; set; }
+      public Guid? ApprovedBy { get; set; }
+      public DisciplinaryInformationUserDto? ApprovedByUser { get; set; }
+      public DateTime? ApprovedAt { get; set; }
+      public string? CancellationReason { get; set; }
       public List<EvidenceDto> Evidences { get; set; } = [];
    }
 }

@@ -2,6 +2,7 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Application.Commons.Interfaces.AWS;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
@@ -15,7 +16,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
       IUnitOfWork _unitOfWork,
       IErrorManager _errorManager,
       ILogger<RegisterSanctionHandler> _logger,
-      IS3StorageService _s3StorageService)
+      IS3StorageService _s3StorageService,
+      ICodeGenerator _codeGenerator)
       : BaseValidatorHandler<RegisterSanctionCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(RegisterSanctionCommand request, CancellationToken cancellationToken)
@@ -28,7 +30,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
          if (access.Role?.RoleType is not (RoleType.Administrator or RoleType.Manager))
          {
             return _errorManager.ThrowUnauthorized<bool>(
-               "Solo el Gerente General, Gerente de Recursos Humanos o Jefe Inmediato pueden aplicar sanciones.",
+               "Solo el Gerente General, Gerente de Recursos Humanos o Jefe Inmediato pueden registrar sanciones.",
                "ERP:INVALID_ACCESS");
          }
 
@@ -44,6 +46,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
 
          var fault = await _unitOfWork.DisciplinaryFaults.Entities
             .Include(f => f.Collaborator)
+            .Include(f => f.ParentFault)
             .FirstOrDefaultAsync(f =>
                f.Id == request.FaultId
                && f.DeletedAt == null
@@ -59,36 +62,39 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
 
          if (fault.ParentFaultId.HasValue)
          {
+            var parentRef = !string.IsNullOrWhiteSpace(fault.ParentFault?.Code)
+                ? fault.ParentFault.Code
+                : "";
+
             return _errorManager.ThrowBadRequest<bool>(
-               "Esta falta ya fue absorbida por una falta escalada. Debe sancionar la falta padre.",
+               $"Esta falta ya fue absorbida por una falta escalada. Debe sancionar la falta padre: {parentRef}.",
                "ERP:InvalidOperation");
          }
 
-         if (fault.Status == FaultStatus.Prescribed)
+         if (
+            fault.Status == FaultStatus.Prescribed ||
+            fault.Status == FaultStatus.SanctionApplied ||
+            fault.Status == FaultStatus.Cancelled)
          {
             return _errorManager.ThrowBadRequest<bool>(
-               "No se puede sancionar una falta prescrita.",
+               "No se puede sancionar una falta prescrita, aplicada o cancelada.",
                "ERP:InvalidOperation");
          }
-
-         if (fault.Status == FaultStatus.SanctionApplied)
-         {
-            return _errorManager.ThrowBadRequest<bool>(
-               "La falta ya tiene una sanción aplicada.",
-               "ERP:InvalidOperation");
-         }
-
+         
          var hasActiveSanction = await _unitOfWork.DisciplinarySanctions.Entities
             .AnyAsync(s =>
                s.FaultId == request.FaultId
                && s.DeletedAt == null
-               && s.SanctionStatus == SanctionStatus.Applied,
+               && (
+                  s.SanctionStatus == SanctionStatus.Pending ||
+                  s.SanctionStatus == SanctionStatus.Applied
+               ),
                cancellationToken);
 
          if (hasActiveSanction)
          {
             return _errorManager.ThrowBadRequest<bool>(
-               "Ya existe una sanción aplicada para esta falta.",
+               "Ya existe una sanción pendiente o aplicada para esta falta.",
                "ERP:InvalidOperation");
          }
 
@@ -100,13 +106,28 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
             "DisciplinarySanctions",
             cancellationToken);
 
-         var sanction = request.ToDisciplinarySanctionEntity(evidenceJson);
-         await _unitOfWork.DisciplinarySanctions.RegisterDisciplinarySanction(sanction);
+         await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
+         {
+            var (IsSuccess, sanctionCode) = await _codeGenerator.GenerateUniqueDisciplinarySanctionCodeAsync(
+               request.CompanyId,
+               DateOnly.FromDateTime(DateTime.UtcNow),
+               token
+            );
 
-         fault.Status = FaultStatus.SanctionApplied;
-         await _unitOfWork.DisciplinaryFaults.UpdateAsync(fault);
+            if (!IsSuccess || string.IsNullOrWhiteSpace(sanctionCode))
+            {
+               _errorManager.ThrowBadRequest<bool>(
+                  "No se pudo generar el código sanción disciplinaria.",
+                  "ERP:SANCTION_CODE_GENERATION_FAILED");
+               return;
+            }
 
-         await _unitOfWork.SaveChangesAsync(cancellationToken);
+            var sanction = request.ToDisciplinarySanctionEntity(sanctionCode, SanctionStatus.Pending, evidenceJson);
+            await _unitOfWork.DisciplinarySanctions.RegisterDisciplinarySanction(sanction);
+
+            await _unitOfWork.SaveChangesAsync(token);
+
+         }, cancellationToken);
 
          _logger.LogInformation("✅ Se agregó con éxito el registro de sanción disciplinaria.");
 

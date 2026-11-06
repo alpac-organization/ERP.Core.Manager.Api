@@ -1,18 +1,16 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-
 using ERP.Core.Application.Commons.Interfaces;
-
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices, IReportingServices _reportingServices, IIncomeServices _incomeServices): AlpacBaseHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
+    public class ProcessPermitApplicationtHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, IDeductionsServices _deductionServices, IReportingServices _reportingServices, IIncomeServices _incomeServices): BaseValidatorHandler<ProcessPermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(ProcessPermitApplicationCommand request, CancellationToken cancellationToken)
         {
@@ -316,11 +314,40 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             "ERP:03");
                     }
 
+                    var additionalInformation = string.IsNullOrWhiteSpace(permitApplication.AdditionalData)
+                        ? null
+                        : JsonSerializer.Deserialize<AdditionalDataPermitApplication>(permitApplication.AdditionalData);
+
+                    var consumesVacation = additionalInformation?.LeaveEvidenceData.ConsumesVacationBalance == true;
+                    var amountDays = permitApplication.AmountDays ?? 0.0m;
+
+                    if (continueProcess && permitApplication.Status == PermitApplicationStatus.Approved && consumesVacation)
+                    {
+                        if (vacationInformationSolicitante is null)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No se encontro registro de vacaciones del solicitante", "ERP:02");
+                        }
+
+                        if (vacationInformationSolicitante.AvailableVacations < amountDays)
+                        {
+                            return _errorManager.ThrowBadRequest<bool>("No posees la cantidad sufientes de vacaciones para realizar esta solicitud", "ERP:01");
+                        }
+                    }
+
                     await _unitOfWork.PermitApplications.UpdateAsync(permitApplication);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                     if (isAuthorized && continueProcess && permitApplication.Status == PermitApplicationStatus.Approved)
                     {
+                        if (consumesVacation)
+                        {
+                            vacationInformationSolicitante!.AvailableVacations -= amountDays;
+                            vacationInformationSolicitante.EnjoyedVacation += amountDays;
+
+                            await _unitOfWork.Vacations.UpdateAsync(vacationInformationSolicitante);
+                            await _reportingServices.ApplyVacationMovement(permitApplication.Collaborator, permitApplication.PayrolId);
+                        }
+
                         await _deductionServices.ApplyDeductionTravelExpenses(
                             permitApplication.Collaborator,
                             salaryInformation,

@@ -1,23 +1,21 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-
 using ERP.Core.Manager.Api.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
 using ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Commands;
-
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
-
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Utils;
-
+using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 //Alias
 using PermitApplicationEntity = ERP.Core.Database.Domain.Entities.Payrolls.PermitApplication;
 
+
 namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handlers
 {
-    public class CreatePermitApplicationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<CreatePermitApplicationHandler> _logger) : AlpacBaseHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
+    public class CreatePermitApplicationHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<CreatePermitApplicationHandler> _logger) : BaseValidatorHandler<CreatePermitApplicationCommand, bool>(_unitOfWork, _errorManager)
     {
         public override async Task<bool> Handle(CreatePermitApplicationCommand request, CancellationToken cancellationToken)
         {
@@ -354,6 +352,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         var policy = await _unitOfWork.PermitTypePolicyRepository.Entities
                             .Where(item=>item.IsActive)
+                            .Where(item=>item.CompanyId == request.CompanyId)
                             .Where(item=>item.PermitApplicationType == request.PermitApplicationType)
                             .Where(item=> item.BeneficiaryScope == leave.BeneficiaryScope)
                             .Where(item=> item.FamilyRelationship == leave.FamilyRelationship)
@@ -374,9 +373,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             return _errorManager.ThrowBadRequest<bool>($"Este permiso requiere al menos {policy.MinEvidenceCount} para ser considerado", "ERP:EVIDENCE");
                         }
 
-                        if (evidence.Count > policy.MaxEvidenceCount)
+                        if (policy.RequiresEvidence && policy.MaxEvidenceCount.HasValue && evidence.Count > policy.MaxEvidenceCount.Value)
                         {
-                            
                             return _errorManager.ThrowBadRequest<bool>($"Este permiso tiene como maximo {policy.MaxEvidenceCount} para ser correcto", "ERP:EVIDENCE");
                         }
 
@@ -392,6 +390,23 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                             return _errorManager.ThrowBadRequest<bool>($"Este permiso admite como maximo la cantidad de {policy.MaxAmountDays} dias", "ERP:DAYS");
                         }
 
+                        if (policy.ConsumesVacationBalance)
+                        {
+                            var vacationControl = await _unitOfWork.Vacations.Entities
+                                .Where(vac => vac.CollaboratorId == collaborator.Id)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (vacationControl is null)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>("No se encontro el registro de vacaciones de este colaborador", "ERP:01");
+                            }
+
+                            if (vacationControl.AvailableVacations < amountDays)
+                            {
+                                return _errorManager.ThrowBadRequest<bool>("No posees la cantidad sufientes de vacaciones para realizar esta solicitud", "ERP:01");
+                            }
+                        }
+
                         permitApplication.Type = request.PermitApplicationType;
                         permitApplication.StartDate = leave.StartDate;
                         permitApplication.EndDate = leave.EndDate;
@@ -405,11 +420,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
 
                         AdditionalData.LeaveEvidenceData = new LeaveEvidenceData
                         {
-                            IsPaid = policy.IsPaid,
                             Evidence = evidence,
                             ConsumesVacationBalance = policy.ConsumesVacationBalance,
                             RequireApprovalSteps = policy.RequiredApprovalSteps,
-                            
                         };
                         if (policy.RequiredApprovalSteps <= 1)
                         {

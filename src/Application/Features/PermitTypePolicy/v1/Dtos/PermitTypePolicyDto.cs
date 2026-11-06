@@ -13,10 +13,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Dtos
       public FamilyRelationship FamilyRelationship {get; set;}
 
       public decimal? MaxAmountDays {get; set;}
-      public int MaxEvidenceCount {get; set;}
+      public int? MaxEvidenceCount {get; set;}
       public int MinEvidenceCount {get; set;}
-
-      public bool IsPaid {get; set;}
 
       public bool IsActive {get; set;}
 

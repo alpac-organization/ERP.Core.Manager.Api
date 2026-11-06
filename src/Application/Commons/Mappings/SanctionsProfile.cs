@@ -25,7 +25,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             .ForMember(dest => dest.OccurrenceDate, opt => opt.MapFrom(src => src.Fault.OccurrenceDate))
             .ForMember(dest => dest.FaultSeverity, opt => opt.MapFrom(src => src.Fault.Severity))
             .ForMember(dest => dest.Evidences, opt => opt.MapFrom(src => DisciplinaryEvidenceHelper.Deserialize(src.Evidence)))
-            .ForMember(dest => dest.IssuedByUser, opt => opt.Ignore());
+            .ForMember(dest => dest.IssuedByUser, opt => opt.MapFrom(src => src.User))
+            .ForMember(dest => dest.ApprovedByUser, opt => opt.MapFrom(src => src.ApprovedByUser));
       }
    }
 
@@ -33,14 +34,17 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
    {
       public static DisciplinarySanction ToDisciplinarySanctionEntity(
          this RegisterSanctionCommand command,
+         string code,
+         SanctionStatus sanctionStatus,
          string evidenceJson = "{}")
       {
          return new DisciplinarySanction
          {
             // PayrollId se enlaza después con efectos de nómina
             FaultId = command.FaultId,
+            Code = code,
             SanctionType = command.SanctionType,
-            SanctionStatus = SanctionStatus.Applied,
+            SanctionStatus = sanctionStatus,
             SuspensionStartDate = command.SanctionType == SanctionType.Suspension ? command.SuspensionStartDate : null,
             SuspensionEndDate = command.SanctionType == SanctionType.Suspension ? command.SuspensionEndDate : null,
             Reason = command.Reason,

@@ -34,6 +34,9 @@ Devuelve las políticas registradas. Con `only_active=true` es el dropdown que u
 | Parámetro | Tipo | Requerido | Default | Descripción |
 |---|---|:---:|---|---|
 | `only_active` | `bool` | No | `true` | `false` incluye políticas inactivas. |
+| `permit_application_type` | `enum` | No | | Filtra por tipo. Acepta el nombre o el valor, por ejemplo `MarriageLeave` o `10`. |
+| `page_number` | `int` | No | `1` | Número de página. Debe ser mayor que 0. |
+| `page_size` | `int` | No | `10` | Tamaño de página. Debe ser mayor que 0. |
 
 ---
 
@@ -44,21 +47,25 @@ Devuelve las políticas registradas. Con `only_active=true` es el dropdown que u
 `max_amount_days` es `decimal` porque se compara con días fraccionarios (`0.5` un sábado, `0.1` a `1` por horas). Si el valor guardado es `3`, la respuesta puede traer `3.0000` por la escala numérica de la base. `null` significa que la política no tiene tope.
 
 ```json
-[
-  {
-    "permit_type_policy_id": "c6319544-db83-4bd5-b786-f5f811edc238",
-    "permit_application_type": "MarriageLeave",
-    "permit_beneficiary_scope": "Own",
-    "family_relationship": "None",
-    "max_amount_days": 3.0000,
-    "max_evidence_count": 3,
-    "min_evidence_count": 1,
-    "is_paid": true,
-    "is_active": true,
-    "consumes_vacation_balance": false,
-    "required_approval_steps": 2
-  }
-]
+{
+  "data": [
+    {
+      "permit_type_policy_id": "c6319544-db83-4bd5-b786-f5f811edc238",
+      "permit_application_type": "MarriageLeave",
+      "permit_beneficiary_scope": "Own",
+      "family_relationship": "None",
+      "max_amount_days": 3.0000,
+      "max_evidence_count": 3,
+      "min_evidence_count": 1,
+      "is_active": true,
+      "consumes_vacation_balance": false,
+      "required_approval_steps": 2
+    }
+  ],
+  "page_number": 1,
+  "page_size": 10,
+  "total": 1
+}
 ```
 
 ### 400 Bad Request

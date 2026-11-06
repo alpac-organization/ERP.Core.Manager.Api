@@ -2,6 +2,7 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Application.Commons.Interfaces.AWS;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
+using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Helpers;
@@ -18,7 +19,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
       IErrorManager _errorManager,
       ILogger<RegisterFaultHandler> _logger,
       IDisciplinaryEscalation _disciplinaryEscalation,
-      IS3StorageService _s3StorageService)
+      IS3StorageService _s3StorageService,
+      ICodeGenerator _codeGenerator)
       : BaseValidatorHandler<RegisterFaultCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(RegisterFaultCommand request, CancellationToken cancellationToken)
@@ -52,6 +54,19 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
             return _errorManager.ThrowBadRequest<bool>(
                "Uno o más catalogos de falta disciplinaria no existen o no están activos",
                "ERP:NOT_FOUND");
+         }
+
+         var companyCode = await _unitOfWork.Companies.Entities
+            .AsNoTracking()
+            .Where(c => c.IsActive && c.DeletedAt == null && c.Id == request.CompanyId)
+            .Select(c => c.Code)
+            .FirstOrDefaultAsync(cancellationToken);
+
+         if (existingFaultCatalogs.Any(fc => ExcludedFaultCatalogs.IsExcluded(companyCode, fc.Code)))
+         {
+            return _errorManager.ThrowBadRequest<bool>(
+               "Una o más faltas seleccionadas se procesan de forma automática (marcación biométrica) y no pueden registrarse manualmente.",
+               "ERP:InvalidOperation");
          }
 
          var collaboratorIds = faults.Select(f => f.CollaboratorId).Distinct().ToList();
@@ -111,13 +126,31 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                "DisciplinaryFaults",
                cancellationToken);
 
-            var faultDisciplinary = fault.ToDisciplinaryFaultEntity(
-               faultSeverity, request.UserId, evidenceJson);
-            await _unitOfWork.DisciplinaryFaults.RegisterDisciplinaryFault(faultDisciplinary);
-            registeredFaults.Add(faultDisciplinary);
-         }
+            await _unitOfWork.ExecuteWithUniqueCodeRetryAsync(async token =>
+            {
+               var (IsSuccess, faultCode) = await _codeGenerator.GenerateUniqueDisciplinaryFaultCodeAsync(
+                  request.CompanyId,
+                  fault.OccurrenceDate,
+                  token
+               );
 
-         await _unitOfWork.SaveChangesAsync(cancellationToken);
+               if (!IsSuccess || string.IsNullOrWhiteSpace(faultCode))
+               {
+                  _errorManager.ThrowBadRequest<bool>(
+                    "No se pudo generar el código falta disciplinaria.",
+                    "ERP:FAULT_CODE_GENERATION_FAILED");
+                  return;
+               }
+
+               var faultDisciplinary = fault.ToDisciplinaryFaultEntity(
+                  faultCode, faultSeverity, request.UserId, evidenceJson
+               );
+
+               await _unitOfWork.DisciplinaryFaults.RegisterDisciplinaryFault(faultDisciplinary);
+               await _unitOfWork.SaveChangesAsync(token);
+               registeredFaults.Add(faultDisciplinary);
+            }, cancellationToken);
+         }
 
          var escalationTargets = registeredFaults
             .GroupBy(f => new

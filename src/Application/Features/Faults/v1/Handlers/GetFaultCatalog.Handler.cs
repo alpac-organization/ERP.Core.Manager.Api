@@ -3,6 +3,7 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Entities.Payrolls;
+using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Faults.v1.Queries;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
@@ -31,6 +32,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
             .AsNoTracking()
             .Where(fc => fc.IsActive && fc.DeletedAt == null && fc.CompanyId == request.CompanyId);
 
+
          if (!string.IsNullOrWhiteSpace(request.Code))
          {
             var code = request.Code.Trim();
@@ -45,6 +47,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                Where(fc => fc.FaultSeverity == request.FaultSeverity.Value);
          }
 
+         var companyCode = await _unitOfWork.Companies.Entities
+            .AsNoTracking()
+            .Where(c => c.IsActive && c.DeletedAt == null && c.Id == request.CompanyId)
+            .Select(f => f.Code)
+            .FirstOrDefaultAsync(cancellationToken);
+
+         if (companyCode is not null &&
+            ExcludedFaultCatalogs.Codes.TryGetValue(companyCode, out var excludedFaultCatalogs))
+         {
+            faultCatalogQuery = faultCatalogQuery.Where(f => !excludedFaultCatalogs.Contains(f.Code));
+         }
+
          var totalCount = await faultCatalogQuery.CountAsync(cancellationToken);
 
          List<FaultCatalog> faultCatalogs;
@@ -57,11 +71,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                .ThenBy(fc => fc.Code)
                .Skip((request.PageNumber - 1) * request.PageSize.Value)
                .Take(request.PageSize.Value)
+               .OrderBy(fc => fc.FaultSeverity)
                .ToListAsync(cancellationToken);
          }
          else
          {
-            faultCatalogs = await faultCatalogQuery.ToListAsync(cancellationToken);
+            faultCatalogs = await faultCatalogQuery
+               .OrderBy(fc => fc.FaultSeverity)
+               .ToListAsync(cancellationToken);
          }
 
          var mappedFaultCatalogs = _mapper.Map<List<FaultCatalogDto>>(faultCatalogs);

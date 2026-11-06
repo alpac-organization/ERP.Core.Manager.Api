@@ -40,6 +40,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Where(day => day.IsActive)
                 .ToListAsync(default);
 
+            var absenceDates = await _unitOfWork.Absences.Entities
+                .Where(a => a.CollaboratorId == collaborator.Id
+                         && a.Status == AbsenceStatus.Applied
+                         && a.DeletedAt == null
+                         && a.Date >= payrollStart
+                         && a.Date <= payrollEnd)
+                .Select(a => a.Date)
+                .ToListAsync(default);
+
             for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
             {
                 bool isHoliday = holidays.Any(holiday =>
@@ -57,6 +66,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 }
 
                 if (!collaborator.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    continue;
+                }
+
+                if (absenceDates.Contains(date))
                 {
                     continue;
                 }
@@ -258,9 +272,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             TotalIncome += Bonus;
 
+            #region Deducciones por Inasistencias Aplicadas
+            var periodAbsences = await _unitOfWork.Absences.Entities
+                .Where(a => a.CollaboratorId == collaborator.Id
+                         && a.Status == AbsenceStatus.Applied
+                         && a.DeletedAt == null
+                         && a.Date >= payrollStart
+                         && a.Date <= payrollEnd)
+                .ToListAsync(default);
+
+            decimal totalSalaryDeduction = periodAbsences.Sum(a => a.SalaryDeduction);
+            decimal totalSeventhDayDeduction = periodAbsences.Sum(a => a.SeventhDayDeduction);
+
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
-                Absences = 0.0m,
+                Absences = totalSalaryDeduction + totalSeventhDayDeduction,
+                TotalAbsenceDays = periodAbsences.Count,
+                SeventhDayDeduction = totalSeventhDayDeduction,
                 CashShortage = 0.0m,
                 ChildSupportGarnishment = 0.0m,
                 ChristmasBonusAdvance = 0.0m,
@@ -274,6 +302,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Sanction = 0.0m,
                 UniformDeduction = 0.0m
             };
+            #endregion
 
             #region Deducciones Activas aqui
 
@@ -448,6 +477,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             var PayrollRegistered = await _unitOfWork.OrdinaryPayrolls.RegisterCollaboratorInTheOrdinaryPayroll(payload);
 
+            // Vincular las inasistencias procesadas a esta nómina
+            foreach (var absence in periodAbsences)
+            {
+                absence.PayrollId = payroll.Id;
+                absence.OrdinaryPayrollId = payload.Id;
+                await _unitOfWork.Absences.UpdateAsync(absence);
+            }
+
             #region Registro del inss
 
             await _reportingServices.ApplyInssReporting(
@@ -456,7 +493,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 collaborator,
                 GetReportIncome(BiweeklySalary, Overtime, Commissions, Bonus, 0, 0),
                 BiweeklyInss,
-                TotalIncome);
+                TotalIncome,
+                totalSalaryDeduction + totalSeventhDayDeduction,
+                periodAbsences.Count);
 
             #endregion
 

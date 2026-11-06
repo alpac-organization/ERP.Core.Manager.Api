@@ -17,8 +17,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Bases
 
     public class LeaveEvidenceData
     {
-        public bool IsPaid {get; set;}
-
         public List<ImageData> Evidence {get; set;} = [];
 
         public int RequireApprovalSteps {get; set;}

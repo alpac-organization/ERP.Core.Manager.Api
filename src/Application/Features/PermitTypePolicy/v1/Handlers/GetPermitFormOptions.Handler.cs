@@ -4,6 +4,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Bases;
+using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1;
 using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Queries;
 
@@ -19,7 +20,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Handlers
             return access.ErrorResponse!;
          }
 
-         var types = Enum.GetValues<PermitApplicationType>();
+         var types = PermitTypePolicyRules.AllowedTypes;
          var scopes = Enum.GetValues<PermitBeneficiaryScope>()
              .Where(scope => scope != PermitBeneficiaryScope.None);
 

@@ -5,6 +5,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Dtos
    public class SanctionDto
    {
       public Guid SanctionId { get; set; }
+      public string Code { get; set; } = string.Empty;
       public Guid FaultId { get; set; }
       public Guid CollaboratorId { get; set; }
       public string CollaboratorName { get; set; } = string.Empty;

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using AutoMapper;
 using ERP.Core.Database.Domain.Entities.Auth;
 using ERP.Core.Database.Domain.Entities.Payrolls;
@@ -29,7 +28,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
          CreateMap<DisciplinaryFault, FaultReference>()
             .ForMember(dest => dest.FaultId, opt => opt.MapFrom(src => src.Id));
 
-         CreateMap<User, RegisterUserDto>()
+         CreateMap<User, DisciplinaryInformationUserDto>()
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Fullname))
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
@@ -48,6 +47,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
    {
       public static DisciplinaryFault ToDisciplinaryFaultEntity(
          this Commands.Fault fault,
+         string code,
          FaultSeverity severity,
          Guid registeredBy,
          string evidenceJson = "{}")
@@ -55,6 +55,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
          return new DisciplinaryFault
          {
             CollaboratorId = fault.CollaboratorId,
+            Code = code,
             FaultCatalogId = fault.FaultCatalogId,
             OccurrenceDate = fault.OccurrenceDate,
             Severity = severity,
@@ -64,24 +65,6 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             ParentFaultId = fault.ParentFaultId,
             Evidence = string.IsNullOrWhiteSpace(evidenceJson) ? "{}" : evidenceJson
          };
-      }
-
-      public static DisciplinaryFault ToDisciplinaryFaultEntity(
-         this Absence absence,
-         Guid faultCatalogId,
-         FaultSeverity severity,
-         Guid registeredBy,
-         string evidenceJson = "{}")
-      {
-         var fault = new Commands.Fault
-         {
-            CollaboratorId = absence.CollaboratorId,
-            FaultCatalogId = faultCatalogId,
-            OccurrenceDate = absence.Date,
-            Source = FaultSource.Manual
-         };
-
-         return fault.ToDisciplinaryFaultEntity(severity, registeredBy, evidenceJson);
       }
    }
 }
