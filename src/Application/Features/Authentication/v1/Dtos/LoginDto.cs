@@ -9,6 +9,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Dtos
         public string? RefreshToken { get; set; }
         public string? FullName { get; set; }
         public string? Email { get; set; }
+        public string? PictureUrl { get; set; }
         public string? IdentificationNumber { get; set; }
         public string? UserType { get; set; }
         public Guid BranchId { get; set; }
