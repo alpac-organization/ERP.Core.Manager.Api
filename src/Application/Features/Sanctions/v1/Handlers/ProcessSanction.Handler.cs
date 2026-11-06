@@ -14,7 +14,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
       IUnitOfWork _unitOfWork,
       IErrorManager _errorManager,
       ILogger<ProcessSanctionHandler> _logger,
-      IDisciplinaryEscalation _disciplinaryEscalation)
+      IDisciplinaryEscalation _disciplinaryEscalation,
+      IDeductionsServices _deductionsServices)
       : BaseValidatorHandler<ProcessSanctionCommand, bool>(_unitOfWork, _errorManager)
    {
       public override async Task<bool> Handle(
@@ -53,7 +54,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
          }
 
          if (request.IsApproved)
+         {
             return await ApproveAsync(request, sanction, access.Role!.RoleType, cancellationToken);
+         }
 
          return await CancelAsync(request, sanction, access.Role!.RoleType, cancellationToken);
       }
@@ -85,7 +88,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
          {
             var parentRef = !string.IsNullOrWhiteSpace(fault.ParentFault?.Code)
                 ? fault.ParentFault.Code
-                : "";                
+                : "";
             return _errorManager.ThrowBadRequest<bool>(
                $"Esta falta ya fue absorbida por una falta escalada. Debe sancionar la falta padre: {parentRef}.",
                "ERP:InvalidOperation");
@@ -109,6 +112,21 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
             "Aplicando sanción disciplinaria {SanctionId} por usuario {UserId}",
             sanction.Id, request.UserId);
 
+         // TODO: Implementar lo siguiente:
+         // 1. Revisar si la sancion es de tipo suspensión. ✅
+         // 2. Si es suspension calcular dias * (salario / 30). ❌
+         // 3. Agregar registro a historial de deducciones. ❌
+         // 4. Agregar registro de deducciones. ❌
+         // 5. Sanction + Totales. ❌
+         // 6. Agregar registro Ciclo de Nomina (Posiblemente Nomina). ❌
+
+
+
+
+         var suspensionResult = await ProcessSuspension(fault, sanction, cancellationToken);
+
+         if (!suspensionResult) return suspensionResult;
+
          sanction.SanctionStatus = SanctionStatus.Applied;
          sanction.ApprovedBy = request.UserId;
          sanction.ApprovedAt = DateTime.UtcNow;
@@ -122,6 +140,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
          await _unitOfWork.SaveChangesAsync(cancellationToken);
 
          _logger.LogInformation("✅ Sanción {SanctionId} aplicada.", sanction.Id);
+
          return true;
       }
 
@@ -163,6 +182,75 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
          await _unitOfWork.SaveChangesAsync(cancellationToken);
 
          _logger.LogInformation("✅ Sanción {SanctionId} cancelada.", sanction.Id);
+         return true;
+      }
+
+      private async Task<bool> ProcessSuspension(
+         DisciplinaryFault fault,
+         DisciplinarySanction sanction,
+         CancellationToken cancellationToken)
+      {
+         if (sanction.SanctionType == SanctionType.Suspension)
+         {
+            var collaborator = await _unitOfWork.Collaborators.Entities
+               .Include(c => c.WorkingInformation)
+               .Where(c => c.Id == fault.CollaboratorId && !c.HasBeenFired && c.DeletedAt == null)
+               .FirstOrDefaultAsync(cancellationToken);
+
+            if (collaborator is null || collaborator.WorkingInformation is null)
+            {
+               return _errorManager.ThrowBadRequest<bool>(
+                  "No se encontró al colaborador o su información laboral.",
+                  "ERP:NotFound");
+            }
+
+            /* var payrollActive = await _unitOfWork.Payrolls.Entities
+               .Where(p => p.Status == PayrollStatus.Progress && p.PayrollType == PayrollType.Ordinary)
+               .Where(p => p.BranchId == collaborator.WorkingInformation.BranchId)
+               .FirstOrDefaultAsync(cancellationToken);
+
+            if (payrollActive is null)
+            {
+               return _errorManager.ThrowBadRequest<bool>(
+                  "No hay una nómina ordinaria en progreso para la sucursal del colaborador.",
+                  "ERP:PeriodNotExist");
+            } */
+
+            if (!sanction.SuspensionEndDate.HasValue || !sanction.SuspensionStartDate.HasValue)
+            {
+               return _errorManager.ThrowBadRequest<bool>(
+                  "La suspensión no tiene rango de fechas válido.",
+                  "ERP:InvalidOperation");
+            }
+
+            var amountDays = sanction.SuspensionEndDate.Value.DayNumber -
+                             sanction.SuspensionStartDate.Value.DayNumber + 1;
+
+            if (amountDays is < 3 or > 7)
+            {
+               return _errorManager.ThrowBadRequest<bool>(
+                  "La suspensión debe durar entre 3 y 7 días.",
+                  "ERP:InvalidOperation");
+            }
+
+            if (!sanction.PayrollId.HasValue)
+            {
+               return _errorManager.ThrowBadRequest<bool>(
+                  "No se encontro la información de nomina asociada a la sanción.",
+                  "ERP:InvalidOperation");
+            }
+
+            var applied = await _deductionsServices.ApplySanctionDeduction(
+               collaborator, amountDays, sanction.PayrollId.Value);
+
+            if (!applied)
+            {
+               return _errorManager.ThrowBadRequest<bool>(
+                  "No se pudo aplicar la deducción por sanción.",
+                  "ERP:01");
+            }
+         }
+
          return true;
       }
    }

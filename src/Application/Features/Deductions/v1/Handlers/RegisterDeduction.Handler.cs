@@ -284,7 +284,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                         return _errorManager.ThrowBadRequest<bool>($"No se encontro al colaborador con cedula: {payload.IdentificationNumber}", "ERP:01");
                     }
 
-                    var isApplied = await _deductionServices.ApplySansion(collaboratorInformation, payload.AmountDays, request.PayrollId);
+                    var isApplied = await _deductionServices.ApplySanctionDeduction(collaboratorInformation, payload.AmountDays, request.PayrollId);
 
                     if (!isApplied)
                     {
