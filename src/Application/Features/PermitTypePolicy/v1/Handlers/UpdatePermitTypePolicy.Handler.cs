@@ -71,7 +71,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Handlers
 
          var requiresEvidence = request.RequiresEvidence ?? policy.RequiresEvidence;
          var minEvidence = request.MinEvidenceCount ?? policy.MinEvidenceCount;
-         var maxEvidence = request.MaxEvidenceCount ?? 0;
+         int? maxEvidence = request.MaxEvidenceCount;
 
          if (!requiresEvidence)
          {
@@ -89,7 +89,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Handlers
             return _errorManager.ThrowBadRequest<bool>("Si exige evidencia, el mínimo debe ser al menos 1.", "ERP:08");
          }
 
-         if (maxEvidence > 0 && maxEvidence < minEvidence)
+         if (maxEvidence.HasValue && maxEvidence.Value < minEvidence)
          {
             return _errorManager.ThrowBadRequest<bool>("El máximo de evidencias no puede ser menor al mínimo.", "ERP:09");
          }
