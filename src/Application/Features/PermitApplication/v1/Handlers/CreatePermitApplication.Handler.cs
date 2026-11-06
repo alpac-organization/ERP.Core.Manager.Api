@@ -370,7 +370,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitApplication.v1.Handler
                         
                         if (policy.RequiresEvidence && evidence.Count < policy.MinEvidenceCount)
                         {
-                            return _errorManager.ThrowBadRequest<bool>($"Este permiso requiere al menos {policy.MinEvidenceCount} para ser considerado", "ERP:EVIDENCE");
+                            return _errorManager.ThrowBadRequest<bool>($"Este permiso requiere al menos {policy.MinEvidenceCount} evidencia  para ser solicitado", "ERP:EVIDENCE");
                         }
 
                         if (policy.RequiresEvidence && policy.MaxEvidenceCount.HasValue && evidence.Count > policy.MaxEvidenceCount.Value)
