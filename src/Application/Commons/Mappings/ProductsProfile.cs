@@ -92,14 +92,14 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         {
             return new()
             {
-                MaximumStock = command.ConfigurationStock!.MaximumStock,
-                MinimumStock = command.ConfigurationStock.MinimumStock,
-                UnitMeasureId = command.UnitMeasureId,
-                WeightedAverageCost = 0.0m,
-                Status = ProductStockStatus.Empty,
-                ProductId = productId,
-                AvailableQuantity = 0,
-                IsActive = true
+                MaximumStock        = command.ConfigurationStock!.MaximumStock,
+                MinimumStock        = command.ConfigurationStock.MinimumStock,
+                UnitMeasureId       = command.UnitMeasureId,
+                AvailableQuantity   = command.ConfigurationStock.AvailableQuantity ?? 0.0m,
+                WeightedAverageCost = command.ConfigurationStock.WeightedAverageCost ?? 0.0m,                
+                Status              = ProductStockStatus.Empty,
+                ProductId           = productId,
+                IsActive            = true
             };
         }
     }

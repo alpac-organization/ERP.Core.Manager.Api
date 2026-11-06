@@ -23,7 +23,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
     {
         public int MinimumStock { get; set; }
         public int MaximumStock { get; set; }
-        public decimal WeightedAverageCost { get; set; }
+        public decimal? AvailableQuantity { get; set; }
+        public decimal? WeightedAverageCost { get; set; }
     }
 
     public class ProductSupplierItemDto
