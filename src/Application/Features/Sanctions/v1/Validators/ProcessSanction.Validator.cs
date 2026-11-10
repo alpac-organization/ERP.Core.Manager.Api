@@ -1,4 +1,5 @@
 using FluentValidation;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Validators;
 using ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Commands;
 

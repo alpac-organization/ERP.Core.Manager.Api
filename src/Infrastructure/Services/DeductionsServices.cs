@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Domain.Enums;
@@ -10,29 +11,31 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
-
-
-
-
-
-
-
-    public class DeductionsServices(IUnitOfWork _unitOfWork, ILogger<CalculatorDeductions> _logger) : IDeductionsServices
+    public class DeductionsServices(
+        IUnitOfWork _unitOfWork,
+        ILogger<CalculatorDeductions> _logger,
+        IErrorManager _errorManager) : IDeductionsServices
     {
         #region Gestion de Sancion
-        public async Task<bool> ApplySanctionDeduction(Collaborator collaborator, int amountDays, Guid payrollId)
+        public async Task<(bool, Guid)> ApplySanctionDeduction(Collaborator collaborator, int amountDays, Guid payrollId)
         {
             var payrollActive = await _unitOfWork.Payrolls.Entities
                 .Where(pay => pay.Id == payrollId)
                 .Where(pay => pay.Status == PayrollStatus.Progress)
                 .Where(pay => pay.PayrollType == PayrollType.Ordinary)
                 .Where(pay => pay.BranchId == collaborator.WorkingInformation.BranchId)
+                .OrderByDescending(p => p.CreatedAt)
                 .FirstOrDefaultAsync(default);
 
             if (payrollActive is null)
             {
-                _logger.LogInformation("No se encuentra una nomina en progreso para continuar con este proceso");
-                return false;
+                _logger.LogInformation(
+                    "Nómina {PayrollId} no válida para sanción del colaborador {Identification}",
+                    payrollId, collaborator.IdentificationNumber);
+
+                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                    "La nómina no existe, no está en progreso, no es ordinaria o no pertenece a la sucursal del colaborador.",
+                    "ERP:PeriodNotExist");
             }
 
             var salary = await _unitOfWork.Salaries.Entities
@@ -46,11 +49,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 _logger.LogWarning(
                     "No se pudo obtener la información salarial del colaborador con cedula: {identification}",
                     collaborator.IdentificationNumber);
-                return false;
+
+                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                    $"No se encontró un salario fijo activo para el colaborador con cédula {collaborator.IdentificationNumber}.",
+                    "ERP:01");
             }
 
             var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
-                .Where(ord => ord.PayrollId == payrollId)
+                .Where(ord => ord.PayrollId == payrollActive.Id)
                 .Where(ord => ord.CollaboratorId == collaborator.Id)
                 .Include(ord => ord.Payroll)
                 .FirstOrDefaultAsync(default);
@@ -60,7 +66,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 _logger.LogInformation(
                     "No se encontro registro de nomina de este colaborador => {identificacion}",
                     collaborator.IdentificationNumber);
-                return false;
+
+                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                    $"No hay registro de nómina ordinaria para el colaborador {collaborator.IdentificationNumber} en el periodo indicado.",
+                    "ERP:01");
             }
 
             var exchangeRateEntity = await _unitOfWork.ValidityDeductions.Entities
@@ -72,7 +81,10 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (exchangeRateEntity is null)
             {
                 _logger.LogWarning("No se encontró un tipo de cambio activo en la configuración.");
-                return false;
+
+                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                    "No se encontró un tipo de cambio activo en la configuración.",
+                    "ERP:01");
             }
 
             decimal exchangeRate = exchangeRateEntity.Value;
@@ -85,14 +97,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             decimal totalDeductions = GetTotalDeductions(deductions);
 
-            ordinaryPayroll.TotalToPay =
-                ordinaryPayroll.TotalIncome
-                - ordinaryPayroll.TotalLegalDeductions
-                - totalDeductions
-                + ordinaryPayroll.TotalTravelExpenses;
+            // Total a pagar = Ingresos - Deducciones
+            // Deducciones = Todas Las Deducciones (Tabla Deducciones) + Total de Deducciones Legales (INSS Quincenal + IR Quincenal)
 
-            ordinaryPayroll.TotalDeducctions =
-                ordinaryPayroll.TotalLegalDeductions + totalDeductions;
+            ordinaryPayroll.TotalToPay = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+
+            ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
 
             ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
 
@@ -105,7 +115,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Description = "Sanción por suspensión",
                 Currency = Currency.NIO,
                 Type = DeductionType.Sanction,
-                Status = DeductionStatus.Completed,
+                Status = DeductionStatus.Progress,
                 Amount = amountDays,
                 TotalAmount = amountToDeduct,
                 TotalAmountInDollars = amountToDeduct / exchangeRate
@@ -117,7 +127,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Status = DeductionPaymentStatus.Paid,
                 Origin = SourceDeductionPayment.Payroll,
                 DeductionId = deduction.Id,
-                PayrollId = payrollId,
+                PayrollId = payrollActive.Id,
                 AmountPaid = amountToDeduct,
                 AmountPaidInDollars = amountToDeduct / exchangeRate,
                 PaymentDate = DateTime.Now
@@ -127,9 +137,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 "✅ Deducción por sanción aplicada. Colaborador: {identification}, Días: {days}, Monto: {amount}",
                 collaborator.IdentificationNumber, amountDays, amountToDeduct);
 
-            return true;
+            return (true, payrollActive.Id);
         }
         #endregion
+
+
+
+
 
 
 
@@ -158,6 +172,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             return totalDeductions;
         }
+
+
 
 
 

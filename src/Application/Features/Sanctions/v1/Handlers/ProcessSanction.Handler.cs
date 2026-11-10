@@ -110,22 +110,22 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
 
          _logger.LogInformation(
             "Aplicando sanción disciplinaria {SanctionId} por usuario {UserId}",
-            sanction.Id, request.UserId);
+            sanction.Id, request.UserId);         
 
-         // TODO: Implementar lo siguiente:
-         // 1. Revisar si la sancion es de tipo suspensión. ✅
-         // 2. Si es suspension calcular dias * (salario / 30). ❌
-         // 3. Agregar registro a historial de deducciones. ❌
-         // 4. Agregar registro de deducciones. ❌
-         // 5. Sanction + Totales. ❌
-         // 6. Agregar registro Ciclo de Nomina (Posiblemente Nomina). ❌
+         if (sanction.SanctionType == SanctionType.Suspension &&
+            (!request.PayrollId.HasValue || request.PayrollId == Guid.Empty))
+         {
+            return _errorManager.ThrowBadRequest<bool>(
+                  "El id de la nómina es requerido al aplicar una suspensión.",
+                  "ERP:InvalidOperation");
+         }
 
-
-
-
-         var suspensionResult = await ProcessSuspension(fault, sanction, cancellationToken);
+         var (suspensionResult, payrollActiveId) = await ProcessSuspension(
+            fault, sanction, request.PayrollId ?? Guid.Empty, cancellationToken);
 
          if (!suspensionResult) return suspensionResult;
+
+         if (payrollActiveId != Guid.Empty) sanction.PayrollId = payrollActiveId;
 
          sanction.SanctionStatus = SanctionStatus.Applied;
          sanction.ApprovedBy = request.UserId;
@@ -185,73 +185,64 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
          return true;
       }
 
-      private async Task<bool> ProcessSuspension(
+      private async Task<(bool, Guid)> ProcessSuspension(
          DisciplinaryFault fault,
          DisciplinarySanction sanction,
+         Guid payrollId,
          CancellationToken cancellationToken)
       {
-         if (sanction.SanctionType == SanctionType.Suspension)
+         // Amonestación u otras sanciones: no impactan nómina
+         if (sanction.SanctionType != SanctionType.Suspension)
+            return (true, Guid.Empty);
+
+         var collaborator = await _unitOfWork.Collaborators.Entities
+            .Include(c => c.WorkingInformation)
+            .Where(c => c.Id == fault.CollaboratorId && !c.HasBeenFired && c.DeletedAt == null)
+            .FirstOrDefaultAsync(cancellationToken);
+
+         if (collaborator is null || collaborator.WorkingInformation is null)
          {
-            var collaborator = await _unitOfWork.Collaborators.Entities
-               .Include(c => c.WorkingInformation)
-               .Where(c => c.Id == fault.CollaboratorId && !c.HasBeenFired && c.DeletedAt == null)
-               .FirstOrDefaultAsync(cancellationToken);
+            _errorManager.ThrowBadRequest<bool>(
+              "No se encontró al colaborador o su información laboral.",
+              "ERP:NotFound");
 
-            if (collaborator is null || collaborator.WorkingInformation is null)
-            {
-               return _errorManager.ThrowBadRequest<bool>(
-                  "No se encontró al colaborador o su información laboral.",
-                  "ERP:NotFound");
-            }
-
-            /* var payrollActive = await _unitOfWork.Payrolls.Entities
-               .Where(p => p.Status == PayrollStatus.Progress && p.PayrollType == PayrollType.Ordinary)
-               .Where(p => p.BranchId == collaborator.WorkingInformation.BranchId)
-               .FirstOrDefaultAsync(cancellationToken);
-
-            if (payrollActive is null)
-            {
-               return _errorManager.ThrowBadRequest<bool>(
-                  "No hay una nómina ordinaria en progreso para la sucursal del colaborador.",
-                  "ERP:PeriodNotExist");
-            } */
-
-            if (!sanction.SuspensionEndDate.HasValue || !sanction.SuspensionStartDate.HasValue)
-            {
-               return _errorManager.ThrowBadRequest<bool>(
-                  "La suspensión no tiene rango de fechas válido.",
-                  "ERP:InvalidOperation");
-            }
-
-            var amountDays = sanction.SuspensionEndDate.Value.DayNumber -
-                             sanction.SuspensionStartDate.Value.DayNumber + 1;
-
-            if (amountDays is < 3 or > 7)
-            {
-               return _errorManager.ThrowBadRequest<bool>(
-                  "La suspensión debe durar entre 3 y 7 días.",
-                  "ERP:InvalidOperation");
-            }
-
-            if (!sanction.PayrollId.HasValue)
-            {
-               return _errorManager.ThrowBadRequest<bool>(
-                  "No se encontro la información de nomina asociada a la sanción.",
-                  "ERP:InvalidOperation");
-            }
-
-            var applied = await _deductionsServices.ApplySanctionDeduction(
-               collaborator, amountDays, sanction.PayrollId.Value);
-
-            if (!applied)
-            {
-               return _errorManager.ThrowBadRequest<bool>(
-                  "No se pudo aplicar la deducción por sanción.",
-                  "ERP:01");
-            }
+            return (false, Guid.Empty);
          }
 
-         return true;
+         if (!sanction.SuspensionEndDate.HasValue || !sanction.SuspensionStartDate.HasValue)
+         {
+            _errorManager.ThrowBadRequest<bool>(
+              "La suspensión no tiene rango de fechas válido.",
+              "ERP:InvalidOperation");
+
+            return (false, Guid.Empty);
+         }
+
+         var amountDays = sanction.SuspensionEndDate.Value.DayNumber -
+                          sanction.SuspensionStartDate.Value.DayNumber + 1;
+
+         if (amountDays is < 3 or > 7)
+         {
+            _errorManager.ThrowBadRequest<bool>(
+               "La suspensión debe durar entre 3 y 7 días.",
+               "ERP:InvalidOperation");
+
+            return (false, Guid.Empty);
+         }
+
+         var (isApplied, payrollActiveId) = await _deductionsServices
+            .ApplySanctionDeduction(collaborator, amountDays, payrollId);
+
+         if (!isApplied || payrollActiveId == Guid.Empty)
+         {
+            _errorManager.ThrowBadRequest<bool>(
+               "No se pudo aplicar la deducción por sanción. Verifique nómina activa, salario y registro en nómina ordinaria.",
+               "ERP:01");
+
+            return (false, Guid.Empty);
+         }
+
+         return (true, payrollActiveId);
       }
    }
 }

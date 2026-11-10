@@ -1,0 +1,50 @@
+flowchart TB
+  startNode([Inicio])
+
+  reg[1. Registrar sancion]
+  t1[(disciplinary_sanctions)]
+  t2[(disciplinary_faults)]
+
+  wait[Pending - espera RRHH]
+
+  proc[2. Procesar]
+  gw{is_approved?}
+
+  rej[3a. Rechazar]
+  apr[3b. Aprobar]
+  gwS{Es Suspension?}
+
+  calc[4. Calcular dias x salario/30]
+  impact[5. Impactar nomina]
+
+  t3[(payrolls)]
+  t4[(ordinary_payrolls)]
+  t5[(deductions)]
+  t6[(deduction_payment_histories)]
+
+  endC([Cancelled])
+  endA([Applied])
+  endP([Applied + descuento])
+
+  startNode --> reg
+  reg -.->|INSERT Pending| t1
+  reg -.->|sin cambio Open| t2
+  reg --> wait --> proc --> gw
+
+  gw -->|No| rej
+  rej -.->|UPDATE Cancelled + motivo| t1
+  rej --> endC
+
+  gw -->|Si| apr
+  apr -.->|UPDATE Applied approved_by| t1
+  apr -.->|UPDATE SanctionApplied| t2
+  apr --> gwS
+
+  gwS -->|No| endA
+  gwS -->|Si| calc --> impact
+  impact -.->|ciclo Progress| t3
+  impact -.->|Sanction + totales| t4
+  impact -.->|Type Sanction| t5
+  impact -.->|historial| t6
+  impact -.->|UPDATE payroll_id| t1
+  impact --> endP

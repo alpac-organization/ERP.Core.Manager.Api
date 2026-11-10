@@ -329,6 +329,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                AdditionalDeducctions.OtherDeductions += deduction.FortnightlyAmount ?? 0.0m;
             }
 
+            if (deduction.Type == DeductionType.Sanction)
+            {
+               AdditionalDeducctions.Sanction += deduction.TotalAmount;
+            }
+
             if (deduction.Type == DeductionType.JudicialSeizures)
             {
                var exchangeRate = await _unitOfWork.ValidityDeductions.Entities

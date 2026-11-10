@@ -266,7 +266,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                     _logger.LogInformation("✅Se finaliza el proceso de registro por embargo judicial");
                     return true;
                 }
-                case DeductionType.Sanction :
+                
+                /* case DeductionType.Sanction :
                 {
                     _logger.LogInformation("🚩Iniciando proceso de registro de deducción por sanción");
 
@@ -295,7 +296,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Handlers
                     
                     _logger.LogInformation("✅ Se finaliza el proceso de registro por sanción");
                     return true;
-                }
+                } */
+
                 default:
                 {
                     return _errorManager.ThrowBadRequest<bool>("Este tipo de deduccion no se encuentra disponible", "ERP:01");

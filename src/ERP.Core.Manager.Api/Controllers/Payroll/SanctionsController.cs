@@ -114,7 +114,8 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             UserId = Guid.Parse(userIdStr ?? ""),
             CompanyId = company_id,
             ModuleCode = module_code,
-            SanctionId = sanction_id,
+            SanctionId = sanction_id,            
+            PayrollId = payload.PayrollId,
             IsApproved = payload.IsApproved,
             CancellationReason = payload.CancellationReason
          });
