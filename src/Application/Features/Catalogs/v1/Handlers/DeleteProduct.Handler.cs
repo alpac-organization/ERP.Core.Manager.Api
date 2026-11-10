@@ -28,7 +28,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             var product = await _unitOfWork.Products.Entities
-                .Where(product => product.IsActive)
+                .Where(product => product.ProductStatus == ProductStatus.Active)
                 .Where(product => product.Id == request.ProductId)
                 .Where(product => product.CostCenterId == access.Profile.CostCenterId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -37,11 +37,28 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             {
                 return _errorManager.ThrowBadRequest<Unit>("Este producto no existe o no se encuentra activo", "ERP:01");
             }
-            
+
             //Dar de baja el producto
-            product.IsActive = false;
+            product.ProductStatus = ProductStatus.Inactive;
             product.DeletedAt = DateTime.Today;
 
+            var stock = await _unitOfWork.ProductStocks.Entities
+                .Include(product => product.Product)
+                .Where(productStock => productStock.IsActive)
+                .Where(productStock => productStock.ProductId == product.Id)
+                .Where(productStock => productStock.Product.Code == product.Code)
+                .Where(productStock => productStock.CostCenterId == access.Profile.CostCenterId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (stock is not null)
+            {
+                //Si existe registro de stock eliminar este producto
+
+                stock.IsActive = false;
+                stock.DeletedAt = DateTime.Now;
+
+                await _unitOfWork.ProductStocks.UpdateAsync(stock);
+            }
 
             await _unitOfWork.Products.UpdateAsync(product);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

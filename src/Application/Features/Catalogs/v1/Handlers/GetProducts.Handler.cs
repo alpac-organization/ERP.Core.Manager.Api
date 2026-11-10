@@ -15,12 +15,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
     {
         public override async Task<PagedResponse<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
         {
-            var access = await ValidateAccessAsync(
-                request.UserId,
-                request.CompanyId,
-                request.ModuleCode,
-                cancellationToken
-            );
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode, cancellationToken);
 
             if (!access.IsSuccess)
             {
@@ -57,10 +52,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             if (request.CategoryProductId.HasValue)
             {
-                query = query.Where(c => c.CategoryId == request.CategoryProductId.Value);
+                query = query
+                    .Where(c => c.CategoryId == request.CategoryProductId.Value);
             }
 
-            var totalCount = await query.CountAsync(cancellationToken);
+            if (request.OnlyActive)
+            {
+                query = query
+                    .Where(c => c.ProductStatus == ProductStatus.Active);   
+            }
+
+            var totalCount = await query
+                .CountAsync(cancellationToken);
 
             var products = await query
                 .OrderByDescending(p => p.CreatedAt)

@@ -10,6 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public string? Code { get; set; }
         public string? ProductName { get; set; }
         public string? Description { get; set; }
+        public ProductStatus ProductStatus { get; set; }
         public ProductUsageType UsageType { get; set; }
 
         public Guid CategoryId { get; set; }
