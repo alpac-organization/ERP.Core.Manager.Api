@@ -178,4 +178,24 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
 
         return Ok();
     }
+    
+    [Tags("Productos")]
+    [HttpDelete("companies/{companie_id}/modules/{module_code}/products/{product_id}")]
+    [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<NoContentResult> DeleteProductAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid product_id)
+    {
+        var userId = ResolveUserId();
+
+        await _mediator.Send(new DeleteProductCommand
+        {
+            UserId     = userId,
+            CompanyId  = companie_id,
+            ModuleCode = module_code,
+            ProductId  = product_id,
+        });
+
+        return NoContent();
+    }
 }
