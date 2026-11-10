@@ -24,6 +24,7 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
     public async Task<PagedResponse<ProductDto>> GetProductsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
         [FromQuery] ProductUsageType product_usage_type,
         [FromQuery] Guid? category_product_id,
+        [FromQuery] bool only_active = false,
         [FromQuery] Guid? branch_id = null,
         [FromQuery] int page_number = 1,
         [FromQuery] int page_size = 10)
@@ -35,6 +36,7 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
             CompanyId = companie_id,
             ModuleCode = module_code,
             UserId = userId,
+            OnlyActive = only_active,
             CategoryProductId = category_product_id,
             ProductUsageType = product_usage_type,
             BranchId = branch_id,
@@ -177,5 +179,25 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
         });
 
         return Ok();
+    }
+
+    [Tags("Productos")]
+    [HttpDelete("companies/{companie_id}/modules/{module_code}/products/{product_id}")]
+    [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<NoContentResult> DeleteProductAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] Guid product_id)
+    {
+        var userId = ResolveUserId();
+
+        await _mediator.Send(new DeleteProductCommand
+        {
+            UserId     = userId,
+            CompanyId  = companie_id,
+            ModuleCode = module_code,
+            ProductId  = product_id,
+        });
+
+        return NoContent();
     }
 }
