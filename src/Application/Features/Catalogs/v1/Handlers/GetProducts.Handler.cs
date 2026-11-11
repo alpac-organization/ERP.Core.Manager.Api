@@ -58,8 +58,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             if (request.OnlyActive)
             {
                 query = query
-                    .Where(c => c.DeletedAt != null)
-                    .Where(c => c.ProductStatus == ProductStatus.Active);   
+                    .Where(product => product.ProductStatus == ProductStatus.Active);
             }
 
             if (!string.IsNullOrEmpty(request.ProductName))
