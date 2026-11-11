@@ -23,6 +23,7 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<PagedResponse<ProductDto>> GetProductsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
         [FromQuery] ProductUsageType product_usage_type,
+        [FromQuery] string? product_name = null,
         [FromQuery] Guid? category_product_id,
         [FromQuery] bool only_active = false,
         [FromQuery] Guid? branch_id = null,
@@ -30,11 +31,12 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
         [FromQuery] int page_size = 10)
     {
         var userId = ResolveUserId();
-
+        
         return await _mediator.Send(new GetProductsQuery
         {
             CompanyId = companie_id,
             ModuleCode = module_code,
+            ProductName = product_name,
             UserId = userId,
             OnlyActive = only_active,
             CategoryProductId = category_product_id,
