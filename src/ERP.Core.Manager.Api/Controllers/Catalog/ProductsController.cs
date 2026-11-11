@@ -24,14 +24,14 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
     public async Task<PagedResponse<ProductDto>> GetProductsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
         [FromQuery] ProductUsageType product_usage_type,
         [FromQuery] string? product_name = null,
-        [FromQuery] Guid? category_product_id,
+        [FromQuery] Guid? category_product_id = null,
         [FromQuery] bool only_active = false,
         [FromQuery] Guid? branch_id = null,
         [FromQuery] int page_number = 1,
         [FromQuery] int page_size = 10)
     {
         var userId = ResolveUserId();
-        
+
         return await _mediator.Send(new GetProductsQuery
         {
             CompanyId = companie_id,
