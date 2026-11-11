@@ -62,8 +62,8 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.validato
          When(x => x.MaxAmountDays.HasValue, () =>
          {
             RuleFor(x => x.MaxAmountDays)
-               .GreaterThan(0)
-               .WithMessage("La cantidad máxima de días debe ser mayor a cero.");
+               .GreaterThanOrEqualTo(0)
+               .WithMessage("La cantidad máxima de días no puede ser negativa.");
          });
       }
    }

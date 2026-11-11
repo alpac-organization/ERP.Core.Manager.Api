@@ -103,7 +103,9 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Handlers
          policy.MinEvidenceCount = minEvidence;
          policy.MaxEvidenceCount = maxEvidence;
          policy.RequiredApprovalSteps = request.RequiredApprovalSteps ?? policy.RequiredApprovalSteps;
-         policy.MaxAmountDays = request.MaxAmountDays ?? policy.MaxAmountDays;
+         policy.MaxAmountDays = request.MaxAmountDays == 0
+            ? null
+            : request.MaxAmountDays ?? policy.MaxAmountDays;
 
          await _unitOfWork.PermitTypePolicyRepository.UpdateAsync(policy);
          await _unitOfWork.SaveChangesAsync(cancellationToken);
