@@ -72,6 +72,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 CategoryId       = command.CategoryId,
                 Description      = command.Description,
                 IsTaxExempt      = command.IsTaxExempt,
+                ProductStatus    = ProductStatus.Active,
                 UnitMeasureId    = command.UnitMeasureId,
                 ProductUsageType = command.ProductUsageType,
                 SupplierProducts =  [
