@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # =========================
 # 1. BUILD STAGE
 # =========================
@@ -5,24 +7,21 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
-ARG GH_PACKAGE_TOKEN
-ARG GH_USER
-
-# GitHub Packages
-RUN dotnet nuget add source "https://nuget.pkg.github.com/alpac-organization/index.json" \
-    --name "GitHub" \
-    --username "$GH_USER" \
-    --password "$GH_PACKAGE_TOKEN" \
-    --store-password-in-clear-text
-
 # Copiar únicamente los proyectos para aprovechar la cache
 COPY ["src/Application/Application.csproj", "src/Application/"]
 COPY ["src/Domain/Domain.csproj", "src/Domain/"]
 COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
 COPY ["src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj", "src/ERP.Core.Manager.Api/"]
 
-# Restore
-RUN dotnet restore "src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj"
+# GitHub Packages + Restore (mismo RUN: el secreto solo existe durante este comando)
+RUN --mount=type=secret,id=gh_user \
+    --mount=type=secret,id=gh_token \
+    dotnet nuget add source "https://nuget.pkg.github.com/alpac-organization/index.json" \
+      --name "GitHub" \
+      --username "$(cat /run/secrets/gh_user)" \
+      --password "$(cat /run/secrets/gh_token)" \
+      --store-password-in-clear-text \
+    && dotnet restore "src/ERP.Core.Manager.Api/ERP.Core.Manager.Api.csproj"
 
 # Copiar el resto del código
 COPY src/ ./src/
@@ -32,7 +31,8 @@ WORKDIR /src/src/ERP.Core.Manager.Api
 # Build
 RUN dotnet build "ERP.Core.Manager.Api.csproj" \
     -c Release \
-    -o /app/build
+    -o /app/build \
+    --no-restore
 
 # =========================
 # 2. PUBLISH STAGE
@@ -42,7 +42,8 @@ FROM build AS publish
 RUN dotnet publish "ERP.Core.Manager.Api.csproj" \
     -c Release \
     -o /app/publish \
-    /p:UseAppHost=false
+    /p:UseAppHost=false \
+    --no-restore
 
 # =========================
 # 3. RUNTIME STAGE
