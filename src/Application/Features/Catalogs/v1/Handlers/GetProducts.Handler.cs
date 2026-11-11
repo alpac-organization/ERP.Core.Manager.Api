@@ -32,7 +32,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .Include(product => product.UnitMeasure)
                 .Include(product => product.SupplierProducts)
 
-                .Where(product => !product.DeletedAt.HasValue)
                 .Where(product => product.BranchId == access.Profile.BranchId)
                 .Where(product => product.ProductUsageType == request.ProductUsageType);
 
@@ -59,6 +58,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             if (request.OnlyActive)
             {
                 query = query
+                    .Where(c => c.DeletedAt != null)
                     .Where(c => c.ProductStatus == ProductStatus.Active);   
             }
 

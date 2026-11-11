@@ -1,8 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Infrastructure;
 using ERP.Core.Infrastructure.Services;
+using ERP.Core.Application.Commons.Interfaces;
 
 using ERP.Core.Database.Infrastructure;
 
@@ -11,9 +12,7 @@ using ERP.Core.Manager.Api.Application.Commons.Interfaces;
 using ERP.Core.Database.Infrastructure.Services;
 using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Clock.Database.Infrastructure;
-using ERP.Core.Infrastructure;
 using ERP.Core.Notification.Infrastructure;
-using ERP.Core.Notification.Application.Commons.Interfaces;
 
 namespace ERP.Core.Manager.Api.Infrastructure
 {
