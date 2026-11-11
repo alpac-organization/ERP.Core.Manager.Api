@@ -2,7 +2,6 @@ using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Database.Domain.Enums;
-using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1;
 using ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.commands;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,7 +70,7 @@ namespace ERP.Core.Manager.Api.Application.Features.PermitTypePolicy.v1.Handlers
 
          var requiresEvidence = request.RequiresEvidence ?? policy.RequiresEvidence;
          var minEvidence = request.MinEvidenceCount ?? policy.MinEvidenceCount;
-         int? maxEvidence = request.MaxEvidenceCount;
+         int? maxEvidence = request.MaxEvidenceCount ?? policy.MaxEvidenceCount;
 
          if (!requiresEvidence)
          {
