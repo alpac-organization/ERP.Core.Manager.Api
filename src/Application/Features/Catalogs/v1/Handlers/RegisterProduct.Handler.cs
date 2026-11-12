@@ -96,7 +96,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             var productEntity = ProductMapper.ToProductEntity(request, supplierCurrencies);
 
             productEntity.BranchId = access.Profile.BranchId;
-            productEntity.CostCenterId = access.Profile.CostCenterId;
+            productEntity.CostCenterId = request.CostCenterId ?? access.Profile.CostCenterId;
 
             if (request.ProductUsageType == ProductUsageType.Administrative)
             {
@@ -139,7 +139,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                         "ERP:PROD01"
                     );
                 }
-
+                
                 productEntity.Code = Code;
                 await _unitOfWork.Products.InsertProduct(productEntity);
 
@@ -153,7 +153,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 if (configurationInventory is not null)
                 {
                     var inventoryStockEntity = ProductMapper.ToProductStockEntity(request, productEntity.Id);
-                    inventoryStockEntity.CostCenterId = access.Profile.CostCenterId;
+                    inventoryStockEntity.CostCenterId = request.CostCenterId ?? access.Profile.CostCenterId;
 
                     await _unitOfWork.ProductStocks.RegisterProductStock(inventoryStockEntity);
                 }

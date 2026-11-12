@@ -6,6 +6,7 @@ using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
+using ERP.Core.Database.Domain.Enums;
 namespace ERP.Core.Manager.Api.Controllers.Catalog;
 
 [HasToken]
@@ -19,19 +20,19 @@ public class CategoryProductController(IMediator _mediator) : ApiControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<List<CategoryProductDto>> GetCategoryProductsTreeAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
-        [FromQuery] Guid? parent_id
+        [FromQuery] CategoryType? category_type = null
     )
     {
         var userIdStr = HttpContext.Items["UserId"] as string;
-
+        
         Guid userId = Guid.TryParse(userIdStr, out var parseGuid) ? parseGuid : Guid.Empty;
 
         return await _mediator.Send(new GetCategoryProductsQuery
         {
-            CompanyId = companie_id,
-            ModuleCode = module_code,
-            UserId = userId,
-            ParentId = parent_id
+            UserId       = userId,
+            CompanyId    = companie_id,
+            ModuleCode   = module_code,
+            CategoryType = category_type,
         });
     }
 
