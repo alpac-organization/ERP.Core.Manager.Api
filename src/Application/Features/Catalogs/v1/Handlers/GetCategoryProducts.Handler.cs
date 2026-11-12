@@ -5,6 +5,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers;
 
@@ -22,10 +23,13 @@ public class GetCategoryProductsTreeHandler(IUnitOfWork _unitOfWork, IErrorManag
         if (!access.IsSuccess)
             return access.ErrorResponse!;
 
+        var categoryType = request.CategoryType ?? CategoryType.Administrative;
+
         // Obtener TODAS las categorías activas (sin importar el padre)
         var allCategories = await _unitOfWork.CategoryProducts.Entities
             .AsNoTracking()
             .Where(c => c.IsActive)
+            .Where(c => c.CategoryType == categoryType)
             .ToListAsync(cancellationToken);
 
         // Mapear a DTOs

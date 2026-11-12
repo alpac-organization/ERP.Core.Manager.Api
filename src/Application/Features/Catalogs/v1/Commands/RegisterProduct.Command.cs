@@ -10,6 +10,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands
         public string? ProductName { get; set; }
         public Guid CategoryId { get; set; }
         public Guid UnitMeasureId { get; set; }
+        public Guid? CostCenterId { get; set; }
 
         public bool IsTaxExempt { get; set; }
         public ProductUsageType ProductUsageType { get; set; }
