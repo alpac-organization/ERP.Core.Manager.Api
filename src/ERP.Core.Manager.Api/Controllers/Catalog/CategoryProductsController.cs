@@ -1,12 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Domain.Entities.Errors;
 using ERP.Core.Infrastructure.Attributes;
 using ERP.Core.Manager.Api.Controllers.ApiBase;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
-using ERP.Core.Database.Domain.Enums;
+
 namespace ERP.Core.Manager.Api.Controllers.Catalog;
 
 [HasToken]
