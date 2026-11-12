@@ -50,7 +50,7 @@ public class GetProductDetailsHandler(IUnitOfWork _unitOfWork, IErrorManager _er
             .Include(p => p.CostCenter)
             .Include(p => p.UnitMeasure)
             .Include(p => p.SupplierProducts)
-            .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.DeletedAt == null, cancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken);
     }
 
     private async Task<PagedResponse<ProductSupplierDto>> LoadSuppliersAsync(GetProductDetailsQuery request, CancellationToken cancellationToken)
