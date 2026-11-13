@@ -1,7 +1,6 @@
 using FluentValidation;
 using ERP.Core.Manager.Api.Application.Commons.Validators;
 using ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Commands;
-using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Validators;
 

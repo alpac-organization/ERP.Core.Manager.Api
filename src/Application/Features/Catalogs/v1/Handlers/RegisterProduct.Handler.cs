@@ -139,7 +139,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                         "ERP:PROD01"
                     );
                 }
-                
+
                 productEntity.Code = Code;
                 await _unitOfWork.Products.InsertProduct(productEntity);
 

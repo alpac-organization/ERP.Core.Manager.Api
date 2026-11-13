@@ -25,10 +25,12 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
                 .Where(cost => cost.IsActive)
                 .Where(cost => cost.WorkArea.CompanyId == request.CompanyId)
                 .Where(cost => cost.WorkArea.IsActive);
-
+                
             if (request.OnlyOperational.HasValue)
             {
-                costCentersQuery = costCentersQuery.Where(cost => cost.IsOperational == request.OnlyOperational.Value);
+                costCentersQuery = costCentersQuery
+                    .Where(cost => cost.BranchId == access.Profile.BranchId)
+                    .Where(cost => cost.IsOperational == request.OnlyOperational.Value);
             }
 
             var costCenters = await costCentersQuery.ToListAsync(cancellationToken);
