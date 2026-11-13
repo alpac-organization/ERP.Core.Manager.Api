@@ -52,7 +52,23 @@ namespace ERP.Core.Manager.Api.Controllers.Catalog
         }
 
         [Tags("Centros de costo")]  
-        [HttpDelete("companies/{company_id}/modules/{module_code}/areas/{area_id}/cost-centers/{cost_center_id}")]   
+        [HttpGet("companies/{company_id}/modules/{module_code}/cost-centers")]   
+        [ProducesResponseType(typeof(List<CostCenterDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<List<CostCenterDto>> GetCostCentersAsync([FromRoute] Guid company_id, [FromRoute] string module_code, [FromQuery] bool? only_operational)
+        {
+            var userIdStr = HttpContext.Items["UserId"] as string;
+
+            return await _mediator.Send(new GetCostCentersQuery()
+            {
+                CompanyId = company_id,
+                ModuleCode = module_code,
+                UserId = Guid.Parse(userIdStr ?? ""),
+                OnlyOperational = only_operational
+            });
+        }   
+        
         [ProducesResponseType(typeof(CreatedResult), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
