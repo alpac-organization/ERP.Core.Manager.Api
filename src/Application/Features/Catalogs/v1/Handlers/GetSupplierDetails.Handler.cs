@@ -69,7 +69,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .AsNoTracking()
                 .Where(sup => sup.Id == request.SupplierId)
                 .SelectMany(sup => sup.SupplierProducts)
-                .Where(sp => sp.IsActive && sp.DeletedAt == null);
+                .Where(sp => sp.IsActive && sp.DeletedAt == null)
+                .Where(sp => sp.Product.DeletedAt == null && sp.Product.ProductStatus == ProductStatus.Active);
 
             if (!string.IsNullOrWhiteSpace(request.Code))
             {
