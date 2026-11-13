@@ -57,6 +57,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
             //Verificamos el perfil al que quiere, ingresar
             var profile = await _unitOfWork.Profiles.Entities
                 .Include(profile => profile.CostCenter)
+                .Include(profile => profile.Branch)
                 .Where(profile => profile.UserId == user.Id)
                 .Where(profile => profile.CompanyId == request.CompanyId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -125,6 +126,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Authentication.v1.Handlers
 
             loginDto.AreaId = profile.AreaId;
             loginDto.BranchId = profile.BranchId;
+            loginDto.BranchCode = profile.Branch?.BranchCode;
             loginDto.AccessToken = accessToken;
             loginDto.RefreshToken = refreshToken;
 

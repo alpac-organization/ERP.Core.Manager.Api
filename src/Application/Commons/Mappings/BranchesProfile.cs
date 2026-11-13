@@ -9,7 +9,8 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
         public BranchesProfile()
         {
             CreateMap<Branch, BranchesDto>()
-                .ForMember(dest => dest.BranchId, opt => opt.MapFrom(src => src.Id));
+                .ForMember(dest => dest.BranchId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.BranchCode, opt => opt.MapFrom(src => src.BranchCode));
         }
     }
 }
