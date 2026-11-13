@@ -1,3 +1,5 @@
+using ERP.Core.Database.Domain.Enums;
+
 namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
 {
     public class CategoryProductDto
@@ -5,6 +7,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public bool IsActive {get; set;}
         public string? Name {get; set; }
         public string? Code {get; set; }
+        public bool IsService { get; set; }
+        public CategoryType CategoryType { get; set; }
         public Guid CategoryId { get; set; }
     }
 }

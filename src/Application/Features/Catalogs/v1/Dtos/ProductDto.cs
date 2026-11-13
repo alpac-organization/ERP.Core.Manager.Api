@@ -13,6 +13,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Dtos
         public ProductStatus ProductStatus { get; set; }
         public ProductUsageType UsageType { get; set; }
 
+        public bool IsActive { get; set; }
+
         public Guid CategoryId { get; set; }
         public Guid UnitMeasureId { get; set; }
         public bool IsTaxExempt { get; set; }

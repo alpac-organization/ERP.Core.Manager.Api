@@ -23,6 +23,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
                 .ForMember(dest => dest.UsageType, opt => opt.MapFrom(src => src.ProductUsageType))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.ProductStatus == ProductStatus.Active))
                 .ForMember(dest => dest.BranchInformation, opt => opt.MapFrom(src => src.Branch))
                 .ForMember(dest => dest.CostCenterInformation, opt => opt.MapFrom(src => src.CostCenter))
                 .ForMember(dest => dest.UnitMeasureInformation, opt => opt.MapFrom(src => src.UnitMeasure))
@@ -72,6 +73,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
                 CategoryId       = command.CategoryId,
                 Description      = command.Description,
                 IsTaxExempt      = command.IsTaxExempt,
+                ProductStatus    = ProductStatus.Active,
                 UnitMeasureId    = command.UnitMeasureId,
                 ProductUsageType = command.ProductUsageType,
                 SupplierProducts =  [
