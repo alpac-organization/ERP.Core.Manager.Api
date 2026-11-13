@@ -8,11 +8,7 @@ public sealed record LinkValidationError(string Message, string Code);
 
 public static class SupplierProductLinkValidator
 {
-    public static async Task<LinkValidationError?> ValidateSuppliersToLinkAsync(
-        IUnitOfWork unitOfWork,
-        IReadOnlyList<ProductSupplierItemDto> suppliers,
-        ISet<Guid>? alreadyLinkedSupplierIds,
-        CancellationToken cancellationToken)
+    public static async Task<LinkValidationError?> ValidateSuppliersToLinkAsync(IUnitOfWork unitOfWork, IReadOnlyList<ProductSupplierItemDto> suppliers, ISet<Guid>? alreadyLinkedSupplierIds, CancellationToken cancellationToken)
     {
         if (suppliers.Count == 0)
         {
