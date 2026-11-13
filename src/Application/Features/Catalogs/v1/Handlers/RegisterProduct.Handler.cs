@@ -144,9 +144,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 await _unitOfWork.Products.InsertProduct(productEntity);
 
                 //Verificar si la categoria, si es diferentes de servicios, u otras cosas que no sean un categoria de producto real.
-                var configurationInventory = await _unitOfWork.InventoryAllowedCategories.Entities
-                    .Where(configuration => configuration.IsActive)
-                    .Where(configuration => configuration.CategoryId == request.CategoryId)
+                var configurationInventory = await _unitOfWork.CategoryProducts.Entities
+                    .Where(category => category.IsActive)
+                    .Where(category => !category.IsService)
+                    .Where(category => category.CategoryType == CategoryType.Operational)
+                    .Where(category => category.Id == request.CategoryId)
                     .FirstOrDefaultAsync(cancellationToken);
 
                 //Entrada a stock de inventario...
