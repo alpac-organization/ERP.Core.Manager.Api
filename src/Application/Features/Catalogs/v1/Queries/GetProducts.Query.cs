@@ -10,14 +10,16 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries
     public class GetProductsQuery : BaseRequest, IRequest<PagedResponse<ProductDto>>
     {
         public bool OnlyActive { get; set; } = false;
-        
+
         public Guid? BranchId { get; set; }
+        public Guid? CostCenterId { get; set; }
+        public Guid? CategoryProductId { get; set; }
+
         public string? ProductName { get; set; }
         public string? ProductCode { get; set;  }
-        public Guid? CategoryProductId { get; set; }
+
         public ProductStatus? Status { get; set; }
         public ProductUsageType ProductUsageType { get; set; }
-
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
