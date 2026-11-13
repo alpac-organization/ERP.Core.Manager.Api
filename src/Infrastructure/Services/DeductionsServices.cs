@@ -16,139 +16,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         ILogger<CalculatorDeductions> _logger,
         IErrorManager _errorManager) : IDeductionsServices
     {
-        #region Gestion de Sancion
-        public async Task<(bool, Guid)> ApplySanctionDeduction(Collaborator collaborator, int amountDays, Guid payrollId)
-        {
-            var payrollActive = await _unitOfWork.Payrolls.Entities
-                .Where(pay => pay.Id == payrollId)
-                .Where(pay => pay.Status == PayrollStatus.Progress)
-                .Where(pay => pay.PayrollType == PayrollType.Ordinary)
-                .Where(pay => pay.BranchId == collaborator.WorkingInformation.BranchId)
-                .OrderByDescending(p => p.CreatedAt)
-                .FirstOrDefaultAsync(default);
-
-            if (payrollActive is null)
-            {
-                _logger.LogInformation(
-                    "Nómina {PayrollId} no válida para sanción del colaborador {Identification}",
-                    payrollId, collaborator.IdentificationNumber);
-
-                return _errorManager.ThrowBadRequest<(bool, Guid)>(
-                    "La nómina no existe, no está en progreso, no es ordinaria o no pertenece a la sucursal del colaborador.",
-                    "ERP:PeriodNotExist");
-            }
-
-            var salary = await _unitOfWork.Salaries.Entities
-                .Where(s => s.EndDate == null)
-                .Where(s => s.SalaryType == SalaryType.Fixed)
-                .Where(s => s.CollaboratorId == collaborator.Id)
-                .FirstOrDefaultAsync(default);
-
-            if (salary is null)
-            {
-                _logger.LogWarning(
-                    "No se pudo obtener la información salarial del colaborador con cedula: {identification}",
-                    collaborator.IdentificationNumber);
-
-                return _errorManager.ThrowBadRequest<(bool, Guid)>(
-                    $"No se encontró un salario fijo activo para el colaborador con cédula {collaborator.IdentificationNumber}.",
-                    "ERP:01");
-            }
-
-            var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
-                .Where(ord => ord.PayrollId == payrollActive.Id)
-                .Where(ord => ord.CollaboratorId == collaborator.Id)
-                .Include(ord => ord.Payroll)
-                .FirstOrDefaultAsync(default);
-
-            if (ordinaryPayroll is null)
-            {
-                _logger.LogInformation(
-                    "No se encontro registro de nomina de este colaborador => {identificacion}",
-                    collaborator.IdentificationNumber);
-
-                return _errorManager.ThrowBadRequest<(bool, Guid)>(
-                    $"No hay registro de nómina ordinaria para el colaborador {collaborator.IdentificationNumber} en el periodo indicado.",
-                    "ERP:01");
-            }
-
-            var exchangeRateEntity = await _unitOfWork.ValidityDeductions.Entities
-                .Where(val => val.Status)
-                .Where(val => val.EndDate == null)
-                .Where(val => val.Type == TaxType.ExchangeRate)
-                .FirstOrDefaultAsync(default);
-
-            if (exchangeRateEntity is null)
-            {
-                _logger.LogWarning("No se encontró un tipo de cambio activo en la configuración.");
-
-                return _errorManager.ThrowBadRequest<(bool, Guid)>(
-                    "No se encontró un tipo de cambio activo en la configuración.",
-                    "ERP:01");
-            }
-
-            decimal exchangeRate = exchangeRateEntity.Value;
-            decimal amountToDeduct = amountDays * (salary.AmountSalary / 15);
-
-            var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
-                ordinaryPayroll.DeductionsAdditionalData) ?? new DeductionsAdditionalData();
-
-            deductions.Sanction = amountToDeduct;
-
-            decimal totalDeductions = GetTotalDeductions(deductions);
-
-            // Total a pagar = Ingresos - Deducciones
-            // Deducciones = Todas Las Deducciones (Tabla Deducciones) + Total de Deducciones Legales (INSS Quincenal + IR Quincenal)
-
-            ordinaryPayroll.TotalToPay = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
-
-            ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
-
-            ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-
-            await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
-
-            var deduction = await _unitOfWork.Deductions.RegisterDeduction(new()
-            {
-                Id = Guid.NewGuid(),
-                CollaboratorId = collaborator.Id,
-                Description = "Sanción por suspensión",
-                Currency = Currency.NIO,
-                Type = DeductionType.Sanction,
-                Status = DeductionStatus.Progress,
-                Amount = amountDays,
-                TotalAmount = amountToDeduct,
-                TotalAmountInDollars = amountToDeduct / exchangeRate
-            });
-
-            await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
-            {
-                Currency = Currency.NIO,
-                Status = DeductionPaymentStatus.Paid,
-                Origin = SourceDeductionPayment.Payroll,
-                DeductionId = deduction.Id,
-                PayrollId = payrollActive.Id,
-                AmountPaid = amountToDeduct,
-                AmountPaidInDollars = amountToDeduct / exchangeRate,
-                PaymentDate = DateTime.Now
-            });
-
-            _logger.LogInformation(
-                "✅ Deducción por sanción aplicada. Colaborador: {identification}, Días: {days}, Monto: {amount}",
-                collaborator.IdentificationNumber, amountDays, amountToDeduct);
-
-            return (true, payrollActive.Id);
-        }
-        #endregion
-
-
-
-
-
-
-
-
-
+        /// <summary>
+        /// Obtiene el total de deducciones del objeto datos adicionales de deducciones
+        /// </summary>
+        /// <param name="deductions">Valor del objeto <see cref="DeductionsAdditionalData"/></param>
+        /// <returns></returns>
         private static decimal GetTotalDeductions(DeductionsAdditionalData? deductions)
         {
             decimal totalDeductions = 0;
@@ -173,13 +45,176 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             return totalDeductions;
         }
 
+        private static bool FitsCompletelyInPayroll(
+            DateOnly suspensionStart,
+            DateOnly suspensionEnd,
+            DateOnly payrollStart,
+            DateOnly payrollEnd
+        )
+        {
+            return suspensionStart >= payrollStart && suspensionEnd <= payrollEnd;
+        }
 
+        #region Gestion de Sancion
+        public async Task<(bool, Guid)> ApplySanctionDeduction(
+            Collaborator collaborator,
+            DateOnly suspensionStartDate,
+            DateOnly suspensionEndDate,
+            Guid payrollId)
+        {
+            var payrollActive = await _unitOfWork.Payrolls.Entities
+                .Where(pay => pay.Id == payrollId)
+                .Where(pay => pay.Status == PayrollStatus.Progress)
+                .Where(pay => pay.PayrollType == PayrollType.Ordinary)
+                .Where(pay => pay.BranchId == collaborator.WorkingInformation.BranchId)
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync(default);
 
+            if (payrollActive is null)
+            {
+                _logger.LogInformation(
+                    "Nómina {PayrollId} no válida para sanción del colaborador {Identification}",
+                    payrollId, collaborator.IdentificationNumber);
 
+                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                    "La nómina no existe, no está en progreso, no es ordinaria o no pertenece a la sucursal del colaborador.",
+                    "ERP:PeriodNotExist");
+            }
 
+            var totalSuspensionDays = suspensionEndDate.DayNumber - suspensionStartDate.DayNumber + 1;
 
+            if (totalSuspensionDays is < 3 or > 7)
+            {
+                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                    "La suspensión debe durar entre 3 y 7 días.",
+                    "ERP:InvalidOperation");
+            }
 
+            var salary = await _unitOfWork.Salaries.Entities
+                .Where(s => s.EndDate == null)
+                .Where(s => s.SalaryType == SalaryType.Fixed)
+                .Where(s => s.CollaboratorId == collaborator.Id)
+                .FirstOrDefaultAsync(default);
 
+            if (salary is null)
+            {
+                _logger.LogWarning(
+                    "No se pudo obtener la información salarial del colaborador con cedula: {identification}",
+                    collaborator.IdentificationNumber);
+
+                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                    $"No se encontró un salario fijo activo para el colaborador con cédula {collaborator.IdentificationNumber}.",
+                    "ERP:01");
+            }
+
+            var exchangeRateEntity = await _unitOfWork.ValidityDeductions.Entities
+                .Where(val => val.Status)
+                .Where(val => val.EndDate == null)
+                .Where(val => val.Type == TaxType.ExchangeRate)
+                .FirstOrDefaultAsync(default);
+
+            if (exchangeRateEntity is null)
+            {
+                _logger.LogWarning("No se encontró un tipo de cambio activo en la configuración.");
+
+                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                    "No se encontró un tipo de cambio activo en la configuración.",
+                    "ERP:01");
+            }
+
+            decimal amountDays = totalSuspensionDays;
+            decimal exchangeRate = exchangeRateEntity.Value;
+            decimal amountToDeduct = amountDays * (salary.AmountSalary / 30);
+
+            var applyNow = FitsCompletelyInPayroll(
+                suspensionStartDate, suspensionEndDate,
+                payrollActive.StartDate, payrollActive.EndDate);
+
+            if (applyNow)
+            {
+                var ordinaryPayroll = await _unitOfWork.OrdinaryPayrolls.Entities
+                    .Where(ord => ord.PayrollId == payrollActive.Id)
+                    .Where(ord => ord.CollaboratorId == collaborator.Id)
+                    .Include(ord => ord.Payroll)
+                    .FirstOrDefaultAsync(default);
+
+                if (ordinaryPayroll is null)
+                {
+                    _logger.LogInformation(
+                        "No se encontro registro de nomina de este colaborador => {identificacion}",
+                        collaborator.IdentificationNumber);
+
+                    return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                        $"No hay registro de nómina ordinaria para el colaborador {collaborator.IdentificationNumber} en el periodo indicado.",
+                        "ERP:01");
+                }
+
+                var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
+                    ordinaryPayroll.DeductionsAdditionalData) ?? new DeductionsAdditionalData();
+
+                deductions.Sanction = amountToDeduct;
+
+                decimal totalDeductions = GetTotalDeductions(deductions);
+
+                // Total a pagar = Ingresos - Deducciones
+                // Deducciones = Todas Las Deducciones (Tabla Deducciones) + Total de Deducciones Legales (INSS Quincenal + IR Quincenal)
+                ordinaryPayroll.TotalToPay = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
+
+                ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
+
+                ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
+
+                await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
+
+                var deduction = await _unitOfWork.Deductions.RegisterDeduction(new()
+                {
+                    Id = Guid.NewGuid(),
+                    CollaboratorId = collaborator.Id,
+                    Description = "Sanción por suspensión",
+                    Currency = Currency.NIO,
+                    Type = DeductionType.Sanction,
+                    Status = DeductionStatus.Completed,
+                    Amount = amountDays,
+                    TotalAmount = amountToDeduct,
+                    TotalAmountInDollars = amountToDeduct / exchangeRate
+                });
+
+                await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+                {
+                    Currency = Currency.NIO,
+                    Status = DeductionPaymentStatus.Paid,
+                    Origin = SourceDeductionPayment.Payroll,
+                    DeductionId = deduction.Id,
+                    PayrollId = payrollActive.Id,
+                    AmountPaid = amountToDeduct,
+                    AmountPaidInDollars = amountToDeduct / exchangeRate,
+                    PaymentDate = DateTime.Now
+                });
+
+                return (true, payrollActive.Id);
+            }
+
+            // No cabe: solo registrar, para la siguiente nómina
+            await _unitOfWork.Deductions.RegisterDeduction(new()
+            {
+                Id = Guid.NewGuid(),
+                CollaboratorId = collaborator.Id,
+                Description = "Sanción por suspensión",
+                Currency = Currency.NIO,
+                Type = DeductionType.Sanction,
+                Status = DeductionStatus.Progress, // pendiente de cobro
+                Amount = amountDays,
+                TotalAmount = amountToDeduct,
+                TotalAmountInDollars = amountToDeduct / exchangeRate
+            });
+
+            _logger.LogInformation(
+                "Sanción registrada pendiente. Colaborador: {identification}, Días: {days}, Monto: {amount}",
+                collaborator.IdentificationNumber, amountDays, amountToDeduct);
+
+            return (true, Guid.Empty);
+        }
+        #endregion        
 
         //✅Deducción de viaticos por inasistencia
         public async Task ApplyDeductionTravelExpenses(Collaborator collaboratorInformation, Salary salaryInformation, Guid payrollId)
@@ -437,20 +472,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             deductions.LateArrivals = TotalDeductionToLateArrivals;
 
-            decimal totalDeductions =
-                deductions.Loans
-                + deductions.Purisima
-                + deductions.ChildSupportGarnishment
-                + deductions.SalaryAdvance
-                + deductions.ChristmasBonusAdvance
-                + deductions.JudicialSeizures
-                + deductions.UniformDeduction
-                + deductions.CashShortage
-                + deductions.OtherDeductions
-                + deductions.DeductionForLossesBulk
-                + deductions.Absences
-                + deductions.Sanction
-                + deductions.LateArrivals;
+            decimal totalDeductions = GetTotalDeductions(deductions);
 
             deductions.LateArrivalsInMinutes = totalMinutes;
             decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
@@ -521,20 +543,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             deductions.Purisima = fortnightlyAmount;
 
-            decimal totalDeductions =
-                deductions.Loans
-                + deductions.Purisima
-                + deductions.ChildSupportGarnishment
-                + deductions.SalaryAdvance
-                + deductions.ChristmasBonusAdvance
-                + deductions.JudicialSeizures
-                + deductions.UniformDeduction
-                + deductions.CashShortage
-                + deductions.OtherDeductions
-                + deductions.DeductionForLossesBulk
-                + deductions.Absences
-                + deductions.Sanction
-                + deductions.LateArrivals;
+            decimal totalDeductions = GetTotalDeductions(deductions);
 
             decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
 
@@ -709,21 +718,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     ? fortnightlyAmount
                     : fortnightlyAmount * exchangeRate;
 
-                decimal totalDeductions =
-                    deductions.Loans
-                    + deductions.Purisima
-                    + deductions.ChildSupportGarnishment
-                    + deductions.SalaryAdvance
-                    + deductions.ChristmasBonusAdvance
-                    + deductions.JudicialSeizures
-                    + deductions.UniformDeduction
-                    + deductions.CashShortage
-                    + deductions.OtherDeductions
-                    + deductions.DeductionForLossesBulk
-                    + deductions.Absences
-                    + deductions.Sanction
-                    + deductions.LateArrivals;
-
+                decimal totalDeductions = GetTotalDeductions(deductions);
 
                 decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
 
@@ -819,20 +814,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(ordinaryPayroll.DeductionsAdditionalData ?? "{}") ?? new DeductionsAdditionalData();
                 deductions.JudicialSeizures = amountToDeduct;
 
-                decimal totalDeductions =
-                    deductions.Loans
-                    + deductions.Purisima
-                    + deductions.ChildSupportGarnishment
-                    + deductions.SalaryAdvance
-                    + deductions.ChristmasBonusAdvance
-                    + deductions.JudicialSeizures
-                    + deductions.UniformDeduction
-                    + deductions.CashShortage
-                    + deductions.OtherDeductions
-                    + deductions.DeductionForLossesBulk
-                    + deductions.Absences
-                    + deductions.Sanction
-                    + deductions.LateArrivals;
+                decimal totalDeductions = GetTotalDeductions(deductions);
 
                 decimal total = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
                 ordinaryPayroll.TotalToPay = total;

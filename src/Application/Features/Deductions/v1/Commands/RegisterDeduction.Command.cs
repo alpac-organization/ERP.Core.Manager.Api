@@ -14,7 +14,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
         //✅Metodos manuales de registro de deducciones. 
         public LoansPayload? LoansPayload { get; set; }
         public OtherDeductionsData? OtherDeductionsPayload { get; set; }
-        public SansionPayload? SansionPayload { get; set; }
         public JudicialSeizurePayload? judicialSeizurePayload { get; set; }
 
         //✅Importación de documentos aqui only(purisima, llegadas tardes).
@@ -85,12 +84,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Deductions.v1.Commands
         public decimal TotalAmountToPay { get; set; } // Monto total de la deuda
         public int DeductionPercentage { get; set; }
         public string? Description { get; set; }
-        public string? IdentificationNumber { get; set; }
-    }
-
-    public class SansionPayload
-    {
-        public int AmountDays { get; set; }
         public string? IdentificationNumber { get; set; }
     }
 }

@@ -99,6 +99,8 @@ Retorna un `PagedResponse<SanctionDto>`.
 | `suspension_end_date` | `date \| null` | Fin de suspensión (solo si aplica). |
 | `created_at` | `datetime (ISO 8601)` | Fecha/hora de registro. |
 
+> ℹ️ El listado **no** expone `payroll_id`. Para saber en qué nómina se cobró (o si sigue diferida), usar [Detalle de sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/GetSanctionDetailsDocs.md).
+
 #### Catálogo de Enums
 
 **`SanctionType`**
@@ -156,3 +158,10 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
 | `200` | Listado paginado de sanciones obtenido exitosamente. |
 | `400` | Error de validación o de acceso (`ErrorResponse`). |
 | `500` | Error interno del servidor (`ErrorResponse`). |
+
+---
+
+## Notas
+
+- Estados: `Pending` (propuesta), `Applied` (aprobada por RRHH), `Cancelled` (rechazada).
+- Una `Suspension` `Applied` puede haber impactado nómina ya o quedar con cobro diferido; el detalle de nómina está en [Detalle](/src/ERP.Core.Manager.Api/Docs/Sanctions/GetSanctionDetailsDocs.md) y las reglas en [Procesar](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).

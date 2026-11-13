@@ -101,7 +101,7 @@ Ejemplo de suspensión (3 a 7 días):
 |---|---|---|---|
 | `1` | VerbalWarning | Amonestación verbal | Opcional |
 | `2` | Memorandum | Amonestación escrita | Requerida |
-| `3` | Suspension | Suspensión sin goce | Requerida |
+| `3` | Suspension | Suspensión sin goce (3–7 días; cobro de nómina al aprobar en Process) | Requerida |
 | `4` | CommitmentLetter | Carta de compromiso | Requerida |
 | `5` | Termination | Terminación de contrato | Requerida |
 
@@ -184,4 +184,4 @@ Otros mensajes frecuentes:
 - No se permite otra sanción `Pending` o `Applied` activa sobre la misma falta.
 - No se marca la falta como `SanctionApplied` en este paso; eso ocurre al aprobar en Process.
 - Evidencias: carpeta S3 `Manager/DisciplinarySanctions/`.
-- Efectos de nómina (`payroll_id`) pendientes de implementación.
+- Este endpoint **no** recibe `payroll_id` ni impacta nómina. El cobro de una `Suspension` ocurre al **aprobar** en Process (inmediato si cabe en el periodo de la nómina enviada; si no, diferido a la siguiente quincena). Ver reglas de suspensión en [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).

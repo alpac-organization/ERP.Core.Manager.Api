@@ -14,6 +14,65 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, IReportingServices _reportingServices, ILogger<CalculatorDeductions> _logger) : IPayrollServices
     {
+        private async Task<HashSet<DateOnly>> GetSuspensionDates(Collaborator collaborator, DateOnly payrollStart, DateOnly payrollEnd)
+        {
+            var suspensions = await _unitOfWork.DisciplinarySanctions.Entities
+                .AsNoTracking()
+                .Where(s =>
+                    s.SanctionStatus == SanctionStatus.Applied &&
+                    s.SanctionType == SanctionType.Suspension &&
+                    s.DeletedAt == null &&
+                    s.Fault.CollaboratorId == collaborator.Id &&
+                    s.SuspensionEndDate.HasValue &&
+                    s.SuspensionStartDate.HasValue &&
+                    s.SuspensionStartDate <= payrollEnd &&
+                    s.SuspensionEndDate >= payrollStart)
+                 .Select(s => new
+                 {
+                     Start = s.SuspensionStartDate!.Value,
+                     End = s.SuspensionEndDate!.Value
+                 })
+                .ToListAsync(default);
+
+            var suspensionDates = new HashSet<DateOnly>();
+
+            foreach (var suspension in suspensions)
+            {
+                var from = suspension.Start > payrollStart ? suspension.Start : payrollStart;
+                var to = suspension.End < payrollEnd ? suspension.End : payrollEnd;
+
+                for (var date = from; date <= to; date.AddDays(1))
+                {
+                    suspensionDates.Add(date);
+                }
+            }
+
+            return suspensionDates;
+        }
+
+        private async Task<(decimal suspensionAmountHistory, decimal suspensionAmountPending)> GetSuspensionAmounts(
+            Collaborator collaborator, Payroll payroll)
+        {
+            var payrollStart = payroll.StartDate;
+            var payrollEnd = payroll.EndDate;
+
+            var suspensionAmountHistory = await _unitOfWork.DeductionPaymentHistories.Entities
+                .Where(h =>
+                    h.PayrollId == payroll.Id &&
+                    h.Deduction.CollaboratorId == collaborator.Id &&
+                    h.Deduction.Type == DeductionType.Sanction)
+                .SumAsync(h => h.AmountPaid, default);
+
+            var suspensionAmountPending = await _unitOfWork.Deductions.Entities
+                .Where(d =>
+                    d.CollaboratorId == collaborator.Id &&
+                    d.Type == DeductionType.Sanction &&
+                    d.Status == DeductionStatus.Progress)
+                .SumAsync(h => h.TotalAmount, default);
+
+            return (suspensionAmountHistory, suspensionAmountPending);
+        }
+
         public async Task<List<Collaborator>> ObtainsCollaboratorByType(SalaryType salaryType, Guid companyId, Guid branchId)
         {
             var collabotators = await _unitOfWork.Collaborators.Entities
@@ -41,6 +100,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .ToListAsync(default);
 
             var absenceDates = await _unitOfWork.Absences.Entities
+                .AsNoTracking()
                 .Where(a => a.CollaboratorId == collaborator.Id
                          && a.Status == AbsenceStatus.Applied
                          && a.DeletedAt == null
@@ -48,6 +108,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                          && a.Date <= payrollEnd)
                 .Select(a => a.Date)
                 .ToListAsync(default);
+
+            var suspensionDates = await GetSuspensionDates(collaborator, payrollStart, payrollEnd);
 
             for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
             {
@@ -71,6 +133,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 }
 
                 if (absenceDates.Contains(date))
+                {
+                    continue;
+                }
+
+                if (suspensionDates.Contains(date))
                 {
                     continue;
                 }
@@ -259,7 +326,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .OrderByDescending(income => income.CreatedAt)
                 .FirstOrDefaultAsync(default);
 
-
             var numberFortnights = TaxInformation?.FlagNumberOfFortnights ?? 24;
 
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
@@ -280,13 +346,25 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                          && a.Date >= payrollStart
                          && a.Date <= payrollEnd)
                 .ToListAsync(default);
+            #endregion
 
-            decimal totalSalaryDeduction = periodAbsences.Sum(a => a.SalaryDeduction);
-            decimal totalSeventhDayDeduction = periodAbsences.Sum(a => a.SeventhDayDeduction);
+            #region Deducciones por Suspension Disciplinaria por una Sanción
+            var (suspensionAmountHistory, suspensionAmountPending) = await GetSuspensionAmounts(collaborator, payroll);
+
+            var sanctionsHistory = await _unitOfWork.DeductionPaymentHistories.Entities
+                .Include(h => h.Deduction)
+                .Where(h => h.PayrollId == payroll.Id)
+                .Where(h => h.Deduction.Type == DeductionType.Sanction)
+                .Where(h => h.Deduction.CollaboratorId == collaborator.Id)
+                .ToListAsync(default);
+            #endregion
+
+            decimal totalAbsencesDeductionSalary = periodAbsences.Sum(a => a.SalaryDeduction);
+            decimal totalSeventhDayDeduction = periodAbsences.Sum(a => a.SeventhDayDeduction);            
 
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
-                Absences = totalSalaryDeduction + totalSeventhDayDeduction,
+                Absences = totalAbsencesDeductionSalary + totalSeventhDayDeduction,
                 TotalAbsenceDays = periodAbsences.Count,
                 SeventhDayDeduction = totalSeventhDayDeduction,
                 CashShortage = 0.0m,
@@ -299,10 +377,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 OtherDeductions = 0.0m,
                 Purisima = 0.0m,
                 SalaryAdvance = 0.0m,
-                Sanction = 0.0m,
+                Sanction = suspensionAmountHistory,
                 UniformDeduction = 0.0m
             };
-            #endregion
 
             #region Deducciones Activas aqui
 
@@ -331,6 +408,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 if (deduction.Type == DeductionType.Sanction)
                 {
                     AdditionalDeducctions.Sanction += deduction.TotalAmount;
+
+                    await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+                    {
+                        DeductionId = deduction.Id,
+                        PayrollId = payroll.Id,
+                        PaymentDate = DateTime.Now,
+                        Currency = deduction.Currency,
+                        Origin = SourceDeductionPayment.Payroll,
+                        Status = DeductionPaymentStatus.Pending,
+                        AmountPaid = deduction.TotalAmount,
+                        AmountPaidInDollars = deduction.TotalAmountInDollars
+                    });
+
+                    deduction.Status = DeductionStatus.Completed;
+                    await _unitOfWork.Deductions.UpdateAsync(deduction);
+
+                    continue;
                 }
 
                 if (deduction.Type == DeductionType.JudicialSeizures)
@@ -393,7 +487,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             //Saber cuantos dias tiene con derecho a viaticos en base al calendario del mes del colaborador.
             int totalWorkDays = await AssignTravelDays(collaborator, payrollStart, payrollEnd);
 
-            var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
+            var travelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Include(asssined => asssined.Collaborator)
                 .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
                 .Include(asssined => asssined.TypeIncome)
@@ -404,7 +498,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal FoodTravelAllowance = 0.0m;
             decimal totalAssigned = 0.0m;
 
-            foreach (var current in asssineds)
+            foreach (var current in travelExpenses)
             {
                 switch (current.TypeIncome.IncomeCode)
                 {
@@ -496,7 +590,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 GetReportIncome(BiweeklySalary, Overtime, Commissions, Bonus, 0, 0),
                 BiweeklyInss,
                 TotalIncome,
-                totalSalaryDeduction + totalSeventhDayDeduction,
+                totalAbsencesDeductionSalary + totalSeventhDayDeduction,
                 periodAbsences.Count);
 
             #endregion

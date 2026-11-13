@@ -110,7 +110,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
 
          _logger.LogInformation(
             "Aplicando sanción disciplinaria {SanctionId} por usuario {UserId}",
-            sanction.Id, request.UserId);         
+            sanction.Id, request.UserId);
 
          if (sanction.SanctionType == SanctionType.Suspension &&
             (!request.PayrollId.HasValue || request.PayrollId == Guid.Empty))
@@ -120,12 +120,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
                   "ERP:InvalidOperation");
          }
 
-         var (suspensionResult, payrollActiveId) = await ProcessSuspension(
+         var (suspensionResult, chargedPayrollId) = await ProcessSuspension(
             fault, sanction, request.PayrollId ?? Guid.Empty, cancellationToken);
 
          if (!suspensionResult) return suspensionResult;
 
-         if (payrollActiveId != Guid.Empty) sanction.PayrollId = payrollActiveId;
+         if (chargedPayrollId != Guid.Empty) sanction.PayrollId = chargedPayrollId;
 
          sanction.SanctionStatus = SanctionStatus.Applied;
          sanction.ApprovedBy = request.UserId;
@@ -218,22 +218,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
             return (false, Guid.Empty);
          }
 
-         var amountDays = sanction.SuspensionEndDate.Value.DayNumber -
-                          sanction.SuspensionStartDate.Value.DayNumber + 1;
+         var (isApplied, chargedPayrollId) = await _deductionsServices.ApplySanctionDeduction(
+            collaborator, sanction.SuspensionStartDate.Value, sanction.SuspensionEndDate.Value, payrollId);
 
-         if (amountDays is < 3 or > 7)
-         {
-            _errorManager.ThrowBadRequest<bool>(
-               "La suspensión debe durar entre 3 y 7 días.",
-               "ERP:InvalidOperation");
-
-            return (false, Guid.Empty);
-         }
-
-         var (isApplied, payrollActiveId) = await _deductionsServices
-            .ApplySanctionDeduction(collaborator, amountDays, payrollId);
-
-         if (!isApplied || payrollActiveId == Guid.Empty)
+         if (!isApplied)
          {
             _errorManager.ThrowBadRequest<bool>(
                "No se pudo aplicar la deducción por sanción. Verifique nómina activa, salario y registro en nómina ordinaria.",
@@ -242,7 +230,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
             return (false, Guid.Empty);
          }
 
-         return (true, payrollActiveId);
+         return (true, chargedPayrollId);
       }
    }
 }

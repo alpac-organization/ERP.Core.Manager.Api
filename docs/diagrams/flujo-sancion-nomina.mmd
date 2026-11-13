@@ -1,0 +1,63 @@
+flowchart TB
+  subgraph A["1. Base del colaborador"]
+    A1([Colaborador existe]) --> A2[Salario / sucursal / jornada]
+    A2 --> A3[Opcional: deducciones periodicas<br/>prestamo purisima Progress]
+  end
+
+  subgraph B["2. Abrir / armar nomina quincenal"]
+    B1[Inicializar payroll Progress] --> B2[RegisterCollaboratorToPayroll]
+    B2 --> B3[Crear ordinary_payrolls<br/>Sanction = 0 al inicio]
+    B3 --> B4[Foreach deducciones Progress]
+    B4 --> B5{Tipo?}
+    B5 -->|Prestamo / Purisima| B6[Sumar al JSON + historial Pending]
+    B5 -->|Sanction| B7[Sumar TotalAmount al JSON<br/>continue - sin historial generico]
+    B5 -->|Embargo| B8[Calcular % + historial]
+    B6 --> B9[Guardar totales boleta]
+    B7 --> B9
+    B8 --> B9
+  end
+
+  A3 --> B1
+
+  subgraph C["3. Flujo disciplinario"]
+    C1[Registrar sancion Pending] --> C2[Falta sigue Open]
+    C2 --> C3[ProcessSanction]
+    C3 --> C4{is_approved?}
+    C4 -->|No| C5[Cancelled + motivo]
+    C5 --> C6([Fin Cancelled])
+    C4 -->|Si| C7{Es Suspension?}
+    C7 -->|No| C8[Applied sin nomina]
+    C8 --> C9([Fin Applied])
+    C7 -->|Si| C10{PayrollId presente?}
+    C10 -->|No| C11[Error: payroll requerido]
+    C10 -->|Si| C12[Calcular dias rango suspension]
+  end
+
+  B9 -.->|misma quincena abierta| C1
+
+  subgraph D["4. Impacto suspension en nomina"]
+    C12 --> D1[ApplySanctionDeduction]
+    D1 --> D2{Nomina valida<br/>Progress Ordinary sucursal?}
+    D2 -->|No| D3[Error especifico]
+    D2 -->|Si| D4[Monto = dias x salarioQuincenal/15]
+    D4 --> D5[JSON Sanction = monto<br/>recalcular totales]
+    D5 --> D6[deductions Type Sanction Progress]
+    D6 --> D7[historial Paid]
+    D7 --> D8[Persistir payroll_id en sancion]
+    D8 --> D9[Sancion Applied<br/>Falta SanctionApplied]
+    D9 --> D10([Fin Applied + descuento])
+  end
+
+  subgraph E["5. Despues - riesgos / reglas"]
+    E1[Re-armar / recalcular boleta] --> E2[Foreach Progress otra vez]
+    E2 --> E3[Sanction se vuelve a sumar<br/>con continue]
+    E4[Subsidio total<br/>daysWithoutSubsidy = 0] --> E5[Limpiar Absences / LateArrivals]
+    E5 --> E6[NO poner Sanction = 0]
+    E7[Suspension cruza 2 quincenas] --> E8[Prorratear dias por Start/End<br/>de cada payroll]
+  end
+
+  D10 -.-> E1
+  D10 -.-> E4
+  C12 -.-> E7
+
+  A1 --- B1

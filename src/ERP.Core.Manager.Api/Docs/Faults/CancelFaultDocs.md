@@ -55,7 +55,7 @@ Endpoint para anular una falta disciplinaria pendiente de sanción (`DeletedAt` 
 | Falta padre (reincidencia) | Se anula el padre y, en cascada, las hijas activas vinculadas (mismo motivo). |
 | Falta hija (`parent_fault_id` con valor) | **Bloqueado.** Debe anularse la falta padre (el error indica el código del padre). |
 | Estado `SanctionApplied` o `Prescribed` | **Bloqueado.** |
-| Tiene sanción `Pending` o `Applied` | **Bloqueado.** Debe procesar o cancelar la sanción primero. |
+| Tiene sanción `Pending` o `Applied` | **Bloqueado.** Debe procesar o cancelar la sanción primero ([Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md)). Una `Applied` (p. ej. suspensión) ya puede haber impactado nómina; no se anula la falta por este endpoint. |
 | Sin `cancellation_reason` | **Bloqueado** (validación). |
 
 ---
@@ -128,3 +128,10 @@ Otros mensajes frecuentes:
 | `400` | Motivo faltante, falta no encontrada, hija absorbida, sancionada, prescrita u otro error de validación (`ErrorResponse`). |
 | `401` | Rol no autorizado (`ErrorResponse`). |
 | `500` | Error interno del servidor (`ErrorResponse`). |
+
+---
+
+## Notas
+
+- Anular falta ≠ cancelar sanción. Si existe sanción `Pending`, hay que rechazarla en Process antes de poder anular la falta.
+- Si la sanción ya está `Applied` (incluida suspensión con cobro en nómina), la falta no se puede anular por este endpoint.

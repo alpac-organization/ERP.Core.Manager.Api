@@ -104,7 +104,7 @@ Retorna un `SanctionDetailDto`.
 | `reason` | `string` | Motivo de la propuesta. |
 | `suspension_start_date` | `date \| null` | Inicio de suspensión. |
 | `suspension_end_date` | `date \| null` | Fin de suspensión. |
-| `payroll_id` | `guid \| null` | Nómina vinculada (si aplica; efectos pendientes). |
+| `payroll_id` | `guid \| null` | Nómina ordinaria donde se **cobró** la suspensión. Tiene valor si al aprobar el rango cupo en el periodo y se descontó de inmediato. `null` si aún no se cobró (diferida a la siguiente quincena) o si el tipo no es suspensión. |
 | `issued_by` | `guid` | Usuario que registró/propuso la sanción. |
 | `issued_by_user` | `object \| null` | Detalle del proponente (`DisciplinaryInformationUserDto`). |
 | `approved_by` | `guid \| null` | Usuario RRHH que aplicó (null si aún `Pending` o cancelada sin aplicar). |
@@ -140,6 +140,11 @@ Retorna un `SanctionDetailDto`.
 | `status` | `string \| null` | Estado del usuario. |
 
 > ℹ️ En detalle, los enums vienen como **texto**. Las evidencias exponen `image_url`, no `image_base64`.
+
+## Notas
+
+- Flujo de suspensión y nómina: ver [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).
+- Si `sanction_type` es `Suspension`, `sanction_status` es `Applied` y `payroll_id` es `null`, el descuento quedó registrado como deducción pendiente y se aplicará al calcular la siguiente nómina ordinaria.
 
 ### ❌ 400 Bad Request
 

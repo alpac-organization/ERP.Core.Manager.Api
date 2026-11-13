@@ -172,3 +172,10 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
 | `200` | Listado paginado de faltas obtenido exitosamente. |
 | `400` | Error de validación o de acceso (`ErrorResponse`). |
 | `500` | Error interno del servidor (`ErrorResponse`). |
+
+---
+
+## Notas
+
+- `Open`: falta pendiente de sanción. `SanctionApplied`: RRHH ya aprobó la sanción ([Procesar](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md)); si fue `Suspension`, el impacto en nómina pudo ser inmediato o diferido.
+- Una falta con sanción `Pending` o `Applied` no se puede anular ([Anular falta](/src/ERP.Core.Manager.Api/Docs/Faults/CancelFaultDocs.md)).

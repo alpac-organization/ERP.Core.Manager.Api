@@ -209,7 +209,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          if (payrollCreated is null)
          {
-            _logger.LogInformation("No pudistmos encontrar el registro de nomina para hacer el insert de calculos");
+            _logger.LogInformation("No pudimos encontrar el registro de nomina para hacer el insert de calculos");
             return;
          }
 
@@ -312,6 +312,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              .Where(deduction => deduction.Status == DeductionStatus.Progress)
              .ToListAsync(cancellationToken);
 
+         var sanctionsAlreadyCharged = await _unitOfWork.DeductionPaymentHistories.Entities
+            .Include(h => h.Deduction)
+            .Where(h => h.PayrollId == payrollCreated.Id)
+            .Where(h => h.Deduction.Type == DeductionType.Sanction)
+            .Where(h => h.Deduction.CollaboratorId == collaborator.Id)
+            .Select(h => h.AmountPaid)
+            .ToListAsync(cancellationToken);
+
+         AdditionalDeducctions.Sanction += sanctionsAlreadyCharged.Sum();
+
          foreach (var deduction in deductionsActive)
          {
             if (deduction.Type == DeductionType.Loans)
@@ -332,6 +342,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             if (deduction.Type == DeductionType.Sanction)
             {
                AdditionalDeducctions.Sanction += deduction.TotalAmount;
+
+               await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+               {
+                  DeductionId = deduction.Id,
+                  PayrollId = payrollCreated.Id,
+                  PaymentDate = DateTime.Now,
+                  Currency = deduction.Currency,
+                  Origin = SourceDeductionPayment.Payroll,
+                  Status = DeductionPaymentStatus.Pending,
+                  AmountPaid = deduction.TotalAmount,
+                  AmountPaidInDollars = deduction.TotalAmountInDollars
+               });
+
+               deduction.Status = DeductionStatus.Completed;
+               await _unitOfWork.Deductions.UpdateAsync(deduction);
+
+               continue;
             }
 
             if (deduction.Type == DeductionType.JudicialSeizures)
