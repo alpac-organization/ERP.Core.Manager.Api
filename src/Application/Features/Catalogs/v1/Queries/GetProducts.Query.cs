@@ -12,8 +12,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Queries
         public bool OnlyActive { get; set; } = false;
         
         public Guid? BranchId { get; set; }
-        public string? ProductName { get; set; } 
+        public string? ProductName { get; set; }
+        public string? ProductCode { get; set;  }
         public Guid? CategoryProductId { get; set; }
+        public ProductStatus? Status { get; set; }
         public ProductUsageType ProductUsageType { get; set; }
 
         public int PageNumber { get; set; } = 1;

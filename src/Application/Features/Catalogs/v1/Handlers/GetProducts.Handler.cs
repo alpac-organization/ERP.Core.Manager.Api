@@ -67,6 +67,18 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     .Where(c => c.ProductName!.Contains(request.ProductName));
             }
 
+            if (!string.IsNullOrEmpty(request.ProductCode))
+            {
+                query = query
+                    .Where(c => c.Code == request.ProductCode);
+            }
+
+            if (request.Status.HasValue)
+            {
+                query = query
+                    .Where(c => c.ProductStatus == request.Status);
+            }
+
             var totalCount = await query
                 .CountAsync(cancellationToken);
 
