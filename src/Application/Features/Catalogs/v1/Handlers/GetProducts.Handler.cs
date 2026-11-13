@@ -22,6 +22,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return access.ErrorResponse!;
             }
 
+            var roleType        = access.Role?.RoleType;
+            var isManager       = roleType == RoleType.Manager;
+            var isAdministrator = roleType == RoleType.Administrator;
+            var hasFullAccess   = isAdministrator || isManager;
+            var isOperational   = request.ProductUsageType == ProductUsageType.Operational;
+
             var query = _unitOfWork.Products.Entities
                 .AsNoTracking()
                 .AsSplitQuery()
@@ -32,27 +38,51 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .Include(product => product.UnitMeasure)
                 .Include(product => product.SupplierProducts)
 
-                .Where(product => product.BranchId == access.Profile.BranchId)
                 .Where(product => product.ProductUsageType == request.ProductUsageType);
 
-            if (access.Role?.RoleType == RoleType.Administrator && request.BranchId.HasValue)
+            if (isOperational)
             {
-                query = query
-                    .Where(product => product.BranchId == request.BranchId);
-            }
+                // Sucursal
+                if (isAdministrator)
+                {
+                    if (request.BranchId.HasValue)
+                    {
+                        query = query
+                            .Where(product => product.BranchId == request.BranchId.Value);
+                    }
+                }
+                else
+                {
+                    query = query
+                        .Where(product => product.BranchId == access.Profile.BranchId);
+                }
 
-            if (request.ProductUsageType == ProductUsageType.Operational)
+                // Centro de costo
+                if (hasFullAccess)
+                {
+                    if (request.CostCenterId.HasValue)
+                    {
+                        query = query
+                            .Where(product => product.CostCenterId == request.CostCenterId.Value);
+                    }
+                }
+                else
+                {
+                    query = query
+                        .Where(product => product.CostCenterId == access.Profile.CostCenterId)
+                        .Where(product => product.CostCenter.WorkAreaId == access.Profile.AreaId);
+                }
+            }
+            else
             {
-                //Logica de productos operacionales manejados desde inventario.
                 query = query
-                    .Where(product => product.CostCenterId == access.Profile.CostCenterId)
-                    .Where(product => product.CostCenter.WorkAreaId == access.Profile.AreaId);
+                    .Where(product => product.BranchId == access.Profile.BranchId);
             }
 
             if (request.CategoryProductId.HasValue)
             {
                 query = query
-                    .Where(c => c.CategoryId == request.CategoryProductId.Value);
+                    .Where(product => product.CategoryId == request.CategoryProductId.Value);
             }
 
             if (request.OnlyActive)
@@ -64,26 +94,26 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             if (!string.IsNullOrEmpty(request.ProductName))
             {
                 query = query
-                    .Where(c => c.ProductName!.Contains(request.ProductName));
+                    .Where(product => product.ProductName!.Contains(request.ProductName));
             }
 
             if (!string.IsNullOrEmpty(request.ProductCode))
             {
                 query = query
-                    .Where(c => c.Code == request.ProductCode);
+                    .Where(product => product.Code == request.ProductCode);
             }
 
             if (request.Status.HasValue)
             {
                 query = query
-                    .Where(c => c.ProductStatus == request.Status);
+                    .Where(product => product.ProductStatus == request.Status);
             }
 
             var totalCount = await query
                 .CountAsync(cancellationToken);
 
             var products = await query
-                .OrderByDescending(p => p.CreatedAt)
+                .OrderByDescending(product => product.CreatedAt)
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
@@ -99,4 +129,3 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
         }
     }
 }
-
