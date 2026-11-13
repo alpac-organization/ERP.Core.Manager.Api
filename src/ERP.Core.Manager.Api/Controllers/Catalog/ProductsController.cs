@@ -23,7 +23,9 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<PagedResponse<ProductDto>> GetProductsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code,
         [FromQuery] ProductUsageType product_usage_type,
+        [FromQuery] ProductStatus? status = null,
         [FromQuery] string? product_name = null,
+        [FromQuery] string? product_code = null,
         [FromQuery] Guid? category_product_id = null,
         [FromQuery] bool only_active = false,
         [FromQuery] Guid? branch_id = null,
@@ -38,6 +40,8 @@ public class ProductsController(IMediator _mediator) : ApiControllerBase
             ModuleCode = module_code,
             ProductName = product_name,
             UserId = userId,
+            Status = status,
+            ProductCode = product_code,
             OnlyActive = only_active,
             CategoryProductId = category_product_id,
             ProductUsageType = product_usage_type,
