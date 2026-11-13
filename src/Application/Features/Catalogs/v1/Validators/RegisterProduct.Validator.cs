@@ -24,23 +24,6 @@ public class RegisterProductValidator : BaseRequestValidator<RegisterProductComm
 
         RuleFor(x => x.ProductUsageType)
             .IsInEnum().WithMessage("El tipo de uso del producto es inválido.");
-
-        When(x => x.ProductUsageType == ProductUsageType.Operational, () =>
-        {
-            RuleFor(x => x.ConfigurationStock)
-                .NotNull()
-                .WithMessage("La configuración de stock es obligatoria para productos operativos.");
-
-            RuleFor(x => x.ConfigurationStock!.MinimumStock)
-                .GreaterThanOrEqualTo(0)
-                .WithMessage("El stock mínimo no puede ser negativo.")
-                .When(x => x.ConfigurationStock is not null);
-
-            RuleFor(x => x.ConfigurationStock!.MaximumStock)
-                .GreaterThanOrEqualTo(x => x.ConfigurationStock!.MinimumStock)
-                .WithMessage("El stock máximo no puede ser menor que el stock mínimo.")
-                .When(x => x.ConfigurationStock is not null);
-        });
         
         SupplierProductValidationRules.ApplyProductSupplierItemsRules(
             this,
