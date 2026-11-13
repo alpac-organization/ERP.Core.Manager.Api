@@ -41,7 +41,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 var from = suspension.Start > payrollStart ? suspension.Start : payrollStart;
                 var to = suspension.End < payrollEnd ? suspension.End : payrollEnd;
 
-                for (var date = from; date <= to; date.AddDays(1))
+                for (var date = from; date <= to; date = date.AddDays(1))
                 {
                     suspensionDates.Add(date);
                 }
@@ -350,6 +350,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #region Deducciones por Suspension Disciplinaria por una Sanción
             var (suspensionAmountHistory, suspensionAmountPending) = await GetSuspensionAmounts(collaborator, payroll);
+            decimal sanctionAmount = Math.Round(suspensionAmountHistory + suspensionAmountPending, 2, MidpointRounding.AwayFromZero);
 
             var sanctionsHistory = await _unitOfWork.DeductionPaymentHistories.Entities
                 .Include(h => h.Deduction)
@@ -360,7 +361,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #endregion
 
             decimal totalAbsencesDeductionSalary = periodAbsences.Sum(a => a.SalaryDeduction);
-            decimal totalSeventhDayDeduction = periodAbsences.Sum(a => a.SeventhDayDeduction);            
+            decimal totalSeventhDayDeduction = periodAbsences.Sum(a => a.SeventhDayDeduction);
 
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
