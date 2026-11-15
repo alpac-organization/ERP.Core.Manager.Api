@@ -320,7 +320,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             .Select(h => h.AmountPaid)
             .ToListAsync(cancellationToken);
 
-         AdditionalDeducctions.Sanction += sanctionsAlreadyCharged.Sum();
+         // Desglose visible; no entra a la suma del neto (base ya refleja días no pagados)
+         AdditionalDeducctions.Sanction = sanctionsAlreadyCharged.Sum();
 
          foreach (var deduction in deductionsActive)
          {
@@ -341,8 +342,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (deduction.Type == DeductionType.Sanction)
             {
-               AdditionalDeducctions.Sanction += deduction.TotalAmount;
-
                await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                {
                   DeductionId = deduction.Id,
@@ -428,7 +427,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + AdditionalDeducctions.OtherDeductions
              + AdditionalDeducctions.DeductionForLossesBulk
              + AdditionalDeducctions.Absences
-             + AdditionalDeducctions.Sanction
              + AdditionalDeducctions.LateArrivals;
 
          #region Asignación de viaticos

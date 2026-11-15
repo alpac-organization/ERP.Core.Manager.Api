@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Payrolls;
@@ -14,7 +15,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
     public class DeductionsServices(
         IUnitOfWork _unitOfWork,
         ILogger<CalculatorDeductions> _logger,
-        IErrorManager _errorManager) : IDeductionsServices
+        IErrorManager _errorManager,
+        ICalculatorDeductions _calculatorDeductions) : IDeductionsServices
     {
         /// <summary>
         /// Obtiene el total de deducciones del objeto datos adicionales de deducciones
@@ -38,7 +40,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                    + deductions.OtherDeductions
                    + deductions.DeductionForLossesBulk
                    + deductions.Absences
-                   + deductions.Sanction
                    + deductions.LateArrivals;
             }
 
@@ -53,6 +54,23 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         )
         {
             return suspensionStart >= payrollStart && suspensionEnd <= payrollEnd;
+        }
+
+        private static HashSet<DateOnly> BuildUnpaidDatesInPayroll(
+            DateOnly suspensionStart,
+            DateOnly suspensionEnd,
+            DateOnly payrollStart,
+            DateOnly payrollEnd)
+        {
+            var dates = new HashSet<DateOnly>();
+            var from = suspensionStart > payrollStart ? suspensionStart : payrollStart;
+            var to = suspensionEnd < payrollEnd ? suspensionEnd : payrollEnd;
+            if (to < from) return dates;
+
+            for (var d = from; d <= to; d = d.AddDays(1))
+                dates.Add(d);
+
+            return dates;
         }
 
         #region Gestion de Sancion
@@ -122,9 +140,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     "ERP:01");
             }
 
-            decimal amountDays = totalSuspensionDays;
             decimal exchangeRate = exchangeRateEntity.Value;
-            decimal amountToDeduct = amountDays * (salary.AmountSalary / 30);
+            decimal dailySalary = salary.AmountInLocal / 30m;
 
             var applyNow = FitsCompletelyInPayroll(
                 suspensionStartDate, suspensionEndDate,
@@ -149,21 +166,58 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                         "ERP:01");
                 }
 
+                DateOnly entryDate = collaborator.WorkingInformation.EntryDate;
+                int daysWorked = 15;
+                if (entryDate > payrollActive.StartDate)
+                    daysWorked = payrollActive.EndDate.DayNumber - entryDate.DayNumber + 1;
+                if (daysWorked < 0) daysWorked = 0;
+                if (daysWorked > 15) daysWorked = 15;
+
+                var unpaidDates = BuildUnpaidDatesInPayroll(
+                    suspensionStartDate, suspensionEndDate,
+                    payrollActive.StartDate, payrollActive.EndDate);
+
+                var periodEarnings = PayrollPeriodEarnings.ForPeriod(
+                    dailySalary,
+                    daysWorked,
+                    unpaidDates,
+                    ordinaryPayroll.Overtime,
+                    ordinaryPayroll.Commissions,
+                    ordinaryPayroll.Antique,
+                    ordinaryPayroll.Bonus);
+
+                ordinaryPayroll.GrossSalary = periodEarnings.GrossSalary;
+                ordinaryPayroll.TotalIncome = periodEarnings.TotalIncome;
+
+                var taxInfo = await _unitOfWork.IncomeTaxAccrual.Entities
+                    .Where(i => i.CollaboratorId == collaborator.Id)
+                    .OrderByDescending(i => i.CreatedAt)
+                    .FirstOrDefaultAsync(default);
+
+                var (biweeklyInss, biweeklyIr) = await _calculatorDeductions.CalculateIr(
+                    taxInfo?.FlagNumberOfFortnights ?? 24,
+                    taxInfo?.FlagSalaryEarned ?? 0.0m,
+                    taxInfo?.FlagAccumulatedIR ?? 0.0m,
+                    ordinaryPayroll.TotalIncome,
+                    default);
+
+                ordinaryPayroll.Inss = biweeklyInss;
+                ordinaryPayroll.Ir = biweeklyIr;
+                ordinaryPayroll.TotalLegalDeductions = biweeklyInss + biweeklyIr;
+
                 var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
                     ordinaryPayroll.DeductionsAdditionalData) ?? new DeductionsAdditionalData();
 
-                deductions.Sanction = amountToDeduct;
+                deductions.Sanction = periodEarnings.UnpaidAmount;
 
                 decimal totalDeductions = GetTotalDeductions(deductions);
-
-                // Total a pagar = Ingresos - Deducciones
-                // Deducciones = Todas Las Deducciones (Tabla Deducciones) + Total de Deducciones Legales (INSS Quincenal + IR Quincenal)
-                ordinaryPayroll.TotalToPay = ordinaryPayroll.TotalIncome - ordinaryPayroll.TotalLegalDeductions - totalDeductions + ordinaryPayroll.TotalTravelExpenses;
-
                 ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
+                ordinaryPayroll.TotalToPay =
+                    ordinaryPayroll.TotalIncome
+                    - ordinaryPayroll.TotalDeducctions
+                    + ordinaryPayroll.TotalTravelExpenses;
 
                 ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
-
                 await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
 
                 var deduction = await _unitOfWork.Deductions.RegisterDeduction(new()
@@ -174,9 +228,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     Currency = Currency.NIO,
                     Type = DeductionType.Sanction,
                     Status = DeductionStatus.Completed,
-                    Amount = amountDays,
-                    TotalAmount = amountToDeduct,
-                    TotalAmountInDollars = amountToDeduct / exchangeRate
+                    Amount = periodEarnings.UnpaidDays,
+                    TotalAmount = periodEarnings.UnpaidAmount,
+                    TotalAmountInDollars = periodEarnings.UnpaidAmount / exchangeRate
                 });
 
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
@@ -186,15 +240,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     Origin = SourceDeductionPayment.Payroll,
                     DeductionId = deduction.Id,
                     PayrollId = payrollActive.Id,
-                    AmountPaid = amountToDeduct,
-                    AmountPaidInDollars = amountToDeduct / exchangeRate,
+                    AmountPaid = periodEarnings.UnpaidAmount,
+                    AmountPaidInDollars = periodEarnings.UnpaidAmount / exchangeRate,
                     PaymentDate = DateTime.Now
                 });
 
                 return (true, payrollActive.Id);
             }
 
-            // No cabe: solo registrar, para la siguiente nómina
+            decimal amountToDeduct = dailySalary * totalSuspensionDays;
+
             await _unitOfWork.Deductions.RegisterDeduction(new()
             {
                 Id = Guid.NewGuid(),
@@ -202,15 +257,15 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Description = "Sanción por suspensión",
                 Currency = Currency.NIO,
                 Type = DeductionType.Sanction,
-                Status = DeductionStatus.Progress, // pendiente de cobro
-                Amount = amountDays,
+                Status = DeductionStatus.Progress,
+                Amount = totalSuspensionDays,
                 TotalAmount = amountToDeduct,
                 TotalAmountInDollars = amountToDeduct / exchangeRate
             });
 
             _logger.LogInformation(
                 "Sanción registrada pendiente. Colaborador: {identification}, Días: {days}, Monto: {amount}",
-                collaborator.IdentificationNumber, amountDays, amountToDeduct);
+                collaborator.IdentificationNumber, totalSuspensionDays, amountToDeduct);
 
             return (true, Guid.Empty);
         }

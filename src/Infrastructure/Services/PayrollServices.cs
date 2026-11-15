@@ -50,29 +50,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             return suspensionDates;
         }
 
-        private async Task<(decimal suspensionAmountHistory, decimal suspensionAmountPending)> GetSuspensionAmounts(
-            Collaborator collaborator, Payroll payroll)
-        {
-            var payrollStart = payroll.StartDate;
-            var payrollEnd = payroll.EndDate;
-
-            var suspensionAmountHistory = await _unitOfWork.DeductionPaymentHistories.Entities
-                .Where(h =>
-                    h.PayrollId == payroll.Id &&
-                    h.Deduction.CollaboratorId == collaborator.Id &&
-                    h.Deduction.Type == DeductionType.Sanction)
-                .SumAsync(h => h.AmountPaid, default);
-
-            var suspensionAmountPending = await _unitOfWork.Deductions.Entities
-                .Where(d =>
-                    d.CollaboratorId == collaborator.Id &&
-                    d.Type == DeductionType.Sanction &&
-                    d.Status == DeductionStatus.Progress)
-                .SumAsync(h => h.TotalAmount, default);
-
-            return (suspensionAmountHistory, suspensionAmountPending);
-        }
-
         public async Task<List<Collaborator>> ObtainsCollaboratorByType(SalaryType salaryType, Guid companyId, Guid branchId)
         {
             var collabotators = await _unitOfWork.Collaborators.Entities
@@ -298,8 +275,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal BiweeklySalary = monthlySalary / 2;
             decimal dailySalary = monthlySalary / 30;
 
-            decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
-
             int YearAntique = 0;
             decimal Bonus = 0.0m;
             decimal Antique = 0.0m;
@@ -311,22 +286,34 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (collaborator.WorkingInformation.Branch.DoesGenerateSeniority)
             {
-                var (antique, yearsOfService) = _calculatorDeductions.CalculateAntique(BiweeklySalary, payrollEnd, entryDate); ;
+                var (antique, yearsOfService) = _calculatorDeductions.CalculateAntique(BiweeklySalary, payrollEnd, entryDate);
                 Antique = antique;
                 YearAntique = yearsOfService;
             }
 
             #endregion
 
-            decimal GrossSalary = ProportionalBiweeklySalary;
-            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Commissions + Antique;
+            // Días no pagados (suspensión Applied) → base salarial del periodo (antes de INSS/IR)
+            var unpaidDates = await GetSuspensionDates(collaborator, payrollStart, payrollEnd);
+            var periodEarnings = PayrollPeriodEarnings.ForPeriod(
+                dailySalary,
+                daysWorked,
+                unpaidDates,
+                Overtime,
+                Commissions,
+                Antique,
+                bonus: 0m);
+
+            decimal ProportionalBiweeklySalary = periodEarnings.GrossSalary;
+            decimal suspensionAmount = periodEarnings.UnpaidAmount;
+
+            decimal GrossSalary = periodEarnings.GrossSalary;
+            decimal TotalIncome = periodEarnings.TotalIncome;
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
                 .OrderByDescending(income => income.CreatedAt)
                 .FirstOrDefaultAsync(default);
-
-            var numberFortnights = TaxInformation?.FlagNumberOfFortnights ?? 24;
 
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
                 TaxInformation?.FlagNumberOfFortnights ?? 24,
@@ -348,18 +335,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .ToListAsync(default);
             #endregion
 
-            #region Deducciones por Suspension Disciplinaria por una Sanción
-            var (suspensionAmountHistory, suspensionAmountPending) = await GetSuspensionAmounts(collaborator, payroll);
-            decimal sanctionAmount = Math.Round(suspensionAmountHistory + suspensionAmountPending, 2, MidpointRounding.AwayFromZero);
-
-            var sanctionsHistory = await _unitOfWork.DeductionPaymentHistories.Entities
-                .Include(h => h.Deduction)
-                .Where(h => h.PayrollId == payroll.Id)
-                .Where(h => h.Deduction.Type == DeductionType.Sanction)
-                .Where(h => h.Deduction.CollaboratorId == collaborator.Id)
-                .ToListAsync(default);
-            #endregion
-
             decimal totalAbsencesDeductionSalary = periodAbsences.Sum(a => a.SalaryDeduction);
             decimal totalSeventhDayDeduction = periodAbsences.Sum(a => a.SeventhDayDeduction);
 
@@ -378,7 +353,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 OtherDeductions = 0.0m,
                 Purisima = 0.0m,
                 SalaryAdvance = 0.0m,
-                Sanction = suspensionAmountHistory,
+                Sanction = suspensionAmount,
                 UniformDeduction = 0.0m
             };
 
@@ -408,8 +383,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 if (deduction.Type == DeductionType.Sanction)
                 {
-                    AdditionalDeducctions.Sanction += deduction.TotalAmount;
-
                     await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                     {
                         DeductionId = deduction.Id,
@@ -478,7 +451,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + AdditionalDeducctions.OtherDeductions
                 + AdditionalDeducctions.DeductionForLossesBulk
                 + AdditionalDeducctions.Absences
-                + AdditionalDeducctions.Sanction
                 + AdditionalDeducctions.LateArrivals;
 
             #endregion
