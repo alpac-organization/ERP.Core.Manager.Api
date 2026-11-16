@@ -104,7 +104,7 @@ Retorna un `SanctionDetailDto`.
 | `reason` | `string` | Motivo de la propuesta. |
 | `suspension_start_date` | `date \| null` | Inicio de suspensión. |
 | `suspension_end_date` | `date \| null` | Fin de suspensión. |
-| `payroll_id` | `guid \| null` | Nómina ordinaria donde se **cobró** la suspensión. Tiene valor si al aprobar el rango cupo en el periodo y se descontó de inmediato. `null` si aún no se cobró (diferida a la siguiente quincena) o si el tipo no es suspensión. |
+| `payroll_id` | `guid \| null` | Nómina ordinaria donde se **cobró** de inmediato la suspensión (rango cabe en el periodo al aprobar). `null` si el cobro quedó diferido (`Progress`, p. ej. siguiente quincena), aún no se cobró, o el tipo no es suspensión. |
 | `issued_by` | `guid` | Usuario que registró/propuso la sanción. |
 | `issued_by_user` | `object \| null` | Detalle del proponente (`DisciplinaryInformationUserDto`). |
 | `approved_by` | `guid \| null` | Usuario RRHH que aplicó (null si aún `Pending` o cancelada sin aplicar). |
@@ -144,7 +144,7 @@ Retorna un `SanctionDetailDto`.
 ## Notas
 
 - Flujo de suspensión y nómina: ver [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).
-- Si `sanction_type` es `Suspension`, `sanction_status` es `Applied` y `payroll_id` es `null`, el descuento quedó registrado como deducción pendiente y se aplicará al calcular la siguiente nómina ordinaria.
+- Si `sanction_type` es `Suspension`, `sanction_status` es `Applied` y `payroll_id` es `null`, el descuento quedó en deducción `Progress` y se cobra al calcular la siguiente nómina ordinaria (monto total, base INSS/IR alineada). Detalle: [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).
 
 ### ❌ 400 Bad Request
 

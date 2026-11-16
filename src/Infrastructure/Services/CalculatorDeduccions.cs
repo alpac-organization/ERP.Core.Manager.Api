@@ -5,6 +5,7 @@ using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Domain.Entities.Payrolls;
 using ERP.Core.Manager.Api.Domain.Entities.Bases;
 using ERP.Core.Manager.Api.Application.Commons.Interfaces;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 namespace ERP.Core.Manager.Api.Infrastructure.Services
@@ -245,8 +246,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal BiweeklySalary = monthlySalary / 2;
          decimal dailySalary = monthlySalary / 30;
 
-         decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
-
          int YearAntique = 0;
          decimal Bonus = 0.0m;
          decimal Antique = 0.0m;
@@ -265,8 +264,36 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
          #endregion
 
-         decimal GrossSalary = ProportionalBiweeklySalary;
-         decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Bonus + Commissions + Antique;
+         var progressSanctions = await _unitOfWork.Deductions.Entities
+             .Where(d => d.CollaboratorId == collaborator.Id)
+             .Where(d => d.Status == DeductionStatus.Progress)
+             .Where(d => d.Type == DeductionType.Sanction)
+             .ToListAsync(cancellationToken);
+
+         decimal deferredSanctionAmount = progressSanctions.Sum(d => d.TotalAmount);
+         bool chargeDeferredSanction = deferredSanctionAmount > 0m;
+
+         var unpaidDates = chargeDeferredSanction ? [] :
+            await SuspensionUnpaidDates.GetAsync(
+                _unitOfWork, collaborator.Id, payrollStart, payrollEnd, collaborator.DoesWorkSaturdays, cancellationToken);
+
+         var periodEarnings = PayrollPeriodEarnings.ForPeriod(
+             dailySalary,
+             daysWorked,
+             unpaidDates,
+             Overtime,
+             Commissions,
+             Antique,
+             Bonus);
+
+         decimal ProportionalBiweeklySalary = periodEarnings.GrossSalary;
+         decimal GrossSalary = periodEarnings.GrossSalary;
+         decimal TotalIncome = periodEarnings.TotalIncome;
+
+         decimal taxBase = chargeDeferredSanction
+             ? TotalIncome - deferredSanctionAmount
+             : TotalIncome;
+         if (taxBase < 0m) taxBase = 0m;
 
          var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
              .Where(income => income.CollaboratorId == collaborator.Id)
@@ -285,7 +312,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              TaxInformation.FlagNumberOfFortnights ?? 24,
              TaxInformation.FlagSalaryEarned ?? 0.0m,
              TaxInformation.FlagAccumulatedIR ?? 0.0m,
-             TotalIncome
+             taxBase
          );
 
          var AdditionalDeducctions = new DeductionsAdditionalData()
@@ -320,8 +347,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             .Select(h => h.AmountPaid)
             .ToListAsync(cancellationToken);
 
-         // Desglose visible; no entra a la suma del neto (base ya refleja días no pagados)
-         AdditionalDeducctions.Sanction = sanctionsAlreadyCharged.Sum();
+         decimal suspensionAmount = chargeDeferredSanction
+             ? deferredSanctionAmount
+             : periodEarnings.UnpaidAmount + sanctionsAlreadyCharged.Sum();
+
+         AdditionalDeducctions.Sanction = suspensionAmount;
 
          foreach (var deduction in deductionsActive)
          {
@@ -427,7 +457,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + AdditionalDeducctions.OtherDeductions
              + AdditionalDeducctions.DeductionForLossesBulk
              + AdditionalDeducctions.Absences
-             + AdditionalDeducctions.LateArrivals;
+             + AdditionalDeducctions.LateArrivals
+             + (chargeDeferredSanction ? AdditionalDeducctions.Sanction : 0m);
 
          #region Asignación de viaticos
 
@@ -447,6 +478,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          var holidays = await _unitOfWork.Holidays.Entities
              .Where(day => day.IsActive)
              .ToListAsync(default);
+
+         var absenceDates = await _unitOfWork.Absences.Entities
+             .AsNoTracking()
+             .Where(a => a.CollaboratorId == collaborator.Id
+                      && a.Status == AbsenceStatus.Applied
+                      && a.DeletedAt == null
+                      && a.Date >= payrollStart
+                      && a.Date <= payrollEnd)
+             .Select(a => a.Date)
+             .ToListAsync(cancellationToken);
+
+         var suspensionDates = await SuspensionUnpaidDates.GetAsync(
+             _unitOfWork, collaborator.Id, payrollStart, payrollEnd, collaborator.DoesWorkSaturdays, cancellationToken);
 
          //Recorremos los dias
          for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
@@ -471,6 +515,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             }
 
             if (!collaborator.DoesWorkSaturdays && date.DayOfWeek == DayOfWeek.Saturday)
+            {
+               continue;
+            }
+
+            if (absenceDates.Contains(date))
+            {
+               continue;
+            }
+
+            if (suspensionDates.Contains(date))
             {
                continue;
             }
@@ -570,6 +624,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          #region Iniciar proceso de acumulados
 
          //Registrar el acumulado para la siguiente apertura de quincena
+         decimal currentFortnightSalaryEarned = TotalIncome - BiweeklyInss;
+         if (chargeDeferredSanction)
+            currentFortnightSalaryEarned -= AdditionalDeducctions.Sanction;
+         if (currentFortnightSalaryEarned < 0m)
+            currentFortnightSalaryEarned = 0m;
 
          await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
          {
@@ -578,7 +637,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             NumberOfFortnights = TaxInformation.FlagNumberOfFortnights ?? 24,
 
             FlagAccumulatedIR = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m : (TaxInformation.FlagAccumulatedIR ?? 0.0m) + BiweeklyIr,
-            FlagSalaryEarned = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m : (TaxInformation.FlagSalaryEarned ?? 0.0m) + (TotalIncome - BiweeklyInss),
+            FlagSalaryEarned = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 0.0m : (TaxInformation.FlagSalaryEarned ?? 0.0m) + currentFortnightSalaryEarned,
             FlagNumberOfFortnights = (TaxInformation.FlagNumberOfFortnights ?? 24) == 1 ? 24 : (TaxInformation.FlagNumberOfFortnights - 1),
 
             CollaboratorId = collaborator.Id,

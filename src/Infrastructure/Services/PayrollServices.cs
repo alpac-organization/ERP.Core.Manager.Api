@@ -14,42 +14,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 {
     public class PayrollServices(IUnitOfWork _unitOfWork, ICalculatorDeductions _calculatorDeductions, IReportingServices _reportingServices, ILogger<CalculatorDeductions> _logger) : IPayrollServices
     {
-        private async Task<HashSet<DateOnly>> GetSuspensionDates(Collaborator collaborator, DateOnly payrollStart, DateOnly payrollEnd)
-        {
-            var suspensions = await _unitOfWork.DisciplinarySanctions.Entities
-                .AsNoTracking()
-                .Where(s =>
-                    s.SanctionStatus == SanctionStatus.Applied &&
-                    s.SanctionType == SanctionType.Suspension &&
-                    s.DeletedAt == null &&
-                    s.Fault.CollaboratorId == collaborator.Id &&
-                    s.SuspensionEndDate.HasValue &&
-                    s.SuspensionStartDate.HasValue &&
-                    s.SuspensionStartDate <= payrollEnd &&
-                    s.SuspensionEndDate >= payrollStart)
-                 .Select(s => new
-                 {
-                     Start = s.SuspensionStartDate!.Value,
-                     End = s.SuspensionEndDate!.Value
-                 })
-                .ToListAsync(default);
-
-            var suspensionDates = new HashSet<DateOnly>();
-
-            foreach (var suspension in suspensions)
-            {
-                var from = suspension.Start > payrollStart ? suspension.Start : payrollStart;
-                var to = suspension.End < payrollEnd ? suspension.End : payrollEnd;
-
-                for (var date = from; date <= to; date = date.AddDays(1))
-                {
-                    suspensionDates.Add(date);
-                }
-            }
-
-            return suspensionDates;
-        }
-
         public async Task<List<Collaborator>> ObtainsCollaboratorByType(SalaryType salaryType, Guid companyId, Guid branchId)
         {
             var collabotators = await _unitOfWork.Collaborators.Entities
@@ -86,7 +50,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .Select(a => a.Date)
                 .ToListAsync(default);
 
-            var suspensionDates = await GetSuspensionDates(collaborator, payrollStart, payrollEnd);
+            var suspensionDates = await SuspensionUnpaidDates.GetAsync(
+                _unitOfWork, collaborator.Id, payrollStart, payrollEnd, collaborator.DoesWorkSaturdays);
 
             for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
             {
@@ -293,8 +258,21 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             #endregion
 
-            // Días no pagados (suspensión Applied) → base salarial del periodo (antes de INSS/IR)
-            var unpaidDates = await GetSuspensionDates(collaborator, payrollStart, payrollEnd);
+            // Progress diferido (suspensión entre quincenas) → se cobra completo en esta nómina
+            var progressSanctions = await _unitOfWork.Deductions.Entities
+                .Where(d => d.CollaboratorId == collaborator.Id)
+                .Where(d => d.Status == DeductionStatus.Progress)
+                .Where(d => d.Type == DeductionType.Sanction)
+                .ToListAsync(default);
+
+            decimal deferredSanctionAmount = progressSanctions.Sum(d => d.TotalAmount);
+            bool chargeDeferredSanction = deferredSanctionAmount > 0m;
+
+            // Si hay Progress, no reducir bruto otra vez (el Progress ya trae todos los días)
+            var unpaidDates = chargeDeferredSanction ? []
+                : await SuspensionUnpaidDates.GetAsync(
+                    _unitOfWork, collaborator.Id, payrollStart, payrollEnd, collaborator.DoesWorkSaturdays);
+
             var periodEarnings = PayrollPeriodEarnings.ForPeriod(
                 dailySalary,
                 daysWorked,
@@ -305,10 +283,17 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 bonus: 0m);
 
             decimal ProportionalBiweeklySalary = periodEarnings.GrossSalary;
-            decimal suspensionAmount = periodEarnings.UnpaidAmount;
+            decimal suspensionAmount = chargeDeferredSanction
+                ? deferredSanctionAmount
+                : periodEarnings.UnpaidAmount;
 
             decimal GrossSalary = periodEarnings.GrossSalary;
             decimal TotalIncome = periodEarnings.TotalIncome;
+
+            decimal TotalIncomeBase = chargeDeferredSanction
+                ? TotalIncome - deferredSanctionAmount
+                : TotalIncome;
+            if (TotalIncomeBase < 0m) TotalIncomeBase = 0m;
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
@@ -319,7 +304,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 TaxInformation?.FlagNumberOfFortnights ?? 24,
                 TaxInformation?.FlagSalaryEarned ?? 0.0m,
                 TaxInformation?.FlagAccumulatedIR ?? 0.0m,
-                TotalIncome,
+                TotalIncomeBase,
                 default
             );
 
@@ -451,7 +436,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + AdditionalDeducctions.OtherDeductions
                 + AdditionalDeducctions.DeductionForLossesBulk
                 + AdditionalDeducctions.Absences
-                + AdditionalDeducctions.LateArrivals;
+                + AdditionalDeducctions.LateArrivals
+                + (chargeDeferredSanction ? AdditionalDeducctions.Sanction : 0m);
 
             #endregion
 
@@ -628,6 +614,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #region Iniciar proceso de acumulados
 
             decimal currentFortnightSalaryEarned = TotalIncome - BiweeklyInss;
+            if (chargeDeferredSanction)
+                currentFortnightSalaryEarned -= AdditionalDeducctions.Sanction;
+            if (currentFortnightSalaryEarned < 0m)
+                currentFortnightSalaryEarned = 0m;
+
             decimal currentFortnightIr = BiweeklyIr;
 
             var irReporting = await _reportingServices.ApplyIrReporting(payroll, collaborator.Id, currentFortnightIr, currentFortnightSalaryEarned);

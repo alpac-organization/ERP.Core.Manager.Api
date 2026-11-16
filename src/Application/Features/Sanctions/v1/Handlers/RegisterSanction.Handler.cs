@@ -6,6 +6,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Services;
 using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Commons.Helpers;
 using ERP.Core.Manager.Api.Application.Commons.Mappings;
+using ERP.Core.Manager.Api.Application.Commons.Utils;
 using ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -36,14 +37,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
 
          _logger.LogInformation("🚩Iniciando proceso de validación de registro de sanción disciplinaria");
 
-         if (request.SanctionType == SanctionType.Suspension
-             && !HaveValidSuspensionRange(request))
-         {
-            return _errorManager.ThrowBadRequest<bool>(
-               "La suspensión debe durar entre 3 y 7 días.",
-               "ERP:InvalidOperation");
-         }
-
          var fault = await _unitOfWork.DisciplinaryFaults.Entities
             .Include(f => f.Collaborator)
             .Include(f => f.ParentFault)
@@ -58,6 +51,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
             return _errorManager.ThrowBadRequest<bool>(
                "La falta disciplinaria no existe o no pertenece a la empresa.",
                "ERP:NotFound");
+         }
+
+         if (request.SanctionType == SanctionType.Suspension
+             && !HaveValidSuspensionRange(request, fault.Collaborator.DoesWorkSaturdays))
+         {
+            return _errorManager.ThrowBadRequest<bool>(
+               "La suspensión debe durar entre 3 y 7 días laborales.",
+               "ERP:InvalidOperation");
          }
 
          if (fault.ParentFaultId.HasValue)
@@ -134,16 +135,20 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
          return true;
       }
 
-      private static bool HaveValidSuspensionRange(RegisterSanctionCommand command)
+      private static bool HaveValidSuspensionRange(RegisterSanctionCommand command, bool doesWorkSaturdays)
       {
          if (!command.SuspensionStartDate.HasValue || !command.SuspensionEndDate.HasValue)
             return false;
 
-         var days = command.SuspensionEndDate.Value.DayNumber
-            - command.SuspensionStartDate.Value.DayNumber + 1;
+         if (command.SuspensionEndDate < command.SuspensionStartDate)
+            return false;
 
-         return days is >= 3 and <= 7
-            && command.SuspensionEndDate >= command.SuspensionStartDate;
+         var days = SuspensionUnpaidDates.Count(
+            command.SuspensionStartDate.Value,
+            command.SuspensionEndDate.Value,
+            doesWorkSaturdays);
+
+         return days is >= 3 and <= 7;
       }
    }
 }

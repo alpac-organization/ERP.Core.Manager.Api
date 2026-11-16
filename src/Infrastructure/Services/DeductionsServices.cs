@@ -60,17 +60,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             DateOnly suspensionStart,
             DateOnly suspensionEnd,
             DateOnly payrollStart,
-            DateOnly payrollEnd)
+            DateOnly payrollEnd,
+            bool doesWorkSaturdays)
         {
-            var dates = new HashSet<DateOnly>();
             var from = suspensionStart > payrollStart ? suspensionStart : payrollStart;
             var to = suspensionEnd < payrollEnd ? suspensionEnd : payrollEnd;
-            if (to < from) return dates;
-
-            for (var d = from; d <= to; d = d.AddDays(1))
-                dates.Add(d);
-
-            return dates;
+            return SuspensionUnpaidDates.Enumerate(from, to, doesWorkSaturdays);
         }
 
         #region Gestion de Sancion
@@ -99,12 +94,13 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     "ERP:PeriodNotExist");
             }
 
-            var totalSuspensionDays = suspensionEndDate.DayNumber - suspensionStartDate.DayNumber + 1;
+            var totalSuspensionDays = SuspensionUnpaidDates.Count(
+                suspensionStartDate, suspensionEndDate, collaborator.DoesWorkSaturdays);
 
             if (totalSuspensionDays is < 3 or > 7)
             {
                 return _errorManager.ThrowBadRequest<(bool, Guid)>(
-                    "La suspensión debe durar entre 3 y 7 días.",
+                    "La suspensión debe durar entre 3 y 7 días laborales.",
                     "ERP:InvalidOperation");
             }
 
@@ -175,7 +171,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 var unpaidDates = BuildUnpaidDatesInPayroll(
                     suspensionStartDate, suspensionEndDate,
-                    payrollActive.StartDate, payrollActive.EndDate);
+                    payrollActive.StartDate, payrollActive.EndDate,
+                    collaborator.DoesWorkSaturdays);
 
                 var periodEarnings = PayrollPeriodEarnings.ForPeriod(
                     dailySalary,
