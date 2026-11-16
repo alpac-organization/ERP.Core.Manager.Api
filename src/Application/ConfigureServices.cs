@@ -16,7 +16,13 @@ namespace ERP.Core.Manager.Api.Application
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
 
-            services.AddAutoMapper(typeof(ConfigureServices).Assembly);
+            var currentAssembly = Assembly.GetExecutingAssembly();
+            
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(currentAssembly);
+            });
+
             services.AddValidatorsFromAssembly(typeof(ConfigureServices).Assembly);
             
             services.AddMediatR(cfg => {
