@@ -159,7 +159,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             deductions.Absences = 0;
             deductions.LateArrivals = 0;
-            // deductions.Sanction = 0;
          }
 
          decimal totalDeductions =
@@ -550,7 +549,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             deductions.Absences = 0;
             deductions.LateArrivals = 0;
-            // deductions.Sanction = 0;
          }
 
          decimal totalDeductions =
