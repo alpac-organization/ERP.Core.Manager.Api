@@ -30,7 +30,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             var product = await _unitOfWork.Products.Entities
                 .Where(product => product.ProductStatus == ProductStatus.Active)
                 .Where(product => product.Id == request.ProductId)
-                .Where(product => product.CostCenterId == access.Profile.CostCenterId)
                 .Include(product => product.ProductStocks)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -44,7 +43,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .Where(productStock => productStock.IsActive)
                 .Where(productStock => productStock.ProductId == product.Id)
                 .Where(productStock => productStock.Product.Code == product.Code)
-                .Where(productStock => productStock.CostCenterId == access.Profile.CostCenterId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (stock is not null)
