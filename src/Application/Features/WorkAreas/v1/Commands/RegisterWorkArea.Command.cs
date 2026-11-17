@@ -5,7 +5,8 @@ namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Commands
 {
     public class RegisterWorkAreaCommand : BaseRequest, IRequest<Unit>
     {
-        public string? WorkAreaName { get; set; }
+        public bool IsOperational { get; set; } = false;
         public string? Description { get; set; }
+        public string? WorkAreaName { get; set; }
     }
 }

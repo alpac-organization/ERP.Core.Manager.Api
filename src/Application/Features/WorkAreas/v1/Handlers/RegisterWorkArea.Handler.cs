@@ -30,7 +30,8 @@ namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Handlers
             }
 
             var (IsSuccess, newCode) = await _codeGenerator.GenerateUniqueWorkAreaCodeAsync(
-                    request.CompanyId, cancellationToken);
+                    request.CompanyId, request.IsOperational, cancellationToken
+                );
 
             if (!IsSuccess)
             {

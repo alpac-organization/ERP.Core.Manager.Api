@@ -128,9 +128,9 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                         "ERP:01"
                     );
                 }
-
+                
                 //Validar producto operacional por parte de las areas.
-                var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, cancellationToken);
+                var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, request.CostCenterId ?? access.Profile.CostCenterId, cancellationToken);
                 
                 if (!IsSuccess || string.IsNullOrWhiteSpace(Code))
                 {
