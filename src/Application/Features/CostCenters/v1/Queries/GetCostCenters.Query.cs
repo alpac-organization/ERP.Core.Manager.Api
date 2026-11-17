@@ -6,6 +6,7 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries
 {
     public class GetCostCentersQuery : BaseRequest, IRequest<List<CostCenterDto>>
     {
+        public Guid? BranchId { get; set; }
         public bool? OnlyOperational { get; set; }
     }
 }
