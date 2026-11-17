@@ -175,3 +175,4 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
 - No se pueden registrar manualmente catálogos de marcación biométrica (p. ej. `FL-*-01`, `FL-*-03`, `FMG-*-04` para ALP, AVS, TMN, VGM, AMS). Esos códigos no aparecen en el listado de catálogo.
 - Tras el registro, el sistema puede crear una falta por reincidencia (`SystemEscalation`) con su propio código `FLT-...`, enlazar orígenes con `parent_fault_id` y reevaluar el siguiente nivel (leve → grave → muy grave) si se cumple el umbral.
 - Evidencias: bucket S3 configurado; carpeta `Manager/DisciplinaryFaults/`.
+- Este endpoint **no** crea sanción ni afecta nómina. Flujo siguiente: [Sugerir sanción](/src/ERP.Core.Manager.Api/Docs/Faults/GetSuggestedSanctionDocs.md) → [Registrar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/RegisterSanctionDocs.md) (`Pending`) → [Procesar](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md) (al aprobar `Suspension` se impacta nómina).

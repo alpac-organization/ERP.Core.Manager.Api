@@ -147,3 +147,4 @@ Usa la entidad `ErrorResponse` (`ERP.Core.Domain.Entities.Errors`):
   - **VGM:** `FL-VGM-01`, `FL-VGM-03`, `FMG-VGM-04`
   - **AMS:** `FL-AMS-01`, `FL-AMS-03`, `FMG-AMS-04`
 - Esos mismos códigos tampoco pueden registrarse por el endpoint de registro manual de faltas.
+- La severidad del catálogo alimenta la [sugerencia de sanción](/src/ERP.Core.Manager.Api/Docs/Faults/GetSuggestedSanctionDocs.md). El impacto en nómina solo ocurre al aprobar una `Suspension` en [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).

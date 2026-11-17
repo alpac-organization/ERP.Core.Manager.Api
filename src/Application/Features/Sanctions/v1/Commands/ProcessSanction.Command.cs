@@ -7,8 +7,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Commands
    public class ProcessSanctionCommand : BaseRequest, IRequest<bool>
    {
       [JsonIgnore]
-      public Guid SanctionId { get; set; }
-      
+      public Guid SanctionId { get; set; }      
+
+      /// <summary>
+      /// Nómina del periodo al aplicar una suspensión.
+      /// </summary>
+      public Guid? PayrollId { get; set; }
+
       public bool IsApproved { get; set; }
 
       /// <summary>

@@ -163,3 +163,10 @@ Retorna un `FaultDetailDto`.
 | `200` | Detalle de la falta obtenido exitosamente. |
 | `400` | Falta no encontrada o error de validación (`ErrorResponse`). |
 | `500` | Error interno del servidor (`ErrorResponse`). |
+
+---
+
+## Notas
+
+- `status = SanctionApplied` indica que la sanción asociada ya fue aprobada. El detalle de tipo, fechas de suspensión y `payroll_id` (si hubo cobro inmediato) está en [Detalle de sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/GetSanctionDetailsDocs.md).
+- Flujo: falta → [sugerir](/src/ERP.Core.Manager.Api/Docs/Faults/GetSuggestedSanctionDocs.md) / [registrar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/RegisterSanctionDocs.md) → [procesar](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).

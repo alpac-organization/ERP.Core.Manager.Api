@@ -41,6 +41,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .ToListAsync(default);
 
             var absenceDates = await _unitOfWork.Absences.Entities
+                .AsNoTracking()
                 .Where(a => a.CollaboratorId == collaborator.Id
                          && a.Status == AbsenceStatus.Applied
                          && a.DeletedAt == null
@@ -48,6 +49,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                          && a.Date <= payrollEnd)
                 .Select(a => a.Date)
                 .ToListAsync(default);
+
+            var suspensionDates = await SuspensionUnpaidDates.GetAsync(
+                _unitOfWork, collaborator.Id, payrollStart, payrollEnd, collaborator.DoesWorkSaturdays);
 
             for (DateOnly date = payrollStart; date <= payrollEnd; date = date.AddDays(1))
             {
@@ -71,6 +75,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 }
 
                 if (absenceDates.Contains(date))
+                {
+                    continue;
+                }
+
+                if (suspensionDates.Contains(date))
                 {
                     continue;
                 }
@@ -169,14 +178,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 salary = new Salary()
                 {
-                    CollaboratorId      = collaborator.Id,
-                    AmountSalary        = amountSalary,
-                    AmountInLocal       = amountInLocal,
-                    AmountInForeign     = amountInForeign,
-                    StartDate           = DateTime.Now,
-                    Currency            = salaryInformation!.Currency,
-                    SalaryType          = salaryInformation.SalaryType,
-                    BankSubCatalogId    = salaryInformation.SubCatalogBankId,
+                    CollaboratorId = collaborator.Id,
+                    AmountSalary = amountSalary,
+                    AmountInLocal = amountInLocal,
+                    AmountInForeign = amountInForeign,
+                    StartDate = DateTime.Now,
+                    Currency = salaryInformation!.Currency,
+                    SalaryType = salaryInformation.SalaryType,
+                    BankSubCatalogId = salaryInformation.SubCatalogBankId,
                 };
 
                 //✅Registro de salario exitoso
@@ -231,8 +240,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal BiweeklySalary = monthlySalary / 2;
             decimal dailySalary = monthlySalary / 30;
 
-            decimal ProportionalBiweeklySalary = dailySalary * daysWorked;
-
             int YearAntique = 0;
             decimal Bonus = 0.0m;
             decimal Antique = 0.0m;
@@ -244,29 +251,60 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (collaborator.WorkingInformation.Branch.DoesGenerateSeniority)
             {
-                var (antique, yearsOfService) = _calculatorDeductions.CalculateAntique(BiweeklySalary, payrollEnd, entryDate); ;
+                var (antique, yearsOfService) = _calculatorDeductions.CalculateAntique(BiweeklySalary, payrollEnd, entryDate);
                 Antique = antique;
                 YearAntique = yearsOfService;
             }
 
             #endregion
 
-            decimal GrossSalary = ProportionalBiweeklySalary;
-            decimal TotalIncome = ProportionalBiweeklySalary + Overtime + Commissions + Antique;
+            // Progress diferido (suspensión entre quincenas) → se cobra completo en esta nómina
+            var progressSanctions = await _unitOfWork.Deductions.Entities
+                .Where(d => d.CollaboratorId == collaborator.Id)
+                .Where(d => d.Status == DeductionStatus.Progress)
+                .Where(d => d.Type == DeductionType.Sanction)
+                .ToListAsync(default);
+
+            decimal deferredSanctionAmount = progressSanctions.Sum(d => d.TotalAmount);
+            bool chargeDeferredSanction = deferredSanctionAmount > 0m;
+
+            // Si hay Progress, no reducir bruto otra vez (el Progress ya trae todos los días)
+            var unpaidDates = chargeDeferredSanction ? []
+                : await SuspensionUnpaidDates.GetAsync(
+                    _unitOfWork, collaborator.Id, payrollStart, payrollEnd, collaborator.DoesWorkSaturdays);
+
+            var periodEarnings = PayrollPeriodEarnings.ForPeriod(
+                dailySalary,
+                daysWorked,
+                unpaidDates,
+                Overtime,
+                Commissions,
+                Antique,
+                bonus: 0m);
+
+            decimal ProportionalBiweeklySalary = periodEarnings.GrossSalary;
+            decimal suspensionAmount = chargeDeferredSanction
+                ? deferredSanctionAmount
+                : periodEarnings.UnpaidAmount;
+
+            decimal GrossSalary = periodEarnings.GrossSalary;
+            decimal TotalIncome = periodEarnings.TotalIncome;
+
+            decimal TotalIncomeBase = chargeDeferredSanction
+                ? TotalIncome - deferredSanctionAmount
+                : TotalIncome;
+            if (TotalIncomeBase < 0m) TotalIncomeBase = 0m;
 
             var TaxInformation = await _unitOfWork.IncomeTaxAccrual.Entities
                 .Where(income => income.CollaboratorId == collaborator.Id)
                 .OrderByDescending(income => income.CreatedAt)
                 .FirstOrDefaultAsync(default);
 
-
-            var numberFortnights = TaxInformation?.FlagNumberOfFortnights ?? 24;
-
             var (BiweeklyInss, BiweeklyIr) = await _calculatorDeductions.CalculateIr(
                 TaxInformation?.FlagNumberOfFortnights ?? 24,
                 TaxInformation?.FlagSalaryEarned ?? 0.0m,
                 TaxInformation?.FlagAccumulatedIR ?? 0.0m,
-                TotalIncome,
+                TotalIncomeBase,
                 default
             );
 
@@ -280,13 +318,14 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                          && a.Date >= payrollStart
                          && a.Date <= payrollEnd)
                 .ToListAsync(default);
+            #endregion
 
-            decimal totalSalaryDeduction = periodAbsences.Sum(a => a.SalaryDeduction);
+            decimal totalAbsencesDeductionSalary = periodAbsences.Sum(a => a.SalaryDeduction);
             decimal totalSeventhDayDeduction = periodAbsences.Sum(a => a.SeventhDayDeduction);
 
             var AdditionalDeducctions = new DeductionsAdditionalData()
             {
-                Absences = totalSalaryDeduction + totalSeventhDayDeduction,
+                Absences = totalAbsencesDeductionSalary + totalSeventhDayDeduction,
                 TotalAbsenceDays = periodAbsences.Count,
                 SeventhDayDeduction = totalSeventhDayDeduction,
                 CashShortage = 0.0m,
@@ -299,10 +338,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 OtherDeductions = 0.0m,
                 Purisima = 0.0m,
                 SalaryAdvance = 0.0m,
-                Sanction = 0.0m,
+                Sanction = suspensionAmount,
                 UniformDeduction = 0.0m
             };
-            #endregion
 
             #region Deducciones Activas aqui
 
@@ -315,57 +353,74 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                 if (deduction.Type == DeductionType.Loans)
                 {
-                AdditionalDeducctions.Loans += deduction.FortnightlyAmount ?? 0.0m;
+                    AdditionalDeducctions.Loans += deduction.FortnightlyAmount ?? 0.0m;
                 }
 
                 if (deduction.Type == DeductionType.Purisima)
                 {
-                AdditionalDeducctions.Purisima += deduction.FortnightlyAmount ?? 0.0m;
+                    AdditionalDeducctions.Purisima += deduction.FortnightlyAmount ?? 0.0m;
                 }
 
                 if (deduction.Type == DeductionType.OtherDeductions)
                 {
-                AdditionalDeducctions.OtherDeductions += deduction.FortnightlyAmount ?? 0.0m;
+                    AdditionalDeducctions.OtherDeductions += deduction.FortnightlyAmount ?? 0.0m;
                 }
 
+                if (deduction.Type == DeductionType.Sanction)
+                {
+                    await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+                    {
+                        DeductionId = deduction.Id,
+                        PayrollId = payroll.Id,
+                        PaymentDate = DateTime.Now,
+                        Currency = deduction.Currency,
+                        Origin = SourceDeductionPayment.Payroll,
+                        Status = DeductionPaymentStatus.Pending,
+                        AmountPaid = deduction.TotalAmount,
+                        AmountPaidInDollars = deduction.TotalAmountInDollars
+                    });
+
+                    deduction.Status = DeductionStatus.Completed;
+                    await _unitOfWork.Deductions.UpdateAsync(deduction);
+
+                    continue;
+                }
 
                 if (deduction.Type == DeductionType.JudicialSeizures)
                 {
+                    decimal percentage = deduction.Percentage ?? 1;
+                    decimal baseAmount = TotalIncome - (BiweeklyInss + BiweeklyIr);
+                    decimal amountToDeduct = Math.Round(baseAmount * (percentage / 100m), 2, MidpointRounding.AwayFromZero);
 
+                    if (amountToDeduct > (deduction.TotalBalance ?? 0))
+                    {
+                        amountToDeduct = deduction.TotalBalance ?? 0;
+                    }
+                    AdditionalDeducctions.JudicialSeizures += amountToDeduct;
 
-                decimal percentage = deduction.Percentage ?? 1;
-                decimal baseAmount = TotalIncome - (BiweeklyInss + BiweeklyIr);
-                decimal amountToDeduct = Math.Round(baseAmount * (percentage / 100m), 2, MidpointRounding.AwayFromZero);
-
-                if (amountToDeduct > (deduction.TotalBalance ?? 0))
-                {
-                    amountToDeduct = deduction.TotalBalance ?? 0;
+                    await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
+                    {
+                        DeductionId = deduction.Id,
+                        AmountPaid = amountToDeduct,
+                        AmountPaidInDollars = amountToDeduct / exchangeRate!.Value,
+                        Status = DeductionPaymentStatus.Pending,
+                        Origin = SourceDeductionPayment.Payroll,
+                        Currency = deduction.Currency,
+                        PayrollId = payroll.Id,
+                        PaymentDate = DateTime.Now,
+                    });
+                    continue;
                 }
-                AdditionalDeducctions.JudicialSeizures += amountToDeduct;
-
                 await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
                 {
                     DeductionId = deduction.Id,
-                    AmountPaid = amountToDeduct,
-                    AmountPaidInDollars = amountToDeduct / exchangeRate!.Value,
-                    Status = DeductionPaymentStatus.Pending,
-                    Origin = SourceDeductionPayment.Payroll,
-                    Currency = deduction.Currency,
                     PayrollId = payroll.Id,
                     PaymentDate = DateTime.Now,
-                });
-                continue;
-                }
-                await _unitOfWork.DeductionPaymentHistories.RegisterDeductionPaymentHistory(new()
-                {
-                DeductionId = deduction.Id,
-                PayrollId = payroll.Id,
-                PaymentDate = DateTime.Now,
-                Currency = deduction.Currency,
-                Origin = SourceDeductionPayment.Payroll,
-                Status = DeductionPaymentStatus.Pending,
-                AmountPaid = deduction.FortnightlyAmount ?? 0.0m,
-                AmountPaidInDollars = (deduction.FortnightlyAmount ?? 0.0m) / 36.6243m,
+                    Currency = deduction.Currency,
+                    Origin = SourceDeductionPayment.Payroll,
+                    Status = DeductionPaymentStatus.Pending,
+                    AmountPaid = deduction.FortnightlyAmount ?? 0.0m,
+                    AmountPaidInDollars = (deduction.FortnightlyAmount ?? 0.0m) / 36.6243m,
                 });
             }
 
@@ -381,8 +436,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 + AdditionalDeducctions.OtherDeductions
                 + AdditionalDeducctions.DeductionForLossesBulk
                 + AdditionalDeducctions.Absences
-                + AdditionalDeducctions.Sanction
-                + AdditionalDeducctions.LateArrivals;
+                + AdditionalDeducctions.LateArrivals
+                + (chargeDeferredSanction ? AdditionalDeducctions.Sanction : 0m);
 
             #endregion
 
@@ -391,7 +446,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             //Saber cuantos dias tiene con derecho a viaticos en base al calendario del mes del colaborador.
             int totalWorkDays = await AssignTravelDays(collaborator, payrollStart, payrollEnd);
 
-            var asssineds = await _unitOfWork.AssignedTravelExpenses.Entities
+            var travelExpenses = await _unitOfWork.AssignedTravelExpenses.Entities
                 .Include(asssined => asssined.Collaborator)
                 .Where(assigned => assigned.CollaboratorId == collaborator.Id && assigned.EndDate == null)
                 .Include(asssined => asssined.TypeIncome)
@@ -402,32 +457,32 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal FoodTravelAllowance = 0.0m;
             decimal totalAssigned = 0.0m;
 
-            foreach (var current in asssineds)
+            foreach (var current in travelExpenses)
             {
                 switch (current.TypeIncome.IncomeCode)
                 {
-                case "ALW_TRANSPORT":
-                    {
-                        Transport = current.AmountInLocalCurrency;
-                        totalAssigned += Transport;
-                        break;
-                    }
-                case "ALW_HOUSING":
-                    {
-                        Lodging = current.AmountInLocalCurrency;
-                        totalAssigned += Lodging;
-                        break;
-                    }
-                case "ALW_MEAL":
-                    {
-                        FoodTravelAllowance = current.AmountInLocalCurrency;
-                        totalAssigned += FoodTravelAllowance;
-                        break;
-                    }
-                default:
-                    {
-                        continue;
-                    }
+                    case "ALW_TRANSPORT":
+                        {
+                            Transport = current.AmountInLocalCurrency;
+                            totalAssigned += Transport;
+                            break;
+                        }
+                    case "ALW_HOUSING":
+                        {
+                            Lodging = current.AmountInLocalCurrency;
+                            totalAssigned += Lodging;
+                            break;
+                        }
+                    case "ALW_MEAL":
+                        {
+                            FoodTravelAllowance = current.AmountInLocalCurrency;
+                            totalAssigned += FoodTravelAllowance;
+                            break;
+                        }
+                    default:
+                        {
+                            continue;
+                        }
                 }
             }
 
@@ -494,7 +549,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 GetReportIncome(BiweeklySalary, Overtime, Commissions, Bonus, 0, 0),
                 BiweeklyInss,
                 TotalIncome,
-                totalSalaryDeduction + totalSeventhDayDeduction,
+                totalAbsencesDeductionSalary + totalSeventhDayDeduction,
                 periodAbsences.Count);
 
             #endregion
@@ -559,6 +614,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             #region Iniciar proceso de acumulados
 
             decimal currentFortnightSalaryEarned = TotalIncome - BiweeklyInss;
+            if (chargeDeferredSanction)
+                currentFortnightSalaryEarned -= AdditionalDeducctions.Sanction;
+            if (currentFortnightSalaryEarned < 0m)
+                currentFortnightSalaryEarned = 0m;
+
             decimal currentFortnightIr = BiweeklyIr;
 
             var irReporting = await _reportingServices.ApplyIrReporting(payroll, collaborator.Id, currentFortnightIr, currentFortnightSalaryEarned);
@@ -567,22 +627,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                 await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
                 {
-                AccumulatedIR = 0.0m,
-                SalaryEarned = 0.0m,
-                NumberOfFortnights = 24,
+                    AccumulatedIR = 0.0m,
+                    SalaryEarned = 0.0m,
+                    NumberOfFortnights = 24,
 
-                AccumulatedIrByFornight = irReporting.IrFortnightly,
-                SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
-                AccumulatedIrMonthly = irReporting.IrMonthly,
-                SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
+                    AccumulatedIrByFornight = irReporting.IrFortnightly,
+                    SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
+                    AccumulatedIrMonthly = irReporting.IrMonthly,
+                    SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
 
-                FlagAccumulatedIR = currentFortnightIr,
-                FlagSalaryEarned = currentFortnightSalaryEarned,
+                    FlagAccumulatedIR = currentFortnightIr,
+                    FlagSalaryEarned = currentFortnightSalaryEarned,
 
-                FlagNumberOfFortnights = 23,
-                PayrollId = payroll.Id,
-                CollaboratorId = collaborator.Id,
-                AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
+                    FlagNumberOfFortnights = 23,
+                    PayrollId = payroll.Id,
+                    CollaboratorId = collaborator.Id,
+                    AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
                 });
 
                 collaborator.IsFirstTimeRegister = false;
@@ -598,22 +658,22 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 await _unitOfWork.IncomeTaxAccrual.RegisterIncomeTaxAccrual(new()
                 {
-                AccumulatedIR = prevAccumulatedIrFlag,
-                SalaryEarned = prevSalaryEarnedFlag,
-                NumberOfFortnights = prevFortnights,
+                    AccumulatedIR = prevAccumulatedIrFlag,
+                    SalaryEarned = prevSalaryEarnedFlag,
+                    NumberOfFortnights = prevFortnights,
 
-                AccumulatedIrByFornight = irReporting.IrFortnightly,
-                SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
-                AccumulatedIrMonthly = irReporting.IrMonthly,
-                SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
+                    AccumulatedIrByFornight = irReporting.IrFortnightly,
+                    SalaryEarnedByFornight = irReporting.SalaryEarnedFortnightly,
+                    AccumulatedIrMonthly = irReporting.IrMonthly,
+                    SalaryEarnedMonthly = irReporting.SalaryEarnedMonthly,
 
-                FlagAccumulatedIR = isEndOfYear ? 0.0m : prevAccumulatedIrFlag + currentFortnightIr,
-                FlagSalaryEarned = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,
-                FlagNumberOfFortnights = isEndOfYear ? 24 : (prevFortnights - 1),
+                    FlagAccumulatedIR = isEndOfYear ? 0.0m : prevAccumulatedIrFlag + currentFortnightIr,
+                    FlagSalaryEarned = isEndOfYear ? 0.0m : prevSalaryEarnedFlag + currentFortnightSalaryEarned,
+                    FlagNumberOfFortnights = isEndOfYear ? 24 : (prevFortnights - 1),
 
-                PayrollId = payroll.Id,
-                CollaboratorId = collaborator.Id,
-                AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
+                    PayrollId = payroll.Id,
+                    CollaboratorId = collaborator.Id,
+                    AccumulatedSeniority = (TaxInformation?.AccumulatedSeniority ?? 0.0m) + Antique,
                 });
             }
 
@@ -633,11 +693,11 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                         .Where(p => p.Payroll.EndDate >= windowStart && p.Payroll.EndDate < calculationDate)
                         .Select(p => new
                         {
-                        p.Payroll.EndDate.Year,
-                        p.Payroll.EndDate.Month,
-                        p.BiweeklySalary,
-                        p.Commissions,
-                        p.Antique
+                            p.Payroll.EndDate.Year,
+                            p.Payroll.EndDate.Month,
+                            p.BiweeklySalary,
+                            p.Commissions,
+                            p.Antique
                         }).ToListAsync();
 
             bool hasCommissions = rows.Any(r => r.Commissions > 0);

@@ -80,7 +80,7 @@ Ejemplo de suspensión (3 a 7 días):
 | `sanction_type` | `enum (SanctionType)` | Sí | Tipo de sanción. |
 | `reason` | `string` | Sí | Motivo (máx. 500 caracteres). |
 | `suspension_start_date` | `date \| null` | Condicional | Obligatorio si `sanction_type = Suspension`. |
-| `suspension_end_date` | `date \| null` | Condicional | Obligatorio si suspensión; rango **3–7 días** inclusive. |
+| `suspension_end_date` | `date \| null` | Condicional | Obligatorio si suspensión; el rango debe resultar en **3–7 días laborales** (sin domingo; sábado solo si el colaborador trabaja sábados). |
 | `evidences` | `array` | Condicional | Obligatorias salvo `VerbalWarning`. |
 
 #### `evidences[]`
@@ -101,7 +101,7 @@ Ejemplo de suspensión (3 a 7 días):
 |---|---|---|---|
 | `1` | VerbalWarning | Amonestación verbal | Opcional |
 | `2` | Memorandum | Amonestación escrita | Requerida |
-| `3` | Suspension | Suspensión sin goce | Requerida |
+| `3` | Suspension | Suspensión sin goce (3–7 días laborales; cobro de nómina al aprobar en Process) | Requerida |
 | `4` | CommitmentLetter | Carta de compromiso | Requerida |
 | `5` | Termination | Terminación de contrato | Requerida |
 
@@ -136,7 +136,7 @@ Otros mensajes frecuentes:
 
 - `No se puede sancionar una falta prescrita, aplicada o cancelada.`
 - `Ya existe una sanción pendiente o aplicada para esta falta.`
-- `La suspensión debe durar entre 3 y 7 días.`
+- `La suspensión debe durar entre 3 y 7 días laborales.`
 
 ### ❌ 401 Unauthorized
 
@@ -184,4 +184,4 @@ Otros mensajes frecuentes:
 - No se permite otra sanción `Pending` o `Applied` activa sobre la misma falta.
 - No se marca la falta como `SanctionApplied` en este paso; eso ocurre al aprobar en Process.
 - Evidencias: carpeta S3 `Manager/DisciplinarySanctions/`.
-- Efectos de nómina (`payroll_id`) pendientes de implementación.
+- Este endpoint **no** recibe `payroll_id` ni impacta nómina. El cobro de una `Suspension` ocurre al **aprobar** en Process: inmediato si el rango cabe en la nómina enviada; si no, diferido (`Progress`) a la siguiente nómina ordinaria. Ver reglas de suspensión en [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).

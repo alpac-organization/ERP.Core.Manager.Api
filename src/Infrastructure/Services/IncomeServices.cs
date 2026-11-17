@@ -159,7 +159,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             deductions.Absences = 0;
             deductions.LateArrivals = 0;
-            deductions.Sanction = 0;
          }
 
          decimal totalDeductions =
@@ -174,7 +173,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + deductions.OtherDeductions
              + deductions.DeductionForLossesBulk
              + deductions.Absences
-             + deductions.Sanction
              + deductions.LateArrivals;
 
 
@@ -551,7 +549,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          {
             deductions.Absences = 0;
             deductions.LateArrivals = 0;
-            deductions.Sanction = 0;
          }
 
          decimal totalDeductions =
@@ -566,7 +563,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + deductions.OtherDeductions
              + deductions.DeductionForLossesBulk
              + deductions.Absences
-             + deductions.Sanction
              + deductions.LateArrivals;
 
          decimal availableForCompanyDeductions = infPayroll.TotalIncome - infPayroll.TotalLegalDeductions;
@@ -837,7 +833,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + deductions.OtherDeductions
              + deductions.DeductionForLossesBulk
              + deductions.Absences
-             + deductions.Sanction
              + deductions.LateArrivals;
 
          //Suma total de todas las deducciones.
@@ -985,7 +980,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             + deductions.OtherDeductions
             + deductions.DeductionForLossesBulk
             + deductions.Absences
-            + deductions.Sanction
             + deductions.LateArrivals;
 
          ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
@@ -1141,7 +1135,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + deductions.OtherDeductions
              + deductions.DeductionForLossesBulk
              + deductions.Absences
-             + deductions.Sanction
              + deductions.LateArrivals;
 
          ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
@@ -1282,7 +1275,6 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + deductions.OtherDeductions
              + deductions.DeductionForLossesBulk
              + deductions.Absences
-             + deductions.Sanction
              + deductions.LateArrivals;
 
          ordinaryPayrollInfo.TotalDeducctions = BiweeklyInss + BiweeklyIr + totalDeductions;
@@ -1416,7 +1408,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              + deductions.JudicialSeizures + deductions.UniformDeduction
              + deductions.CashShortage + deductions.OtherDeductions
              + deductions.DeductionForLossesBulk + deductions.Absences
-             + deductions.Sanction + deductions.LateArrivals;
+             + deductions.LateArrivals;
 
          ordinaryPayrollInfo.TotalIncome = currentTotalIncome;
          ordinaryPayrollInfo.HolidayPay += totalHolidayPayAmount;
