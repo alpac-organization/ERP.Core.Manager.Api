@@ -7,6 +7,7 @@ using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries;
+using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
 {
@@ -25,16 +26,22 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
                 .Where(cost => cost.IsActive)
                 .Where(cost => cost.WorkArea.CompanyId == request.CompanyId)
                 .Where(cost => cost.WorkArea.IsActive);
-                
+
             if (request.OnlyOperational.HasValue)
             {
                 costCentersQuery = costCentersQuery
-                    .Where(cost => cost.BranchId == access.Profile.BranchId)
                     .Where(cost => cost.IsOperational == request.OnlyOperational.Value);
+
+                if (access.Role?.RoleType == RoleType.Manager)
+                {
+                    costCentersQuery = costCentersQuery
+                        .Where(cost => cost.BranchId == access.Profile.BranchId)
+                        .Where(cost => cost.IsOperational == request.OnlyOperational.Value);
+                }
             }
 
             var costCenters = await costCentersQuery.ToListAsync(cancellationToken);
-
+            
             return _mapper.Map<List<CostCenterDto>>(costCenters);
         }
     }
