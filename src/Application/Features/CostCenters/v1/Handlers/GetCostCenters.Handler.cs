@@ -2,12 +2,12 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ERP.Core.Application.Commons.Interfaces;
 
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Database.Application.Commons.Interfaces.Bases;
 using ERP.Core.Database.Application.Commons.Interfaces.Repositories;
 
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Queries;
-using ERP.Core.Database.Domain.Enums;
 
 namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
 {
@@ -22,26 +22,38 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
                 return access.ErrorResponse!;
             }
 
+            var isAdministrator = access.Role?.RoleType == RoleType.Administrator;
+
             var costCentersQuery = _unitOfWork.CostCenters.Entities
+                .AsNoTracking()
                 .Where(cost => cost.IsActive)
                 .Where(cost => cost.WorkArea.CompanyId == request.CompanyId)
                 .Where(cost => cost.WorkArea.IsActive);
 
+            // ---------- Sucursal ----------
+            if (isAdministrator)
+            {
+                if (request.BranchId.HasValue)
+                {
+                    costCentersQuery = costCentersQuery
+                        .Where(cost => cost.BranchId == request.BranchId.Value);
+                }
+            }
+            else
+            {
+                costCentersQuery = costCentersQuery
+                    .Where(cost => cost.BranchId == access.Profile.BranchId);
+            }
+
+            // ---------- Operacional (disponible para administrador y manager) ----------
             if (request.OnlyOperational.HasValue)
             {
                 costCentersQuery = costCentersQuery
                     .Where(cost => cost.IsOperational == request.OnlyOperational.Value);
-
-                if (access.Role?.RoleType == RoleType.Manager)
-                {
-                    costCentersQuery = costCentersQuery
-                        .Where(cost => cost.BranchId == access.Profile.BranchId)
-                        .Where(cost => cost.IsOperational == request.OnlyOperational.Value);
-                }
             }
 
             var costCenters = await costCentersQuery.ToListAsync(cancellationToken);
-            
+
             return _mapper.Map<List<CostCenterDto>>(costCenters);
         }
     }
