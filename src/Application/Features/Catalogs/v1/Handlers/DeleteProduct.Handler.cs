@@ -31,16 +31,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 .Where(product => product.ProductStatus == ProductStatus.Active)
                 .Where(product => product.Id == request.ProductId)
                 .Where(product => product.CostCenterId == access.Profile.CostCenterId)
+                .Include(product => product.ProductStocks)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (product is null)
             {
                 return _errorManager.ThrowBadRequest<Unit>("Este producto no existe o no se encuentra activo", "ERP:01");
             }
-
-            //Dar de baja el producto
-            product.ProductStatus = ProductStatus.Inactive;
-            product.DeletedAt = DateTime.Today;
 
             var stock = await _unitOfWork.ProductStocks.Entities
                 .Include(product => product.Product)
@@ -52,12 +49,30 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             if (stock is not null)
             {
-                //Si existe registro de stock eliminar este producto
 
-                stock.IsActive = false;
-                stock.DeletedAt = DateTime.Now;
+                if (stock.AvailableQuantity <= 0)
+                {
+                    product.DeletedAt = DateTime.Today;
+                    product.ProductStatus = ProductStatus.Inactive;
+
+                    stock.IsActive = false;
+                    stock.DeletedAt = DateTime.Now;
+                }
+                else
+                {                    
+                    product.ProductStatus = ProductStatus.LowProcess;
+                    
+                    stock.IsActive = false;
+                    stock.DeletedAt = DateTime.Now;
+                }
+
 
                 await _unitOfWork.ProductStocks.UpdateAsync(stock);
+            }
+            else
+            {
+                product.DeletedAt = DateTime.Today;
+                product.ProductStatus = ProductStatus.Inactive;
             }
 
             await _unitOfWork.Products.UpdateAsync(product);
