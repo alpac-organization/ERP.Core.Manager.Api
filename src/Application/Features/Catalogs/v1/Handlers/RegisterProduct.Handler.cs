@@ -29,7 +29,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 return access.ErrorResponse;
             }
 
-            if (access.Role?.RoleType == RoleType.Supervisor)
+            var roleType        = access.Role?.RoleType;
+            var isAdministrator = roleType == RoleType.Administrator;
+            var isManager       = roleType == RoleType.Manager;
+            var isOperational   = request.ProductUsageType == ProductUsageType.Operational;
+
+            // Los supervisores no pueden registrar productos
+            if (roleType == RoleType.Supervisor)
             {
                 return _errorManager.ThrowBadRequest<Guid>(
                     "No tienes permiso para registrar un producto.",
@@ -80,7 +86,66 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             {
                 return _errorManager.ThrowBadRequest<Guid>("Esta unidad de medida no es permitida para la categoria de producto seleccionada", "ERP:CONFIGURATION_INVALID");
             }
-            
+
+            // ---------- Sucursal y centro de costo efectivos ----------
+            Guid branchId;
+            Guid costCenterId;
+
+            if (isOperational)
+            {
+                var canChooseBranch     = isAdministrator;                  // agrega "|| isManager" si el manager también elige sucursal
+                var canChooseCostCenter = isAdministrator || isManager;
+
+                // Administrador: elige sucursal. Manager y operador: la del perfil.
+                branchId = canChooseBranch
+                    ? request.BranchId ?? access.Profile.BranchId
+                    : access.Profile.BranchId;
+
+                // Administrador y manager: eligen centro de costo. Operador: el del perfil.
+                costCenterId = canChooseCostCenter
+                    ? request.CostCenterId ?? access.Profile.CostCenterId
+                    : access.Profile.CostCenterId;
+
+                if (canChooseCostCenter)
+                {
+                    var costCenter = await _unitOfWork.CostCenters.Entities
+                        .AsNoTracking()
+                        .Where(cc => cc.Id == costCenterId)
+                        .Select(cc => new { cc.BranchId, cc.IsActive, cc.IsOperational })
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (costCenter is null || !costCenter.IsActive)
+                    {
+                        return _errorManager.ThrowBadRequest<Guid>(
+                            "El centro de costo seleccionado no existe o no está activo.",
+                            "ERP:CC01"
+                        );
+                    }
+
+                    if (!costCenter.IsOperational)
+                    {
+                        return _errorManager.ThrowBadRequest<Guid>(
+                            "El centro de costo seleccionado no es operacional.",
+                            "ERP:CC02"
+                        );
+                    }
+
+                    if (costCenter.BranchId != branchId)
+                    {
+                        return _errorManager.ThrowBadRequest<Guid>(
+                            "El centro de costo seleccionado no pertenece a la sucursal indicada.",
+                            "ERP:CC03"
+                        );
+                    }
+                }
+            }
+            else
+            {
+                // Productos administrativos: mismo comportamiento que antes
+                branchId     = access.Profile.BranchId;
+                costCenterId = request.CostCenterId ?? access.Profile.CostCenterId;
+            }
+
             var supplierCurrencies = new Dictionary<Guid, Currency>();
 
             if (request.Suppliers.Count > 0)
@@ -95,8 +160,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
 
             var productEntity = ProductMapper.ToProductEntity(request, supplierCurrencies);
 
-            productEntity.BranchId = access.Profile.BranchId;
-            productEntity.CostCenterId = request.CostCenterId ?? access.Profile.CostCenterId;
+            productEntity.BranchId     = branchId;
+            productEntity.CostCenterId = costCenterId;
 
             if (request.ProductUsageType == ProductUsageType.Administrative)
             {
@@ -115,12 +180,12 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
             else
             {
-                //Validar si el area de origen es permitida para registro producto operacional
+                // Validar si el área de origen es permitida para registro de producto operacional
                 var configurationAreaPermited = await _unitOfWork.InventoryAreasPermissions.Entities
                     .Where(configuration => configuration.IsActive)
                     .Where(configuration => configuration.WorkAreaId == access.Profile.AreaId)
                     .FirstOrDefaultAsync(cancellationToken);
-                    
+
                 if (configurationAreaPermited is null)
                 {
                     return _errorManager.ThrowBadRequest<Guid>(
@@ -128,10 +193,14 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                         "ERP:01"
                     );
                 }
-                
-                //Validar producto operacional por parte de las areas.
-                var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(access.Profile, request.CategoryId, request.CostCenterId ?? access.Profile.CostCenterId, cancellationToken);
-                
+
+                var (IsSuccess, Code) = await _codeGenerator.GenerateUniqueOperationalProductCode(
+                    access.Profile,
+                    request.CategoryId,
+                    costCenterId,
+                    cancellationToken
+                );
+
                 if (!IsSuccess || string.IsNullOrWhiteSpace(Code))
                 {
                     return _errorManager.ThrowBadRequest<Guid>(
@@ -143,7 +212,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 productEntity.Code = Code;
                 await _unitOfWork.Products.InsertProduct(productEntity);
 
-                //Verificar si la categoria, si es diferentes de servicios, u otras cosas que no sean un categoria de producto real.
+                // Verificar si la categoría es de producto real (no servicios u otros)
                 var configurationInventory = await _unitOfWork.CategoryProducts.Entities
                     .Where(category => category.IsActive)
                     .Where(category => !category.IsService)
@@ -151,11 +220,11 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     .Where(category => category.Id == request.CategoryId)
                     .FirstOrDefaultAsync(cancellationToken);
 
-                //Entrada a stock de inventario...
+                // Entrada a stock de inventario
                 if (configurationInventory is not null)
                 {
                     var inventoryStockEntity = ProductMapper.ToProductStockEntity(request, productEntity.Id);
-                    inventoryStockEntity.CostCenterId = request.CostCenterId ?? access.Profile.CostCenterId;
+                    inventoryStockEntity.CostCenterId = costCenterId;
 
                     await _unitOfWork.ProductStocks.RegisterProductStock(inventoryStockEntity);
                 }

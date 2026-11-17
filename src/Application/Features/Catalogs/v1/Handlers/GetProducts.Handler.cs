@@ -23,43 +23,38 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
             }
 
             var roleType        = access.Role?.RoleType;
-            var isManager       = roleType == RoleType.Manager;
             var isAdministrator = roleType == RoleType.Administrator;
-            var hasFullAccess   = isAdministrator || isManager;
+            var isManager       = roleType == RoleType.Manager;
             var isOperational   = request.ProductUsageType == ProductUsageType.Operational;
 
             var query = _unitOfWork.Products.Entities
                 .AsNoTracking()
-                .AsSplitQuery()
-
-                .Include(product => product.Branch)
-                .Include(product => product.Category)
-                .Include(product => product.CostCenter)
-                .Include(product => product.UnitMeasure)
-                .Include(product => product.SupplierProducts)
-
                 .Where(product => product.ProductUsageType == request.ProductUsageType);
 
+            // ---------- Restricciones por rol ----------
             if (isOperational)
             {
-                // Sucursal
                 if (isAdministrator)
                 {
+                    // Administrador: sucursal y centro de costo opcionales
                     if (request.BranchId.HasValue)
                     {
                         query = query
                             .Where(product => product.BranchId == request.BranchId.Value);
                     }
+
+                    if (request.CostCenterId.HasValue)
+                    {
+                        query = query
+                            .Where(product => product.CostCenterId == request.CostCenterId.Value);
+                    }
                 }
-                else
+                else if (isManager)
                 {
+                    // Manager: sucursal fija del perfil, centro de costo opcional
                     query = query
                         .Where(product => product.BranchId == access.Profile.BranchId);
-                }
 
-                // Centro de costo
-                if (hasFullAccess)
-                {
                     if (request.CostCenterId.HasValue)
                     {
                         query = query
@@ -68,7 +63,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                 }
                 else
                 {
+                    // Operador / Supervisor: sucursal, centro de costo y área del perfil.
+                    // Se ignoran BranchId y CostCenterId del request.
                     query = query
+                        .Where(product => product.BranchId == access.Profile.BranchId)
                         .Where(product => product.CostCenterId == access.Profile.CostCenterId)
                         .Where(product => product.CostCenter.WorkAreaId == access.Profile.AreaId);
                 }
@@ -79,6 +77,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     .Where(product => product.BranchId == access.Profile.BranchId);
             }
 
+            // ---------- Filtros libres ----------
             if (request.CategoryProductId.HasValue)
             {
                 query = query
@@ -109,10 +108,17 @@ namespace ERP.Core.Manager.Api.Application.Features.Catalogs.v1.Handlers
                     .Where(product => product.ProductStatus == request.Status);
             }
 
+            // ---------- Conteo y página ----------
             var totalCount = await query
                 .CountAsync(cancellationToken);
 
             var products = await query
+                .Include(product => product.Branch)
+                .Include(product => product.Category)
+                .Include(product => product.CostCenter)
+                .Include(product => product.UnitMeasure)
+                .Include(product => product.SupplierProducts)
+                .AsSplitQuery()
                 .OrderByDescending(product => product.CreatedAt)
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
