@@ -270,7 +270,8 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              .Where(d => d.Type == DeductionType.Sanction)
              .ToListAsync(cancellationToken);
 
-         decimal deferredSanctionAmount = progressSanctions.Sum(d => d.TotalAmount);
+         decimal deferredSanctionAmount = progressSanctions.Sum(d => d.TotalAmount);         
+         decimal deferredSanctionDays = progressSanctions.Sum(d => d.Amount ?? 0.0m);
          bool chargeDeferredSanction = deferredSanctionAmount > 0m;
 
          var unpaidDates = chargeDeferredSanction ? [] :
@@ -329,6 +330,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             Purisima = 0.0m,
             SalaryAdvance = 0.0m,
             Sanction = 0.0m,
+            SanctionDays = 0,
             UniformDeduction = 0.0m
          };
 
@@ -350,8 +352,12 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
          decimal suspensionAmount = chargeDeferredSanction
              ? deferredSanctionAmount
              : periodEarnings.UnpaidAmount + sanctionsAlreadyCharged.Sum();
+         int sanctionDays = chargeDeferredSanction
+             ? (int)deferredSanctionDays
+             : periodEarnings.UnpaidDays;
 
          AdditionalDeducctions.Sanction = suspensionAmount;
+         AdditionalDeducctions.SanctionDays = sanctionDays;
 
          foreach (var deduction in deductionsActive)
          {

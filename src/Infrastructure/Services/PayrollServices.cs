@@ -266,6 +266,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .ToListAsync(default);
 
             decimal deferredSanctionAmount = progressSanctions.Sum(d => d.TotalAmount);
+            decimal deferredSanctionDays = progressSanctions.Sum(d => d.Amount ?? 0.0m);            
             bool chargeDeferredSanction = deferredSanctionAmount > 0m;
 
             // Si hay Progress, no reducir bruto otra vez (el Progress ya trae todos los días)
@@ -286,6 +287,9 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             decimal suspensionAmount = chargeDeferredSanction
                 ? deferredSanctionAmount
                 : periodEarnings.UnpaidAmount;
+            int sanctionDays = chargeDeferredSanction
+                ? (int)deferredSanctionDays
+                : periodEarnings.UnpaidDays;
 
             decimal GrossSalary = periodEarnings.GrossSalary;
             decimal TotalIncome = periodEarnings.TotalIncome;
@@ -339,6 +343,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 Purisima = 0.0m,
                 SalaryAdvance = 0.0m,
                 Sanction = suspensionAmount,
+                SanctionDays = sanctionDays,
                 UniformDeduction = 0.0m
             };
 
