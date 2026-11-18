@@ -206,6 +206,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     ordinaryPayroll.DeductionsAdditionalData) ?? new DeductionsAdditionalData();
 
                 deductions.Sanction = periodEarnings.UnpaidAmount;
+                deductions.SanctionDays = periodEarnings.UnpaidDays;
 
                 decimal totalDeductions = GetTotalDeductions(deductions);
                 ordinaryPayroll.TotalDeducctions = ordinaryPayroll.TotalLegalDeductions + totalDeductions;
