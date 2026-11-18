@@ -200,7 +200,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                 ordinaryPayroll.Inss = biweeklyInss;
                 ordinaryPayroll.Ir = biweeklyIr;
-                ordinaryPayroll.TotalLegalDeductions = biweeklyInss + biweeklyIr;                
+                ordinaryPayroll.TotalLegalDeductions = biweeklyInss + biweeklyIr;
 
                 var deductions = JsonSerializer.Deserialize<DeductionsAdditionalData>(
                     ordinaryPayroll.DeductionsAdditionalData) ?? new DeductionsAdditionalData();
