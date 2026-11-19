@@ -4,7 +4,7 @@ using ERP.Core.Application.Commons.Utils;
 
 namespace ERP.Core.Manager.Api.Application.Commons.Helpers
 {
-   public static class DisciplinaryEvidenceHelper
+   public static class EvidenceHelper
    {
       public static async Task<string> BuildEvidenceJsonAsync(
          IS3StorageService s3,

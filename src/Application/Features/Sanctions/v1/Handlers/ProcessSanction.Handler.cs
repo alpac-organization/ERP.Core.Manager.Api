@@ -120,12 +120,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
                   "ERP:InvalidOperation");
          }
 
-         var (suspensionResult, chargedPayrollId) = await ProcessSuspension(
+         var (isProcessed, payrollId, deductionId) = await ProcessSuspension(
             fault, sanction, request.PayrollId ?? Guid.Empty, cancellationToken);
 
-         if (!suspensionResult) return suspensionResult;
+         if (!isProcessed) return isProcessed;
 
-         if (chargedPayrollId != Guid.Empty) sanction.PayrollId = chargedPayrollId;
+         if (payrollId != Guid.Empty) sanction.PayrollId = payrollId;
+         if (deductionId != Guid.Empty) sanction.DeductionId = deductionId;
 
          sanction.SanctionStatus = SanctionStatus.Applied;
          sanction.ApprovedBy = request.UserId;
@@ -185,7 +186,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
          return true;
       }
 
-      private async Task<(bool, Guid)> ProcessSuspension(
+      private async Task<(bool IsApplied, Guid PayrollId, Guid DeductionId)> ProcessSuspension(
          DisciplinaryFault fault,
          DisciplinarySanction sanction,
          Guid payrollId,
@@ -193,7 +194,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
       {
          // Amonestación u otras sanciones: no impactan nómina
          if (sanction.SanctionType != SanctionType.Suspension)
-            return (true, Guid.Empty);
+            return (true, Guid.Empty, Guid.Empty);
 
          var collaborator = await _unitOfWork.Collaborators.Entities
             .Include(c => c.WorkingInformation)
@@ -206,7 +207,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
               "No se encontró al colaborador o su información laboral.",
               "ERP:NotFound");
 
-            return (false, Guid.Empty);
+            return (false, Guid.Empty, Guid.Empty);
          }
 
          if (!sanction.SuspensionEndDate.HasValue || !sanction.SuspensionStartDate.HasValue)
@@ -215,11 +216,13 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
               "La suspensión no tiene rango de fechas válido.",
               "ERP:InvalidOperation");
 
-            return (false, Guid.Empty);
+            return (false, Guid.Empty, Guid.Empty);
          }
 
-         var (isApplied, chargedPayrollId) = await _deductionsServices.ApplySanctionDeduction(
-            collaborator, sanction.SuspensionStartDate.Value, sanction.SuspensionEndDate.Value, payrollId);
+         var (isApplied, chargedPayrollId, deductionId) = await _deductionsServices.ApplySanctionDeduction(
+            collaborator,
+            sanction.SuspensionStartDate.Value,
+            sanction.SuspensionEndDate.Value, payrollId);
 
          if (!isApplied)
          {
@@ -227,10 +230,10 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
                "No se pudo aplicar la deducción por sanción. Verifique nómina activa, salario y registro en nómina ordinaria.",
                "ERP:01");
 
-            return (false, Guid.Empty);
+            return (false, Guid.Empty, Guid.Empty);
          }
 
-         return (true, chargedPayrollId);
+         return (true, chargedPayrollId, deductionId);
       }
    }
 }

@@ -120,7 +120,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Faults.v1.Handlers
                   "ERP:NOT_FOUND");
             }
 
-            var evidenceJson = await DisciplinaryEvidenceHelper.BuildEvidenceJsonAsync(
+            var evidenceJson = await EvidenceHelper.BuildEvidenceJsonAsync(
                _s3StorageService,
                fault.Evidences,
                "DisciplinaryFaults",

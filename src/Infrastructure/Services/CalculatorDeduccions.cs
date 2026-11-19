@@ -270,7 +270,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
              .Where(d => d.Type == DeductionType.Sanction)
              .ToListAsync(cancellationToken);
 
-         decimal deferredSanctionAmount = progressSanctions.Sum(d => d.TotalAmount);         
+         decimal deferredSanctionAmount = progressSanctions.Sum(d => d.TotalAmount);
          decimal deferredSanctionDays = progressSanctions.Sum(d => d.Amount ?? 0.0m);
          bool chargeDeferredSanction = deferredSanctionAmount > 0m;
 
@@ -392,6 +392,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                deduction.Status = DeductionStatus.Completed;
                await _unitOfWork.Deductions.UpdateAsync(deduction);
+
+               var linkedSanction = await _unitOfWork.DisciplinarySanctions.Entities
+                  .Where(ds => ds.DeductionId == deduction.Id && ds.DeletedAt == null)
+                  .FirstOrDefaultAsync(default);
+
+               if (linkedSanction is not null && linkedSanction.PayrollId is null)
+               {
+                  linkedSanction.PayrollId = payrollCreated.Id;
+                  await _unitOfWork.DisciplinarySanctions.UpdateAsync(linkedSanction);
+               }
 
                continue;
             }

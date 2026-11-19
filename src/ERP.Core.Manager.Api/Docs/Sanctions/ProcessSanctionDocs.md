@@ -92,15 +92,17 @@ Al aprobar una `Suspension` (rango 3–7 **días laborales** ya validado al regi
    - Se reduce el bruto / ingreso del periodo por los días de suspensión (base para INSS/IR).
    - `Sanction` en deducciones adicionales refleja el monto no pagado (desglose; no se vuelve a restar del neto).
    - Se registra la deducción en `Completed` con historial de pago.
-   - Se guarda `payroll_id` en la sanción (nómina donde se cobró).
+   - Se vinculan en la sanción el `DeductionId` (siempre) y el `PayrollId` de la nómina donde se cobró.
 4. **Si no cabe completo** (cruza quincenas, o la nómina enviada no contiene todo el rango; p. ej. quincena ya no aplica y el cobro va a la siguiente):
    - La sanción queda `Applied` disciplinariamente.
-   - Se registra la deducción en `Progress` por el monto total (días × diario).
-   - `payroll_id` de la sanción queda `null` hasta el cobro en una nómina posterior.
-   - Al calcular la **siguiente** nómina ordinaria: se cobra el monto diferido en `Sanction` (sí afecta el neto), INSS/IR sobre la base reducida, se cierra la deducción a `Completed` y se actualiza el acumulado de IR en coherencia con esa base.
+   - Se registra la deducción en `Progress` por el monto total (días × diario) y se guarda el `DeductionId` en la sanción.
+   - El `PayrollId` de la sanción queda `null` hasta el cobro en una nómina posterior.
+   - Al calcular la **siguiente** nómina ordinaria: se cobra el monto diferido en `Sanction` (sí afecta el neto), INSS/IR sobre la base reducida, se cierra la deducción a `Completed`, se setea el `PayrollId` de la sanción y se actualiza el acumulado de IR en coherencia con esa base.
 5. Al generar la nómina, los **viáticos** no se pagan en días de suspensión Applied (día no trabajado = sin viático). El viático se suma aparte al neto; no entra a la base salarial.
 
-Otros tipos de sanción (amonestación, etc.) **no** impactan nómina; no requieren `payroll_id`.
+Consulta del vínculo: el [detalle de sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/GetSanctionDetailsDocs.md) expone objetos `deduction` y `payroll` (no ids sueltos en la raíz). `deduction` aparece al aplicar; `payroll` solo cuando el cobro ya quedó en una nómina.
+
+Otros tipos de sanción (amonestación, etc.) **no** impactan nómina; no requieren `payroll_id` en el request ni generan `deduction`/`payroll` en el detalle.
 
 ### Cancelar / rechazar (`is_approved: false`)
 - Solo si la sanción está en `Pending`.

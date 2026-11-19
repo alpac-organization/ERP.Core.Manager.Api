@@ -37,7 +37,7 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
          CreateMap<DisciplinaryFault, FaultDetailDto>()
             .IncludeBase<DisciplinaryFault, FaultDto>()
             .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.Collaborator.IdentificationNumber))
-            .ForMember(dest => dest.Evidences, opt => opt.MapFrom(src => DisciplinaryEvidenceHelper.Deserialize(src.Evidence)))
+            .ForMember(dest => dest.Evidences, opt => opt.MapFrom(src => EvidenceHelper.Deserialize(src.Evidence)))
             .ForMember(dest => dest.ParentFault, opt => opt.MapFrom(src => src.ParentFault))
             .ForMember(dest => dest.RegisteredBy, opt => opt.MapFrom(src => src.User));
       }

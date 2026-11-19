@@ -32,6 +32,8 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
                .ThenInclude(f => f.Collaborator)
             .Include(s => s.Fault)
                .ThenInclude(f => f.FaultCatalog)
+            .Include(s => s.Payroll)
+            .Include(s => s.Deduction)
             .Include(s => s.User)
             .Include(s => s.ApprovedByUser)
             .FirstOrDefaultAsync(s =>
