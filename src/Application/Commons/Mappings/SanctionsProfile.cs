@@ -18,15 +18,25 @@ namespace ERP.Core.Manager.Api.Application.Commons.Mappings
             .ForMember(dest => dest.CollaboratorName, opt => opt.MapFrom(src =>
                ManagerUtils.FromSliceToCollaboratorFullname(src.Fault.Collaborator)));
 
+         CreateMap<Payroll, SanctionPayrollReferenceDto>()
+            .ForMember(dest => dest.PayrollId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.PayrollType));
+
+         CreateMap<Deduction, SanctionDeductionReferenceDto>()
+            .ForMember(dest => dest.DeductionId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.SanctionDays, opt => opt.MapFrom(src => decimal.ToInt32(src.Amount ?? 0)));
+
          CreateMap<DisciplinarySanction, SanctionDetailDto>()
             .IncludeBase<DisciplinarySanction, SanctionDto>()
             .ForMember(dest => dest.IdentificationNumber, opt => opt.MapFrom(src => src.Fault.Collaborator.IdentificationNumber))
             .ForMember(dest => dest.FaultCatalog, opt => opt.MapFrom(src => src.Fault.FaultCatalog))
             .ForMember(dest => dest.OccurrenceDate, opt => opt.MapFrom(src => src.Fault.OccurrenceDate))
             .ForMember(dest => dest.FaultSeverity, opt => opt.MapFrom(src => src.Fault.Severity))
-            .ForMember(dest => dest.Evidences, opt => opt.MapFrom(src => DisciplinaryEvidenceHelper.Deserialize(src.Evidence)))
+            .ForMember(dest => dest.Evidences, opt => opt.MapFrom(src => EvidenceHelper.Deserialize(src.Evidence)))
             .ForMember(dest => dest.IssuedByUser, opt => opt.MapFrom(src => src.User))
-            .ForMember(dest => dest.ApprovedByUser, opt => opt.MapFrom(src => src.ApprovedByUser));
+            .ForMember(dest => dest.ApprovedByUser, opt => opt.MapFrom(src => src.ApprovedByUser))
+            .ForMember(dest => dest.Payroll, opt => opt.MapFrom(src => src.Payroll))
+            .ForMember(dest => dest.Deduction, opt => opt.MapFrom(src => src.Deduction));
       }
    }
 

@@ -266,7 +266,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 .ToListAsync(default);
 
             decimal deferredSanctionAmount = progressSanctions.Sum(d => d.TotalAmount);
-            decimal deferredSanctionDays = progressSanctions.Sum(d => d.Amount ?? 0.0m);            
+            decimal deferredSanctionDays = progressSanctions.Sum(d => d.Amount ?? 0.0m);
             bool chargeDeferredSanction = deferredSanctionAmount > 0m;
 
             // Si hay Progress, no reducir bruto otra vez (el Progress ya trae todos los días)
@@ -387,6 +387,16 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
                     deduction.Status = DeductionStatus.Completed;
                     await _unitOfWork.Deductions.UpdateAsync(deduction);
+
+                    var linkedSanction = await _unitOfWork.DisciplinarySanctions.Entities
+                        .Where(ds => ds.DeductionId == deduction.Id && ds.DeletedAt == null)
+                        .FirstOrDefaultAsync(default);
+
+                    if (linkedSanction is not null && linkedSanction.PayrollId is null)
+                    {
+                        linkedSanction.PayrollId = payroll.Id;
+                        await _unitOfWork.DisciplinarySanctions.UpdateAsync(linkedSanction);
+                    }
 
                     continue;
                 }

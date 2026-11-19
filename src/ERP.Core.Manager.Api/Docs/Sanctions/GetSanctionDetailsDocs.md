@@ -56,7 +56,8 @@ Retorna un `SanctionDetailDto`.
   "reason": "Segunda falta leve en el mes",
   "suspension_start_date": null,
   "suspension_end_date": null,
-  "payroll_id": null,
+  "payroll": null,
+  "deduction": null,
   "issued_by": "11111111-1111-1111-1111-111111111111",
   "issued_by_user": {
     "user_id": "11111111-1111-1111-1111-111111111111",
@@ -84,6 +85,52 @@ Retorna un `SanctionDetailDto`.
 }
 ```
 
+Ejemplo de suspensión **Applied** con cobro ya aplicado (inmediato o diferido cerrado):
+
+```json
+{
+  "sanction_type": "Suspension",
+  "sanction_status": "Applied",
+  "suspension_start_date": "2026-11-20",
+  "suspension_end_date": "2026-11-24",
+  "payroll": {
+    "payroll_id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+    "start_date": "2026-11-16",
+    "end_date": "2026-11-30",
+    "type": "Ordinary",
+    "status": "Progress"
+  },
+  "deduction": {
+    "deduction_id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+    "type": "Sanction",
+    "status": "Completed",
+    "currency": "NIO",
+    "sanction_days": 4,
+    "total_amount": 1200.00,
+    "total_amount_in_dollars": 32.70
+  }
+}
+```
+
+Ejemplo de suspensión **Applied** con cobro diferido pendiente:
+
+```json
+{
+  "sanction_type": "Suspension",
+  "sanction_status": "Applied",
+  "payroll": null,
+  "deduction": {
+    "deduction_id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+    "type": "Sanction",
+    "status": "Progress",
+    "currency": "NIO",
+    "sanction_days": 4,
+    "total_amount": 1200.00,
+    "total_amount_in_dollars": 32.70
+  }
+}
+```
+
 ### Descripción de Campos
 
 #### Nivel raíz
@@ -104,7 +151,8 @@ Retorna un `SanctionDetailDto`.
 | `reason` | `string` | Motivo de la propuesta. |
 | `suspension_start_date` | `date \| null` | Inicio de suspensión. |
 | `suspension_end_date` | `date \| null` | Fin de suspensión. |
-| `payroll_id` | `guid \| null` | Nómina ordinaria donde se **cobró** de inmediato la suspensión (rango cabe en el periodo al aprobar). `null` si el cobro quedó diferido (`Progress`, p. ej. siguiente quincena), aún no se cobró, o el tipo no es suspensión. |
+| `payroll` | `object \| null` | Nómina donde se **cobró** la suspensión (`SanctionPayrollReferenceDto`). `null` si aún no se cobró (diferido `Progress`), no aplica, o el tipo no es suspensión. |
+| `deduction` | `object \| null` | Deducción vinculada a la suspensión (`SanctionDeductionReferenceDto`). Se crea al aplicar; `null` si el tipo no impacta nómina o aún no hay vínculo. |
 | `issued_by` | `guid` | Usuario que registró/propuso la sanción. |
 | `issued_by_user` | `object \| null` | Detalle del proponente (`DisciplinaryInformationUserDto`). |
 | `approved_by` | `guid \| null` | Usuario RRHH que aplicó (null si aún `Pending` o cancelada sin aplicar). |
@@ -121,6 +169,28 @@ Retorna un `SanctionDetailDto`.
 | `fault_catalog_id` | `guid` | Identificador del catálogo. |
 | `code` | `string` | Código del tipo de falta. |
 | `name` | `string` | Nombre del tipo de falta. |
+
+#### `payroll` (`SanctionPayrollReferenceDto`)
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `payroll_id` | `guid` | Identificador de la nómina donde se cobró. |
+| `start_date` | `date` | Inicio del periodo. |
+| `end_date` | `date` | Fin del periodo. |
+| `type` | `string` | Tipo de nómina (texto enum, p. ej. `Ordinary`). |
+| `status` | `string` | Estado de la nómina (texto enum, p. ej. `Progress`, `Closed`). |
+
+#### `deduction` (`SanctionDeductionReferenceDto`)
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `deduction_id` | `guid` | Identificador de la deducción. |
+| `type` | `string` | Tipo (`Sanction` para suspensiones). |
+| `status` | `string` | `Completed` si ya cobró; `Progress` si el cobro está diferido. |
+| `currency` | `string` | Moneda (p. ej. `NIO`). |
+| `sanction_days` | `int \| null` | Días laborales no pagados (desde `Amount` de la deducción). |
+| `total_amount` | `decimal` | Monto total en moneda local. |
+| `total_amount_in_dollars` | `decimal` | Monto total en dólares. |
 
 #### `evidences[]`
 
@@ -144,7 +214,7 @@ Retorna un `SanctionDetailDto`.
 ## Notas
 
 - Flujo de suspensión y nómina: ver [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).
-- Si `sanction_type` es `Suspension`, `sanction_status` es `Applied` y `payroll_id` es `null`, el descuento quedó en deducción `Progress` y se cobra al calcular la siguiente nómina ordinaria (monto total, base INSS/IR alineada). Detalle: [Procesar sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/ProcessSanctionDocs.md).
+- Si `sanction_type` es `Suspension`, `sanction_status` es `Applied`, `deduction.status` es `Progress` y `payroll` es `null`, el cobro quedó diferido y se aplica al calcular la siguiente nómina ordinaria. Cuando se cobra, `deduction.status` pasa a `Completed` y se llena `payroll`.
 
 ### ❌ 400 Bad Request
 

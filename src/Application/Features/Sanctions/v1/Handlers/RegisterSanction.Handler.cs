@@ -101,7 +101,7 @@ namespace ERP.Core.Manager.Api.Application.Features.Sanctions.v1.Handlers
 
          _logger.LogInformation("🚩Iniciando registro de sanción disciplinaria para falta {FaultId}", request.FaultId);
 
-         var evidenceJson = await DisciplinaryEvidenceHelper.BuildEvidenceJsonAsync(
+         var evidenceJson = await EvidenceHelper.BuildEvidenceJsonAsync(
             _s3StorageService,
             request.Evidences,
             "DisciplinarySanctions",

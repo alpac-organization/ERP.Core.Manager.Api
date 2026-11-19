@@ -69,7 +69,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
         }
 
         #region Gestion de Sancion
-        public async Task<(bool, Guid)> ApplySanctionDeduction(
+        public async Task<(bool IsApplied, Guid PayrollId, Guid DeductionId)> ApplySanctionDeduction(
             Collaborator collaborator,
             DateOnly suspensionStartDate,
             DateOnly suspensionEndDate,
@@ -89,7 +89,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     "Nómina {PayrollId} no válida para sanción del colaborador {Identification}",
                     payrollId, collaborator.IdentificationNumber);
 
-                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                return _errorManager.ThrowBadRequest<(bool, Guid, Guid)>(
                     "La nómina no existe, no está en progreso, no es ordinaria o no pertenece a la sucursal del colaborador.",
                     "ERP:PeriodNotExist");
             }
@@ -99,7 +99,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
 
             if (totalSuspensionDays is < 3 or > 7)
             {
-                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                return _errorManager.ThrowBadRequest<(bool, Guid, Guid)>(
                     "La suspensión debe durar entre 3 y 7 días laborales.",
                     "ERP:InvalidOperation");
             }
@@ -116,7 +116,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     "No se pudo obtener la información salarial del colaborador con cedula: {identification}",
                     collaborator.IdentificationNumber);
 
-                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                return _errorManager.ThrowBadRequest<(bool, Guid, Guid)>(
                     $"No se encontró un salario fijo activo para el colaborador con cédula {collaborator.IdentificationNumber}.",
                     "ERP:01");
             }
@@ -131,7 +131,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
             {
                 _logger.LogWarning("No se encontró un tipo de cambio activo en la configuración.");
 
-                return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                return _errorManager.ThrowBadRequest<(bool, Guid, Guid)>(
                     "No se encontró un tipo de cambio activo en la configuración.",
                     "ERP:01");
             }
@@ -157,7 +157,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                         "No se encontro registro de nomina de este colaborador => {identificacion}",
                         collaborator.IdentificationNumber);
 
-                    return _errorManager.ThrowBadRequest<(bool, Guid)>(
+                    return _errorManager.ThrowBadRequest<(bool, Guid, Guid)>(
                         $"No hay registro de nómina ordinaria para el colaborador {collaborator.IdentificationNumber} en el periodo indicado.",
                         "ERP:01");
                 }
@@ -218,7 +218,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 ordinaryPayroll.DeductionsAdditionalData = JsonSerializer.Serialize(deductions);
                 await _unitOfWork.OrdinaryPayrolls.UpdateAsync(ordinaryPayroll);
 
-                var deduction = await _unitOfWork.Deductions.RegisterDeduction(new()
+                var paidDeduction = await _unitOfWork.Deductions.RegisterDeduction(new()
                 {
                     Id = Guid.NewGuid(),
                     CollaboratorId = collaborator.Id,
@@ -236,19 +236,19 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                     Currency = Currency.NIO,
                     Status = DeductionPaymentStatus.Paid,
                     Origin = SourceDeductionPayment.Payroll,
-                    DeductionId = deduction.Id,
+                    DeductionId = paidDeduction.Id,
                     PayrollId = payrollActive.Id,
                     AmountPaid = periodEarnings.UnpaidAmount,
                     AmountPaidInDollars = periodEarnings.UnpaidAmount / exchangeRate,
                     PaymentDate = DateTime.Now
                 });
 
-                return (true, payrollActive.Id);
+                return (true, payrollActive.Id, paidDeduction.Id);
             }
 
             decimal amountToDeduct = dailySalary * totalSuspensionDays;
 
-            await _unitOfWork.Deductions.RegisterDeduction(new()
+            var deductionInProgress = await _unitOfWork.Deductions.RegisterDeduction(new()
             {
                 Id = Guid.NewGuid(),
                 CollaboratorId = collaborator.Id,
@@ -265,7 +265,7 @@ namespace ERP.Core.Manager.Api.Infrastructure.Services
                 "Sanción registrada pendiente. Colaborador: {identification}, Días: {days}, Monto: {amount}",
                 collaborator.IdentificationNumber, totalSuspensionDays, amountToDeduct);
 
-            return (true, Guid.Empty);
+            return (true, Guid.Empty, deductionInProgress.Id);
         }
         #endregion        
 

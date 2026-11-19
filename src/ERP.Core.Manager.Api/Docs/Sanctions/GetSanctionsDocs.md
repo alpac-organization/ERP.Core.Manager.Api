@@ -99,7 +99,7 @@ Retorna un `PagedResponse<SanctionDto>`.
 | `suspension_end_date` | `date \| null` | Fin de suspensión (solo si aplica). |
 | `created_at` | `datetime (ISO 8601)` | Fecha/hora de registro. |
 
-> ℹ️ El listado **no** expone `payroll_id`. Para saber en qué nómina se cobró (o si sigue diferida), usar [Detalle de sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/GetSanctionDetailsDocs.md).
+> ℹ️ El listado **no** expone `payroll` ni `deduction`. Para ver en qué nómina se cobró (o si la deducción sigue en `Progress`), usar [Detalle de sanción](/src/ERP.Core.Manager.Api/Docs/Sanctions/GetSanctionDetailsDocs.md).
 
 #### Catálogo de Enums
 
