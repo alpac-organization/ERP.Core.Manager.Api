@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 
 using ERP.Core.Application.Commons.Interfaces;
+using ERP.Core.Database.Domain.Enums;
 using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Dtos;
 using ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Queries
 ;
@@ -17,9 +18,23 @@ namespace ERP.Core.Manager.Api.Application.Features.WorkAreas.v1.Handlers
         {
             _logger.LogInformation("🚩Obteniendos areas de trabajos");
 
-            var workAreas = await _unitOfWork.WorkAreas.Entities
+            var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
+            if (!access.IsSuccess) return access.ErrorResponse!;
+
+            var isAdministrator = access.Role?.RoleType == RoleType.Administrator;
+
+            var workAreasQuery = _unitOfWork.WorkAreas.Entities
                 .Where(wk => wk.IsActive)
-                .Where(wk => wk.CompanyId == request.CompanyId)
+                .Where(wk => wk.CompanyId == request.CompanyId);
+
+            if (!isAdministrator)
+            {
+                var branchId = access.Profile.BranchId;
+                workAreasQuery = workAreasQuery
+                    .Where(wk => wk.CostCenters.Any(cc => cc.BranchId == branchId && cc.IsActive));
+            }
+
+            var workAreas = await workAreasQuery
                 .OrderByDescending(wk => wk.CreatedAt)
                 .ToListAsync(cancellationToken);
             
