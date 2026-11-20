@@ -18,83 +18,83 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
     [Route("api/v1/")]
     public class CollaboratorsController(IMediator _mediator) : ApiControllerBase
     {
-        [Tags("Colaboradores")] 
-        [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators")]      
+        [Tags("Colaboradores")]
+        [HttpPost("companies/{companie_id}/modules/{module_code}/collaborators")]
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RegisterCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromBody] RegisterCollaboratorCommand payload)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
-            payload.UserId      = Guid.Parse(userIdStr ?? "");
-            payload.ModuleCode  = module_code;
-            payload.CompanyId   = companie_id;
+            payload.UserId = Guid.Parse(userIdStr ?? "");
+            payload.ModuleCode = module_code;
+            payload.CompanyId = companie_id;
 
             await _mediator.Send(payload);
 
             return Created();
         }
 
-        [Tags("Colaboradores")] 
+        [Tags("Colaboradores")]
         [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators")]
         [ProducesResponseType(typeof(PagedResponse<CollaboratorDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<PagedResponse<CollaboratorDto>> GetCollaboratorsAvailableAsync(
-            [FromRoute] Guid companie_id, 
-            [FromRoute] string module_code, 
-            [FromQuery] Guid? area_id                 = null,
-            [FromQuery] Guid? branch_id               = null,
-            [FromQuery] CollaboratorStatus? status    = null,
+            [FromRoute] Guid companie_id,
+            [FromRoute] string module_code,
+            [FromQuery] Guid? area_id = null,
+            [FromQuery] Guid? branch_id = null,
+            [FromQuery] CollaboratorStatus? status = null,
             [FromQuery] string? identification_number = null,
-            [FromQuery] int page_size   = 10,
+            [FromQuery] int page_size = 10,
             [FromQuery] int page_number = 1
-        )   
+        )
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
-            
+
             var collaborators = await _mediator.Send(new GetCollaboratorsAvailableQuery()
             {
-                Status      = status,
-                AreaId      = area_id,
-                BranchId    = branch_id, 
-                CompanyId   = companie_id,
-                ModuleCode  = module_code,
-                PageSize    = page_size,
-                PageNumber  = page_number,
-                UserId      = Guid.Parse(userIdStr ?? ""),
+                Status = status,
+                AreaId = area_id,
+                BranchId = branch_id,
+                CompanyId = companie_id,
+                ModuleCode = module_code,
+                PageSize = page_size,
+                PageNumber = page_number,
+                UserId = Guid.Parse(userIdStr ?? ""),
                 IdentificationNumber = identification_number
             });
 
             return collaborators;
         }
 
-        [Tags("Colaboradores")] 
-        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details")]      
+        [Tags("Colaboradores")]
+        [HttpGet("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details")]
         [ProducesResponseType(typeof(CollaboratorDetailsDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<CollaboratorDetailsDto> GetCollaboratorDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)   
+        public async Task<CollaboratorDetailsDto> GetCollaboratorDetailsAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
         {
             var userIdStr = HttpContext.Items["UserId"] as string;
 
             var collaborator = await _mediator.Send(new GetCollaboratorDetailsQuery()
             {
-                CompanyId  = companie_id,
+                CompanyId = companie_id,
                 ModuleCode = module_code,
-                UserId     = Guid.Parse(userIdStr ?? ""),
+                UserId = Guid.Parse(userIdStr ?? ""),
                 IdentificationNumber = identification_number,
             });
 
             return collaborator;
         }
 
-        [Tags("Colaboradores")] 
+        [Tags("Colaboradores")]
         [HttpPatch("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}/details")]
         [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateCollaboratoInformationAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number,
             [FromBody] UpdateCollaboratorInformationCommand Payload
         )
@@ -111,18 +111,18 @@ namespace ERP.Core.Manager.Api.Controllers.Payroll
             return Ok();
         }
 
-        [Tags("Colaboradores")] 
-        [HttpDelete("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}")]
-        [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
-        public async Task<NoContentResult> DeactivateCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
-        {
-            var userIdStr = HttpContext.Items["UserId"] as string;
+        /*         [Tags("Colaboradores")] 
+                [HttpDelete("companies/{companie_id}/modules/{module_code}/collaborators/{identification_number}")]
+                [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status200OK)]
+                [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]  
+                [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]  
+                public async Task<NoContentResult> DeactivateCollaboratorAsync([FromRoute] Guid companie_id, [FromRoute] string module_code, [FromRoute] string identification_number)
+                {
+                    var userIdStr = HttpContext.Items["UserId"] as string;
 
-            //Desactivado por el momento
+                    //Desactivado por el momento
 
-            return NoContent();
-        }
+                    return NoContent();
+                } */
     }
 }

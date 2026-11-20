@@ -10,11 +10,11 @@ using ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Commands;
 
 namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
 {
-    public class DeactivateCollaboratorHandler(IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<DeactivateCollaboratorHandler> _logger): BaseValidatorHandler<DeactivateCollaboratorCommand, bool>(_unitOfWork, _errorManager)
+    public class DeactivateCollaboratorHandler // (IUnitOfWork _unitOfWork, IErrorManager _errorManager, ILogger<DeactivateCollaboratorHandler> _logger) : BaseValidatorHandler<DeactivateCollaboratorCommand, bool>(_unitOfWork, _errorManager)
     {
-        public override async Task<bool> Handle(DeactivateCollaboratorCommand request, CancellationToken cancellationToken)
+        /* public override async Task<bool> Handle(DeactivateCollaboratorCommand request, CancellationToken cancellationToken)
         {
-            
+
             var access = await ValidateAccessAsync(request.UserId, request.CompanyId, request.ModuleCode!, cancellationToken);
 
             if (!access.IsSuccess) 
@@ -104,6 +104,6 @@ namespace ERP.Core.Manager.Api.Application.Features.Collaborators.v1.Handlers
             _logger.LogInformation("✅Colaborador dado de baja con exito del sistema");
 
             return true;
-        }
+        } */
     }
 }
