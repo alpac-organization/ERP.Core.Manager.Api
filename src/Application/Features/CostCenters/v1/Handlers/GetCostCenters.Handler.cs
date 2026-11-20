@@ -22,8 +22,6 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
                 return access.ErrorResponse!;
             }
 
-            var isAdministrator = access.Role?.RoleType == RoleType.Administrator;
-
             var costCentersQuery = _unitOfWork.CostCenters.Entities
                 .AsNoTracking()
                 .Where(cost => cost.IsActive)
@@ -31,19 +29,12 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
                 .Where(cost => cost.WorkArea.IsActive);
 
             // ---------- Sucursal ----------
-            if (isAdministrator)
-            {
-                if (request.BranchId.HasValue)
-                {
-                    costCentersQuery = costCentersQuery
-                        .Where(cost => cost.BranchId == request.BranchId.Value);
-                }
-            }
-            else
-            {
-                costCentersQuery = costCentersQuery
-                    .Where(cost => cost.BranchId == access.Profile.BranchId);
-            }
+            // Solo centros de costo asociados a una sucursal (navegacion por branch)
+            costCentersQuery = costCentersQuery
+                .Where(cost => cost.BranchId != null);
+
+            costCentersQuery = costCentersQuery
+                .Where(cost => cost.BranchId == request.BranchId!.Value);
 
             // ---------- Operacional (disponible para administrador y manager) ----------
             if (request.OnlyOperational.HasValue)
