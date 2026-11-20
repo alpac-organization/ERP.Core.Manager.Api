@@ -22,6 +22,8 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
                 return access.ErrorResponse!;
             }
 
+            var isAdministrator = access.Role?.RoleType == RoleType.Administrator;
+
             var costCentersQuery = _unitOfWork.CostCenters.Entities
                 .AsNoTracking()
                 .Where(cost => cost.IsActive)
@@ -33,8 +35,16 @@ namespace ERP.Core.Manager.Api.Application.Features.CostCenters.v1.Handlers
             costCentersQuery = costCentersQuery
                 .Where(cost => cost.BranchId != null);
 
-            costCentersQuery = costCentersQuery
-                .Where(cost => cost.BranchId == request.BranchId!.Value);
+            if (!isAdministrator)
+            {
+                costCentersQuery = costCentersQuery
+                    .Where(cost => cost.BranchId == access.Profile.BranchId);
+            }
+            else if (request.BranchId.HasValue)
+            {
+                costCentersQuery = costCentersQuery
+                    .Where(cost => cost.BranchId == request.BranchId.Value);
+            }
 
             // ---------- Operacional (disponible para administrador y manager) ----------
             if (request.OnlyOperational.HasValue)
